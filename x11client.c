@@ -34,59 +34,59 @@
 
 #include "xtrace.h"
 
-int connectToServer(const char *displayname,int family,const char *hostname,int display) {
-	const char *msg;
-	int fd;
+int connectToServer(const char *displayname, int family, const char *hostname, int display) {
+    const char *msg;
+    int fd;
 
-	fd = socket(family,SOCK_STREAM,0);
-	if( fd < 0 )  {
-		int e = errno;
-		fprintf(stderr,"Error opening socket for '%s': %d=%s\n",displayname,e,strerror(e));
-		return fd;
-	}
-	if( family == AF_INET ) {
-		struct sockaddr_in addr;
-		struct addrinfo hints;
-		struct addrinfo *res;
-		int tmp=1;
-		int r;
+    fd = socket(family,SOCK_STREAM,0);
+    if( fd < 0 )  {
+        int e = errno;
+        fprintf(stderr,"Error opening socket for '%s': %d=%s\n",displayname,e,strerror(e));
+        return fd;
+    }
+    if( family == AF_INET ) {
+        struct sockaddr_in addr;
+        struct addrinfo hints;
+        struct addrinfo *res;
+        int tmp=1;
+        int r;
 
-		memset(&hints,0,sizeof(struct addrinfo));
-		hints.ai_family = family;
-		hints.ai_socktype = SOCK_STREAM;
-		r = getaddrinfo(hostname, NULL, &hints, &res);
-		if( r != 0 ) {
-			close(fd);
-			fprintf(stderr,"Error resolving hostname '%s' taken from '%s'\nError was: %s\n",hostname,displayname,gai_strerror(r));
-			return -1;
-		}
-		assert( res->ai_addrlen == sizeof(addr));
-		memcpy(&addr,res->ai_addr,sizeof(addr));
-		freeaddrinfo(res);
-		addr.sin_port = calculateTCPport(display);
-		setsockopt(fd,SOL_SOCKET,SO_KEEPALIVE,(char *)&tmp,sizeof(tmp));
-		if( connect(fd,(struct sockaddr*)&addr,sizeof(addr)) < 0 ) {
-			int e = errno;
-			close(fd);
-			fprintf(stderr,"Error connecting to '%s' (resolved to '%s') for '%s': %d=%s\n",hostname,inet_ntoa(addr.sin_addr),displayname,e,strerror(e));
-			return -1;
-		}
-	} else {
-		struct sockaddr_un addr;
+        memset(&hints,0,sizeof(struct addrinfo));
+        hints.ai_family = family;
+        hints.ai_socktype = SOCK_STREAM;
+        r = getaddrinfo(hostname, NULL, &hints, &res);
+        if( r != 0 ) {
+            close(fd);
+            fprintf(stderr,"Error resolving hostname '%s' taken from '%s'\nError was: %s\n",hostname,displayname,gai_strerror(r));
+            return -1;
+        }
+        assert( res->ai_addrlen == sizeof(addr));
+        memcpy(&addr,res->ai_addr,sizeof(addr));
+        freeaddrinfo(res);
+        addr.sin_port = calculateTCPport(display);
+        setsockopt(fd,SOL_SOCKET,SO_KEEPALIVE,(char *)&tmp,sizeof(tmp));
+        if( connect(fd,(struct sockaddr*)&addr,sizeof(addr)) < 0 ) {
+            int e = errno;
+            close(fd);
+            fprintf(stderr,"Error connecting to '%s' (resolved to '%s') for '%s': %d=%s\n",hostname,inet_ntoa(addr.sin_addr),displayname,e,strerror(e));
+            return -1;
+        }
+    } else {
+        struct sockaddr_un addr;
 
-		msg = generateSocketName(&addr,display);
-		if( msg != NULL )  {
-			close(fd);
-			fprintf(stderr,"Error calculating socket name for '%s': %s\n",displayname,msg);
-			return -1;
-		}
+        msg = generateSocketName(&addr,display);
+        if( msg != NULL )  {
+            close(fd);
+            fprintf(stderr,"Error calculating socket name for '%s': %s\n",displayname,msg);
+            return -1;
+        }
 
-		if( connect(fd,(struct sockaddr*)&addr,sizeof(addr)) < 0 ) {
-			int e = errno;
-			close(fd);
-			fprintf(stderr,"Error connecting to unix socket '%s' for '%s': %d=%s\n",addr.sun_path,displayname,e,strerror(e));
-			return -1;
-		}
-	}
-	return fd;
+        if( connect(fd,(struct sockaddr*)&addr,sizeof(addr)) < 0 ) {
+            int e = errno;
+            close(fd);
+            fprintf(stderr,"Error connecting to unix socket '%s' for '%s': %d=%s\n",addr.sun_path,displayname,e,strerror(e));
+            return -1;
+        }
+    }
+    return fd;
 }
