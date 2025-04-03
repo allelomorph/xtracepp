@@ -1,0 +1,78 @@
+new after 1.3.1:
+- also remember atoms seen by GetAtomName
+- partial improvements to xkb, xinput, fontprops, XI2 touch
+- support more glx requests
+- new extensions: DRI3, Present, 0.10 of render, 1.5 of xrandr
+- Change socket read/write to recvmsg/sendmsg for DRI3 support
+new after 1.3.0:
+- fix query extension parsing
+new after 1.2.0:
+- support XFree86-DGA
+- fix --timestamp description in manpage
+new after 1.1.0:
+- support XVideo, Composite, SYNC
+- bugfixes (GetWindowAttributes on big endian)
+- improved GLX support
+new after 1.0.2:
+- bugfixes
+- support Generic Events (XGE)
+- support XInputExtension 1.5, and partially XInputExtension 2.0
+- support DRI2
+new after 1.0.1:
+- bugfixes (SelectionNotify, NoOperation, initial server response)
+- show more details of the initial X server response
+new after 1.0.0:
+- bugfixes (RenderTrapezoids and server errors)
+new after 1.0.0~alpha1:
+- fix bug in when to terminate when run with a command
+new after 0.11.0:
+- add parser so that protocol descriptions are no longer compiled in but
+  read from text files in a language for the virtual parsing machine of
+  previous versions.
+- partial support for GLX extension
+- bugfix in BE32 and hex/non-hex fixes in different places
+new after 0.10.1:
+- bugfix: correct field length in GetAtomName, added missing field in
+	  RRGetOutputInfo reply.
+- output FIXED values as fixed point numbers instead of multiples of 1/65536
+- RANDR 1.3 support
+- bugfix: set the address family when listening on a tcp socket
+- new --timestamps and --relative-timestamps options
+- XInputExtension support
+new after 0.10.0:
+- bugfix: correct field offsets in ConfigureWindow,
+	  RandrDeleteOutputProperty and XF86BigfontQueryVersion.
+new after 0.9.1:
+- XFIXES, DAMAGE, DPMS and MIT-SCREEN-SAVER extension support
+- start program given at command line
+new after 0.9.0:
+- bugfix in new RANDR rules
+new after 0.8.1:
+- RANDR 1.2 support
+- XINERAMA extension supported
+new after 0.8:
+- minor beautifiers
+new after 0.7:
+- XFree86-Bigfont extension added
+- several cleanups and beautifiers
+new after 0.6:
+- --outfile and --buffered options
+new after 0.5:
+- pretty print ListFonts, SetFontPath, GetFontPath and ListExtensions
+- compiles on Solaris now
+- support for XFree86-VidModeExtension (used by xvidtune and sdl)
+new after 0.4:
+- fix ATOMs for big-endian (by making them 32bit properly)
+- pretty print for ATOMs and some properties of format STRING.
+new after 0.3:
+- RANDR extension supported
+new after 0.2.1:
+- added --interactive
+- RENDER extension supported
+new from 0.2 to 0.2.1:
+- --keeprunning should work now
+- better extension support for multiple clients
+new from 0.1 to 0.2:
+- some cleanup
+- SHAPE extension supported (and some little framework for extensions)
+- added --help option

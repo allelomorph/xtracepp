@@ -1,0 +1,164 @@
+.TH XTRACE 1 "26 June 2009" "xtrace" XTRACE
+.SH NAME
+xtrace \- trace communication between X11 client and server
+.SH SYNOPSIS
+.BR xtrace " [ " \fIoptions\fP " ] [ " \-s " | " \-k " ] [ [ " \-W " ] [ " -- " ] " "\fIcommand args ...\fP" " ]"
+.SH DESCRIPTION
+Xtrace fakes an X server and forwards all connections to
+a real X server, displaying the communication between clients
+in (well, theoretically) human readable form.
+If a command is given,
+.B xtrace
+executes the named command with
+.B $DISPLAY
+set to the faked X server. If that command exits before any connections
+are made,
+.B xtrace
+exits immediately unless
+.B \-W
+is specified.
+.SH OPTIONS
+.TP
+.B \-I \fIdirectory\fP
+Look into \fIdirectory\fP for protocol description files.
+(i.e. the directory where the \fB.proto\fP files can be found).
+.TP
+.B \-s \fR|\fP \-\-stopwhendone \fR(default)\fP
+Terminate when all forwarded clients have disconnected.
+(Or when a program was run once the program has finished
+and all connections are closed).
+.TP
+.B \-k \fR|\fP \-\-keeprunning
+If all clients disconnected, wait for new ones to connect.
+.TP
+.B \-W \fR|\fP \-\-waitforclient
+Do not stop when the started program terminates before any connection
+was made.
+(Might be necessary if the program forks to background).
+.TP
+.B \-d \fIname\fP \fR|\fP \-\-display \fIname\fP
+Forward connections to the X server specified by \fIname\fP
+instead of the one specified by the environment variable
+\fBDISPLAY\fP.
+.TP
+.B \-D \fIname\fP \fR|\fP \-\-fakedisplay \fIname\fP
+Fake display \fIname\fP instead of \fB$FAKEDISPLAY\fP
+or \fB:9\fP respectively.
+.TP
+.B \-f \fIfilename\fP \fR|\fP \-\-authfile \fIfilename\fP
+Add an \fB-f\fP \fIfilename\fP to the arguments for all
+calls to xauth to get the authentication tokens of the
+X server to connect to.
+.TP
+.B \-F \fIfilename\fP \fR|\fP \-\-newauthfile \fIfilename\fP
+Add an \fB-f\fP \fIfilename\fP to the arguments for all
+calls to xauth to save the authentication tokens to
+connect to the faked X server.
+.TP
+.B \-c \fR|\fP \-\-copyauthentication \fR(default)\fP
+Copy the authentication tokens for the X server to connect
+to so that clients connecting to our fake server will use
+them.
+
+The commands run are roughly equivalent to:
+\fBxauth add $FAKEDISPLAY . `xauth list $DISPLAY | awk '$2=="MIT-MAGIC-COOKIE-1" {print $3}'`\fP
+
+Not that only \fBMIT-MAGIC-COOKIE-1\fP tokens are copied as xtrace does not yet
+support to change the authentication tokens so that \fBXDM-AUTHORIZATION-1\fP
+would be possible.
+.TP
+.B \-n \fR|\fP \-\-nocopyauthentication
+Do not call \fBxauth\fP and do fiddle with authentication tokens but
+leave that to the user to handle.
+.TP
+.B \-e \fR|\fP \-\-denyextensions
+Modify all server replies to say there are no extensions available.
+(As xtrace does supports only a small number of extensions
+anyway and calls all extended requests "unknown" and all replies to such
+requests "unexpected").
+.TP
+.B \-w \fR|\fP \-\-readwritedebug
+Print how many bytes are read and/or written when.
+.TP
+.B \-m \fIcount\fP \fR|\fP \-\-maxklistlength \fIcount\fP
+Print only the first \fIcount\fP many elements of all lists.
+.TP
+.B \-i \fR|\fP \-\-interactive
+Only sent requests from the client to the server after
+interactive confirmation.
+Confirmation is given by pressing enter or a number
+followed by enter via stdin.
+This can give funny results when multiple clients are
+tunneled.
+.TP
+.B \-o \fR|\fP \-\-outfile \fIfilename\fP
+Dump output into \fIfilename\fP instead of stdout.
+.TP
+.B \-b \fR|\fP \-\-buffered
+Do not write every line on its own but wait until buffers
+are full.
+Speeds up things a little bit when outputting to a file.
+Not very useful at all together with \fB\-i\fP.
+.TP
+.B \-\-timestamps
+Print a timestamp before each line.
+
+Note that the time a packet is printed is between the time
+a packet is received and the time a packet is sent,
+but it gives no other information than that.
+.TP
+.B \-\-relative-timestamps
+Print a timestamp relative to the beginning of the connection
+before each line.
+
+Note that the time a packet is printed is between the time
+a packet is received and the time a packet is sent,
+but it gives no other information than that.
+
+.TP
+.B \-\-monotonic-timestamps
+Print a CLOCK_MONOTONIC (see
+.BR clock_gettime (3))
+timestamp each time a package is printed.
+This is likely to be the uptime of your system.
+
+Note that the time a packet is printed is between the time
+a packet is received and the time a packet is sent,
+but it gives no other information than that.
+.TP
+.B \-\-print-offsets
+Print offsets of all fields
+(useful to debug nested lists in protocol descriptions)
+.TP
+.B \-\-print-counts
+Print counts
+(useful to debug lists in protocol descriptions)
+.SH "ENVIRONMENT VARIABLES"
+.TP
+.B DISPLAY
+Without \fB\-\-display\fP the content of this variable is used to
+determine the server to connect to. (And without \fB\-n\fP given
+to \fBxauth\fP to get the authentication tokens for this display.)
+.TP
+.B FAKEDISPLAY
+Without \fB\-\-fakedisplay\fP the content of this variable is used to
+determine how to listen for clients. (And without \fB\-n\fP given
+to \fBxauth\fP to set the authentication tokens for this display.)
+If neither is given, \fBxtrace\fP will try \fB:9\fP
+.TP
+.B XAUTHORITY
+Without \fB-n\fP and without \fB-f\fP or \fB-F\fP your \fBxauth\fP
+program will most likely look into this variable for the file
+to get/save the authentication tokens from/into. If this is not
+set it will most likely use \fI$HOME\fP\fB/.Xauthority\fP.
+
+.SH "REPORTING BUGS"
+Report bugs to the Debian BTS.
+.SH "SEE ALSO"
+.BR xauth (1),
+.BR x (7x),
+.SH COPYRIGHT
+Copyright \(co 2005 Bernhard R. Link
+.br
+This is free software; see the source for copying conditions. There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

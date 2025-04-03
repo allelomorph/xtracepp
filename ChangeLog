@@ -1,0 +1,229 @@
+2019-02-25
+	* apply multiple patches:
+
+	+ from Robert Ancell
+	- glx: Add glXWaitGL, glXWaitX, glFlush requests
+	- randr: Add names of new messages from RandR 1.4 and 1.5
+	- glx: Recognise glXSetClientInfo2ARB
+	- render: Support extension version 0.10
+
+	+ from Miklós Máté
+	- print error in hex, add sequence number
+	- add definitions for a few common glx requests
+
+	+ from Qiang Yu
+    	- Add Present protocol
+    	- Add DRI3 protocol
+
+	+ from Robert O'Callahan
+    	- Support XI2 touch events
+    	- Change socket read/write to recvmsg/sendmsg for DRI3 support
+	- fix off-by-one error in event type check
+
+	+ from David Howells:
+	- fix in \ddd escape parsing
+	- fix some compiler warnings
+
+2013-05-26
+	* xinput: improve ValuatorClass (previously AxisClass),
+	          add ScrollClass, TouchClass
+	* mark some font properties as atoms
+2013-05-21
+	* xkb: add partial support for GetMap, GetNames and GetNamedIndicator
+2013-05-21
+	* Add handling of GetAtomName
+2012-06-01
+	* fix parsing of unusual QueryExtension requests
+2012-01-09
+	* fix --timestamp description in manpage
+2011-05-07
+	* add support for XFree86-DGA
+2011-05-06
+	* add UFRACTION32_32
+2011-02-12
+	* configure.ac: change monotonic clock cache-id to make autoconf happy
+2011-02-06
+	* add a 'DIVIDE_COUNT' directive
+	* enhance GLX support (GetVisualConfigs, GetFBConfigsSGIX,
+	  QueryServerString, ClientInfo)
+2011-01-29
+	* add a 'SIZE' directive to limit some structure to an explicit size
+	  (in VarStructs everything after that size is printed as unexpected
+	   data and otherwise ignored, also all field output or list length
+	   is automatically truncated to that value)
+	* allow 'ELSEIF STORED ...'
+	* use AC_PROG_CC_C99 to be sure to get C99 semantics
+2011-01-28
+	* allow to 'transfer' data from REQUEST to RESPONSE on the stack
+	* allow 'IF STORED ...' to compare stored value
+	* fix PUSH32 (was PUSH16 by mistake)
+	* error out early in case of not yet supported min-length 0
+2010-12-22
+	* Add INT32_32 type for a 64 bit integer stored in two 32 bit integers
+	* Add SYNC extension
+2010-12-21
+	* Add --monotonic-timestamps to print timestamps relative to system
+	start (or whatever CLOCK_MONOTONIC returns on your system).
+2010-10-26
+	* Add Composite (Thanks to Adam Endrodi)
+2010-10-20
+	* fix size of do-not-propagate-mask in GetWindowAttributes results
+	  (Thanks to Pierre-Yves Baccou for noticing).
+2010-06-20
+	* Add XVideo (version 2.2)
+2010-05-06
+	* Add DRI2 (up to version 1.3)
+2010-04-07
+	* Add support for Generic Events (XGE)
+	* Fix bug in error reporting when multiple STRUCTs have the same name
+	* add --print-counts --print-offsets
+	* add FIXED3232 (fixed point with 32 bits before and 32 after the dot)
+	* add some of the generic events of XI2
+2010-03-30
+	* Add support for XInputExtension 1.5, and partial support for
+	  XInputExtension 2.0
+2010-03-22
+	* fix FRACTION16_16 on big-endian systems
+	* add FRACTION32_32
+2010-01-21
+	* fix extension name output to not go to stdout unconditionaly
+	  (Thanks to Tommi Komulainen)
+	* fix missing contants in shape kind and wrong kind in fixes
+	  extension (Thanks to Tommi Komulainen)
+2010-01-05
+	* fix parsing initial server response
+	(old bug, but became obvious on big endian with the new code)
+2010-01-02
+	* fix SelectionNotify (thanks to Peter Collingbourne)
+	* show more details of the initial X server response
+	* fix segfault after some protocol description parsing errors
+	* correctly identify core request NoOperation
+2009-10-18
+	* fix printing of column in protocoal description parser errors
+	  on 64 bit architectures.
+2009-10-05
+	* bugfix: the major/minor codes were transposed in
+	  print_server_error() (thanks to Chris Wilson)
+2009-09-11
+	* bugfix: fix LISTofTRAPEZOIDS offset in RenderTrapezoids (thanks to
+	  Chris Wilson)
+2009-08-11
+	* bugfix: when running xtrace with command, it was terminating
+	  when all connections were closed while the command still run
+	  (and this even when -k was specified).
+2009-08-10
+	* zero-pad fractial timestamp part
+2009-07-02
+	* print raw data of unsupported or unknown requests and of
+	unexpected replies.
+2009-06-29
+	* remove unecessary output of spaces for ft_IF,...
+2009-06-28
+	* references to constants allowed in .proto files where
+	numbers are expected.
+	* add FLOAT32, LISTofFLOAT32, IF32, LISTofINT8, LISTofINT16,
+	LISTofIN32, DECREMENT_COUNTER
+	* some bugfixes in BE32 and LISTofUINT32
+2009-06-27
+	* add FRACTION16_16
+2009-06-26
+	* protocol specification is now read at run-time and no longer
+	needs to be compiled in. Translated all the .inc files to the new
+	.proto file format.
+2009-06-15
+	* add start of GLX support contributed by Kristof Ralovich
+2009-06-01
+	* complete XInputExtension support (if there is a price for worst
+	documented extension, this would be my current candidate)
+2009-05-19
+	* omit "0x" when printing the sequence number for replies, to
+	make the output more consistent with requests and events.
+2009-04-18
+	* start with XInputExtension support (only some opcodes yet)
+2009-04-16
+	* add --timestamps and --relative-timestamps options to print
+	timestamps before each line.
+2009-04-04
+	* move start of output lines generation into common function
+	(this makes some messages that until now got to stderr to go
+	 to the usual output, too. While that might hide them a bit,
+	 this also ensures they appear at the right place, which might
+	 be better).
+2009-03-25
+	* Properly set the address family when listening on a tcp socket
+2009-02-19
+	* fix decoding of GetAtomName reply
+	* (cosmetic) use ft_RRCONFIGSTATUS for RRSetScreenConfig reply
+	* fix decoding of RRGetOutputInfo reply
+	* display FIXED as fixed-point numbers
+	* RandR 1.3 support
+2009-01-06
+	* fix decoding of ConfigureWindow request
+	(thanks to Yann Droneaud)
+	* fix similar errors in RandrDeleteOutputProperty
+	and XF86BigfontQueryVersion.
+2008-08-02
+	* add support for XFIXES and DAMAGE extensions
+2008-08-01
+	* add support for DPMS and MIT-SCREEN-SAVER extensions
+	* print GetScreenSaver timeout and interval in decimal
+2008-02-11
+	* allow to give a program to start
+	(based on patch supplied by Bruce Guenter)
+	* actually use FAKEDISPLAY as manpage says
+	(was INDISPLAY before)
+2007-12-10
+	* fix ROUND_32 (thanks to Julien Cristau)
+2007-12-09
+	* fix bug in RANDR 1.2 parsing (thanks to Julien Cristau)
+2007-12-08
+	* add support for XRANDR 1.2
+	* add support for XINERAMA extension
+2007-10-03
+	* make some x and y UINT instead of CARD
+2007-07-05
+	* add support for XFree86-Bigfont extension
+	* show extension names even in requests from unknown extensions
+	* quiet some compiler warnings
+	* fix typo to mismatch replies after 65535 requests
+	* don't wait for replies for requests that got an error
+2006-08-10
+	* add --outfile and --buffered command line options
+2006-07-24
+	* add support for XFree86-VidModeExtension extension
+2006-07-14
+	* switch to stdint.h and uint* instead of u_int*
+	* use getaddrinfo instead of gethostbyname2
+	* implement fall-backs for strndup and asprintf
+2006-07-12
+	* print stringlists in ListFonts, SetFontPath, GetFontPath  and
+	  ListExtensions
+2006-06-10
+	* fix ATOMs to be 32 bit
+	* ChangeProperty pretty-prints types STRING and ATOM now
+2006-06-09
+	* remember atom names and print them when atoms are used
+	* STRING8 fields now print \n and \t instead of \012 and \010
+	* fix ft_IF8 processing, add ft_IFATOM
+	* GetProperty pretty-prints type "STRING" now.
+2006-06-08
+	* fix QueryVersion of RANDR
+	* implement MIT-SHM
+2006-03-09
+	* support RANDR extension
+2006-03-08
+	* manpage fixup. (Thanks to Justin Pryzby)
+2006-02-28
+	* work around copyauth problems with "localhost:" DISPLAYs
+	(like ssh -X sets them)
+2006-02-27
+	* fix some problems with 16 bit ints shown as uints.
+
+2006-02-24
+	* support RENDER extension
+	* fix handling of variable length structures
+	(only those before the minimal length were shown)
+
+2005-12-04  Bernhard R. Link <brlink@debian.org>
+	* add --interactive option
+	* make some widths and heights UINT instead of CARD
