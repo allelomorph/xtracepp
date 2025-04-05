@@ -23,7 +23,7 @@ endif()
 add_executable(x11_extension_filter
   atoms.c
   copyauth.c
-  final_parse_state_dump.c
+  print_protocol.c
   main.c
   parse.c
   stringlist.c

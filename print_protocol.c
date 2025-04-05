@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "final_parse_state_dump.h"
+#include "print_protocol.h"
 #include "parse.h"
 
 /*
@@ -168,7 +168,7 @@ extern const struct parameter *unexpected_reply;
 extern const struct parameter *setup_parameters;
 */
 
-#define DUMP_FILENAME "final_parse_state.txt"
+#define DUMP_FILENAME "x11_protocol.txt"
 #define TAB2 "  "
 #define TAB4 "    "
 #define TABx1 TAB4
@@ -464,71 +464,71 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
             case ft_INT8:               // used
             case ft_INT16:              // used
             case ft_INT32:              // used
-            case ft_UINT8:
-            case ft_UINT16:
-            case ft_UINT32:
-            case ft_CARD8:
-            case ft_CARD16:
-            case ft_CARD32:
-            case ft_ENUM8:
-            case ft_ENUM16:
-            case ft_ENUM32:
-            case ft_STORE8:
-            case ft_STORE16:
-            case ft_STORE32:
-            case ft_PUSH8:
+            case ft_UINT8:              // used
+            case ft_UINT16:             // used
+            case ft_UINT32:             // used
+            case ft_CARD8:              // used
+            case ft_CARD16:             // used
+            case ft_CARD32:             // used
+            case ft_ENUM8:              // used
+            case ft_ENUM16:             // used
+            case ft_ENUM32:             // used
+            case ft_STORE8:             // used
+            case ft_STORE16:            // used
+            case ft_STORE32:            // used
+            case ft_PUSH8:              // used
             case ft_PUSH16:
-            case ft_PUSH32:
+            case ft_PUSH32:             // used
             case ft_BITMASK8:           // used
             case ft_BITMASK16:          // used
             case ft_BITMASK32:          // used
                 fprint_constants(ofs, base_tab_ct + 2,
                                  param->o.constants, "o.constants", param->type);
                 break;
-            case ft_STRING8:
-            case ft_LISTofCARD32:
-            case ft_LISTofATOM:
-            case ft_LISTofCARD8:
-            case ft_LISTofCARD16:
+            case ft_STRING8:            // used
+            case ft_LISTofCARD32:       // used
+            case ft_LISTofATOM:         // used
+            case ft_LISTofCARD8:        // used
+            case ft_LISTofCARD16:       // used
             case ft_LISTofUINT8:
-            case ft_LISTofUINT16:
-            case ft_LISTofUINT32:
+            case ft_LISTofUINT16:       // used
+            case ft_LISTofUINT32:       // used
             case ft_LISTofINT8:
             case ft_LISTofINT16:
             case ft_LISTofINT32:
-            case ft_LISTofFormat:
-            case ft_LISTofStruct:
-            case ft_LISTofVarStruct:
+            case ft_LISTofFormat:       // used
+            case ft_LISTofStruct:       // used
+            case ft_LISTofVarStruct:    // used
                 break;
-            case ft_LISTofVALUE:
+            case ft_LISTofVALUE:        // used
                 fprint_values(ofs, base_tab_ct + 2,
                               param->o.values, "o.values");
                 break;
-            case ft_Struct:
-            case ft_FORMAT8:
-            case ft_EVENT:
-            case ft_IF8:
+            case ft_Struct:             // used
+            case ft_FORMAT8:            // used
+            case ft_EVENT:              // used
+            case ft_IF8:                // used
             case ft_IF16:
-            case ft_IF32:
-            case ft_IFATOM:
-            case ft_LASTMARKER:
+            case ft_IF32:               // used
+            case ft_IFATOM:             // used
+            case ft_LASTMARKER:         // used
             case ft_SET_SIZE:
             case ft_ATOM:               // used
             case ft_BE32:
-            case ft_GET:
-            case ft_FIXED:
-            case ft_LISTofFIXED:
+            case ft_GET:                // used
+            case ft_FIXED:              // used
+            case ft_LISTofFIXED:        // used
             case ft_FIXED3232:
-            case ft_LISTofFIXED3232:
+            case ft_LISTofFIXED3232:    // used
             case ft_FLOAT32:
             case ft_LISTofFLOAT32:
-            case ft_FRACTION16_16:
+            case ft_FRACTION16_16:      // used
             case ft_FRACTION32_32:
             case ft_UFRACTION32_32:
             case ft_INT32_32:           // used
-            case ft_DECREMENT_STORED:
+            case ft_DECREMENT_STORED:   // used
             case ft_DIVIDE_STORED:
-            case ft_SET:
+            case ft_SET:                // used
                 break;
             }
         }
@@ -633,7 +633,7 @@ static void fprint_extensions(FILE* ofs) {
     }
 }
 
-void final_parse_state_dump(void) {
+void print_protocol(void) {
     FILE *ofs = fopen(DUMP_FILENAME, "w");
     if ( ofs == NULL ) {
         fprintf( stderr,

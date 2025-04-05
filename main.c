@@ -39,7 +39,7 @@
 #include "stringlist.h"
 #include "translate.h"
 
-#include "final_parse_state_dump.h"
+#include "print_protocol.h"
 
 FILE *out;
 
@@ -665,7 +665,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    final_parse_state_dump();
+    print_protocol();
 
     signal(SIGPIPE,SIG_IGN);
     if( out_displayname == NULL ) {
