@@ -461,16 +461,16 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
         if ( param->o.constants != NULL || param->o.parameters != NULL ||
              param->o.values != NULL ) {
             switch (param->type) {
-            case ft_INT8:
-            case ft_INT16:
-            case ft_INT32:
+            case ft_INT8:               // used
+            case ft_INT16:              // used
+            case ft_INT32:              // used
             case ft_UINT8:
             case ft_UINT16:
             case ft_UINT32:
-            case ft_CARD8:  // hex
+            case ft_CARD8:
             case ft_CARD16:
             case ft_CARD32:
-            case ft_ENUM8:  // int
+            case ft_ENUM8:
             case ft_ENUM16:
             case ft_ENUM32:
             case ft_STORE8:
@@ -479,120 +479,55 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
             case ft_PUSH8:
             case ft_PUSH16:
             case ft_PUSH32:
-            case ft_BITMASK8:
-            case ft_BITMASK16:
-            case ft_BITMASK32:
+            case ft_BITMASK8:           // used
+            case ft_BITMASK16:          // used
+            case ft_BITMASK32:          // used
                 fprint_constants(ofs, base_tab_ct + 2,
                                  param->o.constants, "o.constants", param->type);
                 break;
-                // Different forms of lists:
-                //	- boring ones
-            case ft_STRING8:  // tl
-                break;
-            case ft_LISTofCARD32:  // tl
-                break;
-            case ft_LISTofATOM:  // tl
-                break;
-            case ft_LISTofCARD8:  // tl
-                break;
-            case ft_LISTofCARD16:  // tl
-                break;
+            case ft_STRING8:
+            case ft_LISTofCARD32:
+            case ft_LISTofATOM:
+            case ft_LISTofCARD8:
+            case ft_LISTofCARD16:
             case ft_LISTofUINT8:
-                break;
             case ft_LISTofUINT16:
-                break;
             case ft_LISTofUINT32:
-                break;
             case ft_LISTofINT8:
-                break;
             case ft_LISTofINT16:
-                break;
             case ft_LISTofINT32:
+            case ft_LISTofFormat:
+            case ft_LISTofStruct:
+            case ft_LISTofVarStruct:
                 break;
-                //	- one of the above depening on last FORMAT
-            case ft_LISTofFormat:  // tl
-                break;
-                //	- iterate of list description in constants field
-            case ft_LISTofStruct:  // tl
-                break;
-                //	- same but length is mininum length and
-                //	  actual length is taken from end of last list
-                //	  or LASTMARKER, unless there is a SIZESET
-            case ft_LISTofVarStruct:  // tl
-                break;
-                //	- like ENUM for last STORE, but constants
-                //	  are of type (struct value*) interpreteted at this
-                //	  offset
             case ft_LISTofVALUE:
                 fprint_values(ofs, base_tab_ct + 2,
                               param->o.values, "o.values");
                 break;
-                // an LISTofStruct with count = 1
-            case ft_Struct:  // tl
-                break;
-                // specify bits per item for LISTofFormat
-            case ft_FORMAT8:  // tl
-                break;
-                // an event
-                // (would have also been possible with Struct and many IF)
-            case ft_EVENT:  // tl
-                break;
-                // jump to other parameter list if matches
+            case ft_Struct:
+            case ft_FORMAT8:
+            case ft_EVENT:
             case ft_IF8:
-                break;
             case ft_IF16:
-                break;
             case ft_IF32:
-                break;
-                // jump to other parameter list if matches atom name
-            case ft_IFATOM:  // tl
-                break;
-                // set end of last list manually, (for LISTofVarStruct)
+            case ft_IFATOM:
             case ft_LASTMARKER:
-                break;
-                // set the end of the current context, also change length
-                // of a VarStruct:
             case ft_SET_SIZE:
-                // a ft_CARD32 looking into the ATOM list
-            case ft_ATOM:  // tl
-                break;
-                // always big endian
+            case ft_ATOM:               // used
             case ft_BE32:
-                break;
-                // get the #ofs value from the stack. (0 is the last pushed)
             case ft_GET:
-                break;
-                // a fixed-point number 16+16 bit
             case ft_FIXED:
-                break;
-                // a list of those
             case ft_LISTofFIXED:
-                break;
-                // a fixed-point number 32+32 bit
             case ft_FIXED3232:
-                break;
-                // a list of those
             case ft_LISTofFIXED3232:
-                break;
-                // a 32 bit floating pointer number
             case ft_FLOAT32:
-                break;
-                // a list of those
             case ft_LISTofFLOAT32:
-                break;
-                // fraction with numerator and denominator 16 bit
-            case ft_FRACTION16_16:  // tl
-                // dito 32 bit
+            case ft_FRACTION16_16:
             case ft_FRACTION32_32:
-                // nominator is unsigned
             case ft_UFRACTION32_32:
-                // a 64 bit number consisting of first the high 32 bit, then
-                // the low 32 bit
-            case ft_INT32_32:
-                // decrement stored value by specific value
+            case ft_INT32_32:           // used
             case ft_DECREMENT_STORED:
             case ft_DIVIDE_STORED:
-                // set stored value to specific value
             case ft_SET:
                 break;
             }
