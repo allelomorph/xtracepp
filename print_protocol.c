@@ -7,6 +7,7 @@
 
 #include "print_protocol.h"
 #include "parse.h"
+#include "xtrace.h"          // getAtom
 
 /*
 struct constant {
@@ -168,6 +169,9 @@ extern const struct parameter *unexpected_reply;
 extern const struct parameter *setup_parameters;
 */
 
+// TBD also defined in parse.c
+#define OFS_LATER ((size_t)-1)
+
 #define DUMP_FILENAME "x11_protocol.txt"
 #define TAB2 "  "
 #define TAB4 "    "
@@ -180,9 +184,29 @@ extern const struct parameter *setup_parameters;
 #define TABx7 TABx6 TABx1
 #define TABx8 TABx7 TABx1
 #define TABx9 TABx8 TABx1
+#define TABx10 TABx9 TABx1
+/* #define TABx11 TABx10 TABx1 */
+/* #define TABx12 TABx11 TABx1 */
+/* #define TABx13 TABx12 TABx1 */
+/* #define TABx14 TABx13 TABx1 */
+/* #define TABx15 TABx14 TABx1 */
+/* #define TABx16 TABx15 TABx1 */
+/* #define TABx17 TABx16 TABx1 */
+/* #define TABx18 TABx17 TABx1 */
+/* #define TABx19 TABx18 TABx1 */
+/* #define TABx20 TABx19 TABx1 */
+/* #define TABx21 TABx20 TABx1 */
+/* #define TABx22 TABx21 TABx1 */
+/* #define TABx23 TABx22 TABx1 */
+/* #define TABx24 TABx23 TABx1 */
+/* #define TABx25 TABx24 TABx1 */
+
+/* unsigned int max_tab_ct = 0; */
 
 static const char* base_indent(const unsigned int base_tab_ct) {
-    assert( base_tab_ct < 10 );
+    assert( base_tab_ct <= 10 );
+    /* if ( base_tab_ct > max_tab_ct ) */
+    /*     max_tab_ct = base_tab_ct; */
     switch ( base_tab_ct ) {
     case 1: return TABx1;
     case 2: return TABx2;
@@ -193,6 +217,22 @@ static const char* base_indent(const unsigned int base_tab_ct) {
     case 7: return TABx7;
     case 8: return TABx8;
     case 9: return TABx9;
+    case 10: return TABx10;
+    /* case 11: return TABx11; */
+    /* case 12: return TABx12; */
+    /* case 13: return TABx13; */
+    /* case 14: return TABx14; */
+    /* case 15: return TABx15; */
+    /* case 16: return TABx16; */
+    /* case 17: return TABx17; */
+    /* case 18: return TABx18; */
+    /* case 19: return TABx19; */
+    /* case 20: return TABx20; */
+    /* case 21: return TABx21; */
+    /* case 22: return TABx22; */
+    /* case 23: return TABx23; */
+    /* case 24: return TABx24; */
+    /* case 25: return TABx25; */
     }
     return "";
 }
@@ -342,11 +382,29 @@ static void fprint_constants(FILE* ofs, const unsigned int base_tab_ct,
                  _base_indent, constants_varname );
     }
 //    assert( type <= ft_BITMASK32 );
+    enum fieldtype _type;
+    switch (type) {
+    case ft_LISTofATOM:   _type = ft_ATOM;   break;
+    case ft_LISTofCARD8:  _type = ft_CARD8;  break;
+    case ft_LISTofCARD16: _type = ft_CARD16; break;
+    case ft_LISTofCARD32: _type = ft_CARD32; break;
+    case ft_LISTofUINT8:  _type = ft_UINT8;  break;
+    case ft_LISTofUINT16: _type = ft_UINT16; break;
+    case ft_LISTofUINT32: _type = ft_UINT32; break;
+    case ft_LISTofINT8:   _type = ft_INT8;   break;
+    case ft_LISTofINT16:  _type = ft_INT16;  break;
+    case ft_LISTofINT32:  _type = ft_INT32;  break;
+    default:              _type = type;      break;
+    }
     for (const struct constant* _const = constants;
          _const != NULL && _const->name != NULL; ++_const) {
         fprintf( ofs, TABx1 "%s{\n",
                  _base_indent );
-        switch (type) {
+        // Note that endianness normally matters when parsing x11 packets,
+        //   as established by the first byte in the initial client packet.
+        //   However we are only printing xtrace's model of the protocol, and
+        //   not actual packets, so only need to use the default byte order.
+        switch (_type) {
         case ft_INT8:
         case ft_INT16:
         case ft_INT32:
@@ -359,38 +417,46 @@ static void fprint_constants(FILE* ofs, const unsigned int base_tab_ct,
             fprintf( ofs, TABx2 "%svalue: %lu\n",
                      _base_indent, _const->value );
             break;
-        case ft_CARD8:  // hex
+        case ft_CARD8:
         case ft_CARD16:
         case ft_CARD32:
-            fprintf( ofs, TABx2 "%svalue: 0x%lx\n",
+            fprintf( ofs, TABx2 "%svalue: %lu\n",
                      _base_indent, _const->value );
             break;
-        case ft_ENUM8:  // int
+        case ft_ENUM8:
         case ft_ENUM16:
         case ft_ENUM32:
             fprintf( ofs, TABx2 "%svalue: %li\n",
                      _base_indent, _const->value );
             break;
-        /* case ft_STORE8: */
-        /* case ft_STORE16: */
-        /* case ft_STORE32: */
-        /*     break; */
-        /* case ft_PUSH8: */
-        /* case ft_PUSH16: */
-        /* case ft_PUSH32: */
-        /*     break; */
+        case ft_STORE8:
+        case ft_STORE16:
+        case ft_STORE32:
+        case ft_PUSH8:
+        case ft_PUSH16:
+        case ft_PUSH32:
+            fprintf( ofs, TABx2 "%svalue: %lu\n",
+                     _base_indent, _const->value );
+            break;
         case ft_BITMASK8:
         case ft_BITMASK16:
         case ft_BITMASK32:
             fprintf( ofs, TABx2 "%svalue: 0x%lx\n",
                      _base_indent, _const->value );
             break;
-        case ft_ATOM:  // TBD example comes up, but docs say should be <= ft_BITMASK32
+        case ft_ATOM:
+            const char* atom = getAtom( NULL, _const->value );
+            if ( atom == NULL )
+                fprintf( ofs, TABx2 "%svalue: %lu ([unrecognized atom])\n",
+                         _base_indent, _const->value );
+            else
+                fprintf( ofs, TABx2 "%svalue: %lu (\"%s\")\n",
+                         _base_indent, _const->value, atom );
             break;
         default:
             // TBD detect any other values above ft_BITMASK32
-            puts(fieldtype_name(type));
-            assert(0);
+            puts( fieldtype_name(type) );
+            assert( 0 );
             break;
         }
         fprintf( ofs, TABx2 "%sname: %s\n",
@@ -453,8 +519,45 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
           param != NULL && param->name != NULL; ++param ) {
         fprintf( ofs, TABx1 "%s{\n",
                  _base_indent );
-        fprintf( ofs, TABx2 "%sname: %s\n",
-                 _base_indent, param->name );
+        if ( param->offse == OFS_LATER ) {
+            fprintf( ofs, TABx2 "%soffse: OFS_LATER ((size_t)-1)\n",
+                     _base_indent, param->offse );
+        } else {
+            fprintf( ofs, TABx2 "%soffse: %lu\n",
+                     _base_indent, param->offse );
+        }
+        unsigned char* name_arr = (unsigned char*)(param->name);
+        switch (param->type) {
+        case ft_IF8:                // used, non-null parameter_option
+            fprintf( ofs, TABx2 "%sname: [ %3u ] (encoded: %u)\n",
+                     _base_indent, name_arr[0], name_arr[0] );
+            assert( name_arr[1] == 0 );
+            break;
+        case ft_IF16:
+            fprintf( ofs, TABx2 "%sname: [ %u %u ] (encoded: %u)\n",
+                     _base_indent, name_arr[0], name_arr[1],
+                     // comparison value from parse.c:print_parameters
+                     (unsigned int)name_arr[1] +
+                     (unsigned int)name_arr[0] << 8 );
+            assert( name_arr[2] == 0 );
+            break;
+        case ft_IF32:               // used, non-null parameter_option
+            fprintf( ofs, TABx2 "%sname: [ %u %u %u %u ] (encoded: %lu)\n",
+                     _base_indent, name_arr[0], name_arr[1],
+                     name_arr[2], name_arr[3],
+                     // comparison value from parse.c:print_parameters
+                     (unsigned long)name_arr[3] +
+                     (unsigned long)name_arr[2] << 8 +
+                     (unsigned long)name_arr[1] << 16 +
+                     (unsigned long)name_arr[0] << 24 );
+            assert( name_arr[4] == 0 );
+            break;
+        case ft_IFATOM:             // used, non-null parameter_option
+        default:
+            fprintf( ofs, TABx2 "%sname: %s\n",
+                     _base_indent, param->name );
+            break;
+        }
         fprintf( ofs, TABx2 "%stype: %s\n",
                  _base_indent, fieldtype_name(param->type) );
         // intentionally redundant check of union
@@ -464,29 +567,32 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
             case ft_INT8:               // used
             case ft_INT16:              // used
             case ft_INT32:              // used
-            case ft_UINT8:              // used
-            case ft_UINT16:             // used
+            case ft_UINT8:              // used, non-null parameter_option
+            case ft_UINT16:             // used, non-null parameter_option
             case ft_UINT32:             // used
-            case ft_CARD8:              // used
-            case ft_CARD16:             // used
-            case ft_CARD32:             // used
-            case ft_ENUM8:              // used
-            case ft_ENUM16:             // used
-            case ft_ENUM32:             // used
+            case ft_CARD8:              // used, non-null parameter_option
+            case ft_CARD16:             // used, non-null parameter_option
+            case ft_CARD32:             // used, non-null parameter_option
+            case ft_ENUM8:              // used, non-null parameter_option
+            case ft_ENUM16:             // used, non-null parameter_option
+            case ft_ENUM32:             // used, non-null parameter_option
+                // Stores a value in a single variable (stored in server)
             case ft_STORE8:             // used
             case ft_STORE16:            // used
             case ft_STORE32:            // used
+                // Pushes values to a stack (stored in server)
             case ft_PUSH8:              // used
             case ft_PUSH16:
             case ft_PUSH32:             // used
-            case ft_BITMASK8:           // used
-            case ft_BITMASK16:          // used
-            case ft_BITMASK32:          // used
+            case ft_BITMASK8:           // used, non-null parameter_option
+            case ft_BITMASK16:          // used, non-null parameter_option
+            case ft_BITMASK32:          // used, non-null parameter_option
                 fprint_constants(ofs, base_tab_ct + 2,
                                  param->o.constants, "o.constants", param->type);
                 break;
             case ft_STRING8:            // used
-            case ft_LISTofCARD32:       // used
+                break;
+            case ft_LISTofCARD32:       // used, non-null parameter_option
             case ft_LISTofATOM:         // used
             case ft_LISTofCARD8:        // used
             case ft_LISTofCARD16:       // used
@@ -496,24 +602,79 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
             case ft_LISTofINT8:
             case ft_LISTofINT16:
             case ft_LISTofINT32:
-            case ft_LISTofFormat:       // used
-            case ft_LISTofStruct:       // used
-            case ft_LISTofVarStruct:    // used
+                fprint_constants(ofs, base_tab_ct + 2,
+                                 param->o.constants, "o.constants", param->type);
                 break;
-            case ft_LISTofVALUE:        // used
+            case ft_LISTofFormat:       // used
+                break;
+            case ft_LISTofStruct:       // used, non-null parameter_option
+            {
+                const struct parameter* parameters = param->o.parameters;
+                assert( parameters != NULL && parameters->name == NULL &&
+                        parameters->offse > 0 );
+                fprintf( ofs, TABx2 "%so.parameters->offse (struct size in bytes): %lu\n",
+                         _base_indent, parameters->offse );
+                fprint_parameters(ofs, base_tab_ct + 2, parameters + 1,
+                                  "o.parameters + 1 (struct members)" );
+            }
+                break;
+            case ft_LISTofVarStruct:    // used, non-null parameter_option
+            {
+                const struct parameter* parameters = param->o.parameters;
+                assert( parameters != NULL && parameters->name == NULL &&
+                        parameters->offse > 0 );
+                fprintf( ofs, TABx2 "%so.parameters->offse (_minimum_ struct size in bytes): %lu\n",
+                         _base_indent, parameters->offse );
+                fprint_parameters(ofs, base_tab_ct + 2, parameters + 1,
+                                  "o.parameters + 1 (struct members)" );
+            }
+                break;
+            case ft_LISTofVALUE:        // used, non-null parameter_option
                 fprint_values(ofs, base_tab_ct + 2,
                               param->o.values, "o.values");
                 break;
-            case ft_Struct:             // used
+            case ft_Struct:             // used, non-null parameter_option
+                // LISTofStruct of length 1
+            {
+                const struct parameter* parameters = param->o.parameters;
+                assert( parameters != NULL && parameters->name == NULL &&
+                        parameters->offse > 0 );
+                fprintf( ofs, TABx2 "%so.parameters->offse (struct size in bytes): %lu\n",
+                         _base_indent, parameters->offse );
+                fprint_parameters(ofs, base_tab_ct + 2, parameters + 1,
+                                  "o.parameters + 1 (struct members)" );
+            }
+                break;
             case ft_FORMAT8:            // used
             case ft_EVENT:              // used
-            case ft_IF8:                // used
+                break;
+            case ft_IF8:                // used, non-null parameter_option
             case ft_IF16:
-            case ft_IF32:               // used
-            case ft_IFATOM:             // used
+            case ft_IF32:               // used, non-null parameter_option
+            case ft_IFATOM:             // used, non-null parameter_option
+                fprint_parameters(ofs, base_tab_ct + 2,
+                                  param->o.parameters, "o.parameters" );
+                break;
+                // TBD what is the significance LASTMARKER when we can detect
+                //   the end of a series of constants/parameters/values by
+                //   NULL or NULL name?
             case ft_LASTMARKER:         // used
             case ft_SET_SIZE:
-            case ft_ATOM:               // used
+                break;
+                // TBD can be considered constant (ft_CARD32 at least in xtrace
+                //   impl,) as it is essentially a 1-based index into dedicated
+                //   string storage (static for ATOMs 1-68 predefined by the
+                //   protocol, and heap allocated for all others) see getAtom and:
+                //   - https://www.x.org/releases/current/doc/xproto/x11protocol.pdf
+            case ft_ATOM:               // used, non-null parameter_option
+                const char* atom = getAtom( NULL, param->o.constants->value );
+                if ( atom == NULL )
+                    fprintf( ofs, TABx2 "%so.constants->value: %lu ([unrecognized atom])\n",
+                             _base_indent, param->o.constants->value );
+                else
+                    fprintf( ofs, TABx2 "%so.constants->value: %lu (\"%s\")\n",
+                             _base_indent, param->o.constants->value, atom );
+                break;
             case ft_BE32:
             case ft_GET:                // used
             case ft_FIXED:              // used
@@ -662,13 +823,17 @@ void print_protocol(void) {
 
     /* extern const struct extension *extensions; */
     /* extern size_t num_extensions; */
-    fprint_extensions(ofs);
+    fprint_extensions( ofs );
     fprintf( ofs, "\n\n" );
 
     /* extern const struct parameter *unexpected_reply; */
+    fprint_parameters( ofs, 0, unexpected_reply, "unexpected_reply" );
+    fprintf( ofs, "\n\n" );
 
     /* extern const struct parameter *setup_parameters; */
+    fprint_parameters( ofs, 0, setup_parameters, "setup_parameters" );
 
     fclose( ofs );
+    /* printf("max_tab_ct: %u\n", max_tab_ct); */
     return;
 }
