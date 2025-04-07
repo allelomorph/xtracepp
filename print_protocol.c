@@ -185,28 +185,9 @@ extern const struct parameter *setup_parameters;
 #define TABx8 TABx7 TABx1
 #define TABx9 TABx8 TABx1
 #define TABx10 TABx9 TABx1
-/* #define TABx11 TABx10 TABx1 */
-/* #define TABx12 TABx11 TABx1 */
-/* #define TABx13 TABx12 TABx1 */
-/* #define TABx14 TABx13 TABx1 */
-/* #define TABx15 TABx14 TABx1 */
-/* #define TABx16 TABx15 TABx1 */
-/* #define TABx17 TABx16 TABx1 */
-/* #define TABx18 TABx17 TABx1 */
-/* #define TABx19 TABx18 TABx1 */
-/* #define TABx20 TABx19 TABx1 */
-/* #define TABx21 TABx20 TABx1 */
-/* #define TABx22 TABx21 TABx1 */
-/* #define TABx23 TABx22 TABx1 */
-/* #define TABx24 TABx23 TABx1 */
-/* #define TABx25 TABx24 TABx1 */
-
-/* unsigned int max_tab_ct = 0; */
 
 static const char* base_indent(const unsigned int base_tab_ct) {
     assert( base_tab_ct <= 10 );
-    /* if ( base_tab_ct > max_tab_ct ) */
-    /*     max_tab_ct = base_tab_ct; */
     switch ( base_tab_ct ) {
     case 1: return TABx1;
     case 2: return TABx2;
@@ -218,21 +199,6 @@ static const char* base_indent(const unsigned int base_tab_ct) {
     case 8: return TABx8;
     case 9: return TABx9;
     case 10: return TABx10;
-    /* case 11: return TABx11; */
-    /* case 12: return TABx12; */
-    /* case 13: return TABx13; */
-    /* case 14: return TABx14; */
-    /* case 15: return TABx15; */
-    /* case 16: return TABx16; */
-    /* case 17: return TABx17; */
-    /* case 18: return TABx18; */
-    /* case 19: return TABx19; */
-    /* case 20: return TABx20; */
-    /* case 21: return TABx21; */
-    /* case 22: return TABx22; */
-    /* case 23: return TABx23; */
-    /* case 24: return TABx24; */
-    /* case 25: return TABx25; */
     }
     return "";
 }
@@ -507,14 +473,18 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
     assert(ofs != NULL);
     assert(parameters_varname != NULL);
     const char* _base_indent = base_indent(base_tab_ct);
-    if (parameters == NULL) {
+    if ( parameters == NULL ) {
         fprintf( ofs, "%s%s: (null)\n",
                  _base_indent, parameters_varname );
         return;
-    } else {
-        fprintf( ofs, "%s%s: {\n",
-                 _base_indent, parameters_varname );
     }
+    if ( parameters->name == NULL ) {
+        fprintf( ofs, "%s%s: malformed, treated as empty (not NULL but name is NULL) @ %p\n",
+                 _base_indent, parameters_varname, parameters );
+        return;
+    }
+    fprintf( ofs, "%s%s: {\n",
+             _base_indent, parameters_varname );
     for ( const struct parameter* param = parameters;
           param != NULL && param->name != NULL; ++param ) {
         fprintf( ofs, TABx1 "%s{\n",
@@ -561,8 +531,11 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
         fprintf( ofs, TABx2 "%stype: %s\n",
                  _base_indent, fieldtype_name(param->type) );
         // intentionally redundant check of union
-        if ( param->o.constants != NULL || param->o.parameters != NULL ||
-             param->o.values != NULL ) {
+        if ( param->o.constants == NULL && param->o.parameters == NULL &&
+             param->o.values == NULL ) {
+            fprintf( ofs, TABx2 "%so: (null)\n",
+                     _base_indent );
+        } else {
             switch (param->type) {
             case ft_INT8:               // used
             case ft_INT16:              // used
@@ -700,8 +673,32 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
              _base_indent );
 }
 
+/* #define PARAM_ARR_SZ 10 */
+/* static const struct parameter* known_malformed_parameters[PARAM_ARR_SZ] = { */
+/*     NULL, NULL, NULL, NULL, NULL, */
+/*     NULL, NULL, NULL, NULL, NULL */
+/* }; */
+
+/* static bool are_known_malformed_parameters(const struct parameter* parameters) { */
+/*     for (int i = 0; known_malformed_parameters[i] && i < PARAM_ARR_SZ; ++i) { */
+/*         if ( known_malformed_parameters[i] == parameters ) */
+/*             return true; */
+/*     } */
+/*     return false; */
+/* } */
+
+/* static void record_malformed_parameters(const struct parameter* parameters) { */
+/*     assert(parameters != NULL && parameters->name == NULL);  // actually malformed */
+/*     const struct parameter* first_available_record = known_malformed_parameters; */
+/*     int i = 0; */
+/*     for (; known_malformed_parameters[i] && i < PARAM_ARR_SZ; ++i) {} */
+/*     assert(i < PARAM_ARR_SZ - 1);  // still remaining storage */
+/*     known_malformed_parameters[i] = parameters; */
+/* } */
+
 static void fprint_requests(FILE* ofs, const unsigned int base_tab_ct,
                             const struct request* requests,
+                            const char* requests_varname,
                             const unsigned int request_ct,
                             const char* request_ct_varname) {
     assert(ofs != NULL);
@@ -712,8 +709,8 @@ static void fprint_requests(FILE* ofs, const unsigned int base_tab_ct,
              _base_indent, request_ct_varname, request_ct );
     for (unsigned int i = 0; i < request_ct; ++i) {
         const struct request req = requests[i];
-        fprintf( ofs, "%srequests[%u] {\n",
-                 _base_indent, i );
+        fprintf( ofs, "%s%s[%u] {\n",
+                 _base_indent, requests_varname, i );
         fprintf( ofs, TABx1 "%sname: %s\n",
                  _base_indent, req.name );
         fprint_parameters( ofs, base_tab_ct + 1,
@@ -786,7 +783,8 @@ static void fprint_extensions(FILE* ofs) {
         fprintf( ofs, "extensions[%lu] {\n", i );
         fprintf( ofs, TABx1 "name: %s\n", ext.name );
         fprintf( ofs, TABx1 "namelen: %lu\n", ext.namelen );
-        fprint_requests( ofs, 1, ext.subrequests, ext.numsubrequests, "numsubrequests" );
+        fprint_requests( ofs, 1, ext.subrequests, "subrequests",
+                         ext.numsubrequests, "numsubrequests" );
         fprint_events( ofs, 1, ext.events, ext.numevents, "numevents" );
         fprint_errors( ofs, 1, ext.errors, ext.numerrors, "numerrors" );
         fprint_events( ofs, 1, ext.xgevents, ext.numxgevents, "numxgevents" );
@@ -808,7 +806,8 @@ void print_protocol(void) {
 
     /* extern const struct request *requests; */
     /* extern size_t num_requests; */
-    fprint_requests( ofs, 0, requests, num_requests, "num_requests" );
+    fprint_requests( ofs, 0, requests, "requests",
+                     num_requests, "num_requests" );
     fprintf( ofs, "\n\n" );
 
     /* extern const struct event *events; */
@@ -834,6 +833,5 @@ void print_protocol(void) {
     fprint_parameters( ofs, 0, setup_parameters, "setup_parameters" );
 
     fclose( ofs );
-    /* printf("max_tab_ct: %u\n", max_tab_ct); */
     return;
 }
