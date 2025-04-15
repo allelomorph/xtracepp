@@ -67,22 +67,53 @@ IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
 }
 
 void IntermediaryServer::_initDisplays() {
-    //if( out_displayname == NULL ) {
-    const char* out_displayname { getenv( _OUT_DISPLAYNAME_ENV_VAR.data() ) };
+    const char* out_displayname { nullptr };
+    if ( settings.out_displayname != nullptr ) {
+        out_displayname = settings.out_displayname;
+    } else {
+        out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
+    }
     assert( out_displayname != nullptr );
     _out_display = _DisplayInfo( out_displayname );
-    //if( in_displayname == NULL ) {
-    const char* in_displayname { getenv( _IN_DISPLAYNAME_ENV_VAR.data() ) };
-    if( in_displayname == nullptr ) {
-        std::cerr << "No display name to create specified, trying " <<
-            _DEFAULT_IN_DISPLAYNAME << "\n";
-        in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
+
+    const char* in_displayname { nullptr };
+    if( settings.in_displayname != nullptr ) {
+        in_displayname = settings.in_displayname;
+    } else {
+        in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
+        if ( in_displayname == nullptr ) {
+            std::cerr << "No display name to create specified, trying " <<
+                _DEFAULT_IN_DISPLAYNAME << "\n";
+            in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
+        }
     }
     assert( in_displayname != nullptr );
     _in_display = _DisplayInfo( in_displayname );
 }
 
 void IntermediaryServer::__debugOutput() {
+    std::cout << std::boolalpha <<
+        "settings:\n" <<
+        "\treadwritedebug: " << settings.readwritedebug << '\n' <<
+        "\tcopyauth: " << settings.copyauth << '\n' <<
+        "\tstopwhennone: " << settings.stopwhennone << '\n' <<
+        "\twaitforclient: " << settings.waitforclient << '\n' <<
+        "\tdenyallextensions: " << settings.denyallextensions << '\n' <<
+        "\tinteractive: " << settings.interactive << '\n' <<
+        "\tprint_timestamps: " << settings.print_timestamps << '\n' <<
+        "\tprint_reltimestamps: " << settings.print_reltimestamps << '\n' <<
+        "\tprint_uptimestamps: " << settings.print_uptimestamps << '\n' <<
+        "\tbuffered: " << settings.buffered << '\n' <<
+        "\tmaxshownlistlen: " << settings.maxshownlistlen << '\n' <<
+        "\tprint_counts: " << settings.print_counts << '\n' <<
+        "\tprint_offsets: " << settings.print_offsets << '\n' <<
+        // FILE *out { nullptr };
+        "\tout_displayname: \"" << (settings.out_displayname == nullptr ? "(null)" : settings.out_displayname) << "\"\n" <<
+        "\tin_displayname: \"" << (settings.in_displayname == nullptr ? "(null)" : settings.in_displayname) << "\"\n" <<
+        "\tout_authfile: \"" << (settings.out_authfile == nullptr ? "(null)" : settings.out_authfile) << "\"\n" <<
+        "\tin_authfile: \"" << (settings.in_authfile == nullptr ? "(null)" : settings.in_authfile) << "\"\n" <<
+        std::endl;
+
     std::cout <<
         "_in_display:\n" <<
         "\tname: " << _in_display.name << '\n' <<
@@ -103,5 +134,8 @@ void IntermediaryServer::__debugOutput() {
 }
 
 IntermediaryServer::IntermediaryServer() {
+}
+
+void IntermediaryServer::initDisplays() {
     _initDisplays();
 }

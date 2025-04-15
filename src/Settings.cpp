@@ -21,16 +21,16 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
             //add_searchpath(parser, optarg);
             break;
         case 'd':
-            //out_displayname = optarg;
+            out_displayname = optarg;
             break;
         case 'D':
-            //in_displayname = optarg;
+            in_displayname = optarg;
             break;
         case 'f':
-            //out_authfile = optarg;
+            out_authfile = optarg;
             break;
         case 'F':
-            //in_authfile = optarg;
+            in_authfile = optarg;
             break;
         case 'c':
             copyauth = true;
@@ -121,10 +121,10 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
 // #endif
                 break;
             case LO_PRINTCOUNTS:
-                // print_counts = true;
+                print_counts = true;
                 break;
             case LO_PRINTOFFSETS:
-                // print_offsets = true;
+                print_offsets = true;
                 break;
             }
             break;

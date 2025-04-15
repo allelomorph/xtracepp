@@ -42,6 +42,7 @@ public:
 
     IntermediaryServer();
 
+    void initDisplays();
     void __debugOutput();
 };
 

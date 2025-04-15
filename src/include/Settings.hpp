@@ -61,13 +61,13 @@ public:
     bool print_uptimestamps     { false };
     bool buffered               { false };
     std::size_t maxshownlistlen { SIZE_MAX };
-
-    //bool print_counts;
-    //bool print_offsets;
-    //FILE *out;
-    //const char *out_displayname = NULL;
-    //const char *in_displayname = NULL;
-    //const char *out_authfile=NULL, *in_authfile = NULL;
+    bool print_counts           { false };
+    bool print_offsets          { false };
+    // FILE *out { nullptr };
+    const char* out_displayname { nullptr };
+    const char* in_displayname  { nullptr };
+    const char* out_authfile    { nullptr };
+    const char* in_authfile     { nullptr };
 
     void parseFromArgv(const int argc, char* const* argv);
 };
