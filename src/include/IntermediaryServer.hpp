@@ -5,6 +5,10 @@
 #include <string>
 #include <string_view>
 
+#include <cstdint>      // SIZE_MAX
+
+#include "Settings.hpp"
+
 class IntermediaryServer {
 private:
     static constexpr std::string_view _IN_DISPLAYNAME_ENV_VAR  { "FAKEDISPLAY" };
@@ -33,11 +37,12 @@ private:
 
     void _initDisplays();
 
-    void __debugOutput();
-
 public:
+    Settings settings;
+
     IntermediaryServer();
 
+    void __debugOutput();
 };
 
 

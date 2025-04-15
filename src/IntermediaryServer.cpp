@@ -104,5 +104,4 @@ void IntermediaryServer::__debugOutput() {
 
 IntermediaryServer::IntermediaryServer() {
     _initDisplays();
-    __debugOutput();
 }

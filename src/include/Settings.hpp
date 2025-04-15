@@ -1,0 +1,76 @@
+#ifndef SETTINGS_HPP
+#define SETTINGS_HPP
+
+
+#include <getopt.h>  // `struct option` required_argument no_argument
+
+#include <cstdint>   // SIZE_MAX
+
+#include <string_view>
+
+class Settings {
+private:
+    static constexpr int _OPTION_CT { 22 };
+    enum LongOptId {
+        LO_DEFAULT = 0,
+        LO_TIMESTAMPS,
+        LO_RELTIMESTAMPS,
+        LO_UPTIMESTAMPS,
+        LO_VERSION,
+        LO_HELP,
+        LO_PRINTCOUNTS,
+        LO_PRINTOFFSETS
+    };
+    inline static int _long_only_option;
+    static constexpr struct option _longopts[ _OPTION_CT + 1 ] {
+        {"display",              required_argument, NULL,              'd'},
+        {"fakedisplay",          required_argument, NULL,              'D'},
+        {"authfile",             required_argument, NULL,              'f'},
+        {"newauthfile",          required_argument, NULL,              'F'},
+        {"copyauthentication",   no_argument,       NULL,              'c'},
+        {"nocopyauthentication", no_argument,       NULL,              'n'},
+        {"waitforclient",        no_argument,       NULL,              'w'},
+        {"stopwhendone",         no_argument,       NULL,              's'},
+        {"keeprunning",          no_argument,       NULL,              'k'},
+        {"denyextensions",       no_argument,       NULL,              'e'},
+        {"readwritedebug",       no_argument,       NULL,              'w'},
+        {"maxlistlength",        required_argument, NULL,              'm'},
+        {"outfile",              required_argument, NULL,              'o'},
+        {"buffered",             no_argument,       NULL,              'b'},
+        {"interactive",          no_argument,       NULL,              'i'},
+        {"help",                 no_argument,       &_long_only_option, LO_HELP},
+        {"version",              no_argument,       &_long_only_option, LO_VERSION},
+        {"timestamps",           no_argument,       &_long_only_option, LO_TIMESTAMPS},
+        {"relative-timestamps",  no_argument,       &_long_only_option, LO_RELTIMESTAMPS},
+        {"monotonic-timestamps", no_argument,       &_long_only_option, LO_UPTIMESTAMPS},
+        {"print-counts",         no_argument,       &_long_only_option, LO_PRINTCOUNTS},
+        {"print-offsets",        no_argument,       &_long_only_option, LO_PRINTOFFSETS},
+        {NULL,                   0,                 NULL,              0}
+    };
+    static constexpr std::string_view _optstring { "+I:d:D:f:F:cnWskiewm:o:b" };
+
+public:
+    bool readwritedebug         { false };
+    bool copyauth               { true };
+    bool stopwhennone           { true };
+    bool waitforclient          { false };
+    bool denyallextensions      { false };
+    bool interactive            { false };
+    bool print_timestamps       { false };
+    bool print_reltimestamps    { false };
+    bool print_uptimestamps     { false };
+    bool buffered               { false };
+    std::size_t maxshownlistlen { SIZE_MAX };
+
+    //bool print_counts;
+    //bool print_offsets;
+    //FILE *out;
+    //const char *out_displayname = NULL;
+    //const char *in_displayname = NULL;
+    //const char *out_authfile=NULL, *in_authfile = NULL;
+
+    void parseFromArgv(const int argc, char* const* argv);
+};
+
+
+#endif  // SETTINGS_HPP
