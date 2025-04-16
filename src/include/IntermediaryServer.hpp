@@ -35,14 +35,12 @@ private:
     _DisplayInfo _in_display;
     _DisplayInfo _out_display;
 
-    void _initDisplays();
-
 public:
     Settings settings;
 
     IntermediaryServer();
 
-    void initDisplays();
+    void parseDisplayNames();
     void __debugOutput();
 };
 

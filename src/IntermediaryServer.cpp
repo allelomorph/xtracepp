@@ -66,31 +66,6 @@ IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
     assert( family != _UNSET );
 }
 
-void IntermediaryServer::_initDisplays() {
-    const char* out_displayname { nullptr };
-    if ( settings.out_displayname != nullptr ) {
-        out_displayname = settings.out_displayname;
-    } else {
-        out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
-    }
-    assert( out_displayname != nullptr );
-    _out_display = _DisplayInfo( out_displayname );
-
-    const char* in_displayname { nullptr };
-    if( settings.in_displayname != nullptr ) {
-        in_displayname = settings.in_displayname;
-    } else {
-        in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
-        if ( in_displayname == nullptr ) {
-            std::cerr << "No display name to create specified, trying " <<
-                _DEFAULT_IN_DISPLAYNAME << "\n";
-            in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
-        }
-    }
-    assert( in_displayname != nullptr );
-    _in_display = _DisplayInfo( in_displayname );
-}
-
 void IntermediaryServer::__debugOutput() {
     std::cout << std::boolalpha <<
         "settings:\n" <<
@@ -136,6 +111,27 @@ void IntermediaryServer::__debugOutput() {
 IntermediaryServer::IntermediaryServer() {
 }
 
-void IntermediaryServer::initDisplays() {
-    _initDisplays();
+void IntermediaryServer::parseDisplayNames() {
+    const char* out_displayname { nullptr };
+    if ( settings.out_displayname != nullptr ) {
+        out_displayname = settings.out_displayname;
+    } else {
+        out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
+    }
+    assert( out_displayname != nullptr );
+    _out_display = _DisplayInfo( out_displayname );
+
+    const char* in_displayname { nullptr };
+    if( settings.in_displayname != nullptr ) {
+        in_displayname = settings.in_displayname;
+    } else {
+        in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
+        if ( in_displayname == nullptr ) {
+            std::cerr << "No display name to create specified, trying " <<
+                _DEFAULT_IN_DISPLAYNAME << "\n";
+            in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
+        }
+    }
+    assert( in_displayname != nullptr );
+    _in_display = _DisplayInfo( in_displayname );
 }
