@@ -49,7 +49,7 @@ private:
         {"print-offsets",        no_argument,       &_long_only_option, LO_PRINTOFFSETS},
         {NULL,                   0,                 NULL,              0}
     };
-    static constexpr std::string_view _optstring { "+I:d:D:f:F:cnWskiewm:o:b" };
+    static constexpr std::string_view _optstring { "+d:D:f:F:cnWskiewm:o:b" };
 
 public:
     bool readwritedebug         { false };

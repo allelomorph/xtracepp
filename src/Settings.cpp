@@ -22,9 +22,6 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         c != -1;
         c = getopt_long( argc, argv, _optstring.data(), _longopts, NULL ) ) {
         switch( c ) {
-        case 'I':
-            //add_searchpath(parser, optarg);
-            break;
         case 'd':
             out_displayname = optarg;
             break;
