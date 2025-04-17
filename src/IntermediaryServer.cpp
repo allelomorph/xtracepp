@@ -1,13 +1,19 @@
 #include <iostream>  // TBD testing only
 
-#include <string>        // stoi
+#include <string>        // stoi to_string
 #include <algorithm>     // transform
 #include <regex>         // smatch regex regex_search
+//#include <filesystem>    // remove
 
 #include <cassert>
 #include <cstdlib>       // getenv
+#include <cstring>       // memcpy
 
-#include <sys/socket.h>  // AF_INET AF_UNIX
+#include <sys/socket.h>  // 'struct sockaddr' SOCK_STREAM AF_INET AF_UNIX setsockopt SOL_SOCKET SO_KEEPALIVE 
+#include <arpa/inet.h>   // htons htonl
+#include <netinet/in.h>  // 'struct sockaddr_in'
+#include <sys/un.h>      // 'struct sockaddr_un'
+#include <unistd.h>      // unlink close
 
 #include "IntermediaryServer.hpp"
 #include "typeName.hh"
@@ -62,6 +68,10 @@ IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
     } else {
         assert( 0 );
     }
+    if ( family == AF_UNIX ) {
+        unix_socket_path = std::string(
+            _UNIX_SOCKET_PATH_PREFIX.data() + dname_match[3].str() );
+    }
     assert( display != _UNSET );
     assert( family != _UNSET );
 }
@@ -96,7 +106,9 @@ void IntermediaryServer::__debugOutput() {
         "\thostname: " << _in_display.hostname << '\n' <<
         "\tdisplay: " << _in_display.display << '\n' <<
         "\tscreen: " << _in_display.screen << '\n' <<
-        "\tfamily: " << _in_display.family << std::endl;
+        "\tfamily: " << _in_display.family << '\n' <<
+        "\tunix_socket_path: " << _in_display.unix_socket_path <<
+        std::endl;
 
     std::cout <<
         "_out_display:\n" <<
@@ -105,10 +117,21 @@ void IntermediaryServer::__debugOutput() {
         "\thostname: " << _out_display.hostname << '\n' <<
         "\tdisplay: " << _out_display.display << '\n' <<
         "\tscreen: " << _out_display.screen << '\n' <<
-        "\tfamily: " << _out_display.family << std::endl;
+        "\tfamily: " << _out_display.family << '\n' <<
+        "\tunix_socket_path: " << _in_display.unix_socket_path <<
+        std::endl;
 }
 
 IntermediaryServer::IntermediaryServer() {
+}
+
+IntermediaryServer::~IntermediaryServer() {
+    close( _in_fd );
+    if ( !_in_display.unix_socket_path.empty() )
+        unlink( _in_display.unix_socket_path.data() );
+    // close( _out_fd );
+    // if ( !_out_display.unix_socket_path.empty() )
+    //     unlink( _out_display.unix_socket_path.data() );
 }
 
 void IntermediaryServer::parseDisplayNames() {
@@ -134,4 +157,71 @@ void IntermediaryServer::parseDisplayNames() {
     }
     assert( in_displayname != nullptr );
     _in_display = _DisplayInfo( in_displayname );
+}
+
+void IntermediaryServer::listenForClients() {
+    /*struct*/ sockaddr* address;
+    std::size_t address_sz;
+
+    // open sequenced, reliable, two-way, connection-based byte stream
+    static constexpr int SOCKET_DEFAULT_PROTOCOL { 0 };
+    const int fd { socket( _in_display.family, SOCK_STREAM, SOCKET_DEFAULT_PROTOCOL ) };
+    if ( fd < 0 )  {
+        // TBD exception
+        //fprintf(stderr,"Error opening socket for '%s': %d=%s\n",_in_display.name,errno,strerror(errno));
+        std::cerr << "IntermediaryServer::listenForClients: socket\n";
+        exit( EXIT_FAILURE );
+    }
+    assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
+    if ( _in_display.family == AF_INET ) {
+        // At sockets API level, enable sending of keep-alive messages on
+        //   connection-oriented sockets.
+        const int on { 1 };
+        if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
+            // TBD exception using errno
+            std::cerr << "IntermediaryServer::listenForClients: setsockopt\n";
+            exit( EXIT_FAILURE );
+        }
+        /*struct*/ sockaddr_in inaddr;
+        // use domain of IPv4 Internet protocols
+        inaddr.sin_family      = _in_display.family;
+        // use port 6000 + display number (network byte order)
+        inaddr.sin_port        = htons( _X_TCP_PORT + _in_display.display ); // calculateTcpPort();
+        // bind socket to all local interfaces (network byte order)
+        inaddr.sin_addr.s_addr = htonl( INADDR_ANY );
+        address    = reinterpret_cast< struct sockaddr* >( &inaddr );
+        address_sz = sizeof( inaddr );
+    } else {  // _in_display.family == AF_UNIX
+        /*struct*/ sockaddr_un unaddr;
+        // Unix domain (local communication)
+        unaddr.sun_family = _in_display.family;
+        // TBD generateSocketName
+        // TBD sockaddr_un.sun_path is documented as a flexible array (char[],) but seems to be implemented as
+        //   a fixed size array, char[108] in this case
+        std::memcpy( unaddr.sun_path, _in_display.unix_socket_path.data(),
+                     _in_display.unix_socket_path.size() + 1 );
+        // TBD necessary if deleted as part of shutdown?
+        unlink( unaddr.sun_path );
+        address    = reinterpret_cast< struct sockaddr* >( &unaddr );
+        address_sz = sizeof( unaddr );
+    }
+
+    if ( bind( fd, address, address_sz ) < 0 ) {
+        close(fd);
+        // TBD exception
+        // fprintf(stderr,"Error binding socket for '%s': %d=%s\n",_in_display.name,errno,strerror(errno));
+        std::cerr << "IntermediaryServer::listenForClients: bind\n";
+        exit( EXIT_FAILURE );
+    }
+
+    static constexpr int MAX_PENDING_CONNECTIONS { 20 };
+    if ( listen( fd, MAX_PENDING_CONNECTIONS ) < 0 ) {
+        close(fd);
+        // TBD exception
+        // fprintf(stderr,"Error listening for '%s': %d=%s\n",_in_display.name,errno ,strerror(errno));
+        std::cerr << "IntermediaryServer::listenForClients: listen\n";
+        exit( EXIT_FAILURE );
+    }
+
+    _in_fd = fd;
 }

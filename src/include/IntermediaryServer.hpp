@@ -15,8 +15,12 @@ private:
     static constexpr std::string_view _OUT_DISPLAYNAME_ENV_VAR { "DISPLAY" };
     static constexpr std::string_view _DEFAULT_IN_DISPLAYNAME  { ":9" };
 
+    static constexpr int _X_TCP_PORT { 6000 };
+
     class _DisplayInfo {
     private:
+        static constexpr std::string_view _UNIX_SOCKET_PATH_PREFIX {
+            "/tmp/.X11-unix/X" };
         static constexpr int _UNSET { -1 };
 
     public:
@@ -26,6 +30,7 @@ private:
         int display { _UNSET };
         int screen  { _UNSET };
         int family  { _UNSET };
+        std::string unix_socket_path;
 
         //_DisplayInfo() = delete;
         _DisplayInfo() {}
@@ -35,12 +40,18 @@ private:
     _DisplayInfo _in_display;
     _DisplayInfo _out_display;
 
+    int _in_fd;    // listening for x clients to intercept comms with x server
+    int _out_fd;   // comms with x server on behalf of x clients
+
 public:
     Settings settings;
 
     IntermediaryServer();
+    ~IntermediaryServer();
 
     void parseDisplayNames();
+    void listenForClients();
+
     void __debugOutput();
 };
 
