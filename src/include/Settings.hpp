@@ -7,6 +7,8 @@
 #include <cstdint>   // SIZE_MAX
 
 #include <string_view>
+#include <iostream>
+#include <fstream>
 
 class Settings {
 private:
@@ -63,11 +65,15 @@ public:
     std::size_t maxshownlistlen { SIZE_MAX };
     bool print_counts           { false };
     bool print_offsets          { false };
-    // FILE *out { nullptr };
+    const char* log_path        { nullptr };
+    std::ofstream log_ofs       {};
+    std::ostream log_os         { std::cout.rdbuf() };
     const char* out_displayname { nullptr };
     const char* in_displayname  { nullptr };
     const char* out_authfile    { nullptr };
     const char* in_authfile     { nullptr };
+
+    ~Settings();
 
     void parseFromArgv(const int argc, char* const* argv);
 };

@@ -5,9 +5,14 @@
 #include <cassert>
 
 #include <iostream>
+#include <filesystem>
 
 #include "Settings.hpp"
 
+
+Settings::~Settings() {
+    log_ofs.close();
+}
 
 void Settings::parseFromArgv(const int argc, char* const* argv) {
     assert( argc > 0 );
@@ -63,19 +68,24 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
             buffered = true;
             break;
         case 'o':
-            // if( out != stdout ) {
-            //     fprintf(stderr, "Multiple -o options!\n");
-            //     exit(EXIT_FAILURE);
-            // }
+            if ( log_path != nullptr ) {
+                log_ofs.close();
+                std::filesystem::remove( log_path );
+                std::cerr << "Multiple -o options!\n";
+                exit(EXIT_FAILURE);
+            }
             // if( strcmp(optarg,"-") == 0 )
             //     out = stdout;
-            // else
-            //     out = fopen(optarg,"a");
-            // if( out == NULL ) {
-            //     fprintf(stderr, "Error opening %s: %s\n",
-            //             optarg,strerror(errno));
-            //     exit(EXIT_FAILURE);
-            // }
+            // TBD consider making log_path into filesystem::path in try/except
+            //     and rethrow exceptions indicating file path formatting errors
+            log_path = optarg;
+            log_ofs.open( log_path );
+            if ( !log_ofs.good() ) {
+                // TBD exception / message
+                exit(EXIT_FAILURE);
+            }
+            // https://stackoverflow.com/q/366955/
+            log_os.rdbuf( log_ofs.rdbuf() );
             break;
         case '\0':
             switch( _long_only_option ) {
