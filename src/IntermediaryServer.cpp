@@ -10,13 +10,18 @@
 #include <cstring>       // memcpy
 
 #include <sys/socket.h>  // 'struct sockaddr' SOCK_STREAM AF_INET AF_UNIX setsockopt SOL_SOCKET SO_KEEPALIVE 
-#include <arpa/inet.h>   // htons htonl
+#include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
 #include <unistd.h>      // unlink close pid_t fork
+#ifndef _GNU_SOURCE
+  #define _GNU_SOURCE      // asprintf
+#endif
+#include <stdio.h>       // asprintf
+
 
 #include "IntermediaryServer.hpp"
-#include "typeName.hh"
+//#include "typeName.hh"
 
 IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
     assert( displayname != nullptr );
@@ -130,12 +135,9 @@ IntermediaryServer::IntermediaryServer() {
 }
 
 IntermediaryServer::~IntermediaryServer() {
-    close( _in_fd );
+    close( _listener_fd );
     if ( !_in_display.unix_socket_path.empty() )
         unlink( _in_display.unix_socket_path.data() );
-    // close( _out_fd );
-    // if ( !_out_display.unix_socket_path.empty() )
-    //     unlink( _out_display.unix_socket_path.data() );
 }
 
 void IntermediaryServer::parseDisplayNames() {
@@ -227,9 +229,8 @@ void IntermediaryServer::listenForClients() {
         exit( EXIT_FAILURE );
     }
 
-    _in_fd = fd;
+    _listener_fd = fd;
 }
-
 
 void IntermediaryServer::startClient() {
     if ( settings.cli_subcmd_argc == 0 )
@@ -256,4 +257,56 @@ void IntermediaryServer::startClient() {
         exit( EXIT_FAILURE );
     }
     assert( _child_pid != 0 );
+}
+
+// TBD this is called as part of acceptConnection, and effectively has two outputs:
+//   - fd of client at top of pending connection stack for listener (c->client_fd)
+//   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
+int IntermediaryServer::acceptClient(char** from) {
+    int fd;
+    socklen_t len;
+
+    assert( from != NULL );
+    assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
+    if ( _in_display.family == AF_INET ) {
+        /*struct */sockaddr_in inaddr;
+        len = sizeof( inaddr );
+        fd = accept( _listener_fd,
+                     reinterpret_cast< struct sockaddr* >( &inaddr ), &len );
+        if ( fd < 0 ) {
+            // TBD exception using errno
+            std::cerr << "IntermediaryServer::acceptClient accept\n";
+            return -1;
+        }
+        // TBD subject to HAVE_ASPRINTF
+        // TBD inet_ntoa deprecated for inet_ntop:
+        /*
+          #include <arpa/inet.h>
+
+          const char *inet_ntop(int af, const void *restrict src,
+                                char dst[restrict .size], socklen_t size);
+        */
+        if( asprintf( from, "%s:%d", inet_ntoa( inaddr.sin_addr ),
+                      ntohs( inaddr.sin_port ) ) < 0 ) {
+            close(fd);
+            // TBD exception using errno
+            std::cerr << "IntermediaryServer::acceptClient asprintf\n";
+            return -1;
+        }
+    } else {  // _in_display.family == AF_UNIX
+        /*struct */sockaddr_un unaddr;
+        len = sizeof( unaddr );
+        fd = accept( _listener_fd,
+                     reinterpret_cast< struct sockaddr* >( &unaddr ), &len );
+        if ( fd < 0 ) {
+            // TBD exception using errno
+            std::cerr << "IntermediaryServer::acceptClient accept\n";
+            return -1;
+        }
+        if ( len > sizeof( sa_family_t ) )  // flexible array unaddr.sun_path len > 0
+            *from = strndup( unaddr.sun_path, len - sizeof( sa_family_t ) );
+        else
+            *from = strdup( "unknown(local)" );
+    }
+    return fd;
 }

@@ -40,10 +40,10 @@ private:
     _DisplayInfo _in_display;
     _DisplayInfo _out_display;
 
-    int _in_fd;    // listening for x clients to intercept comms with x server
+    int _listener_fd;    // listening for x clients to intercept comms with x server
     int _out_fd;   // comms with x server on behalf of x clients
 
-    pid_t _child_pid;  // cli subcmd pid
+    pid_t _child_pid { -1 };  // cli subcmd pid
 
 public:
     Settings settings;
@@ -54,6 +54,7 @@ public:
     void parseDisplayNames();
     void listenForClients();
     void startClient();
+    int acceptClient(char** from);
 
     void __debugOutput();
 };
