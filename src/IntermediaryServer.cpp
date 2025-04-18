@@ -122,7 +122,7 @@ void IntermediaryServer::__debugOutput() {
         "\tdisplay: " << _out_display.display << '\n' <<
         "\tscreen: " << _out_display.screen << '\n' <<
         "\tfamily: " << _out_display.family << '\n' <<
-        "\tunix_socket_path: " << _in_display.unix_socket_path <<
+        "\tunix_socket_path: " << _out_display.unix_socket_path <<
         std::endl;
 }
 
@@ -255,5 +255,5 @@ void IntermediaryServer::startClient() {
         std::cerr << "IntermediaryServer::startClient execvp\n";
         exit( EXIT_FAILURE );
     }
-
+    assert( _child_pid != 0 );
 }
