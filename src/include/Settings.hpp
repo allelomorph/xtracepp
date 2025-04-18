@@ -52,26 +52,28 @@ private:
     static constexpr std::string_view _optstring { "+d:D:f:F:cnWskiewm:o:b" };
 
 public:
-    bool readwritedebug         { false };
-    bool copyauth               { true };
-    bool stopwhennone           { true };
-    bool waitforclient          { false };
-    bool denyallextensions      { false };
-    bool interactive            { false };
-    bool print_timestamps       { false };
-    bool print_reltimestamps    { false };
-    bool print_uptimestamps     { false };
-    bool buffered               { false };
-    std::size_t maxshownlistlen { SIZE_MAX };
-    bool print_counts           { false };
-    bool print_offsets          { false };
-    const char* log_path        { nullptr };
-    std::ofstream log_ofs       {};
-    std::ostream log_os         { std::cout.rdbuf() };
-    const char* out_displayname { nullptr };
-    const char* in_displayname  { nullptr };
-    const char* out_authfile    { nullptr };
-    const char* in_authfile     { nullptr };
+    bool readwritedebug          { false };
+    bool copyauth                { true };
+    bool stopwhennone            { true };
+    bool waitforclient           { false };
+    bool denyallextensions       { false };
+    bool interactive             { false };
+    bool print_timestamps        { false };
+    bool print_reltimestamps     { false };
+    bool print_uptimestamps      { false };
+    bool buffered                { false };
+    std::size_t maxshownlistlen  { SIZE_MAX };
+    bool print_counts            { false };
+    bool print_offsets           { false };
+    const char* log_path         { nullptr };
+    std::ofstream log_ofs        {};
+    std::ostream log_os          { std::cout.rdbuf() };
+    const char* out_displayname  { nullptr };
+    const char* in_displayname   { nullptr };
+    const char* out_authfile     { nullptr };
+    const char* in_authfile      { nullptr };
+    char* const* cli_subcmd_argv { nullptr };  // argv after --
+    int cli_subcmd_argc          {};           // cli_subcmd_argv arg ct
 
     ~Settings();
 

@@ -6,14 +6,14 @@
 //#include <filesystem>    // remove
 
 #include <cassert>
-#include <cstdlib>       // getenv
+#include <cstdlib>       // getenv setenv
 #include <cstring>       // memcpy
 
 #include <sys/socket.h>  // 'struct sockaddr' SOCK_STREAM AF_INET AF_UNIX setsockopt SOL_SOCKET SO_KEEPALIVE 
 #include <arpa/inet.h>   // htons htonl
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
-#include <unistd.h>      // unlink close
+#include <unistd.h>      // unlink close pid_t fork
 
 #include "IntermediaryServer.hpp"
 #include "typeName.hh"
@@ -97,7 +97,11 @@ void IntermediaryServer::__debugOutput() {
         "\tin_displayname: \"" << (settings.in_displayname == nullptr ? "(null)" : settings.in_displayname) << "\"\n" <<
         "\tout_authfile: \"" << (settings.out_authfile == nullptr ? "(null)" : settings.out_authfile) << "\"\n" <<
         "\tin_authfile: \"" << (settings.in_authfile == nullptr ? "(null)" : settings.in_authfile) << "\"\n" <<
-        std::endl;
+        "\tcli_subcmd_argc: " << settings.cli_subcmd_argc << '\n' <<
+        "\tcli_subcmd_argv: ";
+    for (int i {}; i < settings.cli_subcmd_argc; ++i)
+        std::cout << "\"" << settings.cli_subcmd_argv[i] << "\" ";
+    std::cout << std::endl;
 
     std::cout <<
         "_in_display:\n" <<
@@ -224,4 +228,32 @@ void IntermediaryServer::listenForClients() {
     }
 
     _in_fd = fd;
+}
+
+
+void IntermediaryServer::startClient() {
+    if ( settings.cli_subcmd_argc == 0 )
+        return;
+    _child_pid = fork();
+    if( _child_pid == -1 ) {  // fork failed, still in parent
+        // TBD exception
+        //fprintf(stderr, "Error forking: %s\n", strerror(errno));
+        std::cerr << "IntermediaryServer::startClient fork\n";
+        exit( EXIT_FAILURE );
+    }
+    if( _child_pid == 0 ) {   // fork succeeded, in child
+        if ( setenv( "DISPLAY", _in_display.name.data(), 1 ) != 0 ) {
+            // TBD exception
+            //fprintf(stderr,"Error setting $DISPLAY: %s\n", strerror(errno));
+            std::cerr << "IntermediaryServer::startClient setenv\n";
+            exit( EXIT_FAILURE );
+        }
+        execvp( settings.cli_subcmd_argv[0], settings.cli_subcmd_argv );
+        // child has failed to overtake parent process
+        // TBD exception
+        //fprintf(stderr, "Could not exec '%s': %s\n", argv[0], strerror(errno));
+        std::cerr << "IntermediaryServer::startClient execvp\n";
+        exit( EXIT_FAILURE );
+    }
+
 }

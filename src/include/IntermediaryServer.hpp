@@ -43,6 +43,8 @@ private:
     int _in_fd;    // listening for x clients to intercept comms with x server
     int _out_fd;   // comms with x server on behalf of x clients
 
+    pid_t _child_pid;  // cli subcmd pid
+
 public:
     Settings settings;
 
@@ -51,6 +53,7 @@ public:
 
     void parseDisplayNames();
     void listenForClients();
+    void startClient();
 
     void __debugOutput();
 };

@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <string_view>
 
 #include "Settings.hpp"
 
@@ -140,5 +141,10 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         default:
             exit(EXIT_FAILURE);
         }
+    }
+
+    if ( optind < argc && argv[optind] != std::string_view( "--" ) ) {
+        cli_subcmd_argc = argc - optind;
+        cli_subcmd_argv = argv + optind;
     }
 }
