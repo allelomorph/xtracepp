@@ -10,5 +10,6 @@ int main(const int argc, char* const* argv) {
     // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     server.listenForClients();
     server.startClient();
+    server.connectToServer();
     server.__debugOutput();
 }

@@ -37,11 +37,11 @@ private:
         _DisplayInfo(const char* displayname);
     };
 
-    _DisplayInfo _in_display;
-    _DisplayInfo _out_display;
+    _DisplayInfo _in_display;   // used to set traits of listener socket
+    _DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
 
-    int _listener_fd;    // listening for x clients to intercept comms with x server
-    int _out_fd;   // comms with x server on behalf of x clients
+    int _listener_fd;  // listening for x clients to intercept comms with x server
+//    int _out_fd;       // comms with x server on behalf of x clients
 
     pid_t _child_pid { -1 };  // cli subcmd pid
 
@@ -55,6 +55,7 @@ public:
     void listenForClients();
     void startClient();
     int acceptClient(char** from);
+    int connectToServer();
 
     void __debugOutput();
 };

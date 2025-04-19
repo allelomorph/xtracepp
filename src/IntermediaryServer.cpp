@@ -19,6 +19,8 @@
 #endif
 #include <stdio.h>       // asprintf
 
+//#include <sys/types.h>
+#include <netdb.h> // 'struct addrinfo' getaddrinfo freeaddrinfo
 
 #include "IntermediaryServer.hpp"
 //#include "typeName.hh"
@@ -165,6 +167,10 @@ void IntermediaryServer::parseDisplayNames() {
     _in_display = _DisplayInfo( in_displayname );
 }
 
+// TBD inaddr.sin_port never changes, can be part of DisplayInfo
+//    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
+//    (less crucial here as this will only be called once per process execution)
+// listenForClients(in_displayname,in_family,in_display)
 void IntermediaryServer::listenForClients() {
     /*struct*/ sockaddr* address;
     std::size_t address_sz;
@@ -192,7 +198,7 @@ void IntermediaryServer::listenForClients() {
         // use domain of IPv4 Internet protocols
         inaddr.sin_family      = _in_display.family;
         // use port 6000 + display number (network byte order)
-        inaddr.sin_port        = htons( _X_TCP_PORT + _in_display.display ); // calculateTcpPort();
+        inaddr.sin_port        = htons( _X_TCP_PORT + _in_display.display ); // calculateTCPport();
         // bind socket to all local interfaces (network byte order)
         inaddr.sin_addr.s_addr = htonl( INADDR_ANY );
         address    = reinterpret_cast< struct sockaddr* >( &inaddr );
@@ -259,6 +265,7 @@ void IntermediaryServer::startClient() {
     assert( _child_pid != 0 );
 }
 
+// acceptClient(in_family,listener, &c->from)
 // TBD this is called as part of acceptConnection, and effectively has two outputs:
 //   - fd of client at top of pending connection stack for listener (c->client_fd)
 //   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
@@ -309,4 +316,83 @@ int IntermediaryServer::acceptClient(char** from) {
             *from = strdup( "unknown(local)" );
     }
     return fd;
+}
+
+// TBD addr.sin_port never changes, can be part of DisplayInfo or static func var
+//    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
+// connectToServer(out_displayname,out_family,out_hostname,out_display)
+int IntermediaryServer::connectToServer() {
+    // TCP socket to connect to X server as client
+    int fd { socket( _out_display.family, SOCK_STREAM, 0 ) };
+    if( fd < 0 )  {
+        // TBD exeception
+        // fprintf(stderr,"Error opening socket for '%s': %d=%s\n",_out_display.name,errno,strerror(errno));
+        std::cerr << "IntermediaryServer::connectToServer: socket\n";
+        return -1;
+    }
+    assert( _out_display.family == AF_INET || _out_display.family == AF_UNIX );
+    if( _out_display.family == AF_INET ) {
+        /*struct */sockaddr_in addr  {};
+        /*struct */addrinfo    hints {};
+        /*struct */addrinfo*   res   {};
+        //memset(&hints,0,sizeof(struct addrinfo));
+        hints.ai_family   = _out_display.family;
+        hints.ai_socktype = SOCK_STREAM;
+        int getaddrinfo_ret { getaddrinfo( _out_display.hostname.data(), NULL, &hints, &res ) };
+        if ( getaddrinfo_ret != 0 ) {
+            close( fd );
+            // TBD exception
+            //fprintf(stderr,"Error resolving hostname '%s' taken from '%s'\nError was: %s\n",_out_display.hostname,_out_display.name,gai_strerror(getaddrinfo_ret));
+            std::cerr << "IntermediaryServer::connectToServer: getaddrinfo\n";
+            return -1;
+        }
+        assert( res->ai_addrlen == sizeof(addr) );
+        // TBD so we're using getaddrinfo to get a list of addresses that are AF_INET/SOCK_STREAM (IPv4/TCP,) and
+        //   taking the first one? How are we sure its the first?
+        std::cout << "IntermediaryServer::connectToServer:\n";
+        for (/*struct */addrinfo* node { res }; node; node = node->ai_next) {
+            std::cout << "node: 0x" << (void*)node << "\n" <<
+                "\tai_flags: " << node->ai_flags << '\n' <<
+                "\tai_family: " << node->ai_family << '\n' <<
+                "\tai_socktype: " << node->ai_socktype << '\n' <<
+                "\tai_protocol: " << node->ai_protocol << '\n' <<
+                "\tai_addrlen: " << node->ai_addrlen << '\n' <<
+                "\tai_addr:\n" <<
+                "\t\tsin_family: " << ((sockaddr_in*)(node->ai_addr))->sin_family << '\n' <<
+                "\t\tsin_port: " << ((sockaddr_in*)(node->ai_addr))->sin_port << '\n' <<
+                "\t\tsin_addr.s_addr: " << inet_ntoa(((sockaddr_in*)(node->ai_addr))->sin_addr) << '\n' <<
+                "\tai_canonname: " << (node->ai_canonname ? node->ai_canonname : "(null)") << std::endl;
+        }
+        memcpy( &addr, res->ai_addr, sizeof(addr) );
+        freeaddrinfo( res );
+        addr.sin_port = htons( _X_TCP_PORT + _out_display.display ); // calculateTCPport();
+        const int on { 1 };
+        setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) );
+        if( connect( fd, (struct sockaddr*)&addr, sizeof(addr) ) < 0 ) {
+            close(fd);
+            // TBD exception
+            // fprintf(stderr,"Error connecting to '%s' (resolved to '%s') for '%s': %d=%s\n",_out_display.hostname,inet_ntoa(addr.sin_addr),_out_display.name,errno,strerror(errno));
+            std::cerr << "IntermediaryServer::connectToServer: connect\n";
+            return -1;
+        }
+    } else {
+        /*struct */sockaddr_un addr;
+        // TBD no need to set addr.sun_family?
+        // TBD generateSocketName
+        // TBD sockaddr_un.sun_path is documented as a flexible array (char[],) but seems to be implemented as
+        //   a fixed size array, char[108] in this case
+        memcpy( addr.sun_path, _out_display.unix_socket_path.data(),
+                _out_display.unix_socket_path.size() + 1 );
+
+        if( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0 ) {
+            close(fd);
+            // TBD exception
+            // fprintf(stderr,"Error connecting to unix socket '%s' for '%s': %d=%s\n",addr.sun_path,_out_display.name,errno,strerror(errno));
+            std::cerr << "IntermediaryServer::connectToServer: connect\n";
+            return -1;
+        }
+    }
+    close(fd);  // TBD temp for testing
+//    return fd;
+    return 0;
 }
