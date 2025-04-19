@@ -8,6 +8,8 @@
 #include <cstdint>      // SIZE_MAX
 
 #include "Settings.hpp"
+#include "Connection.hpp"
+
 
 class IntermediaryServer {
 private:
@@ -54,8 +56,9 @@ public:
     void parseDisplayNames();
     void listenForClients();
     void startClient();
-    int acceptClient(char** from);
+    bool acceptClient(Connection* conn);
     int connectToServer();
+    void acceptConnection();
 
     void __debugOutput();
 };

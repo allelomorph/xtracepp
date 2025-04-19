@@ -13,17 +13,21 @@
 #include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
-#include <unistd.h>      // unlink close pid_t fork
-#ifndef _GNU_SOURCE
-  #define _GNU_SOURCE      // asprintf
-#endif
-#include <stdio.h>       // asprintf
+#include <unistd.h>      // unlink close pid_t fork STDERR_FILENO
+// #ifndef _GNU_SOURCE
+//   #define _GNU_SOURCE      // asprintf
+// #endif
+//#include <stdio.h>       // asprintf
+
+#include <sys/time.h>    // 'struct timeval' gettimeofday
 
 //#include <sys/types.h>
 #include <netdb.h> // 'struct addrinfo' getaddrinfo freeaddrinfo
 
 #include "IntermediaryServer.hpp"
 //#include "typeName.hh"
+#include "Connection.hpp"
+
 
 IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
     assert( displayname != nullptr );
@@ -269,11 +273,12 @@ void IntermediaryServer::startClient() {
 // TBD this is called as part of acceptConnection, and effectively has two outputs:
 //   - fd of client at top of pending connection stack for listener (c->client_fd)
 //   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
-int IntermediaryServer::acceptClient(char** from) {
+bool IntermediaryServer::acceptClient(Connection* conn) {
     int fd;
     socklen_t len;
+    std::string from;
 
-    assert( from != NULL );
+    assert( conn != nullptr );
     assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
     if ( _in_display.family == AF_INET ) {
         /*struct */sockaddr_in inaddr;
@@ -283,9 +288,8 @@ int IntermediaryServer::acceptClient(char** from) {
         if ( fd < 0 ) {
             // TBD exception using errno
             std::cerr << "IntermediaryServer::acceptClient accept\n";
-            return -1;
+            return false;
         }
-        // TBD subject to HAVE_ASPRINTF
         // TBD inet_ntoa deprecated for inet_ntop:
         /*
           #include <arpa/inet.h>
@@ -293,13 +297,8 @@ int IntermediaryServer::acceptClient(char** from) {
           const char *inet_ntop(int af, const void *restrict src,
                                 char dst[restrict .size], socklen_t size);
         */
-        if( asprintf( from, "%s:%d", inet_ntoa( inaddr.sin_addr ),
-                      ntohs( inaddr.sin_port ) ) < 0 ) {
-            close(fd);
-            // TBD exception using errno
-            std::cerr << "IntermediaryServer::acceptClient asprintf\n";
-            return -1;
-        }
+        from = std::string( inet_ntoa( inaddr.sin_addr ) ) + ':' +
+            std::to_string( ntohs( inaddr.sin_port ) );
     } else {  // _in_display.family == AF_UNIX
         /*struct */sockaddr_un unaddr;
         len = sizeof( unaddr );
@@ -308,14 +307,16 @@ int IntermediaryServer::acceptClient(char** from) {
         if ( fd < 0 ) {
             // TBD exception using errno
             std::cerr << "IntermediaryServer::acceptClient accept\n";
-            return -1;
+            return false;
         }
         if ( len > sizeof( sa_family_t ) )  // flexible array unaddr.sun_path len > 0
-            *from = strndup( unaddr.sun_path, len - sizeof( sa_family_t ) );
+            from = std::string( unaddr.sun_path, len - sizeof( sa_family_t ) );
         else
-            *from = strdup( "unknown(local)" );
+            from = std::string( "unknown(local)" );
     }
-    return fd;
+    conn->client_fd = fd;
+    conn->from      = from;
+    return true;
 }
 
 // TBD addr.sin_port never changes, can be part of DisplayInfo or static func var
@@ -395,4 +396,41 @@ int IntermediaryServer::connectToServer() {
     close(fd);  // TBD temp for testing
 //    return fd;
     return 0;
+}
+
+// acceptConnection(int listener)
+void IntermediaryServer::acceptConnection() {
+    static int id = 0;
+    Connection c;
+    c.id = id++;
+
+    // TBD make connections a vector of Connection
+    if( settings.print_reltimestamps ) {
+        /*struct */timeval tv;
+        if( gettimeofday( &tv, NULL ) != 0 ) {
+            // TBD exception
+            // fprintf(stderr, "gettimeofday error %d : %s!\n", errno, strerror(errno));
+            std::cerr << "IntermediaryServer::acceptConnection() gettimeofday\n";
+            exit(EXIT_FAILURE);
+        }
+        c.start_time = tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
+    }
+    // TBD original connection is a stack (new pushed to front) (better as queue?)
+    //c->next = connections;
+    if ( !acceptClient( &c ) )
+        return;
+    assert( c.client_fd > STDERR_FILENO );
+    assert( !c.from.empty() );
+    // TBD why is a global user setting arbitrarily set here, at every new connection?
+    //   would it not be better somewhere in mainqueue before the first call to acceptConnection?
+    settings.waitforclient = false;
+    std::cerr << "Got connection from " << c.from << std::endl;
+
+    c.server_fd = connectToServer();
+    if( c.server_fd < 0 ) {
+        close(c.client_fd);
+        // TBD exception
+        //fprintf(stderr,"Error connecting to server %s\n",out_displayname);
+        std::cerr << "Error connecting to server " << _out_display.name << std::endl;
+    }
 }
