@@ -59,6 +59,7 @@ public:
     bool acceptClient(Connection* conn);
     int connectToServer();
     void acceptConnection();
+    int processClientQueue();
 
     void __debugOutput();
 };

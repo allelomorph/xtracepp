@@ -1,7 +1,7 @@
 #include <iostream>  // TBD testing only
 
 #include <string>        // stoi to_string
-#include <algorithm>     // transform
+#include <algorithm>     // transform min
 #include <regex>         // smatch regex regex_search
 //#include <filesystem>    // remove
 
@@ -13,7 +13,7 @@
 #include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
-#include <unistd.h>      // unlink close pid_t fork STDERR_FILENO
+#include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO
 // #ifndef _GNU_SOURCE
 //   #define _GNU_SOURCE      // asprintf
 // #endif
@@ -433,4 +433,575 @@ void IntermediaryServer::acceptConnection() {
         //fprintf(stderr,"Error connecting to server %s\n",out_displayname);
         std::cerr << "Error connecting to server " << _out_display.name << std::endl;
     }
+}
+
+static ssize_t doread(const int fd, void* buf, const size_t n,
+                      /*struct */fdqueue* fdq) {
+#if HAVE_SENDMSG
+    /*
+      // man iovec
+       #include <sys/uio.h>
+       struct iovec {
+           void   *iov_base;  // Starting address
+           size_t  iov_len;   // Size of the memory pointed to by iov_base.
+       };
+       // iovec seems to be used with "scatter-gather arrays," see:
+       //   - man readv
+       //   - https://stackoverflow.com/a/10520793
+    */
+    /*struct */iovec iov {};
+    iov.iov_base = buf;
+    iov.iov_len  = n;
+    /*
+      // man CMSG_SPACE
+       #include <sys/socket.h>
+
+x       struct cmsghdr *CMSG_FIRSTHDR(struct msghdr *msgh);
+x       struct cmsghdr *CMSG_NXTHDR(struct msghdr *msgh,
+                                   struct cmsghdr *cmsg);
+       size_t CMSG_ALIGN(size_t length);
+x       size_t CMSG_SPACE(size_t length);
+x       size_t CMSG_LEN(size_t length);
+x       unsigned char *CMSG_DATA(struct cmsghdr *cmsg);
+     */
+
+    // TBD see man CMSG_SPACE example:
+    //    "Ancillary data buffer, wrapped in a union in order to ensure it is suitably aligned"
+    union {
+        /*struct */cmsghdr cmsghdr;
+        char buf[CMSG_SPACE(FDQUEUE_MAX_FD * sizeof(int))];
+    } cmsgbuf;
+    /*
+      // man recvmsg
+      struct msghdr {
+          void         *msg_name;       // Optional address
+          socklen_t     msg_namelen;    // Size of address
+          struct iovec *msg_iov;        // Scatter/gather array
+          size_t        msg_iovlen;     // # elements in msg_iov
+          void         *msg_control;    // Ancillary data, see below
+          size_t        msg_controllen; // Ancillary data buffer len
+          int           msg_flags;      // Flags on received message
+      };
+
+      struct cmsghdr {
+          size_t cmsg_len;    // Data byte count, including header (type is socklen_t in POSIX)
+          int    cmsg_level;  // Originating protocol
+          int    cmsg_type;   // Protocol-specific type
+      // followed by
+      //    unsigned char cmsg_data[];
+      };
+     */
+    /*struct */msghdr msg {};
+    //msg.msg_name = NULL;
+    //msg.msg_namelen = 0;
+    // TBD why use scatter-gather arrays (struct iovec*) when we have a vector of 1 (same as single buffer?)
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = cmsgbuf.buf;
+    // TBD why set this to contain the _difference_ in max fdqueue size and current fdqueue count?
+    //   would it not make more sense to use CMSG_SPACE(sizeof(int) * fdq->nfd), or even sizeof(int) * fdq->nfd?
+    //   example in man CMSG_SPACE sets msg_controllen = sizeof(cmsgbuf.buf)
+    msg.msg_controllen = CMSG_SPACE(sizeof(int) * (FDQUEUE_MAX_FD - fdq->nfd));
+    int ret { recvmsg(fd, &msg, 0) };
+
+    /* Check for truncation errors. Only MSG_CTRUNC is
+     * probably possible here, which would indicate that
+     * the sender tried to transmit more than FDQUEUE_MAX_FD
+     * file descriptors.
+     */
+    /*
+      MSG_TRUNC
+          indicates that the trailing portion of a datagram was discarded because the datagram was larger than the buffer
+      supplied.
+
+      MSG_CTRUNC
+          indicates that some control data was discarded due to lack of space in the buffer for ancillary data.
+     */
+    if (msg.msg_flags & (MSG_TRUNC|MSG_CTRUNC))
+        return 0;
+
+    // If flexible length array cmsghdr.cmsg_data is more than 0 bytes:
+    if ( msg.msg_controllen >= sizeof (/*struct */cmsghdr) ) {
+        for ( /*struct */cmsghdr* hdr { CMSG_FIRSTHDR( &msg ) }; hdr; hdr = CMSG_NXTHDR( &msg, hdr ) ) {
+            if ( hdr->cmsg_level == SOL_SOCKET &&
+                 hdr->cmsg_type == SCM_RIGHTS ) {
+                int nfd { ( hdr->cmsg_len - CMSG_LEN(0) ) / sizeof (int) };
+                memcpy(fdq->fd + fdq->nfd, CMSG_DATA(hdr), nfd * sizeof (int));
+                fdq->nfd += nfd;
+            }
+        }
+    }
+    return ret;
+#else
+    return read(fd, buf, n);
+#endif
+}
+
+static ssize_t dowrite(const int fd, const void *buf, const size_t n,
+                       /*struct */fdqueue* fdq) {
+#if HAVE_SENDMSG
+    if ( fdq->nfd ) {
+        union {
+            /*struct */cmsghdr cmsghdr;
+            char buf[CMSG_SPACE(FDQUEUE_MAX_FD * sizeof(int))];
+        } cmsgbuf;
+
+        /*struct */iovec iov {};
+        iov.iov_base = (void*)buf;
+        iov.iov_len = n;
+
+        /*struct */msghdr msg {};
+        msg.msg_name = NULL;
+        msg.msg_namelen = 0;
+        msg.msg_iov = &iov;
+        msg.msg_iovlen = 1;
+        msg.msg_control = cmsgbuf.buf;
+        msg.msg_controllen = CMSG_LEN( fdq->nfd * sizeof(int) );
+
+        /*struct */cmsghdr* hdr { CMSG_FIRSTHDR(&msg) };
+
+/*
+  // man 7 unix
+     Ancillary messages
+       Ancillary  data  is  sent  and received using sendmsg(2) and recvmsg(2).  For historical reasons, the ancillary message
+       types listed below are specified with a SOL_SOCKET type even though they are AF_UNIX specific.  To send them,  set  the
+       cmsg_level  field  of  the struct cmsghdr to SOL_SOCKET and the cmsg_type field to the type.  For more information, see
+       cmsg(3).
+
+       SCM_RIGHTS
+              Send or receive a set of open file descriptors from another process.  The data portion contains an integer array
+              of the file descriptors.
+
+              Commonly, this operation is referred to as "passing a file descriptor" to another process.  However, more  accu‐
+              rately,  what  is  being  passed  is a reference to an open file description (see open(2)), and in the receiving
+              process it is likely that a different file descriptor number will be  used.   Semantically,  this  operation  is
+              equivalent to duplicating (dup(2)) a file descriptor into the file descriptor table of another process.
+
+              If  the  buffer used to receive the ancillary data containing file descriptors is too small (or is absent), then
+              the ancillary data is truncated (or discarded) and the excess file descriptors are automatically closed  in  the
+              receiving process.
+
+              If  the  number  of  file  descriptors  received  in  the  ancillary  data would cause the process to exceed its
+              RLIMIT_NOFILE resource limit (see getrlimit(2)), the excess file descriptors are automatically closed in the re‐
+              ceiving process.
+
+              The kernel constant SCM_MAX_FD defines a limit on the number of file descriptors in the  array.   Attempting  to
+              send  an array larger than this limit causes sendmsg(2) to fail with the error EINVAL.  SCM_MAX_FD has the value
+              253 (or 255 before Linux 2.6.38).
+ */
+
+        hdr->cmsg_len = msg.msg_controllen;
+        hdr->cmsg_level = SOL_SOCKET;
+        hdr->cmsg_type = SCM_RIGHTS;
+        memcpy( CMSG_DATA(hdr), fdq->fd, fdq->nfd * sizeof(int) );
+
+        int ret { sendmsg(fd, &msg, 0) };
+        if (ret < 0)
+            return ret;
+        // TBD note that a successful send closes all fds - but will they live on after being sent in ancillary data?
+        for (int i {}; i < fdq->nfd; i++)
+            close( fdq->fd[i] );
+        fdq->nfd = 0;
+        return ret;
+    } else {
+#endif
+        return write(fd, buf, n);
+#if HAVE_SENDMSG
+    }
+#endif
+}
+
+// TBD mainqueue() retval is passed as retval of xtrace
+// TBD notice printing to stdout, stderr and out (may be stdout)
+int IntermediaryServer::processClientQueue() {
+    int nfds;          // n
+    int select_ret {};  // r
+    fd_set readfds, writefds, exceptfds;
+    // When in interactive mode, program will hang waiting for stdin input once
+    //   per connection in the second connection pass. Simply pressing enter
+    //   increases allowsent by 1, entering a positive integer adds that much
+    //   to allowsent. allowsent represents the total number of times packets
+    //   can be sent to the X server.
+    unsigned int allowsent { 1 };
+
+    static constexpr int FD_CLOSED    { -1 };  // sentinel for fds
+    static constexpr int CHILD_EXITED { 0 };   // sentinel for child pid
+
+    // NOTE: FD_SET and FD_CLR are idempotent
+
+    while ( 1 ) {
+        /*
+         * setup
+         */
+        // find number of highest fd in use, +1
+        //    (select(2) expects first param to be highest fd in any of readfds, writefds, exceptfds + 1)
+        nfds = _listener_fd + 1;  // n
+        // fd_sets are modified in place by select(2), and need to be zeroed out before each use
+        FD_ZERO( &readfds );
+        FD_ZERO( &writefds );
+        FD_ZERO( &exceptfds );
+        // monitor _listener_fd for input (read readiness)
+        FD_SET( _listener_fd, &readfds );
+
+        /*
+         * first loop over connections to:
+         *   - set client and server sockets into readfds, writefds, exceptfds
+         *   - pop closed connections off the stack
+         */
+        for ( c = connections; c != NULL; c = c->next ) {
+            // If client socket is still open but connection is otherwise closed:
+            if ( c->client_fd != FD_CLOSED && c->server_fd == FD_CLOSED &&
+                c->servercount == 0 && c->serverfdq.nfd == 0 ) {
+                // close the client socket and log as "sent EOF"
+                close( c->client_fd );
+                c->client_fd = FD_CLOSED;
+                if ( settings.readwritedebug )
+                    fprintf(out,"%03d:>:sent EOF\n",c->id);
+            }
+            // If client socket is still open with some sign of an open connection
+            //   (open server socket, some server bytes read, some server fds queued):
+            if ( c->client_fd != FD_CLOSED ) {
+                // TBD If client has not maxed out buffer space or queued fds:
+                if ( sizeof( c->clientbuffer ) > c->clientcount &&
+                    FDQUEUE_MAX_FD > c->clientfdq.nfd ) {
+                    // monitor client socket for input (read readiness)
+                    FD_SET( c->client_fd, &readfds );
+                }
+                // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
+                FD_SET( c->client_fd, &exceptfds );
+                // update nfds to include client socket
+                if ( c->client_fd >= nfds )                               // n
+                    nfds = c->client_fd + 1;                              // n
+                // TBD what is role of serverignore?
+                // TBD If server has queued fds, or has already had some bytes read:
+                if ( ( c->serverignore > 0 && c->servercount > 0 ) ||
+                     c->serverfdq.nfd > 0 ) {
+                    // monitor client socket for output (write readiness)
+                    FD_SET( c->client_fd, &writefds );
+                }
+                // TBD this clause could be modified to match first top level if in loop,
+                //   notice parallel logic for client vs server sockets
+                // If client socket is closed, server socket is open, client has no
+                //   bytes read, and client has no fds queued:
+            } else if ( c->server_fd != FD_CLOSED && c->clientcount == 0 &&
+                        c->clientfdq.nfd == 0 ) {
+                // close the server socket and log as "sent EOF"
+                close( c->server_fd );
+                c->server_fd = FD_CLOSED;
+                if ( settings.readwritedebug )
+                    fprintf(out,"%03d:<:sent EOF\n",c->id);
+            }
+            // If server socket is open:
+            if ( c->server_fd != FD_CLOSED ) {
+                // TBD If server has not maxed out buffer space or queued fds:
+                if ( sizeof( c->serverbuffer ) > c->servercount &&
+                     FDQUEUE_MAX_FD > c->serverfdq.nfd )
+                    // monitor server socket for input (read readiness)
+                    FD_SET( c->server_fd, &readfds );
+                // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
+                FD_SET( c->server_fd, &exceptfds );
+                // update nfds to include server socket
+                if ( c->server_fd >= nfds )                               // n
+                    nfds = c->server_fd + 1;                              // n
+                // TBD what is role of clientignore?
+                // TBD If client has queued fds, or has already had some bytes read:
+                if ( ( ( c->clientignore > 0 && c->clientcount > 0 )
+                       || c->clientfdq.nfd > 0 ) && allowsent > 0 ) {      // allowsent
+                    // monitor server socket for output (write readiness)
+                    FD_SET( c->server_fd, &writefds );
+                }
+            }
+            // If connection is completely closed:
+            if ( c->client_fd == FD_CLOSED && c->server_fd == FD_CLOSED ) {
+                // If connection is at top of stack:
+                if ( c == connections ) {
+                    // Pop connection off stack
+                    for ( int i {}; i < c->clientfdq.nfd; i++ )
+                        close( c->clientfdq.fd[i] );
+                    for ( int i {}; i < c->serverfdq.nfd; i++ )
+                        close( c->serverfdq.fd[i] );
+                    free_usedextensions( c->usedextensions );
+                    free_unknownextensions( c->unknownextensions );
+                    free_unknownextensions( c->waiting );
+                    free( c->from );
+                    connections = c->next;
+                    free(c);
+                    c = connections;
+                    // If connection stack is empty and subprocess has exited: exit
+                    // TBD note stopwhennone true by default
+                    if ( connections == NULL && settings.stopwhennone &&
+                        _child_pid == CHILD_EXITED ) {                     // _child_pid
+                        return EXIT_SUCCESS;
+                    }
+                    continue;
+                }
+            }
+        }
+
+        /*
+         * Set up interactive mode
+         */
+        // man xtrace:
+        //     -i | --interactive
+        //       Only sent(sic, send) requests from the client to the server after
+        //       interactive confirmation.  Confirmation is given by pressing enter
+        //       or a number followed by enter via stdin.  This can give funny results
+        //       when multiple clients are tunneled.
+        // If in interactive mode:
+        if ( settings.interactive ) {
+            // monitor stdin for input (read readiness)
+            FD_SET( STDIN_FILENO, &readfds );
+        }
+
+        /*
+         * Check if subprocess finished (child from cli `--`)
+         */
+        // If child has not exited, and select failed on previous loop or SIGCHLD caught
+        if ( _child_pid != CHILD_EXITED &&
+             ( select_ret == -1 || caught_child_signal ) ) {               // r  // _child_pid
+            caught_child_signal = false;
+            int status;
+            // Check to see if child exited, but do not hang (wait until so)
+            if ( waitpid( _child_pid, &status, WNOHANG ) == _child_pid ) {  // _child_pid
+                _child_pid = CHILD_EXITED;                                 // _child_pid
+                // If connection stack is empty and not set to wait after subcommand
+                if ( connections == NULL && !settings.waitforclient ) {
+                    /* TODO: instead wait a bit before terminating? */
+                    // Return child exit code or number of signal that terminated
+                    // TBD why +128?
+                    if ( WIFEXITED( status ) )
+                        return WEXITSTATUS( status );
+                    else
+                        return WTERMSIG( status ) + 128;
+                }
+            }
+        }
+
+        /*
+         * Idle until any of the fds in the provided fd_sets becomes ready for
+         *   reading, writing, or indicating exceptional conditions
+         */
+        select_ret = select( nfds, &readfds, &writefds, &exceptfds, NULL );  // n  // r
+        // TBD Note that:
+        //   - select failure resets but does not break loop
+        //   - SIGINT forces select failure, but does not print error
+        if ( select_ret == -1 ) {                                            // r
+            if ( errno != 0 && errno != EINTR ) {
+                // TBD exception
+                //fprintf( stderr, "Error %d in select: %s\n", errno, strerror(errno) );
+            }
+            continue;
+        }
+
+        /*
+         * second loop over connections to:
+         *   - 
+         */
+        for ( c = connections; c != NULL; c = c->next ) {
+            // TBD this prompting is meant to increment logging output
+            // If in interactive mode:
+            if ( settings.interactive && FD_ISSET( 0, &readfds ) ) {
+                // Read integer from stdin
+                // TBD may want to confirm that stdin is terminal with isatty(STDIN_FILENO):
+                //    https://stackoverflow.com/a/1312957
+                char buffer[201];
+                ssize_t isread { read(STDIN_FILENO, buffer, 200) };
+                // If stdin given EOF, end process
+                if ( isread == 0 )
+                    exit( EXIT_SUCCESS );
+                if ( isread > 0 ) {
+                    buffer[isread] = '\0';
+                    int number { atoi(buffer) };
+                    // TBD no error on failure to parse input as integer
+                    // TBD no error if integer not positive
+                    if ( number <= 0 )
+                        number = 1;
+                    // TBD !!! why does input modify allowsent (not documented in --help or man page)
+                    allowsent += number;  // allowsent
+                }
+                // TBD no explicit handling of read(2) error (-1 return, errno)
+            }
+            // If client socket is open:
+            if ( c->client_fd != FD_CLOSED ) {
+                // If client socket had exceptional condition:
+                if ( FD_ISSET( c->client_fd, &exceptfds ) ) {
+                    // Close socket with message
+                    close( c->client_fd );
+                    c->client_fd = FD_CLOSED;
+                    fprintf(stdout,"%03d: exception in communication with client\n",c->id);
+                    continue;
+                }
+                // If client socket has pending write:
+                if ( FD_ISSET( c->client_fd, &writefds ) ) {
+                    // TBD servercount seems to be total bytes read from server
+                    size_t towrite = c->servercount;
+                    ssize_t written;
+                    // TBD towrite set to min of serverignore and servercount
+                    if ( c->serverignore < towrite )
+                        towrite = c->serverignore;
+                    // TBD Write server buffer to client socket
+                    written = dowrite( c->client_fd, c->serverbuffer, towrite, &c->serverfdq );
+                    // If any bytes were written to client socket:
+                    if ( written >= 0 ) {
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d:>:wrote %u bytes\n",c->id,(unsigned int)written);
+                        // Remove successfully written bytes from buffer (slide bytes after written to offset 0)
+                        if ( (size_t)written < c->servercount )
+                            memmove(c->serverbuffer, c->serverbuffer + written, c->servercount - written);
+                        // Update total bytes in buffer (more evidence that *count vars track total bytes in buffer)
+                        c->servercount -= written;
+                        // TBD how do *ignore values differ from *written when they are similarly decreased here?
+                        c->serverignore -= written;
+                        // If server buffer is empty:
+                        if ( c->servercount == 0 ) {
+                            // If server socket is closed:
+                            // TBD resist urge to combine these if statements: the buffer could at times be empty
+                            //   even if the server socket is not closed
+                            if ( c->server_fd == FD_CLOSED ) {
+                                // Close client socket
+                                close( c->client_fd );
+                                c->client_fd = FD_CLOSED;
+                                if ( settings.readwritedebug )
+                                    fprintf(stdout,"%03d:>:send EOF\n",c->id);
+                                continue;
+                            }
+                            // TBD this should be a clue to the difference of *count and *ignore
+                        } else if ( c->serverignore == 0 ) {
+                            parse_server( c );
+                        }
+                        // 0 bytes written, client socket is at EOF or last write failed
+                    } else {
+                        // close client socket, continue to next connection
+                        close( c->client_fd );
+                        c->client_fd = FD_CLOSED;
+                        if ( settings.readwritedebug ) {
+                            fprintf(stdout,"%03d: error writing to client: %d=%s\n",
+                                    c->id, errno, strerror(errno));
+                        }
+                        continue;
+                    }
+                }
+                // If client socket has pending read:
+                if ( FD_ISSET( c->client_fd, &readfds ) ) {
+                    // Read from client into clientbuffer
+                    size_t toread = sizeof(c->clientbuffer) - c->clientcount;
+                    ssize_t wasread = doread( c->client_fd, c->clientbuffer + c->clientcount, toread, &c->clientfdq );
+                    assert( toread > 0 );
+                    // If any bytes read:
+                    if ( wasread > 0 ) {
+                        // Update client buffer size
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d:<:received %u bytes\n",c->id,(unsigned int)wasread);
+                        c->clientcount += wasread;
+                        // Read 0 (EOF) or -1 (fail):
+                    } else {
+                        // Close client socket, continue to next connection
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d:<:got EOF\n",c->id);
+                        close( c->client_fd );
+                        c->client_fd = FD_CLOSED;
+                        continue;
+                    }
+                    // TBD we can see that *ignore needs to be 0 to do any printing of the buffer
+                    if ( c->clientignore == 0 && c->clientcount > 0) {
+                        parse_client( c );
+                    }
+                }
+                // If client socket is closed, and server bytes have been read:
+            } else if ( c->servercount > 0 && c->serverignore > 0 ) {
+                /* discard additional events */
+                unsigned int min { std::min( c->servercount, c->serverignore ) };
+                fprintf(stdout, "%03d:s->?: discarded last answer of %u bytes\n", c->id, min);
+                // TBD ??? if serverignore < servercount, remove serverignore bytes from server buffer
+                if ( min < c->servercount )  // ( c->serverignore < c->servercount )
+                    memmove( c->serverbuffer, c->serverbuffer + min, c->servercount - min);
+                // TBD why are both of these unconditionally decreased, when removing serverignore bytes is
+                //   conditional?
+                c->servercount -= min;
+                c->serverignore -= min;
+                if ( c->serverignore == 0 && c->servercount > 0 ) {
+                    parse_server( c );
+                }
+            }
+            // If server socket is open:
+            if ( c->server_fd != FD_CLOSED ) {
+                // If server socket had exceptional condition:
+                if ( FD_ISSET( c->client_fd, &exceptfds ) ) {
+                    // Close socket with message, continue to next connection
+                    close(c->server_fd);
+                    c->server_fd = FD_CLOSED;
+                    fprintf( stdout, "%03d: exception in communication with server\n", c->id );
+                    continue;
+                }
+                // If server socket has pending write:
+                if ( FD_ISSET( c->server_fd, &writefds ) ) {
+                    size_t towrite { std::min( c->clientcount, c->clientignore ) };
+                    ssize_t written;
+                    written = dowrite( c->server_fd, c->clientbuffer, towrite, &c->clientfdq );
+                    if ( settings.interactive && allowsent > 0 )   // allowsent
+                        allowsent--;                               // allowsent
+                    // If bytes written to server socket:
+                    if ( written >= 0 ) {
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d:<:wrote %u bytes\n",c->id,(unsigned int)written);
+                        // If client buffer was not completely emptied:
+                        if ( (size_t)written < c->clientcount )
+                            // remove written bytes from client buffer
+                            memmove( c->clientbuffer, c->clientbuffer + written, c->clientcount - written );
+                        c->clientcount -= written;
+                        c->clientignore -= written;
+                        // If bytes remain in client buffer: log print next packet
+                        if ( c->clientcount != 0 && c->clientignore == 0 ) {
+                            parse_client( c );
+                        }
+                    } else {
+                        close( c->server_fd );
+                        c->server_fd = FD_CLOSED;
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d: error writing to server: %d=%s\n",c->id,e,strerror(e));
+                        continue;
+                    }
+                }
+                // If server socket has pending read:
+                if ( FD_ISSET( c->server_fd, &readfds ) ) {
+                    size_t toread = sizeof(c->serverbuffer) - c->servercount;
+                    ssize_t wasread = doread( c->server_fd, c->serverbuffer + c->servercount, toread, &c->serverfdq );
+                    assert( toread > 0 );
+                    if ( wasread > 0 ) {
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d:>:received %u bytes\n",c->id,(unsigned int)wasread);
+                        c->servercount += wasread;
+                    } else {
+                        if ( settings.readwritedebug )
+                            fprintf(stdout,"%03d:>:got EOF\n",c->id);
+                        close( c->server_fd );
+                        c->server_fd = FD_CLOSED;
+                    }
+                    if ( c->serverignore == 0 && c->servercount > 0 ) {
+                        parse_server( c );
+                    }
+                }
+            } else if ( c->clientcount > 0 && c->clientignore > 0 ) {
+                unsigned int min { c->clientcount };
+                /* discard additional events */
+                if ( min > c->clientignore )
+                    min = c->clientignore;
+                fprintf(stdout,"%03d:<: discarding last request of %u bytes\n",c->id,min);
+                if ( min < c->clientcount )
+                    memmove( c->clientbuffer, c->clientbuffer + min, c->clientcount - min );
+                c->clientcount -= min;
+                c->clientignore -= min;
+                if ( c->clientignore == 0 && c->clientcount > 0 ) {
+                    parse_client( c );
+                }
+            }
+        }
+
+        // new connections are driven by listener socket accept(2)ing clients
+        if ( FD_ISSET( _listener_fd, &readfds ) ) {
+            acceptConnection();
+        }
+
+    }
+    return EXIT_SUCCESS;
 }
