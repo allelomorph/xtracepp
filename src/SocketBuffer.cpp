@@ -3,6 +3,8 @@
 #include <string_view>
 #include <system_error>  // generic_category
 
+#include <cassert>
+
 #include <sys/socket.h>  // send recv
 #include <errno.h>
 
@@ -15,7 +17,7 @@ ssize_t SocketBuffer::write(const int sockfd) {
         // TBD include string of errno name
         throw std::system_error(
             errno, std::generic_category(),
-            exception_stem );
+            exception_stem.data() );
     }
     assert( bytes_written == _tl_bytes_used );
     return bytes_written;
@@ -29,7 +31,7 @@ ssize_t SocketBuffer::read(const int sockfd) {
         // TBD include string of errno name
         throw std::system_error(
             errno, std::generic_category(),
-            exception_stem );
+            exception_stem.data() );
     }
     _tl_bytes_used = bytes_read;
     while ( _tl_bytes_used == _buffer.size() ) {
@@ -41,7 +43,7 @@ ssize_t SocketBuffer::read(const int sockfd) {
             // TBD include string of errno name
             throw std::system_error(
                 errno, std::generic_category(),
-                exception_stem );
+                exception_stem.data() );
         }
         _tl_bytes_used += bytes_read;
     }

@@ -314,8 +314,8 @@ bool ProxyX11Server::acceptClient(Connection* conn) {
         else
             from = std::string( "unknown(local)" );
     }
-    conn->client_fd = fd;
-    conn->from      = from;
+    conn->client_fd   = fd;
+    conn->client_desc = from;
     return true;
 }
 
@@ -402,26 +402,29 @@ Connection ProxyX11Server::acceptConnection() {
     Connection c {};
 
     // TBD make connections a vector of Connection
-    if( settings.print_reltimestamps ) {
-        /*struct */timeval tv;
-        if( gettimeofday( &tv, NULL ) != 0 ) {
-            // TBD exception
-            // fprintf(stderr, "gettimeofday error %d : %s!\n", errno, strerror(errno));
-            std::cerr << "ProxyX11Server::acceptConnection() gettimeofday\n";
-            exit(EXIT_FAILURE);
-        }
-        c.start_time = tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
-    }
+    // TBD currently recording timestamp for all Connection in ctor
+    // if( settings.print_reltimestamps ) {
+    //     /*struct */timeval tv;
+    //     if( gettimeofday( &tv, NULL ) != 0 ) {
+    //         // TBD exception
+    //         // fprintf(stderr, "gettimeofday error %d : %s!\n", errno, strerror(errno));
+    //         std::cerr << "ProxyX11Server::acceptConnection() gettimeofday\n";
+    //         exit(EXIT_FAILURE);
+    //     }
+    //     c.start_time = tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
+    // }
+
     // TBD original connection is a stack (new pushed to front) (better as queue?)
     //c->next = connections;
+    // TBD need error handling here
     if ( !acceptClient( &c ) )
-        return;
+        return c;
     assert( c.client_fd > _listener_fd );
-    assert( !c.from.empty() );
+    assert( !c.client_desc.empty() );
     // TBD why is a global user setting arbitrarily set here, at every new connection?
     //   would it not be better somewhere in mainqueue before the first call to acceptConnection?
     settings.waitforclient = false;
-    std::cerr << "Got connection from " << c.from << std::endl;
+    std::cerr << "Got connection from " << c.client_desc << std::endl;
 
     c.server_fd = connectToServer();
     if( c.server_fd < 0 ) {

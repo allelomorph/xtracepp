@@ -19,7 +19,6 @@ private:
     static constexpr int _FD_CLOSED { -1 };
 
     inline static int  _next_id {};
-    /*struct */timeval _tv;
 
 public:
     const int      id;             // unique serial number
@@ -39,22 +38,25 @@ public:
 //    struct unknownextension* waiting;
 //    struct unknownextension* unknownextensions;
 
-    Connection() :
-        id ( _next_id++ ),
-        start_time ( [](){
-            if( gettimeofday( &_tv, NULL ) != 0 ) {
-                // TBD include string of errno name
-                throw std::system_error(
-                    errno, std::generic_category(),
-                    "Connection::Connection()" );
-            }
-            return _tv.tv_sec * uint64_t{ 1000 } + _tv.tv_usec / 1000;
-        }() ) {}
+    Connection();
+    ~Connection();
+    // Connection() :
+    //     id ( _next_id++ ),
+    //     start_time ( [](){
+    //         /*struct */timeval tv;
+    //         if( gettimeofday( &tv, NULL ) != 0 ) {
+    //             // TBD include string of errno name
+    //             throw std::system_error(
+    //                 errno, std::generic_category(),
+    //                 "Connection::Connection()" );
+    //         }
+    //         return tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
+    //     }() ) {}
 
-    ~Connection() {
-        closeClientSocket();
-        closeServerSocket();
-    }
+    // ~Connection() {
+    //     closeClientSocket();
+    //     closeServerSocket();
+    // }
 
     void
     closeClientSocket();

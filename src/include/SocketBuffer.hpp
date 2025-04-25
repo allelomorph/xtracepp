@@ -4,6 +4,9 @@
 
 #include <vector>
 
+#include <cstdint>
+
+#include <unistd.h>  // ssize_t
 
 // TBD can this be done more elegantly/idiomatically with std::streambuf
 //   or std::stringbuf? For example:
@@ -14,12 +17,12 @@
 
 class SocketBuffer {
 private:
-    static constexpr int _BLOCK_SZ { 2048 };
-    static constexpr int _MSG_NONE { 0 };
+    static constexpr int _BLOCK_SZ      { 2048 };
+    static constexpr int _MSG_NONE      { 0 };
 
-    int _block_ct { 1 };
-    std::vector<uint8_t> _buffer ( _BLOCK_SZ );
-    ssize_t _tl_bytes_used {};
+    int                  _block_ct      { 1 };
+    std::vector<uint8_t> _buffer        { std::vector<uint8_t>( _BLOCK_SZ ) };
+    ssize_t              _tl_bytes_used {};
 
 public:
     ssize_t write(const int sockfd);
