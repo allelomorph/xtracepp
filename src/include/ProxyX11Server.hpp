@@ -7,6 +7,7 @@
 
 #include <cstdint>      // SIZE_MAX
 
+#include "DisplayInfo.hpp"
 #include "Settings.hpp"
 #include "Connection.hpp"
 
@@ -19,28 +20,8 @@ private:
 
     static constexpr int _X_TCP_PORT { 6000 };
 
-    class _DisplayInfo {
-    private:
-        static constexpr std::string_view _UNIX_SOCKET_PATH_PREFIX {
-            "/tmp/.X11-unix/X" };
-        static constexpr int _UNSET { -1 };
-
-    public:
-        std::string name;
-        std::string protocol;
-        std::string hostname;
-        int display { _UNSET };
-        int screen  { _UNSET };
-        int family  { _UNSET };
-        std::string unix_socket_path;
-
-        //_DisplayInfo() = delete;
-        _DisplayInfo() {}
-        _DisplayInfo(const char* displayname);
-    };
-
-    _DisplayInfo _in_display;   // used to set traits of listener socket
-    _DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
+    DisplayInfo _in_display;   // used to set traits of listener socket
+    DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
 
     int _listener_fd;  // listening for x clients to intercept comms with x server
 //    int _out_fd;       // comms with x server on behalf of x clients

@@ -26,65 +26,6 @@
 //#include "typeName.hh"
 #include "Connection.hpp"
 
-
-ProxyX11Server::_DisplayInfo::_DisplayInfo(const char* displayname) {
-    assert( displayname != nullptr );
-
-    // extract protocol token if present, skip over hostname token if present
-    std::string dname { displayname };
-    std::smatch dname_match;
-    // Xlib reads display names as:
-    //     [protocol/] [hostname] : displaynumber [.screennumber]
-    std::regex dname_regex {
-        "^\\s*"
-        "(?:([a-zA-Z]+)/)?\\s*"  // protocol/
-        "([a-zA-Z]+)?\\s*"       // hostname
-        ":\\s*([0-9]+)\\s*"      // :displaynum
-        "(?:\\.([0-9]+))?\\s*"   // .screennum
-        "$"
-    };
-    const bool valid_dname_format {
-        std::regex_search(dname, dname_match, dname_regex)
-    };
-    assert( valid_dname_format );
-    name = dname;
-    protocol = dname_match[1];
-    std::transform( protocol.begin(), protocol.end(), protocol.begin(),
-                    [](unsigned char c){ return std::tolower(c); } );
-    hostname = dname_match[2];
-    std::transform( hostname.begin(), hostname.end(), hostname.begin(),
-                    [](unsigned char c){ return std::tolower(c); } );
-    display = std::stoi( dname_match[3] );
-    if ( dname_match[4] != "" )
-        screen = std::stoi( dname_match[4] );
-    // default protocol for hostnames other than unix is "tcp"
-    // default protocol for hostname unix or missing hostname is "local"
-    // TBD TODO from xtrace: make sure we are in C locale, otherwise this can go wrong
-    // std::cout.getloc().name() == "C"
-    assert( std::cout.getloc() == std::locale::classic() );
-    if ( !hostname.empty() && hostname != "unix") {
-        if ( protocol.empty() )
-            protocol = std::string( "tcp" );
-    } else {
-        hostname.clear();   // TBD matching xtrace, necessary?
-        protocol = std::string( "local" );
-    }
-    // only allow inet, tcp, unix, or local protocols, set family accordingly
-    if( protocol == "inet" || protocol == "tcp" ) {
-        family = AF_INET;
-    } else if ( protocol == "unix" || protocol == "local" ) {
-        family = AF_UNIX;
-    } else {
-        assert( 0 );
-    }
-    if ( family == AF_UNIX ) {
-        unix_socket_path = std::string(
-            _UNIX_SOCKET_PATH_PREFIX.data() + dname_match[3].str() );
-    }
-    assert( display != _UNSET );
-    assert( family != _UNSET );
-}
-
 void ProxyX11Server::__debugOutput() {
     std::cout << std::boolalpha <<
         "settings:\n" <<
@@ -152,7 +93,7 @@ void ProxyX11Server::parseDisplayNames() {
         out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
     }
     assert( out_displayname != nullptr );
-    _out_display = _DisplayInfo( out_displayname );
+    _out_display = DisplayInfo( out_displayname );
 
     const char* in_displayname { nullptr };
     if( settings.in_displayname != nullptr ) {
@@ -166,7 +107,7 @@ void ProxyX11Server::parseDisplayNames() {
         }
     }
     assert( in_displayname != nullptr );
-    _in_display = _DisplayInfo( in_displayname );
+    _in_display = DisplayInfo( in_displayname );
 }
 
 // TBD inaddr.sin_port never changes, can be part of DisplayInfo

@@ -5,6 +5,7 @@ add_executable(xtracepp
   errors.cpp
   main.cpp
   Connection.cpp
+  DisplayInfo.cpp
   ProxyX11Server.cpp
   Settings.cpp
   SocketBuffer.cpp
