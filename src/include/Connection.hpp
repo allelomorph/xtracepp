@@ -4,34 +4,32 @@
 
 #include <string>
 //#include <string_view>
+#include <system_error>  // generic_category
 
 #include <cstdint>
 
-#define FDQUEUE_MAX_FD 16
-struct fdqueue {
-    int fd[FDQUEUE_MAX_FD];
-    int nfd;
-};
+#include <sys/time.h>        // 'struct timeval' gettimeofday
+#include <errno.h>
 
-struct Connection {
-    static constexpr int BUFF_BLOCK_SZ { 4096 };
-    static constexpr int BUFF_BLOCK_CT { 16 };
-    static constexpr int BUFF_SZ       { BUFF_BLOCK_CT * BUFF_BLOCK_SZ };
+#include "SocketBuffer.hpp"
 
-    // TBD make id, start_time, from, client_fd, server_fd const and set in ctor
-    int id;               // unique serial number
-    uint64_t start_time;  // timestamp of connection creation (seconds since Unix Epoch)
-    std::string from;     // allocated string describing client address (x.x.x.x:port) for AF_INET or socket file path/"unknown(local)" for AF_UNIX
-    int client_fd;        // socket accept(2)ed from x client
-    int server_fd;        // socket connect(2)ed to x server
-    uint8_t clientbuffer[BUFF_SZ];
-    unint32_t clientcount;              // current amount of bytes used in client_buffer
-    unint32_t clientignore;
-    /*struct */fdqueue clientfdq;
-    uint8_t serverbuffer[BUFF_SZ];
-    uint32_t servercount;               // current amount of bytes used in server_buffer
-    uint32_t serverignore;
-    /*struct */fdqueue serverfdq;
+
+class Connection {
+private:
+    static constexpr int _FD_CLOSED { -1 };
+
+    inline static int  _next_id {};
+    /*struct */timeval _tv;
+
+public:
+    const int      id;             // unique serial number
+    const uint64_t start_time;     // timestamp of connection creation (seconds since Unix Epoch)
+    // TBD from, client_fd, server_fd const and set in ctor?
+    std::string    client_desc;    // (from) allocated string describing client address (x.x.x.x:port) for AF_INET or socket file path/"unknown(local)" for AF_UNIX
+    int            client_fd;      // socket accept(2)ed from x client
+    SocketBuffer   client_buffer;
+    int            server_fd;      // socket connect(2)ed to x server
+    SocketBuffer   server_buffer;
 //    const bool bigendian;
 //    enum client_state { c_start = 0, c_normal, c_amlost } client_state;
 //    enum server_state { s_start=0, s_normal, s_amlost } server_state;
@@ -40,6 +38,45 @@ struct Connection {
 //    struct usedextension* usedextensions;
 //    struct unknownextension* waiting;
 //    struct unknownextension* unknownextensions;
+
+    Connection() :
+        id ( _next_id++ ),
+        start_time ( [](){
+            if( gettimeofday( &_tv, NULL ) != 0 ) {
+                // TBD include string of errno name
+                throw std::system_error(
+                    errno, std::generic_category(),
+                    "Connection::Connection()" );
+            }
+            return _tv.tv_sec * uint64_t{ 1000 } + _tv.tv_usec / 1000;
+        }() ) {}
+
+    ~Connection() {
+        closeClientSocket();
+        closeServerSocket();
+    }
+
+    void
+    closeClientSocket();
+
+    void
+    closeServerSocket();
+
+    inline bool
+    clientSocketIsClosed() {
+        return ( client_fd == _FD_CLOSED );
+    }
+
+    inline bool
+    serverSocketIsClosed() {
+        return ( server_fd == _FD_CLOSED );
+    }
+
+    // bufferPacketFromClient  // client_buffer.read(client_fd)
+    // bufferPacketFromServer  // server_buffer.read(server_fd)
+    // forwardPacketToClient   // server_buffer.write(client_fd)
+    // forwardPacketToServer   // client_buffer.write(server_fd)
+
 };
 
 
