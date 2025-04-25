@@ -1,5 +1,5 @@
-#ifndef INTERMEDIARYSERVER_HPP
-#define INTERMEDIARYSERVER_HPP
+#ifndef PROXYX11SERVER_HPP
+#define PROXYX11SERVER_HPP
 
 
 #include <string>
@@ -11,7 +11,7 @@
 #include "Connection.hpp"
 
 
-class IntermediaryServer {
+class ProxyX11Server {
 private:
     static constexpr std::string_view _IN_DISPLAYNAME_ENV_VAR  { "FAKEDISPLAY" };
     static constexpr std::string_view _OUT_DISPLAYNAME_ENV_VAR { "DISPLAY" };
@@ -50,8 +50,8 @@ private:
 public:
     Settings settings;
 
-    IntermediaryServer();
-    ~IntermediaryServer();
+    ProxyX11Server();
+    ~ProxyX11Server();
 
     void parseDisplayNames();
     void listenForClients();
@@ -65,4 +65,4 @@ public:
 };
 
 
-#endif  // INTERMEDIARYSERVER_HPP
+#endif  // PROXYX11SERVER_HPP

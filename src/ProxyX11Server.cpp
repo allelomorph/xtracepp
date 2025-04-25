@@ -22,12 +22,12 @@
 //#include <sys/types.h>
 #include <netdb.h> // 'struct addrinfo' getaddrinfo freeaddrinfo
 
-#include "IntermediaryServer.hpp"
+#include "ProxyX11Server.hpp"
 //#include "typeName.hh"
 #include "Connection.hpp"
 
 
-IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
+ProxyX11Server::_DisplayInfo::_DisplayInfo(const char* displayname) {
     assert( displayname != nullptr );
 
     // extract protocol token if present, skip over hostname token if present
@@ -85,7 +85,7 @@ IntermediaryServer::_DisplayInfo::_DisplayInfo(const char* displayname) {
     assert( family != _UNSET );
 }
 
-void IntermediaryServer::__debugOutput() {
+void ProxyX11Server::__debugOutput() {
     std::cout << std::boolalpha <<
         "settings:\n" <<
         "\treadwritedebug: " << settings.readwritedebug << '\n' <<
@@ -135,16 +135,16 @@ void IntermediaryServer::__debugOutput() {
         std::endl;
 }
 
-IntermediaryServer::IntermediaryServer() {
+ProxyX11Server::ProxyX11Server() {
 }
 
-IntermediaryServer::~IntermediaryServer() {
+ProxyX11Server::~ProxyX11Server() {
     close( _listener_fd );
     if ( !_in_display.unix_socket_path.empty() )
         unlink( _in_display.unix_socket_path.data() );
 }
 
-void IntermediaryServer::parseDisplayNames() {
+void ProxyX11Server::parseDisplayNames() {
     const char* out_displayname { nullptr };
     if ( settings.out_displayname != nullptr ) {
         out_displayname = settings.out_displayname;
@@ -173,7 +173,7 @@ void IntermediaryServer::parseDisplayNames() {
 //    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
 //    (less crucial here as this will only be called once per process execution)
 // listenForClients(in_displayname,in_family,in_display)
-void IntermediaryServer::listenForClients() {
+void ProxyX11Server::listenForClients() {
     /*struct*/ sockaddr* address;
     std::size_t address_sz;
 
@@ -183,7 +183,7 @@ void IntermediaryServer::listenForClients() {
     if ( fd < 0 )  {
         // TBD exception
         //fprintf(stderr,"Error opening socket for '%s': %d=%s\n",_in_display.name,errno,strerror(errno));
-        std::cerr << "IntermediaryServer::listenForClients: socket\n";
+        std::cerr << "ProxyX11Server::listenForClients: socket\n";
         exit( EXIT_FAILURE );
     }
     assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
@@ -193,7 +193,7 @@ void IntermediaryServer::listenForClients() {
         const int on { 1 };
         if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
             // TBD exception using errno
-            std::cerr << "IntermediaryServer::listenForClients: setsockopt\n";
+            std::cerr << "ProxyX11Server::listenForClients: setsockopt\n";
             exit( EXIT_FAILURE );
         }
         /*struct*/ sockaddr_in inaddr;
@@ -224,7 +224,7 @@ void IntermediaryServer::listenForClients() {
         close(fd);
         // TBD exception
         // fprintf(stderr,"Error binding socket for '%s': %d=%s\n",_in_display.name,errno,strerror(errno));
-        std::cerr << "IntermediaryServer::listenForClients: bind\n";
+        std::cerr << "ProxyX11Server::listenForClients: bind\n";
         exit( EXIT_FAILURE );
     }
 
@@ -233,35 +233,35 @@ void IntermediaryServer::listenForClients() {
         close(fd);
         // TBD exception
         // fprintf(stderr,"Error listening for '%s': %d=%s\n",_in_display.name,errno ,strerror(errno));
-        std::cerr << "IntermediaryServer::listenForClients: listen\n";
+        std::cerr << "ProxyX11Server::listenForClients: listen\n";
         exit( EXIT_FAILURE );
     }
 
     _listener_fd = fd;
 }
 
-void IntermediaryServer::startClient() {
+void ProxyX11Server::startClient() {
     if ( settings.cli_subcmd_argc == 0 )
         return;
     _child_pid = fork();
     if( _child_pid == -1 ) {  // fork failed, still in parent
         // TBD exception
         //fprintf(stderr, "Error forking: %s\n", strerror(errno));
-        std::cerr << "IntermediaryServer::startClient fork\n";
+        std::cerr << "ProxyX11Server::startClient fork\n";
         exit( EXIT_FAILURE );
     }
     if( _child_pid == 0 ) {   // fork succeeded, in child
         if ( setenv( "DISPLAY", _in_display.name.data(), 1 ) != 0 ) {
             // TBD exception
             //fprintf(stderr,"Error setting $DISPLAY: %s\n", strerror(errno));
-            std::cerr << "IntermediaryServer::startClient setenv\n";
+            std::cerr << "ProxyX11Server::startClient setenv\n";
             exit( EXIT_FAILURE );
         }
         execvp( settings.cli_subcmd_argv[0], settings.cli_subcmd_argv );
         // child has failed to overtake parent process
         // TBD exception
         //fprintf(stderr, "Could not exec '%s': %s\n", argv[0], strerror(errno));
-        std::cerr << "IntermediaryServer::startClient execvp\n";
+        std::cerr << "ProxyX11Server::startClient execvp\n";
         exit( EXIT_FAILURE );
     }
     assert( _child_pid != 0 );
@@ -271,7 +271,7 @@ void IntermediaryServer::startClient() {
 // TBD this is called as part of acceptConnection, and effectively has two outputs:
 //   - fd of client at top of pending connection stack for listener (c->client_fd)
 //   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
-bool IntermediaryServer::acceptClient(Connection* conn) {
+bool ProxyX11Server::acceptClient(Connection* conn) {
     int fd;
     socklen_t len;
     std::string from;
@@ -287,7 +287,7 @@ bool IntermediaryServer::acceptClient(Connection* conn) {
                      reinterpret_cast< struct sockaddr* >( &inaddr ), &len );
         if ( fd < 0 ) {
             // TBD exception using errno
-            std::cerr << "IntermediaryServer::acceptClient accept\n";
+            std::cerr << "ProxyX11Server::acceptClient accept\n";
             return false;
         }
         // TBD inet_ntoa deprecated for inet_ntop:
@@ -306,7 +306,7 @@ bool IntermediaryServer::acceptClient(Connection* conn) {
                      reinterpret_cast< struct sockaddr* >( &unaddr ), &len );
         if ( fd < 0 ) {
             // TBD exception using errno
-            std::cerr << "IntermediaryServer::acceptClient accept\n";
+            std::cerr << "ProxyX11Server::acceptClient accept\n";
             return false;
         }
         if ( len > sizeof( sa_family_t ) )  // flexible array unaddr.sun_path len > 0
@@ -322,13 +322,13 @@ bool IntermediaryServer::acceptClient(Connection* conn) {
 // TBD addr.sin_port never changes, can be part of DisplayInfo or static func var
 //    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
 // connectToServer(out_displayname,out_family,out_hostname,out_display)
-int IntermediaryServer::connectToServer() {
+int ProxyX11Server::connectToServer() {
     // TCP socket to connect to X server as client
     int fd { socket( _out_display.family, SOCK_STREAM, 0 ) };
     if( fd < 0 )  {
         // TBD exeception
         // fprintf(stderr,"Error opening socket for '%s': %d=%s\n",_out_display.name,errno,strerror(errno));
-        std::cerr << "IntermediaryServer::connectToServer: socket\n";
+        std::cerr << "ProxyX11Server::connectToServer: socket\n";
         return -1;
     }
     assert( _out_display.family == AF_INET || _out_display.family == AF_UNIX );
@@ -345,13 +345,13 @@ int IntermediaryServer::connectToServer() {
             close( fd );
             // TBD exception
             //fprintf(stderr,"Error resolving hostname '%s' taken from '%s'\nError was: %s\n",_out_display.hostname,_out_display.name,gai_strerror(getaddrinfo_ret));
-            std::cerr << "IntermediaryServer::connectToServer: getaddrinfo\n";
+            std::cerr << "ProxyX11Server::connectToServer: getaddrinfo\n";
             return -1;
         }
         assert( res->ai_addrlen == sizeof(addr) );
         // TBD so we're using getaddrinfo to get a list of addresses that are AF_INET/SOCK_STREAM (IPv4/TCP,) and
         //   taking the first one? How are we sure its the first?
-        std::cout << "IntermediaryServer::connectToServer:\n";
+        std::cout << "ProxyX11Server::connectToServer:\n";
         for (/*struct */addrinfo* node { res }; node; node = node->ai_next) {
             std::cout << "node: 0x" << (void*)node << "\n" <<
                 "\tai_flags: " << node->ai_flags << '\n' <<
@@ -374,7 +374,7 @@ int IntermediaryServer::connectToServer() {
             close(fd);
             // TBD exception
             // fprintf(stderr,"Error connecting to '%s' (resolved to '%s') for '%s': %d=%s\n",_out_display.hostname,inet_ntoa(addr.sin_addr),_out_display.name,errno,strerror(errno));
-            std::cerr << "IntermediaryServer::connectToServer: connect\n";
+            std::cerr << "ProxyX11Server::connectToServer: connect\n";
             return -1;
         }
     } else {
@@ -390,7 +390,7 @@ int IntermediaryServer::connectToServer() {
             close(fd);
             // TBD exception
             // fprintf(stderr,"Error connecting to unix socket '%s' for '%s': %d=%s\n",addr.sun_path,_out_display.name,errno,strerror(errno));
-            std::cerr << "IntermediaryServer::connectToServer: connect\n";
+            std::cerr << "ProxyX11Server::connectToServer: connect\n";
             return -1;
         }
     }
@@ -398,7 +398,7 @@ int IntermediaryServer::connectToServer() {
 }
 
 // acceptConnection(int listener)
-Connection IntermediaryServer::acceptConnection() {
+Connection ProxyX11Server::acceptConnection() {
     Connection c {};
 
     // TBD make connections a vector of Connection
@@ -407,7 +407,7 @@ Connection IntermediaryServer::acceptConnection() {
         if( gettimeofday( &tv, NULL ) != 0 ) {
             // TBD exception
             // fprintf(stderr, "gettimeofday error %d : %s!\n", errno, strerror(errno));
-            std::cerr << "IntermediaryServer::acceptConnection() gettimeofday\n";
+            std::cerr << "ProxyX11Server::acceptConnection() gettimeofday\n";
             exit(EXIT_FAILURE);
         }
         c.start_time = tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
@@ -435,304 +435,304 @@ Connection IntermediaryServer::acceptConnection() {
     return c;
 }
 
-// TBD mainqueue() retval is passed as retval of xtrace
-// TBD notice printing to stdout, stderr and out (may be stdout)
-int IntermediaryServer::processClientQueue() {
-    static constexpr int FD_CLOSED    { -1 };  // sentinel for fds
-    static constexpr int CHILD_EXITED { 0 };   // sentinel for child pid
+// // TBD mainqueue() retval is passed as retval of xtrace
+// // TBD notice printing to stdout, stderr and out (may be stdout)
+// int ProxyX11Server::processClientQueue() {
+//     static constexpr int FD_CLOSED    { -1 };  // sentinel for fds
+//     static constexpr int CHILD_EXITED { 0 };   // sentinel for child pid
 
-    // TBD make class member?
-    std::unordered_map<int, Connection> connections;
-    std::vector<int> closed_connection_ids;
+//     // TBD make class member?
+//     std::unordered_map<int, Connection> connections;
+//     std::vector<int> closed_connection_ids;
 
-    // NOTE: FD_SET and FD_CLR are idempotent
-    fd_set readfds, writefds, exceptfds;
-    for ( int max_fd, select_ret; true; )
-        /*
-         * setup
-         */
-        // select(2) expects first param to be highest fd in any of readfds, writefds, exceptfds + 1
-        max_fd = _listener_fd;
-        // fd_sets are modified in place by select(2), and need to be zeroed out before each use
-        FD_ZERO( &readfds );
-        FD_ZERO( &writefds );
-        FD_ZERO( &exceptfds );
+//     // NOTE: FD_SET and FD_CLR are idempotent
+//     fd_set readfds, writefds, exceptfds;
+//     for ( int max_fd, select_ret; true; )
+//         /*
+//          * setup
+//          */
+//         // select(2) expects first param to be highest fd in any of readfds, writefds, exceptfds + 1
+//         max_fd = _listener_fd;
+//         // fd_sets are modified in place by select(2), and need to be zeroed out before each use
+//         FD_ZERO( &readfds );
+//         FD_ZERO( &writefds );
+//         FD_ZERO( &exceptfds );
 
-        // monitor _listener_fd for input (read readiness)
-        FD_SET( _listener_fd, &readfds );
+//         // monitor _listener_fd for input (read readiness)
+//         FD_SET( _listener_fd, &readfds );
 
-        closed_connection_ids.clear();
-        /*
-         * first loop over connections to:
-         *   - set client and server sockets into readfds, writefds, exceptfds
-         *   - mark closed connections for deletion
-         */
-        for ( auto& [ id, conn ] : connections ) {
-            if ( !conn.clientSocketIsClosed() ) {
-                // If connection is otherwise closed:
-                if ( conn.serverSocketIsClosed() && conn.server_buffer.empty() ) {
-                    conn.closeClientSocket();
-                    //if ( settings.readwritedebug )
-                    //    fprintf(out,"%03d:>:sent EOF\n",c->id);
-                } else {
-                    // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
-                    FD_SET( conn.client_fd, &exceptfds );
-                    max_fd = std::max( max_fd, conn.client_fd );
+//         closed_connection_ids.clear();
+//         /*
+//          * first loop over connections to:
+//          *   - set client and server sockets into readfds, writefds, exceptfds
+//          *   - mark closed connections for deletion
+//          */
+//         for ( auto& [ id, conn ] : connections ) {
+//             if ( !conn.clientSocketIsClosed() ) {
+//                 // If connection is otherwise closed:
+//                 if ( conn.serverSocketIsClosed() && conn.server_buffer.empty() ) {
+//                     conn.closeClientSocket();
+//                     //if ( settings.readwritedebug )
+//                     //    fprintf(out,"%03d:>:sent EOF\n",c->id);
+//                 } else {
+//                     // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
+//                     FD_SET( conn.client_fd, &exceptfds );
+//                     max_fd = std::max( max_fd, conn.client_fd );
 
-                    if ( conn.client_buffer.empty() ) {
-                        // monitor client socket for input (read readiness)
-                        FD_SET( conn.client_fd, &readfds );
-                    }
-                    if ( !conn.server_buffer.empty() ) {
-                        // monitor client socket for output (write readiness)
-                        FD_SET( conn.client_fd, &writefds );
-                    }
-                }
-            }
-            if ( !conn.serverSocketIsClosed() ) {
-                // If connection is otherwise closed:
-                if ( !conn.clientSocketIsClosed() && conn.client_buffer.empty() ) {
-                    conn.closeServerSocket();
-                    // if ( settings.readwritedebug )
-                    //     fprintf(out,"%03d:<:sent EOF\n",conn.id);
-                } else {
-                    // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
-                    FD_SET( conn.server_fd, &exceptfds );
-                    max_fd = std::max( max_fd, conn.server_fd );
+//                     if ( conn.client_buffer.empty() ) {
+//                         // monitor client socket for input (read readiness)
+//                         FD_SET( conn.client_fd, &readfds );
+//                     }
+//                     if ( !conn.server_buffer.empty() ) {
+//                         // monitor client socket for output (write readiness)
+//                         FD_SET( conn.client_fd, &writefds );
+//                     }
+//                 }
+//             }
+//             if ( !conn.serverSocketIsClosed() ) {
+//                 // If connection is otherwise closed:
+//                 if ( !conn.clientSocketIsClosed() && conn.client_buffer.empty() ) {
+//                     conn.closeServerSocket();
+//                     // if ( settings.readwritedebug )
+//                     //     fprintf(out,"%03d:<:sent EOF\n",conn.id);
+//                 } else {
+//                     // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
+//                     FD_SET( conn.server_fd, &exceptfds );
+//                     max_fd = std::max( max_fd, conn.server_fd );
 
-                    if ( conn.server_buffer.empty() ) {
-                        // monitor server socket for input (read readiness)
-                        FD_SET( conn.server_fd, &readfds );
-                    }
-                    if ( !conn.client_buffer.empty() ) {
-                        // monitor server socket for output (write readiness)
-                        FD_SET( conn.server_fd, &writefds );
-                    }
-                }
-            }
-            // If connection is completely closed:
-            if ( conn.clientSocketIsClosed() && conn.serverSocketIsClosed() ) {
-                closed_connection_ids.emplace_back( conn.id );
-            }
-        }
+//                     if ( conn.server_buffer.empty() ) {
+//                         // monitor server socket for input (read readiness)
+//                         FD_SET( conn.server_fd, &readfds );
+//                     }
+//                     if ( !conn.client_buffer.empty() ) {
+//                         // monitor server socket for output (write readiness)
+//                         FD_SET( conn.server_fd, &writefds );
+//                     }
+//                 }
+//             }
+//             // If connection is completely closed:
+//             if ( conn.clientSocketIsClosed() && conn.serverSocketIsClosed() ) {
+//                 closed_connection_ids.emplace_back( conn.id );
+//             }
+//         }
 
-        // TBD assuming we cannot erase while iterating in above loop
-        for ( const int id : closed_connection_ids )
-            connections.erase( id );
+//         // TBD assuming we cannot erase while iterating in above loop
+//         for ( const int id : closed_connection_ids )
+//             connections.erase( id );
 
-        // If no connections left and subprocess has exited: exit
-        // TBD note stopwhennone true by default
-        if ( connections.empty() && settings.stopwhennone &&
-             _child_pid == CHILD_EXITED ) {
-            return EXIT_SUCCESS;
-        }
+//         // If no connections left and subprocess has exited: exit
+//         // TBD note stopwhennone true by default
+//         if ( connections.empty() && settings.stopwhennone &&
+//              _child_pid == CHILD_EXITED ) {
+//             return EXIT_SUCCESS;
+//         }
 
-        // TBD run in separate thread? https://stackoverflow.com/a/11679770
-        /*
-         * Check if subprocess finished (child from cli `--`)
-         */
-        // If child has not exited, and select failed on previous loop when SIGCHLD caught
-        if ( _child_pid != CHILD_EXITED &&
-             ( select_ret == -1 || caught_child_signal ) ) {
-            caught_child_signal = false;
-            int status;
-            // TBD consider sigaction and SA_NOCLDWAIT:
-            //   - https://unix.stackexchange.com/a/616607
-            // Check to see if child exited, but do not hang (wait until so)
-            if ( waitpid( _child_pid, &status, WNOHANG ) == _child_pid ) {
-                _child_pid = CHILD_EXITED;
-                // If connections empty and not set to wait after subcommand
-                if ( connections.empty() && !settings.waitforclient ) {
-                    /* TODO: instead wait a bit before terminating? */
-                    // Return child exit code or number of signal that terminated
-                    // TBD why +128?
-                    if ( WIFEXITED( status ) )
-                        return WEXITSTATUS( status );
-                    else  // WIFSIGNALED( status ) == true
-                        return WTERMSIG( status ) + 128;
-                }
-            }
-        }
+//         // TBD run in separate thread? https://stackoverflow.com/a/11679770
+//         /*
+//          * Check if subprocess finished (child from cli `--`)
+//          */
+//         // If child has not exited, and select failed on previous loop when SIGCHLD caught
+//         if ( _child_pid != CHILD_EXITED &&
+//              ( select_ret == -1 || caught_child_signal ) ) {
+//             caught_child_signal = false;
+//             int status;
+//             // TBD consider sigaction and SA_NOCLDWAIT:
+//             //   - https://unix.stackexchange.com/a/616607
+//             // Check to see if child exited, but do not hang (wait until so)
+//             if ( waitpid( _child_pid, &status, WNOHANG ) == _child_pid ) {
+//                 _child_pid = CHILD_EXITED;
+//                 // If connections empty and not set to wait after subcommand
+//                 if ( connections.empty() && !settings.waitforclient ) {
+//                     /* TODO: instead wait a bit before terminating? */
+//                     // Return child exit code or number of signal that terminated
+//                     // TBD why +128?
+//                     if ( WIFEXITED( status ) )
+//                         return WEXITSTATUS( status );
+//                     else  // WIFSIGNALED( status ) == true
+//                         return WTERMSIG( status ) + 128;
+//                 }
+//             }
+//         }
 
-        /*
-         * Idle until any of the fds in the provided fd_sets becomes ready for
-         *   reading, writing, or indicating exceptional conditions
-         */
-        select_ret = select( max_fd + 1, &readfds, &writefds, &exceptfds, NULL );
-        // TBD Note that:
-        //   - select failure resets but does not break loop
-        //   - SIGINT forces select failure, but does not print error
-        if ( select_ret == -1 ) {
-            if ( errno != 0 && errno != EINTR ) {
-                // TBD exception
-                //fprintf( stderr, "Error %d in select: %s\n", errno, strerror(errno) );
-            }
-            continue;
-        }
+//         /*
+//          * Idle until any of the fds in the provided fd_sets becomes ready for
+//          *   reading, writing, or indicating exceptional conditions
+//          */
+//         select_ret = select( max_fd + 1, &readfds, &writefds, &exceptfds, NULL );
+//         // TBD Note that:
+//         //   - select failure resets but does not break loop
+//         //   - SIGINT forces select failure, but does not print error
+//         if ( select_ret == -1 ) {
+//             if ( errno != 0 && errno != EINTR ) {
+//                 // TBD exception
+//                 //fprintf( stderr, "Error %d in select: %s\n", errno, strerror(errno) );
+//             }
+//             continue;
+//         }
 
-        // TBD need to incorporate read/write of 0 (EOF) into logic
-        /*
-         * second loop over connections to:
-         *   - receive new packets
-         *   - parse current packets
-         *   - send current packets
-         */
-        for ( auto& [ id, conn ] : connections ) {
-            if ( !conn.clientSocketIsClosed() ) {
-                // If client socket had exceptional condition:
-                if ( FD_ISSET( conn.client_fd, &exceptfds ) ) {
-                    conn.closeClientSocket();
-                    //fprintf(stdout,"%03d: exception in communication with client\n",conn.id);
-                    continue;
-                }
-                // If client socket has pending write:
-                if ( FD_ISSET( conn.client_fd, &writefds ) ) {
-                    /*
-                     * TBD if client is ready for a write, but there is no data to write (server buffer is empty,)
-                     *   should we use 0 bytes written as an indicator to close client_fd?
-                     */
+//         // TBD need to incorporate read/write of 0 (EOF) into logic
+//         /*
+//          * second loop over connections to:
+//          *   - receive new packets
+//          *   - parse current packets
+//          *   - send current packets
+//          */
+//         for ( auto& [ id, conn ] : connections ) {
+//             if ( !conn.clientSocketIsClosed() ) {
+//                 // If client socket had exceptional condition:
+//                 if ( FD_ISSET( conn.client_fd, &exceptfds ) ) {
+//                     conn.closeClientSocket();
+//                     //fprintf(stdout,"%03d: exception in communication with client\n",conn.id);
+//                     continue;
+//                 }
+//                 // If client socket has pending write:
+//                 if ( FD_ISSET( conn.client_fd, &writefds ) ) {
+//                     /*
+//                      * TBD if client is ready for a write, but there is no data to write (server buffer is empty,)
+//                      *   should we use 0 bytes written as an indicator to close client_fd?
+//                      */
 
-                    if ( conn.server_buffer.empty() ) {
-                        // TBD edge case (?): the buffer could at times be empty
-                        //   even if the server socket is not closed
-                        if ( conn.serverSocketIsClosed() ) {
-                            // Close client socket
-                            conn.closeClientSocket();
-                            // if ( settings.readwritedebug )
-                            //     fprintf(stdout,"%03d:>:send EOF\n",conn.id);
-                            continue;
-                        }
-                    } else {
-                        // TBD parse first before sending out, as parsing may involve editing buffer
-                        //parse_server( c );
-                        // TBD Write server buffer to client socket
-                        try {
-                            ssize_t bytes_written { conn.server_buffer.write( conn.client_fd ) };
-                        } catch ( const std::system_error& e ) {
-                            // close client socket, continue to next connection
-                            conn.closeClientSocket();
-                            // if ( settings.readwritedebug ) {
-                            //     fprintf(stdout,"%03d: error writing to client: %d=%s\n",
-                            //             conn.id, errno, strerror(errno));
-                            // }
-                            continue;
-                        }
-                        assert( bytes_written != -1 );  // SocketBufffer.write() has -1 protection
-                        // If any bytes were written to client socket:
-                        if ( bytes_written > 0 ) {
-                            // if ( settings.readwritedebug )
-                            //     fprintf(stdout,"%03d:>:wrote %u bytes\n",conn.id,(unsigned int)bytes_written);
-                        }
-                    }
-                }
-                // If client socket has pending read:
-                if ( FD_ISSET( conn.client_fd, &readfds ) ) {
-                    // Read from client into clientbuffer
-                    try {
-                        ssize_t bytes_read { conn.client_buffer.read( conn.client_fd ) };
-                    } catch ( const std::system_error& e ) {
-                        // Close client socket, continue to next connection
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:<:error reading from client buffer\n",conn.id);
-                        conn.closeClientSocket();
-                        continue;
-                    }
-                    // If any bytes read:
-                    if ( bytes_read > 0 ) {
-                        // // Update client buffer size
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:<:received %u bytes\n",conn.id,(unsigned int)wasread);
-                    } else {
-                        // Close client socket, continue to next connection
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:<:got EOF\n",conn.id);
-                        conn.closeClientSocket();
-                        continue;
-                    }
-                    // TBD parse immediately after reading, as we may need to alter contents
-                    if ( !conn.client_buffer.empty() ) {
-                        // parse_client( c );
-                    }
-                }
-                // If client socket is closed, and server bytes have been read:
-            } else if ( !conn.server_buffer.empty() ) {
-                /* discard additional events */
-                fprintf(stdout, "%03d:s->?: discarded last answer of %u bytes\n", conn.id, conn.server_buffer.size() );
-                // TBD xtrace has case here where there may be bytes left after serverignore
-                // if ( conn.serverignore == 0 && conn.servercount > 0 ) {
-                //     parse_server( c );
-                // }
-            }
-            // If server socket is open:
-            if ( conn.server_fd != FD_CLOSED ) {
-                // If server socket had exceptional condition:
-                if ( FD_ISSET( conn.client_fd, &exceptfds ) ) {
-                    // Close socket with message, continue to next connection
-                    close( conn.server_fd );
-                    conn.server_fd = FD_CLOSED;
-                    // fprintf( stdout, "%03d: exception in communication with server\n", conn.id );
-                    continue;
-                }
-                // If server socket has pending write:
-                if ( FD_ISSET( conn.server_fd, &writefds ) ) {
-                    try {
-                        ssize_t bytes_written { conn.client_buffer.write( conn.server_fd ) };
-                    } catch ( const std::system_error& e ) {
-                        close( conn.server_fd );
-                        conn.server_fd = FD_CLOSED;
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d: error writing to server: %d=%s\n",conn.id,e,strerror(e));
-                        continue;
-                    }
-                    if ( settings.interactive && allowsent > 0 )   // allowsent
-                        allowsent--;                               // allowsent
-                    // If bytes written to server socket:
-                    if ( bytes_written > 0 ) {
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:<:wrote %u bytes\n",conn.id,(unsigned int)written);
-                        // If client buffer was not completely emptied:
-                        // If bytes remain in client buffer: log print next packet
-                        // if ( conn.clientcount != 0 && conn.clientignore == 0 ) {
-                        //     parse_client( c );
-                        // }
-                    }
-                }
-                // If server socket has pending read:
-                if ( FD_ISSET( conn.server_fd, &readfds ) ) {
-                    try {
-                        ssize_t bytes_read { conn.server_buffer.read( conn.server_fd ) };
-                    } catch ( const std::system_error& e ) {
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:>:error reading from server bufer\n",conn.id);
-                        close( conn.server_fd );
-                        conn.server_fd = FD_CLOSED;
-                    }
-                    if ( bytes_read > 0 ) {
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:>:received %u bytes\n",conn.id,(unsigned int)wasread);
-                    } else {
-                        // if ( settings.readwritedebug )
-                        //     fprintf(stdout,"%03d:>:got EOF\n",conn.id);
-                        conn.closeServerSocket();
-                    }
-                    if ( !conn.server_buffer.empty() ) {
-                        //parse_server( c );
-                    }
-                }
-            } else if ( !conn.client_buffer.empty() ) {
-                /* discard additional events */
-                fprintf(stdout,"%03d:<: discarding last request of %u bytes\n",conn.id, conn.client_buffer.size() );
-                // if ( conn.clientignore == 0 && conn.clientcount > 0 ) {
-                //     parse_client( c );
-                // }
-            }
-        }
+//                     if ( conn.server_buffer.empty() ) {
+//                         // TBD edge case (?): the buffer could at times be empty
+//                         //   even if the server socket is not closed
+//                         if ( conn.serverSocketIsClosed() ) {
+//                             // Close client socket
+//                             conn.closeClientSocket();
+//                             // if ( settings.readwritedebug )
+//                             //     fprintf(stdout,"%03d:>:send EOF\n",conn.id);
+//                             continue;
+//                         }
+//                     } else {
+//                         // TBD parse first before sending out, as parsing may involve editing buffer
+//                         //parse_server( c );
+//                         // TBD Write server buffer to client socket
+//                         try {
+//                             ssize_t bytes_written { conn.server_buffer.write( conn.client_fd ) };
+//                         } catch ( const std::system_error& e ) {
+//                             // close client socket, continue to next connection
+//                             conn.closeClientSocket();
+//                             // if ( settings.readwritedebug ) {
+//                             //     fprintf(stdout,"%03d: error writing to client: %d=%s\n",
+//                             //             conn.id, errno, strerror(errno));
+//                             // }
+//                             continue;
+//                         }
+//                         assert( bytes_written != -1 );  // SocketBufffer.write() has -1 protection
+//                         // If any bytes were written to client socket:
+//                         if ( bytes_written > 0 ) {
+//                             // if ( settings.readwritedebug )
+//                             //     fprintf(stdout,"%03d:>:wrote %u bytes\n",conn.id,(unsigned int)bytes_written);
+//                         }
+//                     }
+//                 }
+//                 // If client socket has pending read:
+//                 if ( FD_ISSET( conn.client_fd, &readfds ) ) {
+//                     // Read from client into clientbuffer
+//                     try {
+//                         ssize_t bytes_read { conn.client_buffer.read( conn.client_fd ) };
+//                     } catch ( const std::system_error& e ) {
+//                         // Close client socket, continue to next connection
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:<:error reading from client buffer\n",conn.id);
+//                         conn.closeClientSocket();
+//                         continue;
+//                     }
+//                     // If any bytes read:
+//                     if ( bytes_read > 0 ) {
+//                         // // Update client buffer size
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:<:received %u bytes\n",conn.id,(unsigned int)wasread);
+//                     } else {
+//                         // Close client socket, continue to next connection
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:<:got EOF\n",conn.id);
+//                         conn.closeClientSocket();
+//                         continue;
+//                     }
+//                     // TBD parse immediately after reading, as we may need to alter contents
+//                     if ( !conn.client_buffer.empty() ) {
+//                         // parse_client( c );
+//                     }
+//                 }
+//                 // If client socket is closed, and server bytes have been read:
+//             } else if ( !conn.server_buffer.empty() ) {
+//                 /* discard additional events */
+//                 fprintf(stdout, "%03d:s->?: discarded last answer of %u bytes\n", conn.id, conn.server_buffer.size() );
+//                 // TBD xtrace has case here where there may be bytes left after serverignore
+//                 // if ( conn.serverignore == 0 && conn.servercount > 0 ) {
+//                 //     parse_server( c );
+//                 // }
+//             }
+//             // If server socket is open:
+//             if ( conn.server_fd != FD_CLOSED ) {
+//                 // If server socket had exceptional condition:
+//                 if ( FD_ISSET( conn.client_fd, &exceptfds ) ) {
+//                     // Close socket with message, continue to next connection
+//                     close( conn.server_fd );
+//                     conn.server_fd = FD_CLOSED;
+//                     // fprintf( stdout, "%03d: exception in communication with server\n", conn.id );
+//                     continue;
+//                 }
+//                 // If server socket has pending write:
+//                 if ( FD_ISSET( conn.server_fd, &writefds ) ) {
+//                     try {
+//                         ssize_t bytes_written { conn.client_buffer.write( conn.server_fd ) };
+//                     } catch ( const std::system_error& e ) {
+//                         close( conn.server_fd );
+//                         conn.server_fd = FD_CLOSED;
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d: error writing to server: %d=%s\n",conn.id,e,strerror(e));
+//                         continue;
+//                     }
+//                     if ( settings.interactive && allowsent > 0 )   // allowsent
+//                         allowsent--;                               // allowsent
+//                     // If bytes written to server socket:
+//                     if ( bytes_written > 0 ) {
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:<:wrote %u bytes\n",conn.id,(unsigned int)written);
+//                         // If client buffer was not completely emptied:
+//                         // If bytes remain in client buffer: log print next packet
+//                         // if ( conn.clientcount != 0 && conn.clientignore == 0 ) {
+//                         //     parse_client( c );
+//                         // }
+//                     }
+//                 }
+//                 // If server socket has pending read:
+//                 if ( FD_ISSET( conn.server_fd, &readfds ) ) {
+//                     try {
+//                         ssize_t bytes_read { conn.server_buffer.read( conn.server_fd ) };
+//                     } catch ( const std::system_error& e ) {
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:>:error reading from server bufer\n",conn.id);
+//                         close( conn.server_fd );
+//                         conn.server_fd = FD_CLOSED;
+//                     }
+//                     if ( bytes_read > 0 ) {
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:>:received %u bytes\n",conn.id,(unsigned int)wasread);
+//                     } else {
+//                         // if ( settings.readwritedebug )
+//                         //     fprintf(stdout,"%03d:>:got EOF\n",conn.id);
+//                         conn.closeServerSocket();
+//                     }
+//                     if ( !conn.server_buffer.empty() ) {
+//                         //parse_server( c );
+//                     }
+//                 }
+//             } else if ( !conn.client_buffer.empty() ) {
+//                 /* discard additional events */
+//                 fprintf(stdout,"%03d:<: discarding last request of %u bytes\n",conn.id, conn.client_buffer.size() );
+//                 // if ( conn.clientignore == 0 && conn.clientcount > 0 ) {
+//                 //     parse_client( c );
+//                 // }
+//             }
+//         }
 
-        // new connections are driven by listener socket accept(2)ing clients
-        if ( FD_ISSET( _listener_fd, &readfds ) ) {
-            acceptConnection();
-        }
+//         // new connections are driven by listener socket accept(2)ing clients
+//         if ( FD_ISSET( _listener_fd, &readfds ) ) {
+//             acceptConnection();
+//         }
 
-    }
-    return EXIT_SUCCESS;
-}
+//     }
+//     return EXIT_SUCCESS;
+// }
