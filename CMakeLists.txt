@@ -1,9 +1,11 @@
 # newest features used: TBD
 cmake_minimum_required(VERSION 3.14)
 
-project(x11_extension_filter
-  DESCRIPTION "Teardown of xtrace to provide selective filtering of x11 extensions"
-  LANGUAGES C
+project(xtracepp
+  DESCRIPTION "Proxy between X11 server and clients, logging comms and \
+selectively altering packet data based on user options. Rebuild in C++ of \
+xtrace C source by Bernhard Link et al.."
+  LANGUAGES C CXX
 )
 
 if(NOT EXISTS ${PROJECT_SOURCE_DIR}/config.h)
@@ -15,7 +17,7 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/config.h)
   )
 endif()
 
-add_executable(x11_extension_filter
+add_executable(_xtrace
   atoms.c
   copyauth.c
   main.c
@@ -26,12 +28,14 @@ add_executable(x11_extension_filter
   x11common.c
   x11server.c
 )
-target_include_directories(x11_extension_filter PRIVATE
+target_include_directories(_xtrace PRIVATE
   ${PROJECT_SOURCE_DIR}
 )
 
 # allows use of .proto Protobuf files
 # no need for FindProtobuf.cmake
-target_compile_definitions(x11_extension_filter PUBLIC
+target_compile_definitions(_xtrace PUBLIC
   PKGDATADIR="${PROJECT_SOURCE_DIR}"
 )
+
+add_subdirectory(src)
