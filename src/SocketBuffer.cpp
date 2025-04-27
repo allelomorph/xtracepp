@@ -1,51 +1,49 @@
-#include "SocketBuffer.hpp"
-
-#include <string_view>
-#include <system_error>  // generic_category
+#include <string>
 
 #include <cassert>
 
 #include <sys/socket.h>  // send recv
 #include <errno.h>
 
+#include "SocketBuffer.hpp"
+#include "errors.hpp"
 
-ssize_t SocketBuffer::write(const int sockfd) {
-    std::string_view exception_stem { "SocketBuffer: write: send" };
+
+size_t SocketBuffer::write( const int sockfd ) {
+    std::string err_stem { "SocketBuffer::write(): " };
     ssize_t bytes_written { send(
-            sockfd, _buffer.data(), _tl_bytes_used, _MSG_NONE ) };
+            sockfd, _buffer.data(), _bytes_stored, _MSG_NONE ) };
     if ( bytes_written == -1 ) {
-        // TBD include string of errno name
-        throw std::system_error(
-            errno, std::generic_category(),
-            exception_stem.data() );
+        throw errors::system::exception(
+            err_stem + "send" );
     }
-    assert( bytes_written == _tl_bytes_used );
+    assert( static_cast< size_t >( bytes_written ) == _bytes_stored );
+    clear();
     return bytes_written;
 }
 
-ssize_t SocketBuffer::read(const int sockfd) {
-    std::string_view exception_stem { "SocketBuffer: read: recv" };
+size_t SocketBuffer::read( const int sockfd ) {
+    std::string err_stem { "SocketBuffer::read(): " };
     ssize_t bytes_read { recv(
             sockfd, _buffer.data(), _buffer.size(), _MSG_NONE ) };
     if ( bytes_read == -1 ) {
-        // TBD include string of errno name
-        throw std::system_error(
-            errno, std::generic_category(),
-            exception_stem.data() );
+        clear();
+        throw errors::system::exception(
+            err_stem + "recv" );
     }
-    _tl_bytes_used = bytes_read;
-    while ( _tl_bytes_used == _buffer.size() ) {
+    size_t bytes_stored ( bytes_read );
+    while ( bytes_stored == _buffer.size() ) {
         _buffer.resize( _buffer.size() + _BLOCK_SZ );
         ++_block_ct;
         bytes_read = recv(
-            sockfd, _buffer.data() + _tl_bytes_used, _BLOCK_SZ, _MSG_NONE );
+            sockfd, _buffer.data() + bytes_stored, _BLOCK_SZ, _MSG_NONE );
         if ( bytes_read == -1 ) {
-            // TBD include string of errno name
-            throw std::system_error(
-                errno, std::generic_category(),
-                exception_stem.data() );
+            clear();
+            throw errors::system::exception(
+                err_stem + "recv" );
         }
-        _tl_bytes_used += bytes_read;
+        bytes_stored += bytes_read;
     }
-    return _tl_bytes_used;
+    _bytes_stored = bytes_stored;
+    return _bytes_stored;
 }

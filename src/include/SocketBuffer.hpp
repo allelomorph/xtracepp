@@ -1,12 +1,13 @@
 #ifndef SOCKETBUFFER_HPP
 #define SOCKETBUFFER_HPP
 
-
 #include <vector>
+#include <type_traits>  // is_same_v
 
 #include <cstdint>
 
-#include <unistd.h>  // ssize_t
+#include <unistd.h>     // ssize_t
+
 
 // TBD can this be done more elegantly/idiomatically with std::streambuf
 //   or std::stringbuf? For example:
@@ -21,23 +22,32 @@ private:
     static constexpr int _MSG_NONE      { 0 };
 
     int                  _block_ct      { 1 };
-    std::vector<uint8_t> _buffer        { std::vector<uint8_t>( _BLOCK_SZ ) };
-    ssize_t              _tl_bytes_used {};
+    std::vector<uint8_t> _buffer;
+
+    static_assert( std::is_same_v<
+                   decltype( _buffer )::size_type, size_t > );
+    size_t               _bytes_stored  {};
 
 public:
-    ssize_t write(const int sockfd);
-    ssize_t read(const int sockfd);
+    SocketBuffer() : _buffer( _BLOCK_SZ ) {}
+
+    size_t write( const int sockfd );
+    size_t read( const int sockfd );
 
     inline uint8_t* buffer() {
         return _buffer.data();
     }
 
     inline size_t size() {
-        return _tl_bytes_used;
+        return _bytes_stored;
     }
 
     inline bool empty() {
-        return (_tl_bytes_used == 0);
+        return ( _bytes_stored == 0 );
+    }
+
+    inline void clear() {
+        _bytes_stored = 0;
     }
 };
 
