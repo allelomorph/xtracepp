@@ -24,13 +24,18 @@ Connection::~Connection() {
 
 void
 Connection::closeClientSocket() {
+    if ( clientSocketIsClosed() )
+        return;
     close( client_fd );
     // TBD error for any errno other than EBADF
     client_fd = _FD_CLOSED;
+    }
 }
 
 void
 Connection::closeServerSocket() {
+    if ( serverSocketIsClosed() ) {
+        return;
     close( server_fd );
     // TBD error for any errno other than EBADF
     server_fd = _FD_CLOSED;

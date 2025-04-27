@@ -6,6 +6,8 @@
 #include <string_view>
 
 
+// TBD how does this compare to libX11 Display (_XDisplay)?
+//   - https://github.com/mirror/libX11/blob/master/include/X11/Xlibint.h#L72
 class DisplayInfo {
 private:
     static constexpr std::string_view _UNIX_SOCKET_PATH_PREFIX {

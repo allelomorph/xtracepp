@@ -97,11 +97,12 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
             switch( _long_only_option ) {
             case LO_HELP:
                 std::cout << argv[0] <<
-                    ": Dump all X protocol data being tunneled from a fake X display to a real one.\n";
+                    ": Intercept, log, and modify (based on user options) "
+                    "packet data going between X server and clients\n";
                 std::cout <<
                     "usage: " << argv[0] << " [options] [[--] command args ...]\n" <<
-                    "--display, -d <display to connect to>\n"
-                    "--fakedisplay, -D <display to fake>\n"
+                    "--display, -d <display name representing actual X server>\n"
+                    "--proxydisplay, -D <proxy display name representing this server>\n"
                     // "--copyauthentication, -c	Copy credentials\n"
                     // "--nocopyauthentication, -n	Do not copy credentials\n"
                     // "--authfile, -f <file instead of ~/.Xauthority to get credentials from>\n"

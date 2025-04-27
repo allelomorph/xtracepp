@@ -3,7 +3,8 @@
 #include <string>        // stoi to_string
 #include <algorithm>     // transform min
 #include <regex>         // smatch regex regex_search
-//#include <filesystem>    // remove
+#include <filesystem>    // remove
+#include <optional>
 
 #include <cassert>
 #include <cstdlib>       // getenv setenv
@@ -23,34 +24,34 @@
 #include <netdb.h> // 'struct addrinfo' getaddrinfo freeaddrinfo
 
 #include "ProxyX11Server.hpp"
-//#include "typeName.hh"
 #include "Connection.hpp"
+#include "errors.hpp"
+
 
 void ProxyX11Server::__debugOutput() {
     std::cout << std::boolalpha <<
         "settings:\n" <<
         "\treadwritedebug: " << settings.readwritedebug << '\n' <<
-        "\tcopyauth: " << settings.copyauth << '\n' <<
-        "\tstopwhennone: " << settings.stopwhennone << '\n' <<
+        // "\tcopyauth: " << settings.copyauth << '\n' <<
+        "\tstopifnoactiveconnx: " << settings.stopifnoactiveconnx << '\n' <<
         "\twaitforclient: " << settings.waitforclient << '\n' <<
         "\tdenyallextensions: " << settings.denyallextensions << '\n' <<
-        "\tinteractive: " << settings.interactive << '\n' <<
-        "\tprint_timestamps: " << settings.print_timestamps << '\n' <<
-        "\tprint_reltimestamps: " << settings.print_reltimestamps << '\n' <<
-        "\tprint_uptimestamps: " << settings.print_uptimestamps << '\n' <<
-        "\tbuffered: " << settings.buffered << '\n' <<
-        "\tmaxshownlistlen: " << settings.maxshownlistlen << '\n' <<
-        "\tprint_counts: " << settings.print_counts << '\n' <<
-        "\tprint_offsets: " << settings.print_offsets << '\n' <<
-        // FILE *out { nullptr };
+        // "\tinteractive: " << settings.interactive << '\n' <<
+        // "\tprint_timestamps: " << settings.print_timestamps << '\n' <<
+        // "\tprint_reltimestamps: " << settings.print_reltimestamps << '\n' <<
+        // "\tprint_uptimestamps: " << settings.print_uptimestamps << '\n' <<
+        // "\tbuffered: " << settings.buffered << '\n' <<
+        // "\tmaxshownlistlen: " << settings.maxshownlistlen << '\n' <<
+        // "\tprint_counts: " << settings.print_counts << '\n' <<
+        // "\tprint_offsets: " << settings.print_offsets << '\n' <<
         "\tout_displayname: \"" << (settings.out_displayname == nullptr ? "(null)" : settings.out_displayname) << "\"\n" <<
         "\tin_displayname: \"" << (settings.in_displayname == nullptr ? "(null)" : settings.in_displayname) << "\"\n" <<
-        "\tout_authfile: \"" << (settings.out_authfile == nullptr ? "(null)" : settings.out_authfile) << "\"\n" <<
-        "\tin_authfile: \"" << (settings.in_authfile == nullptr ? "(null)" : settings.in_authfile) << "\"\n" <<
-        "\tcli_subcmd_argc: " << settings.cli_subcmd_argc << '\n' <<
-        "\tcli_subcmd_argv: ";
-    for (int i {}; i < settings.cli_subcmd_argc; ++i)
-        std::cout << "\"" << settings.cli_subcmd_argv[i] << "\" ";
+        // "\tout_authfile: \"" << (settings.out_authfile == nullptr ? "(null)" : settings.out_authfile) << "\"\n" <<
+        // "\tin_authfile: \"" << (settings.in_authfile == nullptr ? "(null)" : settings.in_authfile) << "\"\n" <<
+        "\tsubcmd_argc: " << settings.subcmd_argc << '\n' <<
+        "\tsubcmd_argv: ";
+    for (int i {}; i < settings.subcmd_argc; ++i)
+        std::cout << "\"" << settings.subcmd_argv[i] << "\" ";
     std::cout << std::endl;
 
     std::cout <<
@@ -76,16 +77,7 @@ void ProxyX11Server::__debugOutput() {
         std::endl;
 }
 
-ProxyX11Server::ProxyX11Server() {
-}
-
-ProxyX11Server::~ProxyX11Server() {
-    close( _listener_fd );
-    if ( !_in_display.unix_socket_path.empty() )
-        unlink( _in_display.unix_socket_path.data() );
-}
-
-void ProxyX11Server::parseDisplayNames() {
+void ProxyX11Server::_parseDisplayNames() {
     const char* out_displayname { nullptr };
     if ( settings.out_displayname != nullptr ) {
         out_displayname = settings.out_displayname;
@@ -101,7 +93,9 @@ void ProxyX11Server::parseDisplayNames() {
     } else {
         in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
         if ( in_displayname == nullptr ) {
-            std::cerr << "No display name to create specified, trying " <<
+            std::cerr <<
+                "No proxy display name specified via --fakedisplay or " <<
+                _IN_DISPLAYNAME_ENV_VAR << ", defaulting to " <<
                 _DEFAULT_IN_DISPLAYNAME << "\n";
             in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
         }
@@ -113,18 +107,17 @@ void ProxyX11Server::parseDisplayNames() {
 // TBD inaddr.sin_port never changes, can be part of DisplayInfo
 //    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
 //    (less crucial here as this will only be called once per process execution)
-// listenForClients(in_displayname,in_family,in_display)
-void ProxyX11Server::listenForClients() {
-    /*struct*/ sockaddr* address;
+void ProxyX11Server::_listenForClients() {
+    /*struct */sockaddr* address;
     std::size_t address_sz;
+    std::string err_stem { "ProxyX11Server::_listenForClients(): " };
 
     // open sequenced, reliable, two-way, connection-based byte stream
     static constexpr int SOCKET_DEFAULT_PROTOCOL { 0 };
     const int fd { socket( _in_display.family, SOCK_STREAM, SOCKET_DEFAULT_PROTOCOL ) };
     if ( fd < 0 )  {
-        // TBD exception
-        //fprintf(stderr,"Error opening socket for '%s': %d=%s\n",_in_display.name,errno,strerror(errno));
-        std::cerr << "ProxyX11Server::listenForClients: socket\n";
+        // TBD exception?
+        std::cerr << errors::system::message( err_stem + "socket" ) << std::endl;
         exit( EXIT_FAILURE );
     }
     assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
@@ -133,89 +126,84 @@ void ProxyX11Server::listenForClients() {
         //   connection-oriented sockets.
         const int on { 1 };
         if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
-            // TBD exception using errno
-            std::cerr << "ProxyX11Server::listenForClients: setsockopt\n";
+            close( fd );
+            // TBD exception
+            std::cerr << errors::system::message( err_stem + "setsockopt" ) << std::endl;
             exit( EXIT_FAILURE );
         }
-        /*struct*/ sockaddr_in inaddr;
-        // use domain of IPv4 Internet protocols
+        /*struct */sockaddr_in inaddr;
+        // use domain of IPv4 Internet protocol
         inaddr.sin_family      = _in_display.family;
         // use port 6000 + display number (network byte order)
-        inaddr.sin_port        = htons( _X_TCP_PORT + _in_display.display ); // calculateTCPport();
+        inaddr.sin_port        = htons( _X_TCP_PORT + _in_display.display ); // TBD calculateTCPport();
         // bind socket to all local interfaces (network byte order)
         inaddr.sin_addr.s_addr = htonl( INADDR_ANY );
         address    = reinterpret_cast< struct sockaddr* >( &inaddr );
         address_sz = sizeof( inaddr );
     } else {  // _in_display.family == AF_UNIX
-        /*struct*/ sockaddr_un unaddr;
+        /*struct */sockaddr_un unaddr;
         // Unix domain (local communication)
         unaddr.sun_family = _in_display.family;
-        // TBD generateSocketName
-        // TBD sockaddr_un.sun_path is documented as a flexible array (char[],) but seems to be implemented as
-        //   a fixed size array, char[108] in this case
         std::memcpy( unaddr.sun_path, _in_display.unix_socket_path.data(),
                      _in_display.unix_socket_path.size() + 1 );
         // TBD necessary if deleted as part of shutdown?
-        unlink( unaddr.sun_path );
+        std::filesystem::remove( unaddr.sun_path );
         address    = reinterpret_cast< struct sockaddr* >( &unaddr );
         address_sz = sizeof( unaddr );
     }
 
     if ( bind( fd, address, address_sz ) < 0 ) {
-        close(fd);
+        close( fd );
         // TBD exception
-        // fprintf(stderr,"Error binding socket for '%s': %d=%s\n",_in_display.name,errno,strerror(errno));
-        std::cerr << "ProxyX11Server::listenForClients: bind\n";
+        std::cerr << errors::system::message( err_stem + "bind" ) << std::endl;
         exit( EXIT_FAILURE );
     }
 
-    static constexpr int MAX_PENDING_CONNECTIONS { 20 };
-    if ( listen( fd, MAX_PENDING_CONNECTIONS ) < 0 ) {
-        close(fd);
+    if ( listen( fd, _MAX_PENDING_CONNECTIONS ) < 0 ) {
+        close( fd );
         // TBD exception
-        // fprintf(stderr,"Error listening for '%s': %d=%s\n",_in_display.name,errno ,strerror(errno));
-        std::cerr << "ProxyX11Server::listenForClients: listen\n";
+        std::cerr << errors::system::message( err_stem + "listen" ) << std::endl;
         exit( EXIT_FAILURE );
     }
 
     _listener_fd = fd;
 }
 
-void ProxyX11Server::startClient() {
-    if ( settings.cli_subcmd_argc == 0 )
+void ProxyX11Server::_startSubcommandClient() {
+    if ( settings.subcmd_argc == 0 )
         return;
+    std::string err_stem { "ProxyX11Server::_startSubcommandClient(): " };
+
     _child_pid = fork();
     if( _child_pid == -1 ) {  // fork failed, still in parent
         // TBD exception
-        //fprintf(stderr, "Error forking: %s\n", strerror(errno));
-        std::cerr << "ProxyX11Server::startClient fork\n";
+        std::cerr << errors::system::message( err_stem + "fork" ) << std::endl;
         exit( EXIT_FAILURE );
     }
     if( _child_pid == 0 ) {   // fork succeeded, in child
-        if ( setenv( "DISPLAY", _in_display.name.data(), 1 ) != 0 ) {
+        if ( setenv( _OUT_DISPLAYNAME_ENV_VAR.data(),
+                     _in_display.name.data(), 1 ) != 0 ) {
             // TBD exception
-            //fprintf(stderr,"Error setting $DISPLAY: %s\n", strerror(errno));
-            std::cerr << "ProxyX11Server::startClient setenv\n";
+            std::cerr << errors::system::message( err_stem + "setenv" ) << std::endl;
             exit( EXIT_FAILURE );
         }
-        execvp( settings.cli_subcmd_argv[0], settings.cli_subcmd_argv );
+        execvp( settings.subcmd_argv[0], settings.subcmd_argv );
         // child has failed to overtake parent process
         // TBD exception
-        //fprintf(stderr, "Could not exec '%s': %s\n", argv[0], strerror(errno));
-        std::cerr << "ProxyX11Server::startClient execvp\n";
+        std::cerr << errors::system::message( err_stem + "execvp" ) << std::endl;
         exit( EXIT_FAILURE );
     }
     assert( _child_pid != 0 );
 }
 
-// acceptClient(in_family,listener, &c->from)
 // TBD this is called as part of acceptConnection, and effectively has two outputs:
 //   - fd of client at top of pending connection stack for listener (c->client_fd)
 //   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
-bool ProxyX11Server::acceptClient(Connection* conn) {
+bool ProxyX11Server::_acceptClient(Connection* conn) {
     int fd;
     socklen_t len;
-    std::string from;
+    std::string client_desc;
+    std::string err_stem { "ProxyX11Server::_acceptClient(Connection* conn): " };
 
     assert( conn != nullptr );
     assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
@@ -227,18 +215,18 @@ bool ProxyX11Server::acceptClient(Connection* conn) {
         fd = accept( _listener_fd,
                      reinterpret_cast< struct sockaddr* >( &inaddr ), &len );
         if ( fd < 0 ) {
-            // TBD exception using errno
-            std::cerr << "ProxyX11Server::acceptClient accept\n";
+            // TBD exception
+            std::cerr << errors::system::message( err_stem + "accept" ) << std::endl;
             return false;
         }
-        // TBD inet_ntoa deprecated for inet_ntop:
-        /*
-          #include <arpa/inet.h>
-
-          const char *inet_ntop(int af, const void *restrict src,
-                                char dst[restrict .size], socklen_t size);
-        */
-        from = std::string( inet_ntoa( inaddr.sin_addr ) ) + ':' +
+        char client_addrstr[INET_ADDRSTRLEN] { 0 };
+        if ( inet_ntop( _in_display.family, &(inaddr.sin_addr),
+                        client_addrstr, INET_ADDRSTRLEN ) == nullptr ) {
+            close( fd );
+            std::cerr << errors::system::message( err_stem + "inet_ntop" ) << std::endl;
+            return false;
+        }
+        client_desc = std::string( client_addrstr ) + ':' +
             std::to_string( ntohs( inaddr.sin_port ) );
     } else {  // _in_display.family == AF_UNIX
         /*struct */sockaddr_un unaddr;
@@ -246,133 +234,114 @@ bool ProxyX11Server::acceptClient(Connection* conn) {
         fd = accept( _listener_fd,
                      reinterpret_cast< struct sockaddr* >( &unaddr ), &len );
         if ( fd < 0 ) {
-            // TBD exception using errno
-            std::cerr << "ProxyX11Server::acceptClient accept\n";
+            // TBD exception
+            std::cerr << errors::system::message( err_stem + "accept" ) << std::endl;
             return false;
         }
         if ( len > sizeof( sa_family_t ) )  // flexible array unaddr.sun_path len > 0
-            from = std::string( unaddr.sun_path, len - sizeof( sa_family_t ) );
+            client_desc = std::string( unaddr.sun_path, len - sizeof( sa_family_t ) );
         else
-            from = std::string( "unknown(local)" );
+            client_desc = std::string( "unknown(local)" );
     }
     conn->client_fd   = fd;
-    conn->client_desc = from;
+    conn->client_desc = client_desc;
     return true;
 }
 
 // TBD addr.sin_port never changes, can be part of DisplayInfo or static func var
 //    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
 // connectToServer(out_displayname,out_family,out_hostname,out_display)
-int ProxyX11Server::connectToServer() {
+int ProxyX11Server::_connectToServer() {
+    std::string err_stem { "ProxyX11Server::_connectToServer(): " };
+
     // TCP socket to connect to X server as client
     int fd { socket( _out_display.family, SOCK_STREAM, 0 ) };
     if( fd < 0 )  {
         // TBD exeception
-        // fprintf(stderr,"Error opening socket for '%s': %d=%s\n",_out_display.name,errno,strerror(errno));
-        std::cerr << "ProxyX11Server::connectToServer: socket\n";
+        std::cerr << errors::system::message( err_stem + "socket" ) << std::endl;
         return -1;
     }
     assert( _out_display.family == AF_INET || _out_display.family == AF_UNIX );
     if( _out_display.family == AF_INET ) {
-        /*struct */sockaddr_in addr  {};
-        /*struct */addrinfo    hints {};
-        /*struct */addrinfo*   res   {};
-        //memset(&hints,0,sizeof(struct addrinfo));
+        /*struct */addrinfo    hints  {};
         hints.ai_family   = _out_display.family;
         hints.ai_socktype = SOCK_STREAM;
+        /*struct */addrinfo*   res    {};
         // TBD this call to getaddrinfo only needs to happen once (?), in _out_display init
-        int getaddrinfo_ret { getaddrinfo( _out_display.hostname.data(), NULL, &hints, &res ) };
-        if ( getaddrinfo_ret != 0 ) {
+        const int gai_ret {
+            getaddrinfo( _out_display.hostname.data(), NULL, &hints, &res ) };
+        if ( gai_ret != 0 ) {
             close( fd );
             // TBD exception
-            //fprintf(stderr,"Error resolving hostname '%s' taken from '%s'\nError was: %s\n",_out_display.hostname,_out_display.name,gai_strerror(getaddrinfo_ret));
-            std::cerr << "ProxyX11Server::connectToServer: getaddrinfo\n";
+            std::cerr << errors::getaddrinfo::message(
+                gai_ret, err_stem + "getaddrinfo" ) << std::endl;
             return -1;
         }
-        assert( res->ai_addrlen == sizeof(addr) );
-        // TBD so we're using getaddrinfo to get a list of addresses that are AF_INET/SOCK_STREAM (IPv4/TCP,) and
-        //   taking the first one? How are we sure its the first?
-        std::cout << "ProxyX11Server::connectToServer:\n";
-        for (/*struct */addrinfo* node { res }; node; node = node->ai_next) {
-            std::cout << "node: 0x" << (void*)node << "\n" <<
-                "\tai_flags: " << node->ai_flags << '\n' <<
-                "\tai_family: " << node->ai_family << '\n' <<
-                "\tai_socktype: " << node->ai_socktype << '\n' <<
-                "\tai_protocol: " << node->ai_protocol << '\n' <<
-                "\tai_addrlen: " << node->ai_addrlen << '\n' <<
-                "\tai_addr:\n" <<
-                "\t\tsin_family: " << ((sockaddr_in*)(node->ai_addr))->sin_family << '\n' <<
-                "\t\tsin_port: " << ((sockaddr_in*)(node->ai_addr))->sin_port << '\n' <<
-                "\t\tsin_addr.s_addr: " << inet_ntoa(((sockaddr_in*)(node->ai_addr))->sin_addr) << '\n' <<
-                "\tai_canonname: " << (node->ai_canonname ? node->ai_canonname : "(null)") << std::endl;
-        }
-        memcpy( &addr, res->ai_addr, sizeof(addr) );
+        assert( res != nullptr );
+        /*struct */sockaddr_in inaddr {};
+        assert( res->ai_addrlen == sizeof( inaddr ) );
+        memcpy( &addr, res->ai_addr, res->ai_addrlen );
         freeaddrinfo( res );
-        addr.sin_port = htons( _X_TCP_PORT + _out_display.display ); // calculateTCPport();
+        addr.sin_port = htons( _X_TCP_PORT + _out_display.display ); // TBD calculateTCPport();
         const int on { 1 };
-        setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) );
-        if( connect( fd, (struct sockaddr*)&addr, sizeof(addr) ) < 0 ) {
-            close(fd);
-            // TBD exception
-            // fprintf(stderr,"Error connecting to '%s' (resolved to '%s') for '%s': %d=%s\n",_out_display.hostname,inet_ntoa(addr.sin_addr),_out_display.name,errno,strerror(errno));
-            std::cerr << "ProxyX11Server::connectToServer: connect\n";
+        setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof( on ) );
+        if( connect( fd, ( struct sockaddr* )&inaddr, sizeof( addr ) ) < 0 ) {
+            close( fd );
+            // TBD no exception? this seems like a non-fatal error to report to normal user
+            char server_addrstr[INET_ADDRSTRLEN] { 0 };
+            std::cerr << errors::system::message(
+                err_stem +
+                "error connecting to '" + _out_display.hostname +
+                "' (resolved to '" + inet_ntop(
+                    inaddr.sin_family, &(inaddr.sin_addr),
+                    server_addrstr, INET_ADDRSTRLEN ) +
+                "') for display '" + _out_display.name +
+                "') connect" ) << std::endl;
             return -1;
         }
     } else {
-        /*struct */sockaddr_un addr;
-        // TBD no need to set addr.sun_family?
-        // TBD generateSocketName
-        // TBD sockaddr_un.sun_path is documented as a flexible array (char[],) but seems to be implemented as
-        //   a fixed size array, char[108] in this case
-        memcpy( addr.sun_path, _out_display.unix_socket_path.data(),
+        /*struct */sockaddr_un unaddr;
+        // TBD no need to set unaddr.sun_family?
+        memcpy( unaddr.sun_path, _out_display.unix_socket_path.data(),
                 _out_display.unix_socket_path.size() + 1 );
 
-        if( connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0 ) {
-            close(fd);
-            // TBD exception
-            // fprintf(stderr,"Error connecting to unix socket '%s' for '%s': %d=%s\n",addr.sun_path,_out_display.name,errno,strerror(errno));
-            std::cerr << "ProxyX11Server::connectToServer: connect\n";
+        if ( connect( fd, ( struct sockaddr* )&unaddr, sizeof( unaddr ) ) < 0 ) {
+            close( fd );
+            // TBD no exception? this seems like a non-fatal error to report to normal user
+            std::cerr << errors::system::message(
+                err_stem +
+                "error connecting to unix socket '" + unaddr.sun_path +
+                "' for display '" +  _out_display.name +
+                "') connect" ) << std::endl;
             return -1;
         }
     }
     return fd;
 }
 
-// acceptConnection(int listener)
-Connection ProxyX11Server::acceptConnection() {
+std::optional<Connection> ProxyX11Server::_acceptConnection() {
     Connection c {};
+    std::string err_stem { "ProxyX11Server::_acceptConnection(): " };
 
-    // TBD make connections a vector of Connection
-    // TBD currently recording timestamp for all Connection in ctor
-    // if( settings.print_reltimestamps ) {
-    //     /*struct */timeval tv;
-    //     if( gettimeofday( &tv, NULL ) != 0 ) {
-    //         // TBD exception
-    //         // fprintf(stderr, "gettimeofday error %d : %s!\n", errno, strerror(errno));
-    //         std::cerr << "ProxyX11Server::acceptConnection() gettimeofday\n";
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     c.start_time = tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
-    // }
-
-    // TBD original connection is a stack (new pushed to front) (better as queue?)
-    //c->next = connections;
     // TBD need error handling here
-    if ( !acceptClient( &c ) )
-        return c;
+    if ( !_acceptClient( &c ) ) {
+        std::cerr << err_stem << "failure to accept client connection" << std::endl;
+        return std::nullopt;
+    }
     assert( c.client_fd > _listener_fd );
     assert( !c.client_desc.empty() );
     // TBD why is a global user setting arbitrarily set here, at every new connection?
     //   would it not be better somewhere in mainqueue before the first call to acceptConnection?
     settings.waitforclient = false;
-    std::cerr << "Got connection from " << c.client_desc << std::endl;
+    std::cerr << "Connected to client: " << c.client_desc << std::endl;
 
-    c.server_fd = connectToServer();
+    c.server_fd = _connectToServer();
     if( c.server_fd < 0 ) {
-        close(c.client_fd);
+        close( c.client_fd );
         // TBD exception
-        //fprintf(stderr,"Error connecting to server %s\n",out_displayname);
-        std::cerr << "Error connecting to server " << _out_display.name << std::endl;
+        std::cerr << err_stem << "failure to connect to X server for display: " <<
+            _out_display.name << std::endl;
+        return std::nullopt;
     }
     assert( c.server_fd > _listener_fd );
 
@@ -381,9 +350,11 @@ Connection ProxyX11Server::acceptConnection() {
 
 // // TBD mainqueue() retval is passed as retval of xtrace
 // // TBD notice printing to stdout, stderr and out (may be stdout)
-// int ProxyX11Server::processClientQueue() {
+// int ProxyX11Server::_processClientQueue() {
 //     static constexpr int FD_CLOSED    { -1 };  // sentinel for fds
 //     static constexpr int CHILD_EXITED { 0 };   // sentinel for child pid
+
+//     std::string_view err_stem { "ProxyX11Server::_processClientQueue(): " };
 
 //     // TBD make class member?
 //     std::unordered_map<int, Connection> connections;
@@ -466,7 +437,7 @@ Connection ProxyX11Server::acceptConnection() {
 
 //         // If no connections left and subprocess has exited: exit
 //         // TBD note stopwhennone true by default
-//         if ( connections.empty() && settings.stopwhennone &&
+//         if ( connections.empty() && settings.stopifnoactiveconnx &&
 //              _child_pid == CHILD_EXITED ) {
 //             return EXIT_SUCCESS;
 //         }
@@ -680,3 +651,31 @@ Connection ProxyX11Server::acceptConnection() {
 //     }
 //     return EXIT_SUCCESS;
 // }
+
+ProxyX11Server::ProxyX11Server() {
+}
+
+ProxyX11Server::~ProxyX11Server() {
+    close( _listener_fd );
+    if ( !_in_display.unix_socket_path.empty() )
+        unlink( _in_display.unix_socket_path.data() );
+}
+
+void ProxyX11Server::init(const int argc, char* const* argv) {
+    settings.parseFromArgv(argc, argv);
+    // if ( server.settings.copyauth )
+    //     copy_authentication();
+    // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
+    _parseDisplayNames();
+}
+
+int ProxyX11Server::run() {
+    _listenForClients();
+//    _startSubcommandClient();
+    Connection c;
+    _acceptClient(&c);
+    //connectToServer();
+    __debugOutput();
+    //return _processClientQueue();
+    return 0;
+}

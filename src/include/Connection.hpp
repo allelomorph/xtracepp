@@ -25,9 +25,9 @@ public:
     const uint64_t start_time;     // timestamp of connection creation (seconds since Unix Epoch)
     // TBD from, client_fd, server_fd const and set in ctor?
     std::string    client_desc;    // (from) allocated string describing client address (x.x.x.x:port) for AF_INET or socket file path/"unknown(local)" for AF_UNIX
-    int            client_fd;      // socket accept(2)ed from x client
+    int            client_fd { _FD_CLOSED };      // socket accept(2)ed from x client
     SocketBuffer   client_buffer;
-    int            server_fd;      // socket connect(2)ed to x server
+    int            server_fd { _FD_CLOSED };      // socket connect(2)ed to x server
     SocketBuffer   server_buffer;
 //    const bool bigendian;
 //    enum client_state { c_start = 0, c_normal, c_amlost } client_state;

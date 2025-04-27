@@ -12,14 +12,16 @@
 #include "DisplayInfo.hpp"
 
 
-DisplayInfo::DisplayInfo(const char* displayname) {
-    assert( displayname != nullptr );
+DisplayInfo::DisplayInfo(const char* display_name) {
+    assert( display_name != nullptr );
 
     // extract protocol token if present, skip over hostname token if present
-    std::string dname { displayname };
+    std::string dname { display_name };
     std::smatch dname_match;
     // Xlib reads display names as:
-    //     [protocol/] [hostname] : displaynumber [.screennumber]
+    //     [protocol/][hostname]:[:]displaynumber[.screennumber]
+    //   here we are assuming TCP (single colon), see:
+    //   - https://www.x.org/releases/X11R7.7/doc/libX11/libX11/libX11.html#Opening_the_Display
     std::regex dname_regex {
         "^\\s*"
         "(?:([a-zA-Z]+)/)?\\s*"  // protocol/
@@ -42,16 +44,20 @@ DisplayInfo::DisplayInfo(const char* displayname) {
     display = std::stoi( dname_match[3] );
     if ( dname_match[4] != "" )
         screen = std::stoi( dname_match[4] );
+    // Implementing the TODO from xtrace:
+    //   "make sure we are in C locale, otherwise this can go wrong"
+    //   (alt assertion: std::cout.getloc().name() == "C")
+    // TBD is this still necessary?
+    assert( std::cout.getloc() == std::locale::classic() );
     // default protocol for hostnames other than unix is "tcp"
     // default protocol for hostname unix or missing hostname is "local"
-    // TBD TODO from xtrace: make sure we are in C locale, otherwise this can go wrong
-    // std::cout.getloc().name() == "C"
-    assert( std::cout.getloc() == std::locale::classic() );
     if ( !hostname.empty() && hostname != "unix") {
         if ( protocol.empty() )
             protocol = std::string( "tcp" );
     } else {
-        hostname.clear();   // TBD matching xtrace, necessary?
+        // clearing of hostname "unix" as in xtrace source
+        // TBD is this still necessary?
+        hostname.clear();
         protocol = std::string( "local" );
     }
     // only allow inet, tcp, unix, or local protocols, set family accordingly

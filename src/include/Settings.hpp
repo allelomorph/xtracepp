@@ -26,7 +26,7 @@ private:
     inline static int _long_only_option;
     static constexpr struct option _longopts[ _OPTION_CT + 1 ] {
         {"display",              required_argument, NULL,              'd'},
-        {"fakedisplay",          required_argument, NULL,              'D'},
+        {"proxydisplay",         required_argument, NULL,              'D'},
         // {"authfile",             required_argument, NULL,              'f'},
         // {"newauthfile",          required_argument, NULL,              'F'},
         // {"copyauthentication",   no_argument,       NULL,              'c'},
