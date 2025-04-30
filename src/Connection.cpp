@@ -1,6 +1,7 @@
-#include "Connection.hpp"
-
 #include <unistd.h>  // close
+
+#include "Connection.hpp"
+#include "errors.hpp"
 
 
 Connection::Connection() :
@@ -8,9 +9,7 @@ Connection::Connection() :
     start_time ( [](){
         /*struct */timeval tv;
         if ( gettimeofday( &tv, NULL ) != 0 ) {
-            // TBD include string of errno name
-            throw std::system_error(
-                errno, std::generic_category(),
+            throw errors::system::exception(
                 "Connection::Connection()" );
         }
         return tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
@@ -26,17 +25,20 @@ void
 Connection::closeClientSocket() {
     if ( clientSocketIsClosed() )
         return;
-    close( client_fd );
-    // TBD error for any errno other than EBADF
-    client_fd = _FD_CLOSED;
+    if ( close( client_fd ) == -1 && errno != EBADF ) {
+        throw errors::system::exception(
+            "Connection::closeClientSocket()" );
     }
+    client_fd = _FD_CLOSED;
 }
 
 void
 Connection::closeServerSocket() {
-    if ( serverSocketIsClosed() ) {
+    if ( serverSocketIsClosed() )
         return;
-    close( server_fd );
-    // TBD error for any errno other than EBADF
+    if ( close( server_fd ) == -1 && errno != EBADF ) {
+        throw errors::system::exception(
+            "Connection::closeServerSocket()" );
+    }
     server_fd = _FD_CLOSED;
 }

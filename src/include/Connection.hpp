@@ -17,7 +17,6 @@
 class Connection {
 private:
     static constexpr int _FD_CLOSED { -1 };
-
     inline static int  _next_id {};
 
 public:
@@ -40,23 +39,6 @@ public:
 
     Connection();
     ~Connection();
-    // Connection() :
-    //     id ( _next_id++ ),
-    //     start_time ( [](){
-    //         /*struct */timeval tv;
-    //         if( gettimeofday( &tv, NULL ) != 0 ) {
-    //             // TBD include string of errno name
-    //             throw std::system_error(
-    //                 errno, std::generic_category(),
-    //                 "Connection::Connection()" );
-    //         }
-    //         return tv.tv_sec * uint64_t{ 1000 } + tv.tv_usec / 1000;
-    //     }() ) {}
-
-    // ~Connection() {
-    //     closeClientSocket();
-    //     closeServerSocket();
-    // }
 
     void
     closeClientSocket();
@@ -70,15 +52,39 @@ public:
     }
 
     inline bool
+    clientSocketIsOpen() {
+        return ( client_fd != _FD_CLOSED );
+    }
+
+    inline bool
     serverSocketIsClosed() {
         return ( server_fd == _FD_CLOSED );
     }
 
-    // bufferPacketFromClient  // client_buffer.read(client_fd)
-    // bufferPacketFromServer  // server_buffer.read(server_fd)
-    // forwardPacketToClient   // server_buffer.write(client_fd)
-    // forwardPacketToServer   // client_buffer.write(server_fd)
+    inline bool
+    serverSocketIsOpen() {
+        return ( server_fd != _FD_CLOSED );
+    }
 
+    inline size_t
+    bufferPacketFromClient() {
+        return client_buffer.read( client_fd );
+    }
+
+    inline size_t
+    bufferPacketFromServer() {
+        return server_buffer.read( server_fd );
+    }
+
+    inline size_t
+    forwardPacketToClient() {
+        return server_buffer.write( client_fd );
+    }
+
+    inline size_t
+    forwardPacketToServer() {
+        return client_buffer.write( server_fd );
+    }
 };
 
 
