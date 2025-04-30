@@ -2,6 +2,7 @@
 #define SOCKETBUFFER_HPP
 
 #include <vector>
+#include <limits>
 #include <type_traits>  // is_same_v
 
 #include <cstdint>
@@ -18,36 +19,48 @@
 
 class SocketBuffer {
 private:
-    static constexpr int _BLOCK_SZ      { 2048 };
-    static constexpr int _MSG_NONE      { 0 };
+    static constexpr int _BLOCK_SZ { 2048 };
+    static constexpr int _MSG_NONE { 0 };
 
-    int                  _block_ct      { 1 };
     std::vector<uint8_t> _buffer;
-
     static_assert( std::is_same_v<
                    decltype( _buffer )::size_type, size_t > );
-    size_t               _bytes_stored  {};
+    size_t               _bytes_read    {};
+    size_t               _bytes_written {};
+    // _buffer.data() + _bytes_written
+    uint8_t*             _data;
 
 public:
-    SocketBuffer() : _buffer( _BLOCK_SZ ) {}
+    SocketBuffer() : _buffer( _BLOCK_SZ ), _data( _buffer.data() ) {}
 
+    size_t write( const int sockfd,
+                  const size_t bytes_to_write );
     size_t write( const int sockfd );
+
+    size_t read( const int sockfd,
+                 const size_t bytes_to_read );
     size_t read( const int sockfd );
 
-    inline uint8_t* buffer() {
-        return _buffer.data();
+    inline uint8_t* data() {
+        return _data;
     }
 
     inline size_t size() {
-        return _bytes_stored;
+        return _bytes_read - _bytes_written;
     }
 
     inline bool empty() {
-        return ( _bytes_stored == 0 );
+        return ( _bytes_read == 0 );
     }
 
     inline void clear() {
-        _bytes_stored = 0;
+        _bytes_read    = 0;
+        _bytes_written = 0;
+        _data          = _buffer.data();
+    }
+
+    inline size_t capacity() {
+        return _buffer.capacity();
     }
 };
 

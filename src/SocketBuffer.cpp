@@ -9,41 +9,56 @@
 #include "errors.hpp"
 
 
-size_t SocketBuffer::write( const int sockfd ) {
+// TBD determine if partial writes are really needed
+size_t SocketBuffer::write( const int sockfd,
+                            const size_t bytes_to_write ) {
     std::string err_stem { "SocketBuffer::write(): " };
     ssize_t bytes_written { send(
-            sockfd, _buffer.data(), _bytes_stored, _MSG_NONE ) };
+            sockfd, data(), bytes_to_write, _MSG_NONE ) };
     if ( bytes_written == -1 ) {
         throw errors::system::exception(
             err_stem + "send" );
     }
-    assert( static_cast< size_t >( bytes_written ) == _bytes_stored );
-    clear();
+    assert( static_cast< size_t >( bytes_written ) == bytes_to_write );
+    // bytes written removed (hidden) from front of buffer
+    _bytes_written += bytes_written;
+    _data += bytes_written;
+    if ( _bytes_written == _bytes_read )
+        clear();
     return bytes_written;
 }
 
-size_t SocketBuffer::read( const int sockfd ) {
+size_t SocketBuffer::write( const int sockfd ) {
+    return write( sockfd, size() );
+}
+
+// TBD determine if append reads are necessary
+//   (can we guarantee that the server or client will always alternately flag read/write readiness?)
+size_t SocketBuffer::read( const int sockfd,
+                           const size_t bytes_to_read ) {
     std::string err_stem { "SocketBuffer::read(): " };
     ssize_t bytes_read { recv(
-            sockfd, _buffer.data(), _buffer.size(), _MSG_NONE ) };
+            sockfd, data(), bytes_to_read, _MSG_NONE ) };
     if ( bytes_read == -1 ) {
-        clear();
         throw errors::system::exception(
             err_stem + "recv" );
     }
-    size_t bytes_stored ( bytes_read );
-    while ( bytes_stored == _buffer.size() ) {
+    size_t bytes_read_subtl ( bytes_read );
+    while ( _bytes_read + bytes_read_subtl == _buffer.size() ) {
         _buffer.resize( _buffer.size() + _BLOCK_SZ );
-        ++_block_ct;
         bytes_read = recv(
-            sockfd, _buffer.data() + bytes_stored, _BLOCK_SZ, _MSG_NONE );
+            sockfd, _buffer.data() + _bytes_read + bytes_read_subtl,
+            _BLOCK_SZ, _MSG_NONE );
         if ( bytes_read == -1 ) {
-            clear();
             throw errors::system::exception(
                 err_stem + "recv" );
         }
-        bytes_stored += bytes_read;
+        bytes_read_subtl += bytes_read;
     }
-    _bytes_stored = bytes_stored;
-    return _bytes_stored;
+    _bytes_read += bytes_read_subtl;
+    return bytes_read_subtl;
+}
+
+size_t SocketBuffer::read( const int sockfd ) {
+    return read( sockfd, size() );
 }
