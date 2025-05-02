@@ -17,8 +17,9 @@ Connection::Connection() :
 }
 
 Connection::~Connection() {
-    closeClientSocket();
-    closeServerSocket();
+    // TBD emplacing connections into the _connections map calls the dtor and prematurely closes the fds
+    // closeClientSocket();
+    // closeServerSocket();
 }
 
 void
