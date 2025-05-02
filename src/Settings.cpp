@@ -12,6 +12,7 @@
 
 
 Settings::~Settings() {
+    log_os << std::flush;
     log_ofs.close();
 }
 
