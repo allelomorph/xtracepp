@@ -5,7 +5,7 @@
 #include <algorithm>     // transform min
 #include <regex>         // smatch regex regex_search
 #include <filesystem>    // remove
-#include <optional>
+//#include <optional>
 
 #include <cassert>
 #include <cstdlib>       // getenv setenv
@@ -176,6 +176,7 @@ void ProxyX11Server::_listenForClients() {
     }
 
     _listener_fd = fd;
+    _open_fds.emplace( _listener_fd );
 }
 
 void ProxyX11Server::_startSubcommandClient() {
@@ -338,33 +339,35 @@ int ProxyX11Server::_connectToServer() {
     return fd;
 }
 
-std::optional<Connection> ProxyX11Server::_acceptConnection() {
-    Connection c {};
+void ProxyX11Server::_acceptConnection() {
+    Connection conn {};
     std::string err_stem { "ProxyX11Server::_acceptConnection(): " };
 
-    // TBD need error handling here
-    if ( !_acceptClient( &c ) ) {
+    if ( !_acceptClient( &conn ) ) {
+        // TBD exception
         std::cerr << err_stem << "failure to accept client connection" << std::endl;
-        return std::nullopt;
+        return;
     }
-    assert( c.client_fd > _listener_fd );
-    assert( !c.client_desc.empty() );
+    assert( conn.client_fd > _listener_fd );
+    assert( !conn.client_desc.empty() );
     // TBD why is a global user setting arbitrarily set here, at every new connection?
     //   would it not be better somewhere in mainqueue before the first call to acceptConnection?
     settings.waitforclient = false;
-    std::cerr << "Connected to client: " << c.client_desc << std::endl;
+    std::cerr << "Connected to client: " << conn.client_desc << std::endl;
 
-    c.server_fd = _connectToServer();
-    if( c.server_fd < 0 ) {
-        close( c.client_fd );
+    conn.server_fd = _connectToServer();
+    if( conn.server_fd < 0 ) {
         // TBD exception
         std::cerr << err_stem << "failure to connect to X server for display: " <<
             _out_display.name << std::endl;
-        return std::nullopt;
+        conn.closeClientSocket();
+        return;
     }
-    assert( c.server_fd > _listener_fd );
+    assert( conn.server_fd > _listener_fd );
 
-    return c;
+    _connections.emplace( conn.id, conn );
+    _open_fds.emplace( conn.client_fd );
+    _open_fds.emplace( conn.server_fd );
 }
 
 // !!! caret notation: server <> client
@@ -389,9 +392,6 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
     closed_connection_ids.clear();
     std::string err_stem { "ProxyX11Server::_prepareSocketFlagging(): " };
 
-    // select(2) expects first param to be highest fd in any of readfds, writefds, exceptfds + 1
-    int max_fd { _listener_fd };
-
     // fd_sets are modified in place by select(2), and need to be zeroed out before each use
     FD_ZERO( readfds );
     FD_ZERO( writefds );
@@ -399,18 +399,17 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
     // monitor _listener_fd for input (read readiness)
     FD_SET( _listener_fd, readfds );
 
-    for ( auto& [ id, conn ] : connections ) {
+    for ( auto& [ id, conn ] : _connections ) {
         if ( conn.clientSocketIsOpen() ) {
             if ( conn.serverSocketIsClosed() && conn.server_buffer.empty() ) {
+                _open_fds.erase( conn.client_fd );
                 conn.closeClientSocket();
                 if ( settings.readwritedebug ) {
-                    // TBD 0-fill?
                     settings.log_os << std::setw(3) << conn.id << ":>:sent EOF\n";
                 }
             } else {
                 // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
                 FD_SET( conn.client_fd, exceptfds );
-                max_fd = std::max( max_fd, conn.client_fd );
 
                 // TBD having SocketBuffer that is extenible and supports appending reads means that
                 //   we can always be ready to read
@@ -426,6 +425,7 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
         }
         if ( conn.serverSocketIsOpen() ) {
             if ( conn.clientSocketIsClosed() && conn.client_buffer.empty() ) {
+                _open_fds.erase( conn.server_fd );
                 conn.closeServerSocket();
                 if ( settings.readwritedebug ) {
                     settings.log_os << std::setw(3) << conn.id << ":<:sent EOF\n";
@@ -433,7 +433,6 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
             } else {
                 // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
                 FD_SET( conn.server_fd, exceptfds );
-                max_fd = std::max( max_fd, conn.server_fd );
 
                 if ( conn.server_buffer.empty() ) {
                     // monitor server socket for input (read readiness)
@@ -452,10 +451,12 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
     }
 
     // TBD assuming we cannot erase while iterating in above loop
-    for ( const int id : closed_connection_ids )
-        connections.erase( id );
+    for ( const int id : closed_connection_ids ) {
+        _connections.erase( id );
+    }
 
-    return max_fd;
+    assert( !_open_fds.empty() );
+    return *( _open_fds.begin() );
 }
 
 // TBD need to incorporate read/write of 0 (EOF) into logic
@@ -472,9 +473,10 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
     assert( exceptfds != nullptr );
     std::string err_stem { "ProxyX11Server::_processFlaggedSockets(): " };
 
-    for ( auto& [ id, conn ] : connections ) {
+    for ( auto& [ id, conn ] : _connections ) {
         if ( conn.clientSocketIsOpen() ) {
             if ( FD_ISSET( conn.client_fd, exceptfds ) ) {
+                _open_fds.erase( conn.client_fd );
                 conn.closeClientSocket();
                 settings.log_os << std::setw(3) << conn.id <<
                     ": exceptional condition in communication with client\n";
@@ -491,6 +493,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                         settings.log_os << std::setw(3) << conn.id <<
                             ":>:error writing to client: " << e.code().message() << "\n";
                     }
+                    _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
                     continue;
                 }
@@ -498,7 +501,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 // TBD should already be parsed, immediately after read
                 if ( settings.readwritedebug ) {
                     settings.log_os << std::setw(3) << conn.id <<
-                        ":>:wrote " << bytes_written << " bytes\n";
+                        ":>:wrote    " << std::setw(4) << bytes_written << " bytes\n";
                 }
             }
             if ( FD_ISSET( conn.client_fd, readfds ) ) {
@@ -510,6 +513,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                         settings.log_os << std::setw(3) << conn.id <<
                             ":<:error reading from client buffer: " << e.code().message() << "\n";
                     }
+                    _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
                     continue;
                 }
@@ -518,18 +522,21 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                         settings.log_os << std::setw(3) << conn.id <<
                             ":<:got EOF\n";
                     }
+                    _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
                     continue;
                 }
                 if ( settings.readwritedebug ) {
                     settings.log_os << std::setw(3) << conn.id <<
-                        ":<:received " << bytes_read << " bytes\n";
+                        ":<:received " << std::setw(4) << bytes_read << " bytes\n";
                 }
                 assert( !conn.client_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
                 // parse_client( c );
-                settings.log_os << std::setw(3) << conn.id <<
-                    ":>: (fake) parsed " << bytes_read << " server-bound bytes\n";
+                if ( settings.readwritedebug ) {
+                    settings.log_os << std::setw(3) << conn.id <<
+                        ":<:parsed   " << std::setw(4) << bytes_read << " bytes\n";
+                }
             }
         }
         if ( conn.clientSocketIsClosed() && !conn.server_buffer.empty() ) {
@@ -538,7 +545,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 " bytes sent from server to client\n";
         }
         if ( conn.serverSocketIsOpen() ) {
-            if ( FD_ISSET( conn.client_fd, exceptfds ) ) {
+            if ( FD_ISSET( conn.server_fd, exceptfds ) ) {
+                _open_fds.erase( conn.server_fd );
                 conn.closeServerSocket();
                 settings.log_os << std::setw(3) << conn.id <<
                     ": exceptional condition in communication with server\n";
@@ -553,8 +561,10 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 } catch ( const std::system_error& e ) {
                     if ( settings.readwritedebug ) {
                         settings.log_os << std::setw(3) << conn.id <<
-                            ":<:error writing to server: " << e.code().message() << "\n";
+                            ":<:error writing to server: " <<
+                            e.code().message() << "\n";
                     }
+                    _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
                     continue;
                 }
@@ -562,7 +572,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 // TBD should already be parsed, immediately after read
                 if ( settings.readwritedebug ) {
                     settings.log_os << std::setw(3) << conn.id <<
-                        ":<:wrote " << bytes_written << " bytes\n";
+                        ":<:wrote    " << std::setw(4) << bytes_written << " bytes\n";
                 }
             }
             if ( FD_ISSET( conn.server_fd, readfds ) ) {
@@ -572,8 +582,10 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 } catch ( const std::system_error& e ) {
                     if ( settings.readwritedebug ) {
                         settings.log_os << std::setw(3) << conn.id <<
-                            ":>:error reading from server buffer: " << e.code().message() << "\n";
+                            ":>:error reading from server buffer: " <<
+                            e.code().message() << "\n";
                     }
+                    _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
                     continue;
                 }
@@ -582,18 +594,21 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                         settings.log_os << std::setw(3) << conn.id <<
                             ":>:got EOF\n";
                     }
+                    _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
                     continue;
                 }
                 if ( settings.readwritedebug ) {
                     settings.log_os << std::setw(3) << conn.id <<
-                        ":>:received " << bytes_read << " bytes\n";
+                        ":>:received " << std::setw(4) << bytes_read << " bytes\n";
                 }
                 assert( !conn.server_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
                 // parse_server( c );
-                settings.log_os << std::setw(3) << conn.id <<
-                    ":>: (fake) parsed " << bytes_read << " server-bound bytes\n";
+                if ( settings.readwritedebug ) {
+                    settings.log_os << std::setw(3) << conn.id <<
+                        ":>:parsed   " << std::setw(4) << bytes_read << " bytes\n";
+                }
             }
         }
         if ( conn.serverSocketIsClosed() && !conn.client_buffer.empty() ) {
@@ -615,9 +630,11 @@ int ProxyX11Server::_processClientQueue() {
     static constexpr int CHILD_EXITED { 0 };   // sentinel for child pid
     std::string err_stem { "ProxyX11Server::_processClientQueue(): " };
 
+    // TBD 0-fill conn ids to match xtrace
+    //settings.log_os << std::setfill( '0' );
     // NOTE: FD_SET and FD_CLR are idempotent
     fd_set readfds, writefds, exceptfds;
-    for ( int select_ret; true; ) {
+    for ( int select_ret {}; true; ) {
         /*
          * first loop over connections to:
          *   - set client and server sockets into readfds, writefds, exceptfds
@@ -628,7 +645,7 @@ int ProxyX11Server::_processClientQueue() {
 
         // If no connections left and subprocess has exited: exit
         // TBD stopifnoactiveconnx true by default, name opposite? continueifnoconnx?
-        if ( connections.empty() && settings.stopifnoactiveconnx &&
+        if ( _connections.empty() && settings.stopifnoactiveconnx &&
              _child_pid == CHILD_EXITED ) {
             return EXIT_SUCCESS;
         }
@@ -638,6 +655,7 @@ int ProxyX11Server::_processClientQueue() {
          * Check if subprocess finished (child from cli `--`)
          */
         // If child has not exited, and select failed on previous loop when SIGCHLD caught
+        // TBD is checking select_ret == -1 redundant here, as we are already catching the signal?
         if ( _child_pid != CHILD_EXITED &&
              ( select_ret == -1 || caught_SIGCHLD ) ) {
             caught_SIGCHLD = false;
@@ -647,7 +665,7 @@ int ProxyX11Server::_processClientQueue() {
             // Check to see if child exited, but do not hang (wait until so)
             if ( waitpid( _child_pid, &status, WNOHANG ) == _child_pid ) {
                 _child_pid = CHILD_EXITED;
-                if ( connections.empty() && !settings.waitforclient ) {
+                if ( _connections.empty() && !settings.waitforclient ) {
                     /* TODO: instead wait a bit before terminating? */
                     // Return child exit code or number of signal that terminated
                     // TBD why +128?
@@ -663,6 +681,7 @@ int ProxyX11Server::_processClientQueue() {
          * Idle until any of the fds in the provided fd_sets becomes ready for
          *   reading, writing, or indicating exceptional conditions
          */
+        // select(2) expects first param to be highest fd in any of readfds, writefds, exceptfds + 1
         select_ret = select( max_fd + 1, &readfds, &writefds, &exceptfds, NULL );
         // TBD Note that:
         //   - select failure resets but does not break loop
@@ -670,8 +689,10 @@ int ProxyX11Server::_processClientQueue() {
         //   - EINTR for select(2) means signal was caught (likely SIGCHLD)
         if ( select_ret == -1 ) {
             if ( errno != 0 && errno != EINTR ) {
-                std::cerr << errors::system::message( err_stem + "signal" ) << std::endl;
+                std::cerr << errors::system::message( err_stem + "select" ) << std::endl;
+                return EXIT_FAILURE;
             }
+            // TBD SIGINT or SIGCHLD during select
             continue;
         }
 
@@ -683,6 +704,8 @@ int ProxyX11Server::_processClientQueue() {
          */
         _processFlaggedSockets( &readfds, &writefds, &exceptfds );
     }
+    // TBD undo 0-fill
+    //settings.log_os << std::setfill( ' ' );
 
     return EXIT_SUCCESS;
 }

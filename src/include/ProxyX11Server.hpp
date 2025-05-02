@@ -4,8 +4,8 @@
 
 #include <string>
 #include <string_view>
-#include <optional>
 #include <unordered_map>
+#include <set>
 
 #include <cstdint>      // SIZE_MAX
 
@@ -34,20 +34,22 @@ private:
 
     pid_t _child_pid { -1 };  // cli subcmd pid
 
-    std::unordered_map<int, Connection> connections;
+    std::unordered_map<int, Connection> _connections;
+    // maximum binary tree of open file descriptors, to supply nfds to select(2)
+    std::set<int, std::greater<int>>    _open_fds;
 
     void _parseDisplayNames();
 
     void _listenForClients();
     void _startSubcommandClient();
     bool _acceptClient(Connection* conn);
-    int _connectToServer();
-    std::optional<Connection> _acceptConnection();
-    int _prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
+    int  _connectToServer();
+    void _acceptConnection();
+    int  _prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
                                 fd_set* exceptfds );
     void _processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                                  fd_set* exceptfds );
-    int _processClientQueue();
+    int  _processClientQueue();
 
     void __debugOutput();
 
