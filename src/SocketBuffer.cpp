@@ -46,6 +46,8 @@ size_t SocketBuffer::read( const int sockfd,
     size_t bytes_read_subtl ( bytes_read );
     while ( _bytes_read + bytes_read_subtl == _buffer.size() ) {
         _buffer.resize( _buffer.size() + _BLOCK_SZ );
+        // TBD reallocation requires reassignment of pointer?
+        _data = _buffer.data() + _bytes_written;
         bytes_read = recv(
             sockfd, _buffer.data() + _bytes_read + bytes_read_subtl,
             _BLOCK_SZ, _MSG_NONE );
@@ -60,5 +62,5 @@ size_t SocketBuffer::read( const int sockfd,
 }
 
 size_t SocketBuffer::read( const int sockfd ) {
-    return read( sockfd, size() );
+    return read( sockfd, _buffer.size() - _bytes_read );
 }

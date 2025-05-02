@@ -32,6 +32,9 @@ private:
 
 public:
     SocketBuffer() : _buffer( _BLOCK_SZ ), _data( _buffer.data() ) {}
+    // TBD needed for passing to _connections.emplace(): buffer is copied and ptr needs to be updated
+    SocketBuffer( const SocketBuffer& other ) : _data( _buffer.data() + _bytes_written ) {}
+//    SocketBuffer( SocketBuffer&& other ) : _data( _buffer.data() + _bytes_written ) {}
 
     size_t write( const int sockfd,
                   const size_t bytes_to_write );
