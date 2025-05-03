@@ -12,6 +12,7 @@
 #include "DisplayInfo.hpp"
 #include "Settings.hpp"
 #include "Connection.hpp"
+#include "X11ProtocolParser.hpp"
 
 
 extern volatile bool caught_SIGCHLD;
@@ -38,6 +39,8 @@ private:
     // maximum binary tree of open file descriptors, to supply nfds to select(2)
     std::set<int, std::greater<int>>    _open_fds;
 
+    X11ProtocolParser parser;
+
     void _parseDisplayNames();
 
     void _listenForClients();
@@ -50,6 +53,7 @@ private:
     void _processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                                  fd_set* exceptfds );
     int  _processClientQueue();
+    size_t logClientPacket(Connection* conn);
 
     void __debugOutput();
 

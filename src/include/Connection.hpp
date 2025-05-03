@@ -28,6 +28,25 @@ public:
     SocketBuffer   client_buffer;
     int            server_fd { _FD_CLOSED };      // socket connect(2)ed to x server
     SocketBuffer   server_buffer;
+
+// TBD connection states are: uncontacted > open > closed
+//                                        > closed ( general fail )
+//                                        > authentication negotiation > closed
+//                                                                     > open > closed
+    enum Status {
+        // before handshake is completed to open
+        UNESTABLISHED,    // open:false auth:false fail:false
+        // normal packet exchange
+        OPEN,             // open:true  auth:true  fail:false
+        // closed properly after normal operation
+        CLOSED,           // open:false auth:true  fail:false
+        // general failure to open
+        FAILED,           // open:false auth:false fail:true
+        // follow-up authentication negotation after failure to open normally
+        AUTHENTICATION    // open:true  auth:false fail:false
+    };
+    Status status { UNESTABLISHED };
+
 //    const bool bigendian;
 //    enum client_state { c_start = 0, c_normal, c_amlost } client_state;
 //    enum server_state { s_start=0, s_normal, s_amlost } server_state;

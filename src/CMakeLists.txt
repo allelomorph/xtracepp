@@ -9,6 +9,7 @@ add_executable(xtracepp
   ProxyX11Server.cpp
   Settings.cpp
   SocketBuffer.cpp
+  X11ProtocolParser.cpp
 )
 
 target_include_directories(xtracepp PRIVATE

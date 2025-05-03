@@ -532,11 +532,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 assert( !conn.client_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
-                // parse_client( c );
-                if ( settings.readwritedebug ) {
-                    settings.log_os << std::setw(3) << conn.id <<
-                        ":<:parsed   " << std::setw(4) << bytes_read << " bytes\n";
-                }
+                size_t bytes_parsed { parser.logClientPackets( &conn, &settings ) };
+                assert( bytes_parsed == bytes_read );
             }
         }
         if ( conn.clientSocketIsClosed() && !conn.server_buffer.empty() ) {
@@ -604,11 +601,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 assert( !conn.server_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
-                // parse_server( c );
-                if ( settings.readwritedebug ) {
-                    settings.log_os << std::setw(3) << conn.id <<
-                        ":>:parsed   " << std::setw(4) << bytes_read << " bytes\n";
-                }
+                size_t bytes_parsed { parser.logServerPackets( &conn, &settings ) };
+                assert( bytes_parsed == bytes_read );
             }
         }
         if ( conn.serverSocketIsClosed() && !conn.client_buffer.empty() ) {
@@ -725,6 +719,7 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
     //     copy_authentication();
     // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     _parseDisplayNames();
+    parser.syncLogStream( settings.log_os );
 }
 
 int ProxyX11Server::run() {
