@@ -16,7 +16,7 @@ namespace connection_setup {
 //   6000 + N.
 
 struct ClientInitiation {
-    struct Header {
+    struct __attribute__((packed)) Header {
         CARD8    byte_order;  //  byte-order #x42 'B' MSB first (bigend) #x6C 'l' LSB first (littleend)
     private:
         uint8_t  _unused1;
@@ -46,7 +46,7 @@ enum success { FAILED, SUCCESS, AUTHENTICATE };  // Failed, Success, Authenticat
 
 struct ServerRefusal {
     // preceeded by uint8_t success == FAILED
-    struct Header {
+    struct __attribute__((packed)) Header {
         uint8_t  n;  // length of reason in bytes
         CARD16   protocol_major_version;  // protocol-major-version
         CARD16   protocol_minor_version;  // protocol-minor-version
@@ -58,7 +58,7 @@ struct ServerRefusal {
 // Information received by the client if further authentication is required:
 struct ServerRequireFurtherAuthentication {
     // preceeded by uint8_t success == AUTHENTICATE
-    struct Header {
+    struct __attribute__((packed)) Header {
     private:
         uint8_t  _unused[5];
     public:
@@ -70,9 +70,9 @@ struct ServerRequireFurtherAuthentication {
 // Information received by the client if the connection is accepted:
 struct ServerAcceptance {
     // preceeded by uint8_t success == SUCCESS
-    struct Header {
+    struct __attribute__((packed)) Header {
     private:
-        uint8_t  _unused1;  // not ot be confused with leading success byte
+        uint8_t  _unused1;  // not to be confused with leading success byte
     public:
         CARD16   protocol_major_version;  // protocol-major-version
         CARD16   protocol_minor_version;  // protocol-minor-version
@@ -80,6 +80,7 @@ struct ServerAcceptance {
         CARD32   release_number;   // release-number
         CARD32   release_id_base;  // release-id-base
         CARD32   release_id_mask;  // release-id-mask
+        CARD32   motion_buffer_size;  // motion-buffer-size
         uint16_t v;   // length of vendor
         CARD16   maximum_request_length;  // maximum-request-length
         CARD8    r;  // number of SCREENs in roots  !!! unnamed in protocol
@@ -95,7 +96,7 @@ struct ServerAcceptance {
     } header;
     // followed by STRING8 vendor of v bytes, plus p bytes to round up to multiple of 4
     // followed by LISTofFORMAT pixmap-formats of n*sizeof(Format) bytes
-    struct Format {  // FORMAT
+    struct __attribute__((packed)) Format {  // FORMAT
         CARD8   depth;
         CARD8   bits_per_pixel;  // bits-per-pixel
         CARD8   scanline_pad;  // scanline-pad
@@ -104,7 +105,7 @@ struct ServerAcceptance {
     };
     // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
     struct Screen {  // SCREEN
-        struct Header {
+        struct __attribute__((packed)) Header {
             WINDOW     root;
             COLORMAP   default_colormap;  // default-colormap
             CARD32     white_pixel;  // white-pixel
@@ -124,7 +125,7 @@ struct ServerAcceptance {
         } header;
         // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4) ((d * sizeof(_DepthHeader) + lists of VISUALTYPE) )
         struct Depth {  // DEPTH
-            struct Header {
+            struct __attribute__((packed)) Header {
                 CARD8    depth;
             private:
                 uint8_t  _unused1;
@@ -134,7 +135,7 @@ struct ServerAcceptance {
                 uint8_t  _unused2[4];
             } header;
             // followed by LISTofVISUALTYPE visuals of n*sizeof(VisualType) bytes
-            struct VisualType {  // VISUALTYPE
+            struct __attribute__((packed)) VisualType {  // VISUALTYPE
                 VISUALID visual_id;  // visual-id
                 uint8_t  class_;  // class // 0 StaticGray 1 GrayScale 2 StaticColor 3 PseudoColor 4 TrueColor 5 DirectColor
                 CARD8    bits_per_rgb_value;  // bits-per-rgb-value
