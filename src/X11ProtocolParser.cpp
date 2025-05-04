@@ -76,12 +76,17 @@ size_t X11ProtocolParser::_logConnectionInitiation(
     // TBD asserts close log file without logging anything
     assert( header->byte_order == 'B' || header->byte_order == 'l' );
     _log_os << fmt::format(
-        "{:03d}:<:client \"{}\" requesting connection: byte-order: {}, "
-        "X protocol version: {:d}.{:d}, auth protocol: {}, auth data: {:d} bytes\n",
+        R"({:03d}:<:client \"{}\" requesting connection:
+  byte-order:         {}
+  X protocol version: {:d}.{:d}
+  auth protocol:      {}
+  auth data (bytes):  {:d}
+)",
         conn->id, conn->client_desc,
         ( header->byte_order == 'B' ) ? "MSB first" : "LSB first",
         header->protocol_major_version, header->protocol_minor_version,
-        authorization_protocol_name, header->d );
+        authorization_protocol_name,
+        header->d );
     return sz;
 }
 
@@ -136,104 +141,154 @@ size_t X11ProtocolParser::_logServerResponse(
     }
         break;
     case SUCCESS: {
-        __bufferHexDump( _data, sz );
+//        __bufferHexDump( _data, 512 );
         const ServerAcceptance::Header* header {
             reinterpret_cast< const ServerAcceptance::Header* >( _data ) };
         _data += sizeof( ServerAcceptance::Header );
-        // assert( header->image_byte_order < 2 );  // TBD enum
-        // assert( header->bitmap_format_bit_order < 2 );  // TBD enum
+        assert( header->image_byte_order < 2 );  // TBD enum
+        assert( header->bitmap_format_bit_order < 2 );  // TBD enum
+
         _log_os << fmt::format(
             R"({:03d}:>:server accepted connection
-    X protocol version:          {:d}.{:d}
-    release_number:              {}
-    release_id_base:             {}
-    release_id_mask:             {:#x}
-    maximum_request_length:      {:d}
-    image_byte_order:            {:d}
-    bitmap_format_bit_order:     {:d}
-    bitmap_format_scanline_unit: {:d}
-    bitmap_format_scanline_pad:  {:d}
-    min_keycode:                 {:d}
-    max_keycode:                 {:d}
+  X protocol version:          {:d}.{:d}
+  release_number:              {}
+  release_id_base:             {}
+  release_id_mask:             {:#x}
+  motion_buffer_size:          {:d}
+  maximum_request_length:      {:d}
+  image_byte_order:            {}
+  bitmap_format_bit_order:     {}
+  bitmap_format_scanline_unit: {:d}
+  bitmap_format_scanline_pad:  {:d}
+  min_keycode:                 {:d}
+  max_keycode:                 {:d}
 )",
-            conn->id, header->protocol_major_version,
-            header->protocol_minor_version,
+            conn->id,
+            header->protocol_major_version, header->protocol_minor_version,
             header->release_number,
             header->release_id_base,
             header->release_id_mask,
+            header->motion_buffer_size,
             header->maximum_request_length,
-            header->image_byte_order,
-            header->bitmap_format_bit_order,
+            // TBD enum
+            ( header->image_byte_order == 0 ) ? "LSBFirst" : "MSBFirst",
+            // TBD enum
+            ( header->bitmap_format_bit_order == 0 ) ? "LeastSignificant" : "MostSignificant",
             header->bitmap_format_scanline_unit,
             header->bitmap_format_scanline_pad,
             header->min_keycode,
-            header->max_keycode ) << std::endl;
+            header->max_keycode );
+
         // followed by STRING8 vendor of v bytes, plus p bytes to round up to multiple of 4
-        // std::string_view vendor {
-        //     reinterpret_cast< const char* >( _data ), header->v };
-        // _data += _pad( header->v );
-        // _log_os << " vendor: " << vendor << std::endl;
-        // followed by LISTofFORMAT pixmap-formats of n*sizeof(Format) bytes
-        // _log_os << "\tpixmap_formats:\n";
-        // for ( uint8_t pf_ct { header->n }, pf_i {}; pf_i < pf_ct; ++pf_i ) {
-        //     const ServerAcceptance::Format* pf {
-        //         reinterpret_cast< const ServerAcceptance::Format* >( _data ) };
-        //     _data += sizeof( ServerAcceptance::Format );
-        //     _log_os << "\t\t{" <<
-        //         " depth: " << std::dec << pf->depth <<
-        //         " bits_per_pixel: " << std::dec << pf->bits_per_pixel <<
-        //         " scanline_pad: " << std::dec << pf->scanline_pad <<
-        //         "}\n";
-        // }
-        // // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
-        // _log_os << "\troots:\n";
-        // for ( uint8_t s_ct { header->r }, s_i {}; s_i < s_ct; ++s_i ) {
-        //     const ServerAcceptance::Screen::Header* screen {
-        //         reinterpret_cast< const ServerAcceptance::Screen::Header* >( _data ) };
-        //     _data += sizeof( ServerAcceptance::Screen::Header );
-        //     _log_os << "\t\t{" <<
-        //         " root: " << screen->root <<
-        //         " default_colormap: " << screen->default_colormap <<
-        //         " white_pixel: " << screen->white_pixel <<
-        //         " black_pixel: " << screen->black_pixel <<
-        //         " current_input_masks: " << std::hex << "0x" << screen->current_input_masks <<
-        //         " width_in_pixels: " << std::dec << screen->width_in_pixels <<
-        //         " height_in_pixels: " << std::dec << screen->height_in_pixels <<
-        //         " width_in_millimeters: " << std::dec << screen->width_in_millimeters <<
-        //         " height_in_millimeters: " << std::dec << screen->height_in_millimeters <<
-        //         " min_installed_maps: " << std::dec << screen->min_installed_maps <<
-        //         " max_installed_maps: " << std::dec << screen->max_installed_maps <<
-        //         " root_visual: " << screen->root_visual <<
-        //         " backing_stores: " << std::dec << screen->backing_stores <<
-        //         " save_unders: " << std::dec << screen->save_unders <<
-        //         " root_depth: " << std::dec << screen->root_depth;
-        //     // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4) ((d * sizeof(_DepthHeader) + lists of VISUALTYPE) )
-        //     _log_os << " allowed_depths: {";
-        //     for ( uint8_t d_ct { screen->d }, d_i {}; d_i < d_ct; ++d_i ) {
-        //         const ServerAcceptance::Screen::Depth::Header* depth {
-        //             reinterpret_cast< const ServerAcceptance::Screen::Depth::Header* >( _data ) };
-        //         _data += sizeof( ServerAcceptance::Screen::Depth::Header );
-        //         _log_os << "\t\t\t{" <<
-        //             " depth: " << std::dec << depth->depth;
-        //         _log_os << " visuals: {";
-        //         for ( uint16_t v_ct { depth->n }, v_i {}; v_i < v_ct; ++v_i ) {
-        //             const ServerAcceptance::Screen::Depth::VisualType* visual {
-        //                 reinterpret_cast< const ServerAcceptance::Screen::Depth::VisualType* >( _data ) };
-        //             _data += sizeof( ServerAcceptance::Screen::Depth::VisualType );
-        //             _log_os << "\t\t\t\t{" <<
-        //                 " visual_id: " << visual->visual_id <<
-        //                 " class_: " << std::dec << visual->class_ <<
-        //                 " bits_per_rgb_value: " << std::dec << visual->bits_per_rgb_value <<
-        //                 " colormap_entries: " << std::dec << visual->colormap_entries <<
-        //                 " red_mask: " << visual->red_mask <<
-        //                 " green_mask: " << visual->green_mask <<
-        //                 " blue_mask: " << visual->blue_mask <<
-        //                 "}\n";
-        //         }
-        //         _log_os << "}\n";
-        //     }
-        //     _log_os << "}\n";
-        // }
+        std::string_view vendor {
+            reinterpret_cast< const char* >( _data ), header->v };
+        _data += _pad( header->v );
+        _log_os << fmt::format(
+            R"(  vendor:                      "{}"
+)",
+            vendor );
+
+        // followed by LISTofFORMAT pixmap-formats of n * sizeof(FORMAT) bytes
+        const ServerAcceptance::Format* pixmap_formats {
+            reinterpret_cast< const ServerAcceptance::Format* >( _data ) };
+        _data += sizeof( ServerAcceptance::Format ) * header->n;
+        _log_os << "  pixmap_formats: [\n";
+        for ( uint8_t pm_ct { header->n }, pm_i {}; pm_i < pm_ct; ++pm_i ) {
+            _log_os << fmt::format(
+                "    [ depth: {:3d} bits_per_pixel: {:3d} scanline_pad: {:3d} ]{}\n",
+                pixmap_formats[pm_i].depth,
+                pixmap_formats[pm_i].bits_per_pixel,
+                pixmap_formats[pm_i].scanline_pad,
+                ( pm_i < pm_ct - 1 ) ? "," : "" );
+        }
+        _log_os << "  ]\n";
+
+        // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
+        _log_os << "  roots: [\n";
+        for ( uint8_t s_ct { header->r }, s_i {}; s_i < s_ct; ++s_i ) {
+            const ServerAcceptance::Screen::Header* screen {
+                reinterpret_cast< const ServerAcceptance::Screen::Header* >( _data ) };
+            _data += sizeof( ServerAcceptance::Screen::Header );
+            _log_os << fmt::format(
+                R"(    [
+      root:                  {}
+      default_colormap:      {}
+      white_pixel:           {}
+      black_pixel:           {}
+      current_input_masks:   {:#x}
+      width_in_pixels:       {:d}
+      height_in_pixels:      {:d}
+      width_in_millimeters:  {:d}
+      height_in_millimeters: {:d}
+      min_installed_maps:    {:d}
+      max_installed_maps:    {:d}
+      root_visual:           {}
+      backing_stores:        {:d}
+      save_unders:           {:d}
+      root_depth:            {:d}
+)",
+                screen->root,
+                screen->default_colormap,
+                screen->white_pixel,
+                screen->black_pixel,
+                screen->current_input_masks,
+                screen->width_in_pixels,
+                screen->height_in_pixels,
+                screen->width_in_millimeters,
+                screen->height_in_millimeters,
+                screen->min_installed_maps,
+                screen->max_installed_maps,
+                screen->root_visual,
+                screen->backing_stores,
+                screen->save_unders,
+                screen->root_depth );
+            // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4) ((d * sizeof(_DepthHeader) + lists of VISUALTYPE) )
+            _log_os << "      allowed_depths: [\n";
+            for ( uint8_t d_ct { screen->d }, d_i {}; d_i < d_ct; ++d_i ) {
+                const ServerAcceptance::Screen::Depth::Header* depth {
+                    reinterpret_cast< const ServerAcceptance::Screen::Depth::Header* >( _data ) };
+                _data += sizeof( ServerAcceptance::Screen::Depth::Header );
+                _log_os << fmt::format(
+                    R"(        [
+          depth: {:d}
+          visuals: [
+)",
+                    depth->depth );
+                // followed by LISTofVISUALTYPE visuals of n * sizeof(VISUALTYPE) bytes
+                for ( uint16_t v_ct { depth->n }, v_i {}; v_i < v_ct; ++v_i ) {
+                    const ServerAcceptance::Screen::Depth::VisualType* visual {
+                        reinterpret_cast< const ServerAcceptance::Screen::Depth::VisualType* >( _data ) };
+                    _data += sizeof( ServerAcceptance::Screen::Depth::VisualType );
+                    _log_os << fmt::format(
+                        R"(            [
+              visual_id:          {}
+              class_:             {:d}
+              bits_per_rgb_value: {:d}
+              colormap_entries:   {:d}
+              red_mask:           {:#08x}
+              green_mask:         {:#08x}
+              blue_mask:          {:#08x}
+            ]{}
+)",
+                        visual->visual_id,
+                        visual->class_,
+                        visual->bits_per_rgb_value,
+                        visual->colormap_entries,
+                        visual->red_mask,
+                        visual->green_mask,
+                        visual->blue_mask,
+                        ( v_i < v_ct - 1 ) ? "," : "" );
+                }
+                _log_os << "          ]\n";              // end of visuals
+                _log_os << fmt::format( "        ]{}\n", // end of depth
+                    ( d_i < d_ct - 1 ) ? "," : "" );
+            }
+            _log_os << "      ]\n";                      // end of depths
+            _log_os << fmt::format( "    ]{}\n",         // end of screen
+                                    ( s_i < s_ct - 1 ) ? "," : "" );
+        }
+        _log_os << "  ]\n";                              // end of roots (screens)
+        _log_os << std::flush;
         conn->status = Connection::OPEN;
     }
         break;
