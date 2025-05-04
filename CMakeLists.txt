@@ -28,6 +28,7 @@ add_executable(_xtrace
   x11common.c
   x11server.c
 )
+
 target_include_directories(_xtrace PRIVATE
   ${PROJECT_SOURCE_DIR}
 )
@@ -38,4 +39,7 @@ target_compile_definitions(_xtrace PUBLIC
   PKGDATADIR="${PROJECT_SOURCE_DIR}"
 )
 
+#set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(Getfmt)
 add_subdirectory(src)

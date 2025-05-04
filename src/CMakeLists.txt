@@ -15,3 +15,7 @@ add_executable(xtracepp
 target_include_directories(xtracepp PRIVATE
   include
 )
+
+target_link_libraries(xtracepp PUBLIC
+  fmt
+)

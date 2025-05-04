@@ -1,5 +1,6 @@
 #include <string_view>
-#include <iomanip>  // setw
+
+#include <fmt/format.h>
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
@@ -13,6 +14,7 @@ size_t X11ProtocolParser::_logConnectionInitiation(
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
+
     const uint8_t* _data { data };
     using namespace protocol::connection_setup;
     const ClientInitiation::Header* header {
@@ -25,26 +27,20 @@ size_t X11ProtocolParser::_logConnectionInitiation(
         reinterpret_cast< const char* >( _data ), header->n };
     _data += _pad( header->n );
     // STRING8 of d bytes authorization-protocol-data (may not be printable)
-    std::string_view authorization_protocol_data {
-        reinterpret_cast< const char* >( _data ), header->d };
+    // std::string_view authorization_protocol_data {
+    //     reinterpret_cast< const char* >( _data ), header->d };
     _data += _pad( header->d );
     assert( _data - data == sz );
 
     // TBD asserts close log file without logging anything
-    _log_os << std::setw(3) << conn->id << ":<:" <<
-        "connection request from " << conn->client_desc <<
-        ", byte-order: '" << header->byte_order << "'";
-    switch ( header->byte_order ) {
-    case 'B': _log_os << " (MSB first)"; break;
-    case 'l': _log_os << " (LSB first)"; break;
-    default:  assert( 0 ); break;
-    }
-    _log_os << " protocol: " << std::dec << header->protocol_major_version <<
-        "." << std::dec << header->protocol_minor_version <<
-        " authorization-protocol-name[" << header->n << "]: " << authorization_protocol_name <<
-        " authorization-protocol-data[" << header->d << "] (may be unprintable)" <<
-        "\n";
-
+    assert( header->byte_order == 'B' || header->byte_order == 'l' );
+    _log_os << fmt::format(
+        "{:03d}:<:client \"{}\" requesting connection: byte-order: {}, "
+        "X protocol version: {:d}.{:d}, auth protocol: {}, auth data: {:d} bytes\n",
+        conn->id, conn->client_desc,
+        ( header->byte_order == 'B' ) ? "MSB first" : "LSB first",
+        header->protocol_major_version, header->protocol_minor_version,
+        authorization_protocol_name, header->d );
     return sz;
 }
 
@@ -70,15 +66,15 @@ size_t X11ProtocolParser::_logServerResponse(
         const ServerRefusal::Header* header {
             reinterpret_cast< const ServerRefusal::Header* >( _data ) };
         _data += sizeof( ServerRefusal::Header );
-        _log_os << std::setw(3) << conn->id << ":>:" <<
-            "protocol v" << std::dec << header->protocol_major_version <<
-            "." << std::dec << header->protocol_minor_version <<
-            " server refused connection, reason[" << header->n << "]: ";
         // STRING8 of n bytes reason
         std::string_view reason {
             reinterpret_cast< const char* >( _data ), header->n };
         _data += _pad( header->n );
-        _log_os << reason << '\n';
+        _log_os << fmt::format(
+            "{:03d}:>:server refused connection: X protocol version: {:d}.{:d}, "
+            "reason: \"{}\"\n",
+            conn->id,  header->protocol_major_version,
+            header->protocol_minor_version, reason );
         conn->status = Connection::FAILED;
     }
         break;
@@ -88,14 +84,13 @@ size_t X11ProtocolParser::_logServerResponse(
                 const ServerRequireFurtherAuthentication::Header* >( _data ) };
         _data += sizeof( ServerRequireFurtherAuthentication::Header );
         const size_t reason_padded_sz { header->reason_aligned_units * _ALIGN };
-        _log_os << std::setw(3) << conn->id << ":>:" <<
-            "server requested further authentication, reason[" <<
-            reason_padded_sz << "]: ";
         // STRING8 of n bytes reason
         std::string_view reason {
             reinterpret_cast< const char* >( _data ), reason_padded_sz };
         _data += reason_padded_sz;
-        _log_os << reason << '\n';
+        _log_os << fmt::format(
+            "{:03d}:>:server requested further authentication: reason: \"{}\"\n",
+            conn->id, reason_padded_sz );
         conn->status = Connection::AUTHENTICATION;
     }
         break;
@@ -105,20 +100,32 @@ size_t X11ProtocolParser::_logServerResponse(
         _data += sizeof( ServerAcceptance::Header );
         // assert( header->image_byte_order < 2 );  // TBD enum
         // assert( header->bitmap_format_bit_order < 2 );  // TBD enum
-        _log_os << std::setw(3) << conn->id << ":>:" <<
-            "server accepted connection using protocol: " <<
-            std::dec << header->protocol_major_version <<
-            "." << std::dec << header->protocol_minor_version;
-        _log_os << " release_number: " << header->release_number <<
-            " release_id_base: " << header->release_id_base <<
-            " release_id_mask: " << std::hex << "0x" << header->release_id_mask <<
-            " maximum_request_length: " << std::dec << header->maximum_request_length <<
-            " image_byte_order: " << std::dec << header->image_byte_order <<
-            " bitmap_format_bit_order: " << std::dec << header->bitmap_format_bit_order <<
-            " bitmap_format_scanline_unit: " << std::dec << header->bitmap_format_scanline_unit <<
-            " bitmap_format_scanline_pad: " << std::dec << header->bitmap_format_scanline_pad <<
-            " min_keycode: " << std::dec << header->min_keycode <<
-            " max_keycode: " << std::dec << header->max_keycode << std::flush;
+        _log_os << fmt::format(
+            R"({:03d}:>:server accepted connection
+    X protocol version:          {:d}.{:d}
+    release_number:              {}
+    release_id_base:             {}
+    release_id_mask:             {:#x}
+    maximum_request_length:      {:d}
+    image_byte_order:            {:d}
+    bitmap_format_bit_order:     {:d}
+    bitmap_format_scanline_unit: {:d}
+    bitmap_format_scanline_pad:  {:d}
+    min_keycode:                 {:d}
+    max_keycode:                 {:d}
+)",
+            conn->id, header->protocol_major_version,
+            header->protocol_minor_version,
+            header->release_number,
+            header->release_id_base,
+            header->release_id_mask,
+            header->maximum_request_length,
+            header->image_byte_order,
+            header->bitmap_format_bit_order,
+            header->bitmap_format_scanline_unit,
+            header->bitmap_format_scanline_pad,
+            header->min_keycode,
+            header->max_keycode ) << std::endl;
         // followed by STRING8 vendor of v bytes, plus p bytes to round up to multiple of 4
         // std::string_view vendor {
         //     reinterpret_cast< const char* >( _data ), header->v };
@@ -256,15 +263,14 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn,
     assert( settings != nullptr );
     uint8_t* data { conn->client_buffer.data() };
     size_t   tl_bytes_parsed {};
-    // std::cerr << "X11ProtocolParser::logClientPackets(): conn->client_buffer.size(): " << conn->client_buffer.size() << std::endl;
-    // std::cerr << "X11ProtocolParser::logClientPackets(): conn->status: " << conn->status << std::endl;
     for ( const size_t bytes_to_parse { conn->client_buffer.size() };
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
             _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings->readwritedebug ) {
-            _log_os << std::setw(3) << conn->id <<
-                ":<:parsed   " << std::setw(4) << bytes_parsed << " bytes\n";
+            _log_os << fmt::format(
+                "{:03d}:<:parsed   {:4d} bytes\n",
+                conn->id, bytes_parsed );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
@@ -278,15 +284,14 @@ size_t X11ProtocolParser::logServerPackets( Connection* conn,
     assert( settings != nullptr );
     uint8_t* data { conn->server_buffer.data() };
     size_t   tl_bytes_parsed {};
-    // std::cerr << "X11ProtocolParser::logServerPackets(): conn->server_buffer.size(): " << conn->server_buffer.size() << std::endl;
-    // std::cerr << "X11ProtocolParser::logServerPackets(): conn->status: " << conn->status << std::endl;
     for ( const size_t bytes_to_parse { conn->server_buffer.size() };
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
             _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings->readwritedebug ) {
-            _log_os << std::setw(3) << conn->id <<
-                ":>:parsed   " << std::setw(4) << bytes_parsed << " bytes\n";
+            _log_os << fmt::format(
+                "{:03d}:>:parsed   {:4d} bytes\n",
+                conn->id, bytes_parsed );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
