@@ -1,5 +1,7 @@
 #include <string_view>
 
+#include <cctype>      // isprint
+
 #include <fmt/format.h>
 
 #include "X11ProtocolParser.hpp"
@@ -8,6 +10,45 @@
 #include "protocol/common_types.hpp"
 #include "protocol/connection_setup.hpp"
 
+
+namespace {
+
+// TBD for debugging buffer parsing
+void __bufferHexDump( const uint8_t* data, const size_t sz ) {
+    assert( data != nullptr );
+
+    static constexpr int BYTES_PER_ROW   { 16 };
+    static constexpr int BYTES_PER_GROUP { 8 };
+
+    const uint8_t* _data { data };
+    for ( size_t bytes_to_parse { sz }, address_index {}; bytes_to_parse > 0;
+        address_index += BYTES_PER_ROW ) {
+        std::string group1, group2, as_ascii;
+        size_t group_sz {
+            ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP };
+        for ( size_t i {}; i < group_sz;
+              ++i, ++_data, --bytes_to_parse ) {
+            group1 += fmt::format( "{:02X}{}",
+                                   *_data, ( i < group_sz - 1 ) ? " " : "" );
+            as_ascii += fmt::format( "{:c}",
+                                     ( std::isprint( *_data ) ) ? *_data : '.' );
+        }
+        group_sz =
+                ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP;
+        for ( size_t i {}; i < group_sz;
+              ++i, ++_data, --bytes_to_parse ) {
+            group2 += fmt::format( "{:02X}{}",
+                                   *_data, ( i < group_sz - 1 ) ? " " : "" );
+            as_ascii += fmt::format( "{:c}",
+                                     ( std::isprint( *_data ) ) ? *_data : '.' );
+        }
+        std::cerr << fmt::format(
+            "{:08x}  {: <23}  {: <23}  {}\n",
+            address_index, group1, group2, as_ascii );
+    }
+}
+
+}  // namespace
 
 size_t X11ProtocolParser::_logConnectionInitiation(
     const Connection* conn, const uint8_t* data, const size_t sz ) {
@@ -95,6 +136,7 @@ size_t X11ProtocolParser::_logServerResponse(
     }
         break;
     case SUCCESS: {
+        __bufferHexDump( _data, sz );
         const ServerAcceptance::Header* header {
             reinterpret_cast< const ServerAcceptance::Header* >( _data ) };
         _data += sizeof( ServerAcceptance::Header );
