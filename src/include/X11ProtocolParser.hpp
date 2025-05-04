@@ -32,7 +32,7 @@ private:
         Connection* conn, uint8_t* data, const size_t sz );
 
     size_t _logServerResponse(
-        Connection* conn, uint8_t* data, const size_t sz );
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logServerMessage(
         Connection* conn, uint8_t* data, const size_t sz );
 

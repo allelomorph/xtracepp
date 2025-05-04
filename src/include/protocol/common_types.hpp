@@ -102,6 +102,15 @@ enum class WINGRAVITY {
 enum class BOOL {
     True, False
 };
+*/
+// TBD encoding seems to always use 1 byte for BOOL
+// TBD neither
+//   - https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Common_Types
+//   - https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Common_Types
+//   give a width for BOOL, but seemingly all its other appearances in #Encoding
+//   indicate 1 byte
+using BOOL = uint8_t;
+/*
 
 // events
 
@@ -132,9 +141,11 @@ enum class DEVICEEVENT {
     Button1Motion, Button2Motion, Button3Motion, Button4Motion, Button5Motion, ButtonMotion
 };
 
+*/
 using SETofEVENT        = BITMASK;
 using SETofPOINTEREVENT = BITMASK;
 using SETofDEVICEEVENT  = BITMASK;
+/*
 enum class EventMaskFlags {
     KeyPress             = 1 << 0,
     KeyRelease           = 1 << 1,
@@ -168,12 +179,13 @@ enum class EventMaskFlags {
     // must be zeroed in SETofDEVICEEVENT values
     _SETofDEVICEEVENT_zero_bits  = 0xFFFFC0B0
 };
-
+*/
 // input
 
 using KEYSYM  = CARD32;  // (top three bits guaranteed to be zero)
 using KEYCODE = CARD8;
 using BUTTON  = CARD8;
+/*
 enum class KEYMASK {
     Shift, Lock, Control,
     Mod1, Mod2, Mod3, Mod4, Mod5
