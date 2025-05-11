@@ -72,7 +72,7 @@ size_t X11ProtocolParser::_logConnectionInitiation(
     // TBD asserts close log file without logging anything
     assert( header->byte_order == 'B' || header->byte_order == 'l' );
     _log_os << fmt::format(
-        R"({:03d}:<:client \"{}\" requesting connection:
+        R"({:03d}:<:client "{}" requesting connection:
   byte-order:         {}
   X protocol version: {:d}.{:d}
   auth protocol:      {}
