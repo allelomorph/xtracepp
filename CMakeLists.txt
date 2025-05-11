@@ -43,3 +43,5 @@ target_compile_definitions(_xtrace PUBLIC
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(Getfmt)
 add_subdirectory(src)
+
+add_subdirectory(test)
