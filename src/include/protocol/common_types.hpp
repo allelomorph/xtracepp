@@ -45,7 +45,7 @@ using ATOM            = CARD32;  // (top three bits guaranteed to be zero)
 using VISUALID        = CARD32;  // (top three bits guaranteed to be zero)
 // using LISTofVISUALID  = VISUALID*;
 
-using VALUE           = CARD32;  // (used only in LISTofVALUE)
+//using VALUE           = CARD32;  // (used only in LISTofVALUE)
 // using LISTofVALUE     = VALUE*;
 
 using WINDOW          = CARD32;  // (top three bits guaranteed to be zero)
@@ -83,26 +83,74 @@ union FONTABLE {
 //   but the actual value occupies only the least significant bytes as required.
 //   The values of the unused bytes do not matter."
 
-using BITMASK         = CARD32;
-/*
-enum class BITGRAVITY {
-    Forget, Static,
-    NorthWest, North, NorthEast,
-    West, Center, East,
-    SouthWest, South, SouthEast
-};
+// TBD BITMASK can be 2 or 4 bytes (at least in requests)
+//using BITMASK         = CARD32;
 
-enum class WINGRAVITY {
-    Unmap, Static,
-    NorthWest, North, NorthEast,
-    West, Center, East,
-    SouthWest, South, SouthEast
-};
+// BITGRAVITY and WINGRAVITY only appear as 1B in core protocol encoding (
+//    requests CreateWindow and GetWindowAttributes)
+// TBD need to decide between:
+//   - enum class: collision protection but need to convert to compare
+//   - enum: less verbose comparison but need prefixes or namespaces to avoid collisions
+using BITGRAVITY = CARD8;
+// enum BitGravity {
+//     FORGET,      //  0
+//     NORTHWEST,   //  1
+//     NORTH,       //  2
+//     NORTHEAST,   //  3
+//     WEST,        //  4
+//     CENTER,      //  5
+//     EAST,        //  6
+//     SOUTHWEST,   //  7
+//     SOUTH,       //  8
+//     SOUTHEAST,   //  9
+//     STATIC       // 10
+// };
+// enum BitGravity {
+//     "Forget",      // 0
+//     "NorthWest",   // 1
+//     "North",       // 2
+//     "NorthEast",   // 3
+//     "West",        // 4
+//     "Center",      // 5
+//     "East",        // 6
+//     "SouthWest",   // 7
+//     "South",       // 8
+//     "SouthEast",   // 9
+//     "Static"       //10
+// };
 
-enum class BOOL {
-    True, False
-};
-*/
+using WINGRAVITY = CARD8;
+// enum WinGravity {
+//     UNMAP,       //  0
+//     NORTHWEST,   //  1
+//     NORTH,       //  2
+//     NORTHEAST,   //  3
+//     WEST,        //  4
+//     CENTER,      //  5
+//     EAST,        //  6
+//     SOUTHWEST,   //  7
+//     SOUTH,       //  8
+//     SOUTHEAST,   //  9
+//     STATIC       // 10
+// };
+// enum WinGravity {
+//     "Unmap",       // 0
+//     "NorthWest",   // 1
+//     "North",       // 2
+//     "NorthEast",   // 3
+//     "West",        // 4
+//     "Center",      // 5
+//     "East",        // 6
+//     "SouthWest",   // 7
+//     "South",       // 8
+//     "SouthEast",   // 9
+//     "Static"       //10
+// };
+
+// enum class BOOL {
+//     True, False
+// };
+
 // TBD encoding seems to always use 1 byte for BOOL
 // TBD neither
 //   - https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Common_Types
@@ -110,76 +158,47 @@ enum class BOOL {
 //   give a width for BOOL, but seemingly all its other appearances in #Encoding
 //   indicate 1 byte
 using BOOL = uint8_t;
-/*
 
 // events
 
-enum class EVENT {
-    KeyPress, KeyRelease,
-    OwnerGrabButton,
-    ButtonPress, ButtonRelease,
-    EnterWindow, LeaveWindow,
-    PointerMotion, PointerMotionHint,
-    Button1Motion, Button2Motion, Button3Motion, Button4Motion, Button5Motion, ButtonMotion,
-    Exposure, VisibilityChange,
-    StructureNotify, ResizeRedirect, SubstructureNotify, SubstructureRedirect,
-    FocusChange, PropertyChange, ColormapChange, KeymapState
-};
+using SETofEVENT        = CARD32;
+using SETofPOINTEREVENT = CARD16;
+// 2B in GetWindowAttributes reply, 4 in CreateWindow LISTofVALUE
+using SETofDEVICEEVENT  = CARD16;
+// enum EventMaskFlags {
+//     KEYPRESS             = 1 <<  0,  // KeyPress
+//     KEYRELEASE           = 1 <<  1,  // KeyRelease
+//     BUTTONPRESS          = 1 <<  2,  // ButtonPress
+//     BUTTONRELEASE        = 1 <<  3,  // ButtonRelease
+//     ENTERWINDOW          = 1 <<  4,  // EnterWindow
+//     LEAVEWINDOW          = 1 <<  5,  // LeaveWindow
+//     POINTERMOTION        = 1 <<  6,  // PointerMotion
+//     POINTERMOTIONHINT    = 1 <<  7,  // PointerMotionHint
+//     BUTTON1MOTION        = 1 <<  8,  // Button1Motion
+//     BUTTON2MOTION        = 1 <<  9,  // Button2Motion
+//     BUTTON3MOTION        = 1 << 10,  // Button3Motion
+//     BUTTON4MOTION        = 1 << 11,  // Button4Motion
+//     BUTTON5MOTION        = 1 << 12,  // Button5Motion
+//     BUTTONMOTION         = 1 << 13,  // ButtonMotion
+//     KEYMAPSTATE          = 1 << 14,  // KeymapState
+//     EXPOSURE             = 1 << 15,  // Exposure
+//     VISIBILITYCHANGE     = 1 << 16,  // VisibilityChange
+//     STRUCTURENOTIFY      = 1 << 17,  // StructureNotify
+//     RESIZEREDIRECT       = 1 << 18,  // ResizeRedirect
+//     SUBSTRUCTURENOTIFY   = 1 << 19,  // SubstructureNotify
+//     SUBSTRUCTUREREDIRECT = 1 << 20,  // SubstructureRedirect
+//     FOCUSCHANGE          = 1 << 21,  // FocusChange
+//     PROPERTYCHANGE       = 1 << 22,  // PropertyChange
+//     COLORMAPCHANGE       = 1 << 23,  // ColormapChange
+//     OWNERGRABBUTTON      = 1 << 24,  // OwnerGrabButton
+//     // must be zeroed in SETofEVENT values
+//     _SETOFEVENT_ZERO_BITS        = 0XFE000000,
+//     // must be zeroed in SETofPOINTEREVENT values
+//     _SETOFPOINTEREVENT_ZERO_BITS = 0XFFFF8003,
+//     // must be zeroed in SETofDEVICEEVENT values
+//     _SETOFDEVICEEVENT_ZERO_BITS  = 0XFFFFC0B0
+// };
 
-enum class POINTEREVENT {
-    ButtonPress, ButtonRelease,
-    EnterWindow, LeaveWindow,
-    PointerMotion, PointerMotionHint,
-    Button1Motion, Button2Motion, Button3Motion, Button4Motion, Button5Motion, ButtonMotion,
-    KeymapState
-};
-
-enum class DEVICEEVENT {
-    KeyPress, KeyRelease,
-    ButtonPress, ButtonRelease,
-    PointerMotion,
-    Button1Motion, Button2Motion, Button3Motion, Button4Motion, Button5Motion, ButtonMotion
-};
-
-*/
-using SETofEVENT        = BITMASK;
-using SETofPOINTEREVENT = BITMASK;
-using SETofDEVICEEVENT  = BITMASK;
-/*
-enum class EventMaskFlags {
-    KeyPress             = 1 << 0,
-    KeyRelease           = 1 << 1,
-    ButtonPress          = 1 << 2,
-    ButtonRelease        = 1 << 3,
-    EnterWindow          = 1 << 4,
-    LeaveWindow          = 1 << 5,
-    PointerMotion        = 1 << 6,
-    PointerMotionHint    = 1 << 7,
-    Button1Motion        = 1 << 8,
-    Button2Motion        = 1 << 9,
-    Button3Motion        = 1 << 10,
-    Button4Motion        = 1 << 11,
-    Button5Motion        = 1 << 12,
-    ButtonMotion         = 1 << 13,
-    KeymapState          = 1 << 14,
-    Exposure             = 1 << 15,
-    VisibilityChange     = 1 << 16,
-    StructureNotify      = 1 << 17,
-    ResizeRedirect       = 1 << 18,
-    SubstructureNotify   = 1 << 19,
-    SubstructureRedirect = 1 << 20,
-    FocusChange          = 1 << 21,
-    PropertyChange       = 1 << 22,
-    ColormapChange       = 1 << 23,
-    OwnerGrabButton      = 1 << 24,
-    // must be zeroed in SETofEVENT values
-    _SETofEVENT_zero_bits        = 0xFE000000,
-    // must be zeroed in SETofPOINTEREVENT values
-    _SETofPOINTEREVENT_zero_bits = 0xFFFF8003,
-    // must be zeroed in SETofDEVICEEVENT values
-    _SETofDEVICEEVENT_zero_bits  = 0xFFFFC0B0
-};
-*/
 // input
 
 using KEYSYM  = CARD32;  // (top three bits guaranteed to be zero)

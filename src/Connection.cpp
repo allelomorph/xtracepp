@@ -43,3 +43,8 @@ Connection::closeServerSocket() {
     }
     server_fd = _FD_CLOSED;
 }
+
+void
+Connection::registerRequest( const uint8_t opcode ) {
+    _request_opcodes_by_seq_num.emplace_back( opcode );
+}

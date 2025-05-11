@@ -5,6 +5,7 @@
 #include <string>
 //#include <string_view>
 #include <system_error>  // generic_category
+#include <vector>
 
 #include <cstdint>
 
@@ -16,11 +17,17 @@
 
 class Connection {
 private:
-    static constexpr int _FD_CLOSED { -1 };
-    inline static int  _next_id {};
+    static constexpr int _FD_CLOSED  { -1 };
+    inline static uint32_t  _next_id {};
+
+    // TBD sequence can't get bigger than 4 bytes?
+    inline static uint32_t             _next_seq_num { 1 };
+    // 1-indexed so begin with one dummy member
+    // TBD this allows for lookup of request traits when parsing Error/Reply
+    std::vector< uint8_t > _request_opcodes_by_seq_num { 1 };
 
 public:
-    const int      id;             // unique serial number
+    const uint32_t id;             // unique serial number
     const uint64_t start_time;     // timestamp of connection creation (seconds since Unix Epoch)
     // TBD from, client_fd, server_fd const and set in ctor?
     std::string    client_desc;    // (from) allocated string describing client address (x.x.x.x:port) for AF_INET or socket file path/"unknown(local)" for AF_UNIX
@@ -48,6 +55,7 @@ public:
     Status status { UNESTABLISHED };
 
 //    const bool bigendian;
+
 //    enum client_state { c_start = 0, c_normal, c_amlost } client_state;
 //    enum server_state { s_start=0, s_normal, s_amlost } server_state;
 //    struct expectedreply* expectedreplies;
@@ -104,6 +112,8 @@ public:
     forwardPacketToServer() {
         return client_buffer.write( server_fd );
     }
+
+    void registerRequest( const uint8_t opcode );
 };
 
 

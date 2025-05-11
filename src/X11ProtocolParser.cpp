@@ -11,10 +11,8 @@
 #include "protocol/connection_setup.hpp"
 
 
-namespace {
-
 // TBD for debugging buffer parsing
-void __bufferHexDump( const uint8_t* data, const size_t sz ) {
+void _bufferHexDump( const uint8_t* data, const size_t sz ) {
     assert( data != nullptr );
 
     static constexpr int BYTES_PER_ROW   { 16 };
@@ -47,8 +45,6 @@ void __bufferHexDump( const uint8_t* data, const size_t sz ) {
             address_index, group1, group2, as_ascii );
     }
 }
-
-}  // namespace
 
 size_t X11ProtocolParser::_logConnectionInitiation(
     const Connection* conn, const uint8_t* data, const size_t sz ) {
@@ -87,14 +83,6 @@ size_t X11ProtocolParser::_logConnectionInitiation(
         header->protocol_major_version, header->protocol_minor_version,
         authorization_protocol_name,
         header->d );
-    return sz;
-}
-
-size_t X11ProtocolParser::_logClientMessage(
-    Connection* conn, uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );
     return sz;
 }
 
@@ -299,32 +287,33 @@ size_t X11ProtocolParser::_logServerResponse(
     return sz;
 }
 
-size_t X11ProtocolParser::_logServerMessage(
-    Connection* conn, uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );
-    return sz;
-}
-
 size_t X11ProtocolParser::_logClientPacket(
     Connection* conn, uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
+    assert( conn->status != Connection::CLOSED &&
+            conn->status != Connection::FAILED );
+    size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
-        return _logConnectionInitiation( conn, data, sz );
+        bytes_parsed = _logConnectionInitiation( conn, data, sz );
+        break;
     case Connection::AUTHENTICATION:
         // authentication negotiation
-    case Connection::CLOSED: [[fallthrough]];
-    case Connection::FAILED:
-        assert( 0 );
+        break;
+    case Connection::OPEN:
+        assert( sz >= 4 );  // TBD min size for Reuqests (1B opcode, 1B unused, 2B request length (with no extensions))
+        assert( *data != 0 );
+//        const uint8_t first_byte { *data };
+        // TBD use enum instead of magic values
+        bytes_parsed = _logClientRequest( conn, data, sz, *data );
+        //assert( bytes_parsed == 32 );
+        break;
     default:
         break;
     }
-    // case Connection::OPEN:
-    return _logClientMessage( conn, data, sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logServerPacket(
@@ -332,19 +321,83 @@ size_t X11ProtocolParser::_logServerPacket(
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
+    assert( conn->status != Connection::CLOSED &&
+            conn->status != Connection::FAILED );
+    size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
-        return _logServerResponse( conn, data, sz );
+        bytes_parsed = _logServerResponse( conn, data, sz );
+        break;
     case Connection::AUTHENTICATION:
         // authentication negotiation
-    case Connection::CLOSED: [[fallthrough]];
-    case Connection::FAILED:
-        assert( 0 );
+        break;
+    case Connection::OPEN: {
+        assert( sz >= 32 );  // TBD size of Error and Event, min size for Reply (outside of extensions)
+        // TBD when parsing replies, we will need to fetch the appropriate struct
+        //   via the corresponding request, so we may need to keep a map of request
+        //   opcodes by sequence number & 0000FFFF; which will let us look up
+        //   an opcode for each seq num, and then a request by that opcode
+        // TBD map could be a vector, as protocol dicates that on each client connx
+        //   requests are 1-indexed by the server
+        // server packets begin with:
+        //   - errors: 0
+        //   - replies: 1
+        //   - events: 2-34
+        const uint8_t first_byte { *data };
+        // TBD use enum instead of magic values
+        assert( first_byte <= 35 );
+        switch ( first_byte ) {
+        case 0:   // Error
+            // log error func distinguishing by `code` byte
+            bytes_parsed = _logServerError( conn, data, sz );
+            assert( bytes_parsed == 32 );
+            break;
+        case 1:   // Reply
+            // log reply func distingusishing by using provided sequence number to look up request opcode,
+            //   then call func based on opcode
+            // TBD modification of QueryExtension replies should happen here to filter extensions
+            bytes_parsed = _logServerReply( conn, data, sz );
+            assert( bytes_parsed >= 32 );
+            break;
+        default:  // Event (2-35)
+            bytes_parsed = _logServerEvent( conn, data, sz, first_byte );
+            assert( bytes_parsed == 32 );
+            break;
+        }
+    }
+        break;
     default:
         break;
     }
-    // case Connection::OPEN:
-    return _logServerMessage( conn, data, sz );
+    return bytes_parsed;
+}
+
+size_t X11ProtocolParser::_logServerError(
+    Connection* conn, uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= 32 );  // TBD
+    // using namespace protocol::errors;
+    // const Error* error {
+    //     reinterpret_cast< Error* >( data ) };
+    return sz;
+}
+
+size_t X11ProtocolParser::_logServerReply(
+    Connection* conn, uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= 32 ); // TBD some extension replies may be smaller, eg BigReqEnable
+    return sz;
+}
+
+size_t X11ProtocolParser::_logServerEvent(
+    Connection* conn, uint8_t* data, const size_t sz,
+    const uint8_t code ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= 32 ); // TBD
+    return sz;
 }
 
 void X11ProtocolParser::syncLogStream( const std::ostream& log_os ) {
@@ -354,6 +407,12 @@ void X11ProtocolParser::syncLogStream( const std::ostream& log_os ) {
     assert( _log_os.good() );
 }
 
+// client packets begin with:
+//   - first contact: 'B' or 'l' (66 or 108)
+//   - requests: opcode of 1-119, 127
+//   - extension enable: ??? (logs of xtrace indicate packets sent after
+//       QueryExtension gets positive response from server, to then enable
+//       that extension)
 size_t X11ProtocolParser::logClientPackets( Connection* conn,
                                             Settings* settings ) {
     assert( conn != nullptr );
