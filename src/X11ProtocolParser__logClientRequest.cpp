@@ -13,8 +13,11 @@
 
 size_t X11ProtocolParser::_logCreateWindow(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
 
-    const uint8_t* _data {};
+    const uint8_t* _data { data };
     size_t bytes_parsed {};
 
     using namespace protocol;
@@ -24,6 +27,7 @@ size_t X11ProtocolParser::_logCreateWindow(
     bytes_parsed += sizeof( CreateWindow::Encoding );
     _data += sizeof( CreateWindow::Encoding );
 
+    // TBD mask VALUES need name parsing
     static const std::vector<
         _LISTofVALUEParsingInputs::_VALUEParsingStrings > value_list_strings {
         { "background-pixmap",     "d", { "None", "ParentRelative" } },
@@ -73,15 +77,17 @@ size_t X11ProtocolParser::_logCreateWindow(
     assert( value_list_outputs.values_parsed == encoding->request_length - 8 );
     bytes_parsed += value_list_outputs.bytes_parsed;
 
-    assert( encoding->class_ <= 2 );
+    // TBD visual assert failure implies this may not always be in enum
+//    assert( encoding->class_ <= 2 );
     static constexpr std::array< std::string_view, 3 > class_enum_names {
         "CopyFromParent", "InputOutput", "InputOnly"
     };
-    assert( encoding->visual == 0 );
+    // TBD shouldn't this always be 0?
+//    assert( encoding->visual == 0 );
     static constexpr std::array< std::string_view, 1 > visual_enum_names {
         "CopyFromParent"
     };
-    _log_os << fmt::format( "{:03d}:<:client request CreateWindow ({: 3d})\n",
+    _log_os << fmt::format( "{:03d}:<:client request {:>3d}: CreateWindow\n",
                             conn->id, encoding->opcode );
     _log_os << fmt::format(
         R"(  depth:          {:d}
@@ -93,12 +99,11 @@ size_t X11ProtocolParser::_logCreateWindow(
   width:          {:d}
   height:         {:d}
   border-width:   {:d}
-  class:          {:d} ({})
-  visual:         {:d} ({})
-  value-mask:     {:#08x}
+  class:          {:d}{}
+  visual:         {:d}{}
+  value-mask:     {:#012x}
   value-list:     [
-{}
-  ]
+{}  ]
 )",
         encoding->depth,
         encoding->request_length, ( encoding->request_length - 8 ),
@@ -106,8 +111,12 @@ size_t X11ProtocolParser::_logCreateWindow(
         encoding->x, encoding->y,
         encoding->width, encoding->height,
         encoding->border_width,
-        encoding->class_, class_enum_names[ encoding->class_ ],
-        encoding->visual, visual_enum_names[ encoding->visual ],
+        encoding->class_,
+        ( encoding->class_ < 3 ) ?
+        fmt::format( " ({})", class_enum_names[ encoding->class_ ] ) : "",
+        encoding->visual,
+        ( encoding->visual < 1 ) ?
+        fmt::format( " ({})", visual_enum_names[ encoding->visual ] ) : "",
         encoding->value_mask, value_list_outputs.str
         );
     return bytes_parsed;
