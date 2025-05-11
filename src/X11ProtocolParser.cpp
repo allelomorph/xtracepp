@@ -12,7 +12,7 @@
 
 
 // TBD for debugging buffer parsing
-void _bufferHexDump( const uint8_t* data, const size_t sz ) {
+void X11ProtocolParser::_bufferHexDump( const uint8_t* data, const size_t sz ) {
     assert( data != nullptr );
 
     static constexpr int BYTES_PER_ROW   { 16 };
