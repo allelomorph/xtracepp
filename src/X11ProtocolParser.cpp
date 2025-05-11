@@ -348,20 +348,23 @@ size_t X11ProtocolParser::_logServerPacket(
         assert( first_byte <= 35 );
         switch ( first_byte ) {
         case 0:   // Error
+            return sz;  // TBD deactivated for testing
             // log error func distinguishing by `code` byte
             bytes_parsed = _logServerError( conn, data, sz );
-            assert( bytes_parsed == 32 );
+            // assert( bytes_parsed == 32 );
             break;
         case 1:   // Reply
+            return sz;  // TBD deactivated for testing
             // log reply func distingusishing by using provided sequence number to look up request opcode,
             //   then call func based on opcode
             // TBD modification of QueryExtension replies should happen here to filter extensions
             bytes_parsed = _logServerReply( conn, data, sz );
-            assert( bytes_parsed >= 32 );
+            // assert( bytes_parsed >= 32 );
             break;
         default:  // Event (2-35)
+            return sz;  // TBD deactivated for testing
             bytes_parsed = _logServerEvent( conn, data, sz, first_byte );
-            assert( bytes_parsed == 32 );
+            // assert( bytes_parsed == 32 );
             break;
         }
     }
