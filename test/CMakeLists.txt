@@ -10,11 +10,19 @@ endif()
 add_executable(001_CreateWindow_test
   001_CreateWindow_test.cpp
 )
-
 target_include_directories(001_CreateWindow_test PRIVATE
   ${X11_xcb_INCLUDE_PATH}
 )
-
 target_link_libraries(001_CreateWindow_test PUBLIC
+  ${X11_xcb_LIB}
+)
+
+add_executable(request_test
+  request_test.cpp
+)
+target_include_directories(request_test PRIVATE
+  ${X11_xcb_INCLUDE_PATH}
+)
+target_link_libraries(request_test PUBLIC
   ${X11_xcb_LIB}
 )
