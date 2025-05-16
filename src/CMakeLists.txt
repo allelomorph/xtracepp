@@ -11,7 +11,6 @@ add_executable(xtracepp
   SocketBuffer.cpp
   X11ProtocolParser.cpp
   X11ProtocolParser__logClientRequest.cpp
-  protocol_enum_names.cpp
 )
 
 target_include_directories(xtracepp PRIVATE
