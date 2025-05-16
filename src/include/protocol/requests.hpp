@@ -6,6 +6,8 @@
 #include <array>
 
 #include "protocol/common_types.hpp"
+#include "protocol/enum_names.hpp"
+
 
 // TBD when parsing replies, we will need to fetch the appropriate struct
 //   via the corresponding request, so we may need to keep a map of request
@@ -313,80 +315,9 @@ enum Opcodes {
 
 namespace impl {
 
-struct _WindowRequestValueMaskBase {
-    enum Class {  // used by class, visual, VALUE.border-pixmap, VALUE.colormap
-        COPYFROMPARENT,  // CopyFromParent
-        INPUTOUTPUT,     // InputOutput
-        INPUTONLY        // InputOnly
-    };
-    static constexpr int VALUE_MASK_FLAG_CT { 15 };
-    // TBD take care that COLORMAP and CURSOR do not collide with type names
-    // enum ValueMaskFlags {
-    //     BACKGROUND_PIXMAP      = 1 <<  0,  // background-pixmap
-    //     BACKGROUND_PIXEL       = 1 <<  1,  // background-pixel
-    //     BORDER_PIXMAP          = 1 <<  2,  // border-pixmap
-    //     BORDER_PIXEL           = 1 <<  3,  // border-pixel
-    //     BIT_GRAVITY            = 1 <<  4,  // bit-gravity
-    //     WIN_GRAVITY            = 1 <<  5,  // win-gravity
-    //     BACKING_STORE          = 1 <<  6,  // backing-store
-    //     BACKING_PLANES         = 1 <<  7,  // backing-planes
-    //     BACKING_PIXEL          = 1 <<  8,  // backing-pixel
-    //     OVERRIDE_REDIRECT      = 1 <<  9,  // override-redirect
-    //     SAVE_UNDER             = 1 << 10,  // save-under
-    //     EVENT_MASK             = 1 << 11,  // event-mask
-    //     DO_NOT_PROPAGATE_MASK  = 1 << 12,  // do-not-propagate-mask
-    //     COLORMAP               = 1 << 13,  // colormap
-    //     CURSOR                 = 1 << 14   // cursor
-    // };
-    enum BackingStore {  // VALUE.backing-store
-        NOTUSEFUL,       // NotUseful
-        WHENMAPPED,      // WhenMapped
-        ALWAYS           // Always
-    };
-    enum BackgroundPixmap {  // VALUE.background-pixmap, VALUE.cursor
-        NONE,            // None
-        PARENTRELATIVE   // ParentRelative
-    };
-    static constexpr std::array<
-        std::string_view, INPUTONLY + 1 > class_enum_names {
-        "CopyFromParent",
-        "InputOutput",
-        "InputOnly"
-    };
-    static constexpr std::array<
-        std::string_view, VALUE_MASK_FLAG_CT > value_mask_enum_names {
-        "background-pixmap",
-        "background-pixel",
-        "border-pixmap",
-        "border-pixel",
-        "bit-gravity",
-        "win-gravity",
-        "backing-store",
-        "backing-planes",
-        "backing-pixel",
-        "override-redirect",
-        "save-under",
-        "event-mask",
-        "do-not-propagate-mask",
-        "colormap",
-        "cursor"
-    };
-    static constexpr std::array<
-        std::string_view, ALWAYS + 1 > backing_store_enum_names {
-        "NotUseful",
-        "WhenMapped",
-        "Always"
-    };
-    static constexpr std::array<
-        std::string_view, PARENTRELATIVE + 1 > background_pixmap_enum_names {
-        "None",
-        "ParentRelative"
-    };
-};
-
 }  // namespace impl
 
-struct CreateWindow : public impl::_WindowRequestValueMaskBase {
+struct CreateWindow {
     struct __attribute__ ((packed)) Encoding {
         uint8_t    opcode;  // 1
         CARD8      depth;
@@ -423,10 +354,23 @@ struct CreateWindow : public impl::_WindowRequestValueMaskBase {
     // };
     };
 
+    inline static const
+    std::vector< std::string_view >& class_names {
+        protocol::enum_names::window_class };
+    inline static const
+    std::vector< std::string_view >& value_mask_names {
+        protocol::enum_names::window_attribute_value_mask };
+    inline static const
+    std::vector< std::string_view >& backing_store_names {
+        protocol::enum_names::window_attribute_backing_store };
+    inline static const
+    std::vector< std::string_view >& background_pixmap_names {
+        protocol::enum_names::window_attribute_background_pixmap };
+
     static constexpr std::string_view name { "CreateWindow" };
 };
 
-struct ChangeWindowAttributes : public impl::_WindowRequestValueMaskBase {
+struct ChangeWindowAttributes {
     struct __attribute__ ((packed)) Encoding {
         uint8_t    opcode;  // 2
     private:
@@ -436,13 +380,28 @@ struct ChangeWindowAttributes : public impl::_WindowRequestValueMaskBase {
         WINDOW     window;
         uint32_t   value_mask;      // 4B BITMASK value-mask (has n bits set to 1) // encodings are the same as for CreateWindow
     };
+    // followed by 4n bytes LISTofVALUE value-list
     // 4n     LISTofVALUE                    value-list
     // encodings are the same as for CreateWindow
+
+    inline static const
+    std::vector< std::string_view >& class_names {
+        protocol::enum_names::window_class };
+    inline static const
+    std::vector< std::string_view >& value_names {
+        protocol::enum_names::window_attribute_value_mask };
+    inline static const
+    std::vector< std::string_view >& backing_store_names {
+        protocol::enum_names::window_attribute_backing_store };
+    inline static const
+    std::vector< std::string_view >& background_pixmap_names {
+        protocol::enum_names::window_attribute_background_pixmap };
+
     static constexpr std::string_view name { "ChangeWindowAttributes" };
 };
 
 // TBD only inheriting from base to get enums for backing-store and class_
-struct GetWindowAttributes : public impl::_WindowRequestValueMaskBase {
+struct GetWindowAttributes {
     struct __attribute__ ((packed)) Encoding {
         uint8_t    opcode;  // 3
     private:
@@ -478,17 +437,12 @@ struct GetWindowAttributes : public impl::_WindowRequestValueMaskBase {
         uint8_t          _unused[2];
     };
 
-    enum MapState {
-        UNMAPPED,
-        UNVIEWABLE,
-        VIEWABLE
-    };
-    static constexpr std::array<
-        std::string_view, VIEWABLE + 1 > map_state_enum_names {
-        "Unmapped",
-        "Unviewable",
-        "Viewable"
-    };
+    inline static const
+    std::vector< std::string_view >& backing_store_names {
+        protocol::enum_names::window_attribute_backing_store };
+    inline static const
+    std::vector< std::string_view >& map_state_names {
+        protocol::enum_names::window_attribute_map_state };
 };
 
 namespace impl {
@@ -591,41 +545,12 @@ struct ConfigureWindow {
 
     static constexpr std::string_view name { "ConfigureWindow" };
 
-    static constexpr int VALUE_MASK_FLAG_CT { 7 };
-    enum ValueMaskFlags {
-        X            = 1 << 0,  // x
-        Y            = 1 << 1,  // y
-        WIDTH        = 1 << 2,  // width
-        HEIGHT       = 1 << 3,  // height
-        BORDER_WIDTH = 1 << 4,  // border-width
-        SIBLING      = 1 << 5,  // sibling
-        STACK_MODE   = 1 << 6   // stack-mode
-    };
-    enum StackMode {  // VALUE.stack-mode
-        ABOVE,     // Above
-        BELOW,     // Below
-        TOPIF,     // TopIf
-        BOTTOMIF,  // BottomIf
-        OPPOSITE   // Opposite
-    };
-    static constexpr std::array<
-        std::string_view, VALUE_MASK_FLAG_CT > value_mask_enum_names {
-        "x",
-        "y",
-        "width",
-        "height",
-        "border-width",
-        "sibling",
-        "stack-mode"
-    };
-    static constexpr std::array<
-        std::string_view, OPPOSITE + 1 > stack_mode_enum_names {
-        "Above",
-        "Below",
-        "TopIf",
-        "BottomIf",
-        "Opposite"
-    };
+    inline static const
+    std::vector< std::string_view >& value_names {
+        protocol::enum_names::window_value_mask };
+    inline static const
+    std::vector< std::string_view >& stack_mode_names {
+        protocol::enum_names::window_value_stack_mode };
 };
 
 struct CirculateWindow {
@@ -636,15 +561,10 @@ struct CirculateWindow {
         WINDOW    window;
     };
     static constexpr std::string_view name { "CirculateWindow" };
-    enum Direction {
-        RAISELOWEST,
-        LOWERHIGHEST
-    };
-    static constexpr std::array<
-        std::string_view, LOWERHIGHEST + 1 > direction_enum_names {
-        "RaiseLowest",
-        "LowerHighest"
-    };
+
+    inline static const
+    std::vector< std::string_view >& direction_names {
+        protocol::enum_names::circulate_direction };
 };
 
 struct GetGeometry {
@@ -723,12 +643,10 @@ struct InternAtom {
     private:
         uint8_t  _unused2[20];
     };
-    enum Atom {
-        NONE
-    };
-    static constexpr std::array< std::string_view, NONE + 1 > atom_enum_names {
-        "None"
-    };
+    inline static const
+    std::vector< std::string_view >& atom_names {
+        protocol::enum_names::zero_none };
+
 };
 
 struct GetAtomName {
@@ -780,16 +698,10 @@ struct ChangeProperty {
     //                    (n is a multiple of 2 for format = 16)
     //                    (n is a multiple of 4 for format = 32)
     static constexpr std::string_view name { "ChangeProperty" };
-    enum Mode {
-        REPLACE,
-        PREPEND,
-        APPEND
-    };
-    static constexpr std::array< std::string_view, APPEND + 1 > mode_enum_names {
-        "Replace",
-        "Prepend",
-        "Append"
-    };
+
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::change_property_mode };
 };
 
 struct DeleteProperty {
@@ -817,13 +729,7 @@ struct GetProperty {
         CARD32    long_length;  // long-length
     };
     static constexpr std::string_view name { "GetProperty" };
-    enum PropertyType {
-        ANYPROPERTYTYPE
-    };
-    // static constexpr std::array<
-    //     std::string_view, ANYPROPERTYTYPE + 1 > type_enum_names {
-    //     "AnyPropertyType"
-    // };
+
     struct __attribute__ ((packed)) ReplyEncoding {
     private:
         uint8_t  _prefix;  // 1 Reply
@@ -847,13 +753,14 @@ struct GetProperty {
       (n is a multiple of 2 for format = 16)
       (n is a multiple of 4 for format = 32)
     */
-    enum ReplyPropertyType {
-        NONE
-    };
-    // static constexpr std::array<
-    //     std::string_view, NONE + 1 > type_enum_names {
-    //     "None"
-    // };
+
+    inline static const
+    std::vector< std::string_view >& type_names_request {
+        protocol::enum_names::property_atom };
+    inline static const
+    std::vector< std::string_view >& type_names_reply {
+        protocol::enum_names::zero_none };
+
 };
 
 struct ListProperties {
@@ -892,6 +799,10 @@ struct SetSelectionOwner {
         TIMESTAMP time;  // 0 CurrentTime
     };
     static constexpr std::string_view name { "ListProperties" };
+
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
 };
 
 /*
