@@ -1258,581 +1258,959 @@ struct UngrabServer {
     };
 };
 
-/*
+struct QueryPointer {
+    inline static constexpr
+    std::string_view name { "QueryPointer" };
 
-QueryPointer
-     1     38                              opcode
-     1                                     unused
-     2     2                               request length
-     4     WINDOW                          window
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 38
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 2 request length
+        WINDOW           window;
+    };
 
-▶
-     1     1                               Reply
-     1     BOOL                            same-screen
-     2     CARD16                          sequence number
-     4     0                               reply length
-     4     WINDOW                          root
-     4     WINDOW                          child
-          0     None
-     2     INT16                           root-x
-     2     INT16                           root-y
-     2     INT16                           win-x
-     2     INT16                           win-y
-     2     SETofKEYBUTMASK                 mask
-     6                                     unused
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t          _prefix;  // 1 Reply
+    public:
+        BOOL             same_screen;  // same-screen
+        CARD16           sequence_number;  // sequence number
+        uint32_t         reply_length;  // 0 reply length
+        WINDOW           root;
+        WINDOW           child;  // 0 None
+        INT16            root_x;  // root-x
+        INT16            root_y;  // root-y
+        INT16            win_x;  // win-x
+        INT16            win_y;  // win-y
+        SETofKEYBUTMASK  mask;
+    private:
+        uint8_t          _unused[6];
+    };
 
-GetMotionEvents
-     1     39                              opcode
-     1                                     unused
-     2     4                               request length
-     4     WINDOW                          window
-     4     TIMESTAMP                       start
-          0     CurrentTime
-     4     TIMESTAMP                       stop
-          0     CurrentTime
+    inline static const
+    std::vector< std::string_view >& child_names {
+        protocol::enum_names::zero_none };
+};
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     2n                              reply length
-     4     n                               number of TIMECOORDs in events
-     20                                    unused
-     8n     LISTofTIMECOORD                events
+struct GetMotionEvents {
+    inline static constexpr
+    std::string_view name { "GetMotionEvents" };
 
-  TIMECOORD
-     4     TIMESTAMP                       time
-     2     INT16                           x
-     2     INT16                           y
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 39
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 4 request length
+        WINDOW           window;
+        TIMESTAMP        start;  // 0 CurrentTime
+        TIMESTAMP        stop;  // 0 CurrentTime
+    };
 
-TranslateCoordinates
-     1     40                              opcode
-     1                                     unused
-     2     4                               request length
-     4     WINDOW                          src-window
-     4     WINDOW                          dst-window
-     2     INT16                           src-x
-     2     INT16                           src-y
-▶
-     1     1                               Reply
-     1     BOOL                            same-screen
-     2     CARD16                          sequence number
-     4     0                               reply length
-     4     WINDOW                          child
-          0     None
-     2     INT16                           dst-x
-     2     INT16                           dst-y
-     16                                    unused
+    inline static const
+    std::vector< std::string_view >& start_names {
+        protocol::enum_names::time };
+    inline static const
+    std::vector< std::string_view >& stop_names {
+        protocol::enum_names::time };
 
-WarpPointer
-     1     41                              opcode
-     1                                     unused
-     2     6                               request length
-     4     WINDOW                          src-window
-          0     None
-     4     WINDOW                          dst-window
-          0     None
-     2     INT16                           src-x
-     2     INT16                           src-y
-     2     CARD16                          src-width
-     2     CARD16                          src-height
-     2     INT16                           dst-x
-     2     INT16                           dst-y
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t          _prefix;  // 1 Reply
+        uint8_t          _unused1;
+    public:
+        CARD16           sequence_number;  // sequence number
+        uint32_t         reply_length;  // 2n reply length
+        uint32_t         n;  // number of TIMECOORDs in events
+    private:
+        uint8_t          _unused[20];
+    };
+    // followed by 8nB LISTofTIMECOORD events
 
-SetInputFocus
-     1     42                              opcode
-     1                                     revert-to
-          0     None
-          1     PointerRoot
-          2     Parent
-     2     3                               request length
-     4     WINDOW                          focus
-          0     None
-          1     PointerRoot
-     4     TIMESTAMP                       time
-          0     CurrentTime
+    struct [[gnu::packed]] TIMECOORD {
+        TIMESTAMP  time;
+        INT16      x;
+        INT16      y;
+    };
+};
 
-GetInputFocus
-     1     43                              opcode
-     1                                     unused
-     2     1                               request length
+struct TranslateCoordinates {
+    inline static constexpr
+    std::string_view name { "TranslateCoordinates" };
 
-▶
-     1     1                               Reply
-     1                                     revert-to
-          0     None
-          1     PointerRoot
-          2     Parent
-     2     CARD16                          sequence number
-     4     0                               reply length
-     4     WINDOW                          focus
-          0     None
-          1     PointerRoot
-     20                                    unused
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 40
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 4 request length
+        WINDOW           src_window;  // src-window
+        WINDOW           dst_window;  // dst-window
+        INT16            src_x;  // src-x
+        INT16            src_y;  // src-y
+    };
 
-QueryKeymap
-     1     44                              opcode
-     1                                     unused
-     2     1                               request length
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t          _prefix;  // 1 Reply
+    public:
+        BOOL             same_screen;  // same-screen
+        CARD16           sequence_number;  // sequence number
+        uint32_t         reply_length;  // 0 reply length
+        WINDOW           child;  // 0 None
+        INT16            dst_x;  // dst-x
+        INT16            dst_y;  // dst-y
+    private:
+        uint8_t          _unused[16];
+    };
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     2                               reply length
-     32     LISTofCARD8                    keys
+    inline static const
+    std::vector< std::string_view >& child_names {
+        protocol::enum_names::zero_none };
+};
 
-OpenFont
-     1     45                              opcode
-     1                                     unused
-     2     3+(n+p)/4                       request length
-     4     FONT                            fid
-     2     n                               length of name
-     2                                     unused
-     n     STRING8                         name
-     p                                     unused, p=pad(n)
+struct WarpPointer {
+    inline static constexpr
+    std::string_view name { "WarpPointer" };
 
-CloseFont
-     1     46                              opcode
-     1                                     unused
-     2     2                               request length
-     4     FONT                            font
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 41
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 6 request length
+        WINDOW           src_window;  // src-window 0 None
+        WINDOW           dst_window;  // dst-window 0 None
+        INT16            src_x;  // src-x
+        INT16            src_y;  // src-y
+        CARD16           src_width;  // src-width
+        CARD16           src_height;  // src-height
+        INT16            dst_x;  // dst-x
+        INT16            dst_y;  // dst-y
+    };
 
-QueryFont
-     1     47                              opcode
-     1                                     unused
-     2     2                               request length
-     4     FONTABLE                        font
+    inline static const
+    std::vector< std::string_view >& src_window_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& dst_window_names {
+        protocol::enum_names::zero_none };
+};
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     7+2n+3m                         reply length
-     12     CHARINFO                       min-bounds
-     4                                     unused
-     12     CHARINFO                       max-bounds
-     4                                     unused
-     2     CARD16                          min-char-or-byte2
-     2     CARD16                          max-char-or-byte2
-     2     CARD16                          default-char
-     2     n                               number of FONTPROPs in properties
-     1                                     draw-direction
-          0     LeftToRight
-          1     RightToLeft
-     1     CARD8                           min-byte1
-     1     CARD8                           max-byte1
-     1     BOOL                            all-chars-exist
-     2     INT16                           font-ascent
-     2     INT16                           font-descent
-     4     m                               number of CHARINFOs in char-infos
-     8n     LISTofFONTPROP                 properties
-     12m     LISTofCHARINFO                char-infos
+struct SetInputFocus {
+    inline static constexpr
+    std::string_view name { "SetInputFocus" };
 
-  FONTPROP
-     4     ATOM                            name
-     4     <32-bits>                 value
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 42
+        uint8_t          revert_to;  // revert-to 0 None 1 PointerRoot 2 Parent
+        uint16_t         request_length;  // 3 request length
+        WINDOW           focus; // 0 None 1 PointerRoot
+        TIMESTAMP        time; // 0 CurrentTime
+    };
 
-  CHARINFO
-     2     INT16                           left-side-bearing
-     2     INT16                           right-side-bearing
-     2     INT16                           character-width
-     2     INT16                           ascent
-     2     INT16                           descent
-     2     CARD16                          attributes
+    inline static const
+    std::vector< std::string_view >& revert_to_names {
+        protocol::enum_names::input_focus };
+    inline static const
+    std::vector< std::string_view >& focus_names {
+        protocol::enum_names::input_focus };  // up to 1
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
 
-QueryTextExtents
-     1     48                              opcode
-     1     BOOL                            odd length, True if p = 2
-     2     2+(2n+p)/4                      request length
-     4     FONTABLE                        font
-     2n     STRING16                       string
-     p                                     unused, p=pad(2n)
+struct GetInputFocus {
+    inline static constexpr
+    std::string_view name { "GetInputFocus" };
 
-▶
-     1     1                               Reply
-     1                                     draw-direction
-          0     LeftToRight
-          1     RightToLeft
-     2     CARD16                          sequence number
-     4     0                               reply length
-     2     INT16                           font-ascent
-     2     INT16                           font-descent
-     2     INT16                           overall-ascent
-     2     INT16                           overall-descent
-     4     INT32                           overall-width
-     4     INT32                           overall-left
-     4     INT32                           overall-right
-     4                                     unused
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 43
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 1 request length
+    };
 
-ListFonts
-     1     49                              opcode
-     1                                     unused
-     2     2+(n+p)/4                       request length
-     2     CARD16                          max-names
-     2     n                               length of pattern
-     n     STRING8                         pattern
-     p                                     unused, p=pad(n)
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t          _prefix;  // 1 Reply
+    public:
+        uint8_t          revert_to;  // revert-to 0 None 1 PointerRoot 2 Parent
+        CARD16           sequence_number;  // sequence number
+        uint32_t         reply_length;  // 0 reply length
+        WINDOW           focus;  // 0 None 1 PointerRoot
+    private:
+        uint8_t          _unused[20];
+    };
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     (n+p)/4                         reply length
-     2     CARD16                          number of STRs in names
-     22                                    unused
-     n     LISTofSTR                       names
-     p                                     unused, p=pad(n)
+    inline static const
+    std::vector< std::string_view >& revert_to_names {
+        protocol::enum_names::input_focus };
+    inline static const
+    std::vector< std::string_view >& focus_names {
+        protocol::enum_names::input_focus };  // up to 1
+};
 
-ListFontsWithInfo
-     1     50                              opcode
-     1                                     unused
-     2     2+(n+p)/4                       request length
-     2     CARD16                          max-names
-     2     n                               length of pattern
-     n     STRING8                         pattern
-     p                                     unused, p=pad(n)
+struct QueryKeymap {
+    inline static constexpr
+    std::string_view name { "QueryKeymap" };
 
-▶ (except for last in series)
-     1     1                               Reply
-     1     n                               length of name in bytes
-     2     CARD16                          sequence number
-     4     7+2m+(n+p)/4                    reply length
-     12     CHARINFO                       min-bounds
-     4                                     unused
-     12     CHARINFO                       max-bounds
-     4                                     unused
-     2     CARD16                          min-char-or-byte2
-     2     CARD16                          max-char-or-byte2
-     2     CARD16                          default-char
-     2     m                               number of FONTPROPs in properties
-     1                                     draw-direction
-          0     LeftToRight
-          1     RightToLeft
-     1     CARD8                           min-byte1
-     1     CARD8                           max-byte1
-     1     BOOL                            all-chars-exist
-     2     INT16                           font-ascent
-     2     INT16                           font-descent
-     4     CARD32                          replies-hint
-     8m     LISTofFONTPROP                 properties
-     n     STRING8                         name
-     p                                     unused, p=pad(n)
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 44
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 1 request length
+    };
 
-  FONTPROP
-     encodings are the same as for QueryFont
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t          _prefix;  // 1 Reply
+        uint8_t          _unused;
+    public:
+        CARD16           sequence_number;  // sequence number
+        uint32_t         reply_length;  // 2 reply length
+        CARD8            keys[32];  // LISTofCARD8 32B bit-vector
+    };
+};
 
-  CHARINFO
-     encodings are the same as for QueryFont
+struct OpenFont {
+    inline static constexpr
+    std::string_view name { "OpenFont" };
 
-▶ (last in series)
-     1     1                               Reply
-     1     0                               last-reply indicator
-     2     CARD16                          sequence number
-     4     7                               reply length
-     52                                    unused
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 45
+    private:
+        uint8_t          _unused1;
+    public:
+        uint16_t         request_length;  // 3+pad(n)/4 request length
+        FONT             fid;
+        uint16_t         n;  // length of name
+    private:
+        uint8_t          _unused2[2];
+    };
+    // followed by STRING8 name of pad(n) bytes
+};
 
-SetFontPath
-     1     51                              opcode
-     1                                     unused
-     2     2+(n+p)/4                       request length
-     2     CARD16                          number of STRs in path
-     2                                     unused
-     n     LISTofSTR                       path
-     p                                     unused, p=pad(n)
+struct CloseFont {
+    inline static constexpr
+    std::string_view name { "CloseFont" };
 
-GetFontPath
-     1     52                              opcode
-     1                                     unused
-     2     1                               request list
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 46
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 2 request length
+        FONT             font;
+    };
+};
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     (n+p)/4                         reply length
-     2     CARD16                          number of STRs in path
-     22                                    unused
-     n     LISTofSTR                       path
-     p                                     unused, p=pad(n)
+namespace impl {
 
-CreatePixmap
-     1     53                              opcode
-     1     CARD8                           depth
-     2     4                               request length
-     4     PIXMAP                          pid
-     4     DRAWABLE                        drawable
-     2     CARD16                          width
-     2     CARD16                          height
+struct [[gnu::packed]] FONTPROP {
+    ATOM     name;
+    uint32_t value;  // <32-bits>
+};
 
-FreePixmap
-     1     54                              opcode
-     1                                     unused
-     2     2                               request length
-     4     PIXMAP                          pixmap
+struct [[gnu::packed]] CHARINFO {
+    INT16    left_side_bearing;  // left-side-bearing
+    INT16    right_side_bearing;  // right-side-bearing
+    INT16    character_width;  // character-width
+    INT16    ascent;
+    INT16    descent;
+    CARD16   attributes;
+};
 
-CreateGC
-     1     55                              opcode
-     1                                     unused
-     2     4+n                             request length
-     4     GCONTEXT                        cid
-     4     DRAWABLE                        drawable
-     4     BITMASK                         value-mask (has n bits set to 1)
-          #x00000001     function
-          #x00000002     plane-mask
-          #x00000004     foreground
-          #x00000008     background
-          #x00000010     line-width
-          #x00000020     line-style
-          #x00000040     cap-style
-          #x00000080     join-style
-          #x00000100     fill-style
-          #x00000200     fill-rule
-          #x00000400     tile
-          #x00000800     stipple
-          #x00001000     tile-stipple-x-origin
-          #x00002000     tile-stipple-y-origin
-          #x00004000     font
-          #x00008000     subwindow-mode
-          #x00010000     graphics-exposures
-          #x00020000     clip-x-origin
-          #x00040000     clip-y-origin
-          #x00080000     clip-mask
-          #x00100000     dash-offset
-          #x00200000     dashes
-          #x00400000     arc-mode
-     4n     LISTofVALUE                    value-list
+}  // namespace impl
 
+struct QueryFont {
+    inline static constexpr
+    std::string_view name { "QueryFont" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t          opcode;  // 47
+    private:
+        uint8_t          _unused;
+    public:
+        uint16_t         request_length;  // 2 request length
+        FONTABLE         font;
+    };
+
+    using FONTPROP = impl::FONTPROP;
+    using CHARINFO = impl::CHARINFO;
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t          _prefix;  // 1 Reply
+        uint8_t          _unused1;
+    public:
+        CARD16           sequence_number;  // sequence number
+        uint32_t         reply_length;  // 7+2n+3m reply length
+        CHARINFO         min_bounds;  // 12 min-bounds
+    private:
+        uint8_t          _unused2[4];
+    public:
+        CHARINFO         max_bounds;  // 12 max-bounds
+    private:
+        uint8_t          _unused3[4];
+    public:
+        CARD16           min_char_or_byte2;  // min-char-or-byte2
+        CARD16           max_char_or_byte2;  // max-char-or-byte2
+        CARD16           default_char;  // default-char
+        uint16_t         n;  // number of FONTPROPs in properties
+        uint8_t          draw_direction;  // draw_direction 0 LeftToRight 1 RightToLeft
+        CARD8            min_byte1;  // min-byte1
+        CARD8            max_byte1;  // max-byte1
+        BOOL             all_chars_exist;  // all-chars-exist
+        INT16            font_ascent;  // font-ascent
+        INT16            font_descent;  // font-descent
+        uint32_t         m;  //  number of CHARINFOs in char-infos
+    };
+    // followed by 8nB LISTofFONTPROP properties n FONTPROP
+    // followed by 12mB LISTofCHARINFO char-infos m CHARINFO
+
+    inline static const
+    std::vector< std::string_view >& draw_direction_names {
+        protocol::enum_names::draw_direction };
+};
+
+struct QueryTextExtents {
+    inline static constexpr
+    std::string_view name { "QueryTextExtents" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 48
+        BOOL       odd_length;  // odd length, True if p = 2
+        uint16_t   request_length;  // request length 2+(2n+p)/4
+        FONTABLE   font;
+    };
+    // followed by pad(2n)B STRING16 string
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    draw_direction;  // draw-direction 0 LeftToRight 1 RightToLeft
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length
+        INT16      font_ascent;  // font-ascent
+        INT16      font_descent;  // font-descent
+        INT16      overall_ascent;  // overall-ascent
+        INT16      overall_descent;  // overall-descent
+        INT32      overall_width;  // overall-width
+        INT32      overall_left;  // overall-left
+        INT32      overall_right;  // overall-right
+    private:
+        uint8_t    _unused[4];
+    };
+    // followed by 8nB LISTofFONTPROP properties n FONTPROP
+    // followed by 12mB LISTofCHARINFO char-infos m CHARINFO
+
+    inline static const
+    std::vector< std::string_view >& draw_direction_names {
+        protocol::enum_names::draw_direction };
+};
+
+struct ListFonts {
+    inline static constexpr
+    std::string_view name { "ListFonts" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 49
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // request length 2+(2n+p)/4
+        CARD16     max_names;  // max-names
+        uint16_t   n;  // length of pattern
+    };
+    // followed by pad(n)B STRING8 pattern
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // (n+p)/4 reply length
+        CARD16     name_ct;  // unnamed in protocol, number of STRs in names
+    private:
+        uint8_t    _unused2[22];
+    };
+    // TBD LISTofSTR type only named in protocol encoding section - it is
+    //   LISTofSTRING8 in request description
+    // TBD how do we know the length of the individual strings?
+    // followed by pad(n)B LISTofSTR names
+};
+
+struct ListFontsWithInfo {
+    inline static constexpr
+    std::string_view name { "ListFontsWithInfo" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 50
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // request length 2+(n+p)/4
+        CARD16     max_names;  // max-names
+        uint16_t   n;  // length of pattern
+    };
+    // followed by pad(n)B STRING8 pattern
+
+    using FONTPROP = impl::FONTPROP;
+    using CHARINFO = impl::CHARINFO;
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    n;  // length of name in bytes
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 7+2m+(n+p)/4 reply length
+        CHARINFO   min_bounds;  // min-bounds
+    private:
+        uint8_t    _unused1[4];
+    public:
+        CHARINFO   max_bounds;  // max-bounds
+    private:
+        uint8_t    _unused2[4];
+    public:
+        CARD16     min_char_or_byte2;  // min-char-or-byte2
+        CARD16     max_char_or_byte2;  // max-char-or-byte2
+        CARD16     default_char;  // default-char
+        uint16_t   m;  // number of FONTPROPs in properties
+        uint8_t    draw_direction;  // draw-direction 0 LeftToRight 1 RightToLeft
+        CARD8      min_byte1;  // min-byte1
+        CARD8      max_byte1;  // max-byte1
+        BOOL       all_chars_exist;  // all-chars-exist
+        INT16      font_ascent;  // font-ascent
+        INT16      font_descent;  // font-descent
+        CARD32     replies_hint;  // replies-hint
+    };
+    // followed by 8mB LISTofFONTPROP properties m FONTPROP
+    // followed by pad(n)B STRING8 name
+
+    inline static const
+    std::vector< std::string_view >& draw_direction_names {
+        protocol::enum_names::draw_direction };
+
+    // TBD may not need second struct, can differentiate by testing
+    //   ReplyEncoding.n == 0
+    struct [[gnu::packed]] FinalReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    last_reply;  // 0 last-reply indicator
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 7 reply length
+    private:
+        uint8_t    _unused[52];
+    };
+};
+
+struct SetFontPath {
+    inline static constexpr
+    std::string_view name { "SetFontPath" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 51
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // request length 2+pad(n)/4
+        CARD16     str_ct;   // unnnamed in protocol; number of STRs in path
+    private:
+        uint8_t    _unused2[2];
+    };
+    // followed by pad(n)B LISTofSTR path
+    // TBD LISTofSTR type only named in protocol encoding section - it is
+    //   LISTofSTRING8 in request description
+    // TBD how do we know the length of the individual strings?
+};
+
+struct GetFontPath {
+    inline static constexpr
+    std::string_view name { "GetFontPath" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 52
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_list;  // 1 request list TBD why not typical request length?
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // (n+p)/4 reply length
+        CARD16     str_ct;  // unnamed in protocol; number of STRs in path
+    private:
+        uint8_t    _unused2[22];
+    };
+    // followed by pad(n)B LISTofSTR path
+    // TBD LISTofSTR type only named in protocol encoding section - it is
+    //   LISTofSTRING8 in request description
+    // TBD how do we know the length of the individual strings?
+};
+
+struct CreatePixmap {
+    inline static constexpr
+    std::string_view name { "CreatePixmap" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 53
+        CARD8      depth;
+        uint16_t   request_legnth;  // 4 request length?
+        PIXMAP     pid;
+        DRAWABLE   drawable;
+        CARD16     width;
+        CARD16     height;
+    };
+};
+
+struct FreePixmap {
+    inline static constexpr
+    std::string_view name { "FreePixmap" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 54
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_legnth;  // 2 request length?
+        PIXMAP     pixmap;
+    };
+};
+
+struct CreateGC {
+    inline static constexpr
+    std::string_view name { "CreateGC" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 55
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 4+n request length
+        GCONTEXT   cid;
+        DRAWABLE   drawable;
+        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
+    };
+    // followed by 4nB LISTofVALUE value-list
+
+    inline static const
+    std::vector< std::string_view >& value_names {
+        protocol::enum_names::gc_value_mask };
+    /*
   VALUEs
-     1                                     function
-           0     Clear
-           1     And
-           2     AndReverse
-           3     Copy
-           4     AndInverted
-           5     NoOp
-           6     Xor
-           7     Or
-           8     Nor
-           9     Equiv
-          10     Invert
-          11     OrReverse
-          12     CopyInverted
-          13     OrInverted
-          14     Nand
-          15     Set
-     4     CARD32                          plane-mask
-     4     CARD32                          foreground
-     4     CARD32                          background
-     2     CARD16                          line-width
-     1                                     line-style
-          0     Solid
-          1     OnOffDash
-          2     DoubleDash
-     1                                     cap-style
-          0     NotLast
-          1     Butt
-          2     Round
-          3     Projecting
-     1                                     join-style
-          0     Miter
-          1     Round
-          2     Bevel
-     1                                     fill-style
-          0     Solid
-          1     Tiled
-          2     Stippled
-          3     OpaqueStippled
-     1                                     fill-rule
-          0     EvenOdd
-          1     Winding
-     4     PIXMAP                          tile
-     4     PIXMAP                          stipple
-     2     INT16                           tile-stipple-x-origin
-     2     INT16                           tile-stipple-y-origin
-     4     FONT                            font
-     1                                     subwindow-mode
-          0     ClipByChildren
-          1     IncludeInferiors
-     1     BOOL                            graphics-exposures
-     2     INT16                           clip-x-origin
-     2     INT16                           clip-y-origin
-     4     PIXMAP                          clip-mask
-          0     None
-     2     CARD16                          dash-offset
-     1     CARD8                           dashes
-     1                                     arc-mode
-          0     Chord
-          1     PieSlice
+     uint8_t     function;  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
+     CARD32      plane_mask;  // plane-mask
+     CARD32      foreground;
+     CARD32      background;
+     CARD16      line_width;  // line-width
+     uint8_t     line_style;  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
+     uint8_t     cap_style;  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
+     uint8_t     join_style;  // join-style 0 Miter 1 Round 2 Bevel
+     uint8_t     fill_style;  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
+     uint8_t     fill_rule;  // fill-rule 0 EvenOdd 1 Winding
+     PIXMAP      tile;
+     PIXMAP      stipple;
+     INT16       tile_stipple_x_origin;  // tile-stipple-x-origin
+     INT16       tile_stipple_y_origin;  // tile-stipple-y-origin
+     FONT        font;
+     uint8_t     subwindow_mode;  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
+     BOOL        graphics_exposures;  // graphics-exposures
+     INT16       clip_x_origin;  // clip-x-origin
+     INT16       clip_y_origin;  // clip-y-origin
+     PIXMAP      clip_mask;  // clip-mask 0 None
+     CARD16      dash_offset;  // dash-offset
+     CARD8       dashes;  // dashes
+     uint8_t     arc-mode;  // arc_mode 0 Chord 1 PieSlice
+    */
+    inline static const
+    std::vector< std::string_view >& function_names {
+        protocol::enum_names::gc_value_function };
+    inline static const
+    std::vector< std::string_view >& line_style_names {
+        protocol::enum_names::gc_value_line_style };
+    inline static const
+    std::vector< std::string_view >& cap_style_names {
+        protocol::enum_names::gc_value_cap_style };
+    inline static const
+    std::vector< std::string_view >& join_style_names {
+        protocol::enum_names::gc_value_join_style };
+    inline static const
+    std::vector< std::string_view >& fill_style_names {
+        protocol::enum_names::gc_value_fill_style };
+    inline static const
+    std::vector< std::string_view >& fill_rule_names {
+        protocol::enum_names::gc_value_fill_rule };
+    inline static const
+    std::vector< std::string_view >& subwindow_mode_names {
+        protocol::enum_names::gc_value_subwindow_mode };
+    inline static const
+    std::vector< std::string_view >& clip_mask_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& arc_mode_names {
+        protocol::enum_names::gc_value_arc_mode };
+};
 
-ChangeGC
-     1     56                              opcode
-     1                                     unused
-     2     3+n                             request length
-     4     GCONTEXT                        gc
-     4     BITMASK                         value-mask (has n bits set to 1)
-          encodings are the same as for CreateGC
-     4n     LISTofVALUE                    value-list
-          encodings are the same as for CreateGC
+struct ChangeGC {
+    inline static constexpr
+    std::string_view name { "ChangeGC" };
 
-CopyGC
-     1     57                              opcode
-     1                                     unused
-     2     4                               request length
-     4     GCONTEXT                        src-gc
-     4     GCONTEXT                        dst-gc
-     4     BITMASK                         value-mask
-          encodings are the same as for CreateGC
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 56
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+n request length
+        GCONTEXT   gc;
+        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
+    };
+    // followed by 4nB LISTofVALUE value-list
 
-SetDashes
-     1     58                              opcode
-     1                                     unused
-     2     3+(n+p)/4                       request length
-     4     GCONTEXT                        gc
-     2     CARD16                          dash-offset
-     2     n                               length of dashes
-     n     LISTofCARD8                     dashes
-     p                                     unused, p=pad(n)
+    inline static const
+    std::vector< std::string_view >& value_names {
+        protocol::enum_names::gc_value_mask };
+    /*
+  VALUEs
+     uint8_t     function;  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
+     CARD32      plane_mask;  // plane-mask
+     CARD32      foreground;
+     CARD32      background;
+     CARD16      line_width;  // line-width
+     uint8_t     line_style;  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
+     uint8_t     cap_style;  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
+     uint8_t     join_style;  // join-style 0 Miter 1 Round 2 Bevel
+     uint8_t     fill_style;  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
+     uint8_t     fill_rule;  // fill-rule 0 EvenOdd 1 Winding
+     PIXMAP      tile;
+     PIXMAP      stipple;
+     INT16       tile_stipple_x_origin;  // tile-stipple-x-origin
+     INT16       tile_stipple_y_origin;  // tile-stipple-y-origin
+     FONT        font;
+     uint8_t     subwindow_mode;  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
+     BOOL        graphics_exposures;  // graphics-exposures
+     INT16       clip_x_origin;  // clip-x-origin
+     INT16       clip_y_origin;  // clip-y-origin
+     PIXMAP      clip_mask;  // clip-mask 0 None
+     CARD16      dash_offset;  // dash-offset
+     CARD8       dashes;  // dashes
+     uint8_t     arc-mode;  // arc_mode 0 Chord 1 PieSlice
+    */
+    inline static const
+    std::vector< std::string_view >& function_names {
+        protocol::enum_names::gc_value_function };
+    inline static const
+    std::vector< std::string_view >& line_style_names {
+        protocol::enum_names::gc_value_line_style };
+    inline static const
+    std::vector< std::string_view >& cap_style_names {
+        protocol::enum_names::gc_value_cap_style };
+    inline static const
+    std::vector< std::string_view >& join_style_names {
+        protocol::enum_names::gc_value_join_style };
+    inline static const
+    std::vector< std::string_view >& fill_style_names {
+        protocol::enum_names::gc_value_fill_style };
+    inline static const
+    std::vector< std::string_view >& fill_rule_names {
+        protocol::enum_names::gc_value_fill_rule };
+    inline static const
+    std::vector< std::string_view >& subwindow_mode_names {
+        protocol::enum_names::gc_value_subwindow_mode };
+    inline static const
+    std::vector< std::string_view >& clip_mask_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& arc_mode_names {
+        protocol::enum_names::gc_value_arc_mode };
+};
 
-SetClipRectangles
-     1     59                              opcode
-     1                                     ordering
-          0     UnSorted
-          1     YSorted
-          2     YXSorted
-          3     YXBanded
-     2     3+2n                            request length
-     4     GCONTEXT                        gc
-     2     INT16                           clip-x-origin
-     2     INT16                           clip-y-origin
-     8n     LISTofRECTANGLE                rectangles
+struct CopyGC {
+    inline static constexpr
+    std::string_view name { "CopyGC" };
 
-FreeGC
-     1     60                              opcode
-     1                                     unused
-     2     2                               request length
-     4     GCONTEXT                        gc
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 57
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 4 request length
+        GCONTEXT   src_gc;  // src-gc
+        GCONTEXT   dst_gc;  // dst-gc
+        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
+    };
 
-ClearArea
-     1     61                              opcode
-     1     BOOL                            exposures
-     2     4                               request length
-     4     WINDOW                          window
-     2     INT16                           x
-     2     INT16                           y
-     2     CARD16                          width
-     2     CARD16                          height
+    inline static const
+    std::vector< std::string_view >& value_names {
+        protocol::enum_names::gc_value_mask };
+};
 
-CopyArea
-     1     62                              opcode
-     1                                     unused
-     2     7                               request length
-     4     DRAWABLE                        src-drawable
-     4     DRAWABLE                        dst-drawable
-     4     GCONTEXT                        gc
-     2     INT16                           src-x
-     2     INT16                           src-y
-     2     INT16                           dst-x
-     2     INT16                           dst-y
-     2     CARD16                          width
-     2     CARD16                          height
+struct SetDashes {
+    inline static constexpr
+    std::string_view name { "SetDashes" };
 
-CopyPlane
-     1     63                              opcode
-     1                                     unused
-     2     8                               request length
-     4     DRAWABLE                        src-drawable
-     4     DRAWABLE                        dst-drawable
-     4     GCONTEXT                        gc
-     2     INT16                           src-x
-     2     INT16                           src-y
-     2     INT16                           dst-x
-     2     INT16                           dst-y
-     2     CARD16                          width
-     2     CARD16                          height
-     4     CARD32                          bit-plane
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 58
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+(n+p)/4 request length
+        GCONTEXT   gc;
+        CARD16     dash_offset;  // dash-offset
+        uint16_t   n;  // length of dashes
+    };
+    // followed by pad(n)B LISTofCARD8 dashes
+};
 
-PolyPoint
-     1     64                              opcode
-     1                                     coordinate-mode
-          0     Origin
-          1     Previous
-     2     3+n                             request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     4n     LISTofPOINT                    points
+struct SetClipRectangles {
+    inline static constexpr
+    std::string_view name { "SetClipRectangles" };
 
-PolyLine
-     1     65                              opcode
-     1                                     coordinate-mode
-          0     Origin
-          1     Previous
-     2     3+n                             request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     4n     LISTofPOINT                    points
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 59
+        uint8_t    ordering;  // 0 UnSorted 1 YSorted 2 YXSorted 3 YXBanded
+        uint16_t   request_length;  // 3+2n request length
+        GCONTEXT   gc;
+        INT16      clip_x_origin;  // clip-x-origin
+        INT16      clip_y_origin;  // clip-y-origin
+    };
+    // followed by 8nB LISTofRECTANGLE rectangles n RECTANGLE
 
-PolySegment
-     1     66                              opcode
-     1                                     unused
-     2     3+2n                            request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     8n     LISTofSEGMENT                  segments
+    inline static const
+    std::vector< std::string_view >& ordering_names {
+        protocol::enum_names::clip_rect_ordering };
+};
 
-  SEGMENT
-     2     INT16                           x1
-     2     INT16                           y1
-     2     INT16                           x2
-     2     INT16                           y2
+struct FreeGC {
+    inline static constexpr
+    std::string_view name { "FreeGC" };
 
-PolyRectangle
-     1     67                              opcode
-     1                                     unused
-     2     3+2n                            request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     8n     LISTofRECTANGLE                rectangles
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 60
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2 request length
+        GCONTEXT   gc;
+    };
+};
 
-PolyArc
-     1     68                              opcode
-     1                                     unused
-     2     3+3n                            request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     12n     LISTofARC                     arcs
+struct ClearArea {
+    inline static constexpr
+    std::string_view name { "ClearArea" };
 
-FillPoly
-     1     69                              opcode
-     1                                     unused
-     2     4+n                             request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     1                                     shape
-          0     Complex
-          1     Nonconvex
-          2     Convex
-     1                                     coordinate-mode
-          0     Origin
-          1     Previous
-     2                                     unused
-     4n     LISTofPOINT                    points
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 61
+        uint16_t   request_length;  // 4 request length
+        WINDOW     window;
+        INT16      x;
+        INT16      y;
+        CARD16     width;
+        CARD16     height;
+    };
+};
 
-PolyFillRectangle
-     1     70                              opcode
-     1                                     unused
-     2     3+2n                            request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     8n     LISTofRECTANGLE                rectangles
+struct CopyArea {
+    inline static constexpr
+    std::string_view name { "CopyArea" };
 
-PolyFillArc
-     1     71                              opcode
-     1                                     unused
-     2     3+3n                            request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     12n     LISTofARC                     arcs
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 62
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 7 request length
+        DRAWABLE   src_drawable;  // src-drawable
+        DRAWABLE   dst_drawable;  // dst-drawable
+        GCONTEXT   gc;  // gc
+        INT16      src_x;  // src-x
+        INT16      src_y;  // src-y
+        INT16      dst_x;  // dst-x
+        INT16      dst_y;  // dst-y
+        CARD16     width;
+        CARD16     height;
+    };
+};
+
+struct CopyPlane {
+    inline static constexpr
+    std::string_view name { "CopyPlane" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 63
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 8 request length
+        DRAWABLE   src_drawable;  // src-drawable
+        DRAWABLE   dst_drawable;  // dst-drawable
+        GCONTEXT   gc;
+        INT16      src_x;  // src-x
+        INT16      src_y;  // src-y
+        INT16      dst_x;  // dst-x
+        INT16      dst_y;  // dst-y
+        CARD16     width;
+        CARD16     height;
+        CARD32     bit_plane;  // bit-plane
+    };
+};
+
+struct PolyPoint {
+    inline static constexpr
+    std::string_view name { "PolyPoint" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 64
+        uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
+        uint16_t   request_length;  // 3+n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 4nB LISTofPOINT points
+
+    inline static const
+    std::vector< std::string_view >& coordinate_mode_names {
+        protocol::enum_names::poly_coordinate_mode };
+};
+
+// TBD same as PolyPoint other than name, use base type?
+struct PolyLine {
+    inline static constexpr
+    std::string_view name { "PolyLine" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 65
+        uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
+        uint16_t   request_length;  // 3+n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 4nB LISTofPOINT points
+
+    inline static const
+    std::vector< std::string_view >& coordinate_mode_names {
+        protocol::enum_names::poly_coordinate_mode };
+};
+
+struct PolySegment {
+    inline static constexpr
+    std::string_view name { "PolySegment" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 66
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+2n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 8nB LISTofSEGMENT segments n SEGMENT
+
+    struct [[gnu::packed]] SEGMENT {
+        INT16  x1, y1;
+        INT16  x2, y2;
+    };
+};
+
+struct PolyRectangle {
+    inline static constexpr
+    std::string_view name { "PolyRectangle" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 67
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+2n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 8nB LISTofRECTANGLE rectangles n RECTANGLE
+};
+
+struct PolyArc {
+    inline static constexpr
+    std::string_view name { "PolyArc" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 68
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+3n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 12nB LISTofARC arcs n ARC
+};
+
+struct FillPoly {
+    inline static constexpr
+    std::string_view name { "FillPoly" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 69
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 4+n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+        uint8_t    shape;  // 0 Complex 1 Nonconvex 2 Convex
+        uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
+    private:
+        uint8_t    _unused2[2];
+    };
+    // followed by 4nB LISTofPOINT points n POINT
+};
+
+struct PolyFillRectangle {
+    inline static constexpr
+    std::string_view name { "PolyFillRectangle" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 70
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+2n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 8nB LISTofRECTANGLE rectangles n RECTANGLE
+};
+
+struct PolyFillArc {
+    inline static constexpr
+    std::string_view name { "PolyFillArc" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 71
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+3n request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+    };
+    // followed by 12nB LISTofARC arcs n ARC
+};
+
+/*
 
 PutImage
      1     72                              opcode
@@ -2552,7 +2930,7 @@ NoOperation
      1                                     unused
      2     1+n                             request length
      4n                                    unused
-
+*/
 
 }  // namespace requests
 
@@ -4414,10 +4792,3 @@ NoOperation
      2     1+n                             request length
      4n                                    unused
  */
-
-}  // namespace protocol
-
-}  // namespace requests
-
-
-#endif  // REQUESTS_HPP
