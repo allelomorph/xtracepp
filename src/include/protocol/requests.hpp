@@ -318,7 +318,7 @@ namespace impl {
 }  // namespace impl
 
 struct CreateWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "CreateWindow" };
 
     struct [[gnu::packed]] Encoding {
@@ -335,6 +335,7 @@ struct CreateWindow {
         uint16_t   class_; // class // 0 CopyFromParent 1 InputOutput 2 InputOnly
         VISUALID   visual; // 0 CopyFromParent
         uint32_t   value_mask; // 4B BITMASK value-mask (has n bits set to 1)
+    };
     // followed by 4n bytes LISTofVALUE value-list
     // TBD !!! the usual method of casting the buffer to a struct ptr will not work here,
     //   as the nature of value masks is to indicate via flags which members will be serialized
@@ -355,24 +356,35 @@ struct CreateWindow {
     //     COLORMAP          colormap;  // 0 CopyFromParent
     //     CURSOR            cursor;  // 0 None
     // };
-    };
 
     inline static const
     std::vector< std::string_view >& class_names {
         protocol::enum_names::window_class };
     inline static const
-    std::vector< std::string_view >& value_mask_names {
+    std::vector< std::string_view >& visual_names {
+        protocol::enum_names::zero_copy_from_parent };
+    inline static const
+    std::vector< std::string_view >& value_names {
         protocol::enum_names::window_attribute_value_mask };
+    inline static const
+    std::vector< std::string_view >& background_pixmap_names {
+        protocol::enum_names::window_attribute_background_pixmap };
+    inline static const
+    std::vector< std::string_view >& border_pixmap_names {
+        protocol::enum_names::zero_copy_from_parent };
     inline static const
     std::vector< std::string_view >& backing_store_names {
         protocol::enum_names::window_attribute_backing_store };
     inline static const
-    std::vector< std::string_view >& background_pixmap_names {
-        protocol::enum_names::window_attribute_background_pixmap };
+    std::vector< std::string_view >& colormap_names {
+        protocol::enum_names::zero_copy_from_parent };
+    inline static const
+    std::vector< std::string_view >& cursor_names {
+        protocol::enum_names::zero_none };
 };
 
 struct ChangeWindowAttributes {
-    static constexpr
+    inline static constexpr
     std::string_view name { "ChangeWindowAttributes" };
 
     struct [[gnu::packed]] Encoding {
@@ -392,19 +404,31 @@ struct ChangeWindowAttributes {
     std::vector< std::string_view >& class_names {
         protocol::enum_names::window_class };
     inline static const
+    std::vector< std::string_view >& visual_names {
+        protocol::enum_names::zero_copy_from_parent };
+    inline static const
     std::vector< std::string_view >& value_names {
         protocol::enum_names::window_attribute_value_mask };
+    inline static const
+    std::vector< std::string_view >& background_pixmap_names {
+        protocol::enum_names::window_attribute_background_pixmap };
+    inline static const
+    std::vector< std::string_view >& border_pixmap_names {
+        protocol::enum_names::zero_copy_from_parent };
     inline static const
     std::vector< std::string_view >& backing_store_names {
         protocol::enum_names::window_attribute_backing_store };
     inline static const
-    std::vector< std::string_view >& background_pixmap_names {
-        protocol::enum_names::window_attribute_background_pixmap };
+    std::vector< std::string_view >& colormap_names {
+        protocol::enum_names::zero_copy_from_parent };
+    inline static const
+    std::vector< std::string_view >& cursor_names {
+        protocol::enum_names::zero_none };
 };
 
 // TBD only inheriting from base to get enums for backing-store and class_
 struct GetWindowAttributes {
-    static constexpr
+    inline static constexpr
     std::string_view name { "GetWindowAttributes" };
 
     struct [[gnu::packed]] Encoding {
@@ -463,7 +487,7 @@ public:
 }  // namespace impl
 
 struct DestroyWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "DestroyWindow" };
 
     using Encoding = impl::_SimpleWindowReqEncoding;
@@ -471,7 +495,7 @@ struct DestroyWindow {
 };
 
 struct DestroySubwindows {
-    static constexpr
+    inline static constexpr
     std::string_view name { "DestroySubwindows" };
 
     using Encoding = impl::_SimpleWindowReqEncoding;
@@ -479,7 +503,7 @@ struct DestroySubwindows {
 };
 
 struct ChangeSaveSet {
-    static constexpr
+    inline static constexpr
     std::string_view name { "ChangeSaveSet" };
 
     struct [[gnu::packed]] Encoding {
@@ -491,7 +515,7 @@ struct ChangeSaveSet {
 };
 
 struct ReparentWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "ReparentWindow" };
 
     struct [[gnu::packed]] Encoding {
@@ -508,7 +532,7 @@ struct ReparentWindow {
 };
 
 struct MapWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "MapWindow" };
 
     using Encoding = impl::_SimpleWindowReqEncoding;
@@ -516,7 +540,7 @@ struct MapWindow {
 };
 
 struct MapSubwindows {
-    static constexpr
+    inline static constexpr
     std::string_view name { "MapSubwindows" };
 
     using Encoding = impl::_SimpleWindowReqEncoding;
@@ -524,7 +548,7 @@ struct MapSubwindows {
 };
 
 struct UnmapWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "UnmapWindow" };
 
     using Encoding = impl::_SimpleWindowReqEncoding;
@@ -532,7 +556,7 @@ struct UnmapWindow {
 };
 
 struct UnmapSubwindows {
-    static constexpr
+    inline static constexpr
     std::string_view name { "UnmapSubwindows" };
 
     using Encoding = impl::_SimpleWindowReqEncoding;
@@ -540,7 +564,7 @@ struct UnmapSubwindows {
 };
 
 struct ConfigureWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "ConfigureWindow" };
 
     struct [[gnu::packed]] Encoding {
@@ -575,7 +599,7 @@ struct ConfigureWindow {
 };
 
 struct CirculateWindow {
-    static constexpr
+    inline static constexpr
     std::string_view name { "CirculateWindow" };
 
     struct [[gnu::packed]] Encoding {
@@ -591,7 +615,7 @@ struct CirculateWindow {
 };
 
 struct GetGeometry {
-    static constexpr
+    inline static constexpr
     std::string_view name { "GetGeometry" };
 
     struct [[gnu::packed]] Encoding {
@@ -622,7 +646,7 @@ struct GetGeometry {
 };
 
 struct QueryTree {
-    static constexpr
+    inline static constexpr
     std::string_view name { "QueryTree" };
 
     struct [[gnu::packed]] Encoding {
@@ -651,7 +675,7 @@ struct QueryTree {
 };
 
 struct InternAtom {
-    static constexpr
+    inline static constexpr
     std::string_view name { "InternAtom" };
 
     struct [[gnu::packed]] Encoding {
@@ -682,7 +706,7 @@ struct InternAtom {
 };
 
 struct GetAtomName {
-    static constexpr
+    inline static constexpr
     std::string_view name { "GetAtomName" };
 
     struct [[gnu::packed]] Encoding {
@@ -709,7 +733,7 @@ struct GetAtomName {
 };
 
 struct ChangeProperty {
-    static constexpr
+    inline static constexpr
     std::string_view name { "ChangeProperty" };
 
     struct [[gnu::packed]] Encoding {
@@ -742,7 +766,7 @@ struct ChangeProperty {
 };
 
 struct DeleteProperty {
-    static constexpr
+    inline static constexpr
     std::string_view name { "DeleteProperty" };
 
     struct [[gnu::packed]] Encoding {
@@ -757,7 +781,7 @@ struct DeleteProperty {
 };
 
 struct GetProperty {
-    static constexpr
+    inline static constexpr
     std::string_view name { "GetProperty" };
 
     struct [[gnu::packed]] Encoding {
@@ -805,7 +829,7 @@ struct GetProperty {
 };
 
 struct ListProperties {
-    static constexpr
+    inline static constexpr
     std::string_view name { "ListProperties" };
 
     struct [[gnu::packed]] Encoding {
@@ -816,6 +840,7 @@ struct ListProperties {
         uint16_t  request_length;  // 2 request length
         WINDOW    window;
     };
+
     struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t  _prefix;  // 1 Reply
@@ -831,7 +856,7 @@ struct ListProperties {
 };
 
 struct SetSelectionOwner {
-    static constexpr
+    inline static constexpr
     std::string_view name { "SetSelectionOwner" };
 
     struct [[gnu::packed]] Encoding {
@@ -850,211 +875,390 @@ struct SetSelectionOwner {
         protocol::enum_names::time };
 };
 
+struct GetSelectionOwner {
+    inline static constexpr
+    std::string_view name { "GetSelectionOwner" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t   opcode;  // 23
+    private:
+        uint8_t   _unused;
+    public:
+        uint16_t  request_length;  // 2 request length
+        ATOM      selection;
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t  _prefix;  // 1 Reply
+        uint8_t  _unused1;
+    public:
+        CARD16   sequence_number;  // sequence number
+        uint32_t reply_length;  // 0 reply length
+        WINDOW   owner;  // 0 None
+    private:
+        uint8_t  _unused2[20];
+    };
+
+    inline static const
+    std::vector< std::string_view >& owner_names {
+        protocol::enum_names::zero_none };
+};
+
+struct ConvertSelection {
+    inline static constexpr
+    std::string_view name { "ConvertSelection" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t   opcode;  // 24
+    private:
+        uint8_t   _unused;
+    public:
+        uint16_t  request_length;  // 6 request length
+        WINDOW    requestor;
+        ATOM      selection;
+        ATOM      target;
+        ATOM      property;  // 0 None
+        TIMESTAMP time;   // 0 CurrentTime
+    };
+
+    inline static const
+    std::vector< std::string_view >& property_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
+
+struct SendEvent {
+    inline static constexpr
+    std::string_view name { "SendEvent" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 25
+        BOOL       propagate;
+        uint16_t   request_length;  // 11 request length
+        WINDOW     destination;  // 0 PointerWindow 1 InputFocus
+        SETofEVENT event_mask;  // event-mask
+        // 32  event
+        // TBD presumably events are parsed like a LISTofVALUE with value-mask
+    };
+
+    inline static const
+    std::vector< std::string_view >& property_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
+
+struct GrabPointer {
+    inline static constexpr
+    std::string_view name { "GrabPointer" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 26
+        BOOL              owner_events;  // owner-events
+        uint16_t          request_length;  // 6 request length
+        WINDOW            grab_window;  // grab-window
+        SETofPOINTEREVENT event_mask;  // 2B event-mask
+        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
+        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
+        WINDOW            confine_to;  // confine-to 0 None
+        CURSOR            cursor; // 0 None
+        TIMESTAMP         time;  // 0 CurrentTime
+    };
+
+    inline static const
+    std::vector< std::string_view >& pointer_mode_names {
+        protocol::enum_names::input_mode };
+    inline static const
+    std::vector< std::string_view >& keyboard_mode_names {
+        protocol::enum_names::input_mode };
+    inline static const
+    std::vector< std::string_view >& confine_to_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& cursor_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t  _prefix;  // 1 Reply
+    public:
+        uint8_t  status;  // 0 Success 1 AlreadyGrabbed 2 InvalidTime 3 NotViewable 4 Frozen
+        CARD16   sequence_number;  // sequence number
+        uint32_t reply_length;  // 0 reply length
+    private:
+        uint8_t  _unused[24];
+    };
+
+    inline static const
+    std::vector< std::string_view >& status_names {
+        protocol::enum_names::grab_status };
+};
+
+struct UngrabPointer {
+    inline static constexpr
+    std::string_view name { "UngrabPointer" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 27
+    private:
+        uint8_t           unused;
+    public:
+        uint16_t          request_length;  // 2 request length
+        TIMESTAMP         time;
+    };
+
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
+
+struct GrabButton {
+    inline static constexpr
+    std::string_view name { "GrabButton" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 28
+        BOOL              owner_events;  // owner-events
+        uint16_t          request_length;  // 6 request length
+        WINDOW            grab_window;  // grab-window
+        SETofPOINTEREVENT event_mask;  // event-mask
+        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
+        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
+        WINDOW            confine_to;  // confine-to 0 None
+        CURSOR            cursor;  // 0 None
+        BUTTON            button;  // 0 AnyButton
+    private:
+        uint8_t           unused;
+    public:
+        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+    };
+
+    inline static const
+    std::vector< std::string_view >& pointer_mode_names {
+        protocol::enum_names::input_mode };
+    inline static const
+    std::vector< std::string_view >& keyboard_mode_names {
+        protocol::enum_names::input_mode };
+    inline static const
+    std::vector< std::string_view >& confine_to_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& cursor_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& button_names {
+        protocol::enum_names::button };
+};
+
+struct UngrabButton {
+    inline static constexpr
+    std::string_view name { "UngrabButton" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 29
+        BUTTON            button;  // 1B 0 AnyButton
+        uint16_t          request_length;  // 3 request length
+        WINDOW            grab_window;  // grab-window
+        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+    private:
+        uint8_t           _unused[2];
+    };
+
+    inline static const
+    std::vector< std::string_view >& button_names {
+        protocol::enum_names::button };
+};
+
+struct ChangeActivePointerGrab {
+    inline static constexpr
+    std::string_view name { "ChangeActivePointerGrab" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 30
+    private:
+        uint8_t           _unused1;
+    public:
+        uint16_t          request_length;  // 4 request length
+        CURSOR            cursor;  // 0 None
+        TIMESTAMP         time;    // 0 CurrentTime
+        SETofPOINTEREVENT event_mask;  // 2B event-mask
+    private:
+        uint8_t           _unused2[2];
+    };
+
+    inline static const
+    std::vector< std::string_view >& cursor_names {
+        protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
+
+struct GrabKeyboard {
+    inline static constexpr
+    std::string_view name { "GrabKeyboard" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 31
+        BOOL              owner_events;  // owner-events
+        uint16_t          request_length;  // 4 request length
+        WINDOW            grab_window;  // grab-window
+        TIMESTAMP         time;  // 0 CurrentTime
+        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
+        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
+    private:
+        uint8_t           _unused[2];
+    };
+
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+    inline static const
+    std::vector< std::string_view >& pointer_mode_names {
+        protocol::enum_names::input_mode };
+    inline static const
+    std::vector< std::string_view >& keyboard_mode_names {
+        protocol::enum_names::input_mode };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t  _prefix;  // 1 Reply
+    public:
+        uint8_t  status;  // 0 Success 1 AlreadyGrabbed 2 InvalidTime 3 NotViewable 4 Frozen
+        CARD16   sequence_number;  // sequence number
+        uint32_t reply_length;  // 0 reply length
+    private:
+        uint8_t  _unused[24];
+    };
+
+    inline static const
+    std::vector< std::string_view >& status_names {
+        protocol::enum_names::grab_status };
+};
+
+struct UngrabKeyboard {
+    inline static constexpr
+    std::string_view name { "UngrabKeyboard" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 32
+    private:
+        uint8_t           _unused;  // 1B
+    public:
+        uint16_t          request_length;  // 2 request length
+        TIMESTAMP         time;  // 0 CurrentTime
+    };
+
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
+
+struct GrabKey {
+    inline static constexpr
+    std::string_view name { "GrabKey" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 33
+        BOOL              owner_events;  // owner-events
+        uint16_t          request_length;  // 4 request length
+        WINDOW            grab_window;  // grab-window
+        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+        KEYCODE           key;  // 0 AnyKey
+        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
+        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
+    private:
+        uint8_t           _unused[3];
+    };
+
+    // TBD
+    // inline static const
+    // std::vector< std::string_view >& modifiers_names {
+    //     protocol::enum_names:: };
+    inline static const
+    std::vector< std::string_view >& key_names {
+        protocol::enum_names::key };
+    inline static const
+    std::vector< std::string_view >& pointer_mode_names {
+        protocol::enum_names::input_mode };
+    inline static const
+    std::vector< std::string_view >& keyboard_mode_names {
+        protocol::enum_names::input_mode };
+};
+
+struct UngrabKey {
+    inline static constexpr
+    std::string_view name { "UngrabKey" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 34
+        KEYCODE           key;  // 0 AnyKey
+        uint16_t          request_length;  // 3 request length
+        WINDOW            grab_window;  // grab-window
+        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+    private:
+        uint8_t           _unused[2];
+    };
+
+    inline static const
+    std::vector< std::string_view >& key_names {
+        protocol::enum_names::key };
+    // TBD
+    // inline static const
+    // std::vector< std::string_view >& modifiers_names {
+    //     protocol::enum_names:: };
+};
+
+struct AllowEvents {
+    inline static constexpr
+    std::string_view name { "AllowEvents" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 35
+        uint8_t           mode;  // 0 AsyncPointer 1 SyncPointer 2 ReplayPointer 3 AsyncKeyboard 4 SyncKeyboard 5 ReplayKeyboard 6 AsyncBoth 7 SyncBoth
+        uint16_t          request_length;  // 2 request length
+        TIMESTAMP         time;  // 0 CurrentTime
+    };
+
+    inline static const
+    std::vector< std::string_view >& time_names {
+        protocol::enum_names::time };
+};
+
+struct GrabServer {
+    inline static constexpr
+    std::string_view name { "GrabServer" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 36
+    private:
+        uint8_t           _unused;
+    public:
+        uint16_t          request_length;  // 1 request length
+    };
+};
+
+struct UngrabServer {
+    inline static constexpr
+    std::string_view name { "UngrabServer" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t           opcode;  // 37
+    private:
+        uint8_t           _unused;
+    public:
+        uint16_t          request_length;  // 1 request length
+    };
+};
+
 /*
-GetSelectionOwner
-     1     23                              opcode
-     1                                     unused
-     2     2                               request length
-     4     ATOM                            selection
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     4     WINDOW                          owner
-          0     None
-     20                                    unused
-
-ConvertSelection
-     1     24                              opcode
-     1                                     unused
-     2     6                               request length
-     4     WINDOW                          requestor
-     4     ATOM                            selection
-     4     ATOM                            target
-     4     ATOM                            property
-          0     None
-     4     TIMESTAMP                       time
-          0     CurrentTime
-
-SendEvent
-     1     25                              opcode
-     1     BOOL                            propagate
-     2     11                              requestlength
-     4     WINDOW                          destination
-          0     PointerWindow
-          1     InputFocus
-     4     SETofEVENT                      event-mask
-     32                                    event
-          standard event format (see the Events section)
-
-GrabPointer
-     1     26                              opcode
-     1     BOOL                            owner-events
-     2     6                               request length
-     4     WINDOW                          grab-window
-     2     SETofPOINTEREVENT               event-mask
-     1                                     pointer-mode
-          0     Synchronous
-          1     Asynchronous
-     1                                     keyboard-mode
-          0     Synchronous
-          1     Asynchronous
-     4     WINDOW                          confine-to
-          0     None
-     4     CURSOR                          cursor
-          0     None
-     4     TIMESTAMP                       time
-          0     CurrentTime
-
-▶
-     1     1                               Reply
-     1                                     status
-          0     Success
-          1     AlreadyGrabbed
-          2     InvalidTime
-          3     NotViewable
-          4     Frozen
-     2     CARD16                          sequence number
-     4     0                               reply length
-     24                                    unused
-
-UngrabPointer
-     1     27                              opcode
-     1                                     unused
-     2     2                               request length
-     4     TIMESTAMP                       time
-          0     CurrentTime
-
-GrabButton
-     1     28                              opcode
-     1     BOOL                            owner-events
-     2     6                               request length
-     4     WINDOW                          grab-window
-     2     SETofPOINTEREVENT               event-mask
-     1                                     pointer-mode
-          0     Synchronous
-          1     Asynchronous
-     1                                     keyboard-mode
-          0     Synchronous
-          1     Asynchronous
-     4     WINDOW                          confine-to
-          0     None
-     4     CURSOR                          cursor
-          0     None
-     1     BUTTON                          button
-          0     AnyButton
-     1                                     unused
-     2     SETofKEYMASK                    modifiers
-          #x8000                           AnyModifier
-
-UngrabButton
-     1     29                              opcode
-     1     BUTTON                          button
-          0     AnyButton
-     2     3                               request length
-     4     WINDOW                          grab-window
-     2     SETofKEYMASK                    modifiers
-          #x8000                           AnyModifier
-     2                                     unused
-
-ChangeActivePointerGrab
-     1     30                              opcode
-     1                                     unused
-     2     4                               request length
-     4     CURSOR                          cursor
-          0     None
-     4     TIMESTAMP                       time
-          0     CurrentTime
-     2     SETofPOINTEREVENT               event-mask
-     2                                     unused
-
-GrabKeyboard
-     1     31                              opcode
-     1     BOOL                            owner-events
-     2     4                               request length
-     4     WINDOW                          grab-window
-     4     TIMESTAMP                       time
-          0     CurrentTime
-     1                                     pointer-mode
-          0     Synchronous
-          1     Asynchronous
-     1                                     keyboard-mode
-          0     Synchronous
-          1     Asynchronous
-     2                                     unused
-
-▶
-     1     1                               Reply
-     1                                     status
-          0     Success
-          1     AlreadyGrabbed
-          2     InvalidTime
-          3     NotViewable
-          4     Frozen
-     2     CARD16                          sequence number
-     4     0                               reply length
-     24                                    unused
-
-UngrabKeyboard
-     1     32                              opcode
-     1                                     unused
-     2     2                               request length
-     4     TIMESTAMP                       time
-          0     CurrentTime
-
-GrabKey
-     1     33                              opcode
-     1     BOOL                            owner-events
-     2     4                               request length
-     4     WINDOW                          grab-window
-     2     SETofKEYMASK                    modifiers
-          #x8000     AnyModifier
-     1     KEYCODE                         key
-          0     AnyKey
-     1                                     pointer-mode
-          0     Synchronous
-          1     Asynchronous
-     1                                     keyboard-mode
-          0     Synchronous
-          1     Asynchronous
-     3                                     unused
-
-UngrabKey
-     1     34                              opcode
-     1     KEYCODE                         key
-          0     AnyKey
-     2     3                               request length
-     4     WINDOW                          grab-window
-     2     SETofKEYMASK                    modifiers
-          #x8000     AnyModifier
-     2                                     unused
-
-AllowEvents
-     1     35                              opcode
-     1                                     mode
-          0     AsyncPointer
-          1     SyncPointer
-          2     ReplayPointer
-          3     AsyncKeyboard
-          4     SyncKeyboard
-          5     ReplayKeyboard
-          6     AsyncBoth
-          7     SyncBoth
-     2     2                               request length
-     4     TIMESTAMP                       time
-          0     CurrentTime
-
-GrabServer
-     1     36                              opcode
-     1                                     unused
-     2     1                               request length
-
-UngrabServer
-     1     37                              opcode
-     1                                     unused
-     2     1                               request length
 
 QueryPointer
      1     38                              opcode
