@@ -318,7 +318,7 @@ namespace impl {
 }  // namespace impl
 
 struct CreateWindow {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 1
         CARD8      depth;
         uint16_t   request_length;  // 8+n, request length
@@ -335,7 +335,7 @@ struct CreateWindow {
     // followed by 4n bytes LISTofVALUE value-list
     // TBD !!! the usual method of casting the buffer to a struct ptr will not work here,
     //   as the nature of value masks is to indicate via flags which members will be serialized
-    // struct __attribute__ ((packed)) Value {  // VALUE
+    // struct [[gnu::packed]] Value {  // VALUE
     //     PIXMAP            background-pixmap;  // 0 None 1 ParentRelative
     //     CARD32            background-pixel;
     //     PIXMAP            border-pixmap;  // 0 CopyFromParent
@@ -371,7 +371,7 @@ struct CreateWindow {
 };
 
 struct ChangeWindowAttributes {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 2
     private:
         uint8_t    _unused;
@@ -402,7 +402,7 @@ struct ChangeWindowAttributes {
 
 // TBD only inheriting from base to get enums for backing-store and class_
 struct GetWindowAttributes {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 3
     private:
         uint8_t    _unused;
@@ -412,7 +412,7 @@ struct GetWindowAttributes {
     };
     static constexpr std::string_view name { "GetWindowAttributes" };
 
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t          _prefix;   // 1 Reply
     public:
@@ -447,7 +447,7 @@ struct GetWindowAttributes {
 
 namespace impl {
 
-struct __attribute__ ((packed)) _SimpleWindowReqEncoding {
+struct [[gnu::packed]] _SimpleWindowReqEncoding {
     uint8_t    opcode;
 private:
     uint8_t    _unused;
@@ -471,7 +471,7 @@ struct DestroySubwindows {
 };
 
 struct ChangeSaveSet {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;   // 6
         uint8_t    mode;     // 0 Insert 1 Delete
         uint16_t   request_length;
@@ -481,7 +481,7 @@ struct ChangeSaveSet {
 };
 
 struct ReparentWindow {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
     private:
         uint8_t _prefix;  // 7
         uint8_t   _unused;
@@ -520,7 +520,7 @@ struct UnmapSubwindows {
 };
 
 struct ConfigureWindow {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 12
     private:
         uint8_t    _unused1;
@@ -554,7 +554,7 @@ struct ConfigureWindow {
 };
 
 struct CirculateWindow {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 13
         uint8_t   direction;  // 0 RaiseLowest 1 LowerHighest
         uint16_t  request_length;  // 2
@@ -568,7 +568,7 @@ struct CirculateWindow {
 };
 
 struct GetGeometry {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 14
     private:
         uint8_t    _unused;
@@ -577,7 +577,7 @@ struct GetGeometry {
         DRAWABLE   drawable;
     };
     static constexpr std::string_view name { "GetGeometry" };
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t _prefix;  // 1 Reply
     public:
@@ -596,7 +596,7 @@ struct GetGeometry {
 };
 
 struct QueryTree {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 15
     private:
         uint8_t    _unused;
@@ -605,7 +605,7 @@ struct QueryTree {
         WINDOW     window;
     };
     static constexpr std::string_view name { "QueryTree" };
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
@@ -622,7 +622,7 @@ struct QueryTree {
 };
 
 struct InternAtom {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 16
         BOOL      only_if_exists;  // only-if-exists
         uint16_t  request_length;  // 2+(n+p)/4 request length
@@ -632,7 +632,7 @@ struct InternAtom {
     };
     // followed by pad(n) STRING8 name
     static constexpr std::string_view name { "InternAtom" };
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t    _prefix;  // 1 Reply
         uint8_t   _unused1;
@@ -650,7 +650,7 @@ struct InternAtom {
 };
 
 struct GetAtomName {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 17
     private:
         uint8_t   _unused1;
@@ -659,7 +659,7 @@ struct GetAtomName {
         ATOM      atom;
     };
     static constexpr std::string_view name { "GetAtomName" };
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t   _prefix;  // 1 Reply
         uint8_t   _unused1;
@@ -674,7 +674,7 @@ struct GetAtomName {
 };
 
 struct ChangeProperty {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 18
         uint8_t   mode;  // 0 Replace 1 Prepend 2 Append
         uint16_t  request_length;  // 6+(n+p)/4 request length
@@ -705,7 +705,7 @@ struct ChangeProperty {
 };
 
 struct DeleteProperty {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 19
     private:
         uint8_t   _unused;
@@ -718,7 +718,7 @@ struct DeleteProperty {
 };
 
 struct GetProperty {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 20
         BOOL      delete_;  // delete
         uint16_t  request_length;  // 6 request length
@@ -730,7 +730,7 @@ struct GetProperty {
     };
     static constexpr std::string_view name { "GetProperty" };
 
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t  _prefix;  // 1 Reply
     public:
@@ -764,7 +764,7 @@ struct GetProperty {
 };
 
 struct ListProperties {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 21
     private:
         uint8_t   _unused;
@@ -773,7 +773,7 @@ struct ListProperties {
         WINDOW    window;
     };
     static constexpr std::string_view name { "ListProperties" };
-    struct __attribute__ ((packed)) ReplyEncoding {
+    struct [[gnu::packed]] ReplyEncoding {
     private:
         uint8_t  _prefix;  // 1 Reply
         uint8_t  _unused1;
@@ -788,7 +788,7 @@ struct ListProperties {
 };
 
 struct SetSelectionOwner {
-    struct __attribute__ ((packed)) Encoding {
+    struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 22
     private:
         uint8_t   _unused;
