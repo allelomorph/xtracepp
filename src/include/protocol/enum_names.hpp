@@ -374,7 +374,7 @@ std::vector<std::string_view> key {
 // Req 029 UngrabButton.modifiers SETofKEYMASK
 // Req 033 GrabKey.modifiers SETofKEYMASK
 // Req 034 UngrabKey.modifiers SETofKEYMASK
-//          #x8000     AnyModifier
+//   1 << 15       #x8000     AnyModifier
 
 // Req 035 AllowEvents.mode 1B
 inline const
@@ -429,6 +429,7 @@ std::vector<std::string_view> draw_direction {
 
 // Req 055 CreateGC.value-mask 4B BITMASK
 // Req 056 ChangeGC.value-mask 4B BITMASK
+// Req 057 CopyGC.value-mask 4B BITMASK
 inline const
 std::vector<std::string_view> gc_value_mask {
     "function",               // 1 <<  0
