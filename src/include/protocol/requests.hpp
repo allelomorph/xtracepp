@@ -1641,10 +1641,8 @@ struct ListFonts {
     private:
         uint8_t    _unused2[22];
     };
-    // TBD LISTofSTR type only named in protocol encoding section - it is
-    //   LISTofSTRING8 in request description
-    // TBD how do we know the length of the individual strings?
     // followed by pad(n)B LISTofSTR names
+    // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
 };
 
 struct ListFontsWithInfo {
@@ -1728,9 +1726,7 @@ struct SetFontPath {
         uint8_t    _unused2[2];
     };
     // followed by pad(n)B LISTofSTR path
-    // TBD LISTofSTR type only named in protocol encoding section - it is
-    //   LISTofSTRING8 in request description
-    // TBD how do we know the length of the individual strings?
+    // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
 };
 
 struct GetFontPath {
@@ -1757,9 +1753,7 @@ struct GetFontPath {
         uint8_t    _unused2[22];
     };
     // followed by pad(n)B LISTofSTR path
-    // TBD LISTofSTR type only named in protocol encoding section - it is
-    //   LISTofSTRING8 in request description
-    // TBD how do we know the length of the individual strings?
+    // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
 };
 
 struct CreatePixmap {
