@@ -216,9 +216,11 @@ union KEYBUTMASK {
     KEYMASK keymask;
     BUTMASK butmask;
 };
+*/
 // TBD are these sets only 2 bytes?
-using SETofKEYBUTMASK = BITMASK;
-using SETofKEYMASK    = BITMASK;
+using SETofKEYBUTMASK = CARD16;
+using SETofKEYMASK    = CARD16;
+/*
 enum class KeyButMaskFlags {
     Shift   = 1 << 0,
     Lock    = 1 << 1,
@@ -246,40 +248,41 @@ struct STR {
     CARD8 n;       // length of name in bytes
     STRING8 name;
 };
-
-struct CHAR2B {
+*/
+struct [[gnu::packed]] CHAR2B {
     CARD8 byte1, byte2;
 };
+/*
 // using LISTofCHAR2B = CHAR2B*;
 using STRING16     = CHAR2B;  // LISTofCHAR2B
 
 // other structs
-
-struct POINT {
+*/
+struct [[gnu::packed]] POINT {
     INT16 x, y;
 };
+
 // using LISTofPOINT = POINT*;
 
-struct RECTANGLE {
+struct [[gnu::packed]] RECTANGLE {
     INT16  x, y;
     CARD16 width, height;
 };
 // using LISTofRECTANGLE = RECTANGLE*;
 
-struct ARC {
+struct [[gnu::packed]] ARC {
     INT16  x, y;
     CARD16 width, height;
     INT16  angle1, angle2;
 };
 // using LISTofARC = ARC*;
 
-struct HOST {
+struct [[gnu::packed]] HOST {
     CARD8      family;
     CARD8      unused;
     CARD16     n;  // length of address in bytes
-    //LISTofBYTE address;
 };
-*/
+// followed by LISTofBYTE address
 
 }  // namespace protocol
 
