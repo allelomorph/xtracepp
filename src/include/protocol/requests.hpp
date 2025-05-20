@@ -2204,541 +2204,866 @@ struct PolyFillArc {
     // followed by 12nB LISTofARC arcs n ARC
 };
 
+struct PutImage {
+    inline static constexpr
+    std::string_view name { "PutImage" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 72
+        uint8_t    format;  // 0 Bitmap 1 XYPixmap 2 ZPixmap
+        uint16_t   request_length;  // 6+(n+p)/4 request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+        CARD16     width;
+        CARD16     height;
+        INT16      dst_x;  // dst-x
+        INT16      dst_y;  // dst-y
+        CARD8      left_pad;  // left-pad
+        CARD8      depth;
+    private:
+        uint8_t    _unused[2];
+    };
+    // followed by pad(n)B LISTofBYTE data
+
+    inline static const
+    std::vector< std::string_view >& format_names {
+        protocol::enum_names::image_format };
+};
+
+struct GetImage {
+    inline static constexpr
+    std::string_view name { "GetImage" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 73
+        uint8_t    format;  // 1 XYPixmap 2 ZPixmap
+        uint16_t   request_length;  // 5 request length
+        DRAWABLE   drawable;
+        INT16      x;
+        INT16      y;
+        CARD16     width;
+        CARD16     height;
+        CARD32     plane_mask;  // plane-mask
+    };
+
+    inline static const
+    std::vector< std::string_view >& format_names {  // TBD 1 and up
+        protocol::enum_names::image_format };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        CARD8      depth;
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // (n+p)/4 reply length
+        VISUALID   visual;  // 0 None
+    private:
+        uint8_t    _unused[20];
+    };
+    // followed by pad(n)B LISTofBYTE data
+
+    inline static const
+    std::vector< std::string_view >& visual_names {
+        protocol::enum_names::zero_none };
+};
+
+struct PolyText8 {
+    inline static constexpr
+    std::string_view name { "PolyText8" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 74
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 4+(n+p)/4 request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+        INT16      x;
+        INT16      y;
+    };
+    // followed by pad(n)B LISTofTEXTITEM8 items (p is always 0 or 1)
+
+    // TBD TEXTELT8 needs special parsing
+    // core X11 font storage: https://www.x.org/wiki/guide/fonts/
+    // xcb_poly_text_8() not fully documented: https://x.org/releases/current/doc/man/man3/xcb_poly_text_8.3.xhtml
+    union TEXTITEM8 {
+        struct [[gnu::packed]] TEXTELT8 {
+            uint8_t   m;  // length of string (cannot be 255)
+            INT8      delta;
+            // followed by STRING8 CARD8[m]
+        } text_element;
+        struct [[gnu::packed]] Font {  // protocol describes as FONT
+            uint8_t   font_shift;     // 255 font-shift indicator
+            uint8_t   font_bytes[4];  // font byte 3 (most-significant) to font byte 0 (least-significant) TBD this should convert to FONT
+        } font;
+    };
+};
+
+struct PolyText16 {
+    inline static constexpr
+    std::string_view name { "PolyText16" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 75
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 4+(n+p)/4 request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+        INT16      x;
+        INT16      y;
+    };
+    // followed by pad(n)B LISTofTEXTITEM16 items (p is always 0 or 1)
+
+    // TBD TEXTELT8 needs special parsing
+    // core X11 font storage: https://www.x.org/wiki/guide/fonts/
+    // xcb_poly_text_8() not fully documented: https://x.org/releases/current/doc/man/man3/xcb_poly_text_8.3.xhtml
+    union TEXTITEM16 {
+        struct [[gnu::packed]] TEXTELT16 {
+            uint8_t   m;  // count of CHAR2B in string (cannot be 255)
+            INT8      delta;
+            // followed by 2m STRING16 CHAR2B[m]
+        } text_element;
+        struct [[gnu::packed]] Font {  // protocol describes as FONT
+            uint8_t   font_shift;     // 255 font-shift indicator
+            uint8_t   font_bytes[4];  // font byte 3 (most-significant) to font byte 0 (least-significant) TBD this should convert to FONT
+        } font;
+    };
+};
+
+struct ImageText8 {
+    inline static constexpr
+    std::string_view name { "ImageText8" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 76
+        uint8_t    n;  // length of string
+        uint16_t   request_length;  // 4+(n+p)/4 request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+        INT16      x;
+        INT16      y;
+    };
+    // followed by pad(n)B STRING8
+};
+
+struct ImageText16 {
+    inline static constexpr
+    std::string_view name { "ImageText16" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 77
+        uint8_t    n;  // length of string in CHAR2B
+        uint16_t   request_length;  // 4+(2n+p)/4 request length
+        DRAWABLE   drawable;
+        GCONTEXT   gc;
+        INT16      x;
+        INT16      y;
+    };
+    // followed by pad(2n)B STRING16
+};
+
+struct CreateColormap {
+    inline static constexpr
+    std::string_view name { "CreateColormap" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 78
+        uint8_t    alloc;  // 0 None 1 All
+        uint16_t   request_length;  // 4 request length
+        COLORMAP   mid;
+        WINDOW     window;
+        VISUALID   visual;
+    };
+
+    inline static const
+    std::vector< std::string_view >& alloc_names {
+        protocol::enum_names::colormap_alloc };
+};
+
+struct FreeColormap {
+    inline static constexpr
+    std::string_view name { "FreeColormap" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 79
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2 request length
+        COLORMAP   mid;
+    };
+};
+
+struct CopyColormapAndFree {
+    inline static constexpr
+    std::string_view name { "CopyColormapAndFree" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 80
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3 request length
+        COLORMAP   mid;
+        COLORMAP   src_cmap;  // src-cmap
+    };
+};
+
+struct InstallColormap {
+    inline static constexpr
+    std::string_view name { "InstallColormap" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 81
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2 request length
+        COLORMAP   cmap;
+    };
+};
+
+struct UninstallColormap {
+    inline static constexpr
+    std::string_view name { "UninstallColormap" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 82
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2 request length
+        COLORMAP   cmap;
+    };
+};
+
+struct ListInstalledColormaps {
+    inline static constexpr
+    std::string_view name { "ListInstalledColormaps" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 83
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2 request length
+        WINDOW     window;
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        CARD8      depth;
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // n reply length
+        uint16_t   n;  // number of COLORMAPs in cmaps
+    private:
+        uint8_t    _unused[22];
+    };
+    // followed by 4n LISTofCOLORMAP cmaps
+};
+
+struct AllocColor {
+    inline static constexpr
+    std::string_view name { "AllocColor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 84
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 4 request length
+        COLORMAP   cmap;
+        CARD16     red;
+        CARD16     green;
+        CARD16     blue;
+    private:
+        uint8_t    _unused2[2];
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+        CARD16     red;
+        CARD16     green;
+        CARD16     blue;
+    private:
+        uint8_t    _unused2[2];
+    public:
+        CARD32     pixel;
+    private:
+        uint8_t    _unused3[12];
+    };
+};
+
+struct AllocNamedColor {
+    inline static constexpr
+    std::string_view name { "AllocNamedColor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 85
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 3+(n+p)/4 request length
+        COLORMAP   cmap;
+        uint16_t   n;  // length of name
+    private:
+        uint8_t    _unused2[2];
+    };
+    // followed by STRING8 pad(n)B
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+        CARD32     pixel;
+        CARD16     exact_red;  // exact-red
+        CARD16     exact_green;  // exact-green
+        CARD16     exact_blue;  // exact-blue
+        CARD16     visual_red;  // visual-red
+        CARD16     visual_green;  // visual-green
+        CARD16     visual_blue;  // visual-blue
+    private:
+        uint8_t    _unused2[8];
+    };
+};
+
+struct AllocColorCells {
+    inline static constexpr
+    std::string_view name { "AllocColorCells" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 86
+        BOOL       contiguous;
+        uint16_t   request_length;  // 3 request length
+        COLORMAP   cmap;
+        CARD16     colors;
+        CARD16     planes;
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // n+m reply length
+        uint16_t   n;  // number of CARD32s in pixels
+        uint16_t   m;  // number of CARD32s in masks
+    private:
+        uint8_t    _unused2[20];
+    };
+    // followed by 4n LISTofCARD32 pixels
+    // followed by 4m LISTofCARD32 masks
+};
+
+struct AllocColorPlanes {
+    inline static constexpr
+    std::string_view name { "AllocColorPlanes" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 87
+        BOOL       contiguous;
+        uint16_t   request_length;  // 4 request length
+        COLORMAP   cmap;
+        CARD16     colors;
+        CARD16     reds;
+        CARD16     greens;
+        CARD16     blues;
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // n reply length
+        uint16_t   n;  // number of CARD32s in pixels
+    private:
+        uint8_t    _unused2[2];
+    public:
+        CARD32      red_mask;  // red-mask
+        CARD32      green_mask;  // green-mask
+        CARD32      blue_mask;  // blue-mask
+    private:
+        uint8_t    _unused3[8];
+    };
+    // followed by 4n LISTofCARD32 pixels
+};
+
+struct FreeColors {
+    inline static constexpr
+    std::string_view name { "FreeColors" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 88
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+n request length
+        COLORMAP   cmap;
+        CARD32     plane_mask;  // plane-mask
+    };
+    // followed by 4n LISTofCARD32 pixels
+};
+
+struct StoreColors {
+    inline static constexpr
+    std::string_view name { "StoreColors" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 89
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2+3n request length
+        COLORMAP   cmap;
+    };
+    // followed by 12n LISTofCOLORITEM items
+
+    struct [[gnu::packed]] COLORITEM {
+        CARD32      pixel;
+        CARD16      red;
+        CARD16      green;
+        CARD16      blue;
+        uint8_t     do_rgb_mask;  // & 0x01 do-red & 0x02 do-green & 0x04 do-blue 0xF8 unused
+    private:
+        uint8_t     _unused;
+    };
+
+    inline static const
+    std::vector< std::string_view >& do_rgb_names {
+        protocol::enum_names::do_rgb_mask };
+};
+
+struct StoreNamedColor {
+    inline static constexpr
+    std::string_view name { "StoreNamedColor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 90
+        uint8_t    do_rgb_mask;  // & 0x01 do-red & 0x02 do-green & 0x04 do-blue 0xF8 unused
+        uint16_t   request_length;  //  4+(n+p)/4 request length
+        COLORMAP   cmap;
+        CARD32     pixel;
+        uint16_t   n;  // length of name
+    private:
+        uint16_t   _unused;
+    };
+    // followed by pad(n)STRING8 name
+
+    inline static const
+    std::vector< std::string_view >& do_rgb_names {
+        protocol::enum_names::do_rgb_mask };
+};
+
+struct QueryColors {
+    inline static constexpr
+    std::string_view name { "QueryColors" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 91
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2+n request length
+        COLORMAP   cmap;
+    };
+    // followed by 4nB LISTofCARD32 pixels
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 2n reply length
+        uint16_t   n;  // number of RGBs in colors
+    private:
+        uint8_t    _unused2[22];
+    };
+    // followed by 8nB LISTofRGB colors
+
+    struct [[gnu::packed]] RGB {
+        CARD16     red;
+        CARD16     green;
+        CARD16     blue;
+    private:
+        uint8_t    _unused[2];
+    };
+};
+
+struct LookupColor {
+    inline static constexpr
+    std::string_view name { "LookupColor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 92
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 3+(n+p)/4 request length
+        COLORMAP   cmap;
+        uint16_t   n;  // length of name
+    private:
+        uint8_t    _unused2[2];
+    };
+    // followed by pad(n) STRING8 name
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+        CARD16     exact_red;  // exact-red
+        CARD16     exact_green;  // exact-green
+        CARD16     exact_blue;  // exact-blue
+        CARD16     visual_red;  // visual-red
+        CARD16     visual_green;  // visual-green
+        CARD16     visual_blue;  // visual-blue
+    private:
+        uint8_t    _unused2[12];
+    };
+};
+
+struct CreateCursor {
+    inline static constexpr
+    std::string_view name { "CreateCursor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t     opcode;  // 93
+    private:
+        uint8_t     _unused;
+    public:
+        uint16_t    request_length;  // 8 request length
+        CURSOR      cid;
+        PIXMAP      source;
+        PIXMAP      mask;  // 0 None
+        CARD16      fore_red;  // fore-red
+        CARD16      fore_green;  // fore-green
+        CARD16      fore_blue;  // fore-blue
+        CARD16      back_red;  // back-red
+        CARD16      back_green;  // back-green
+        CARD16      back_blue;  // back-blue
+        CARD16      x;
+        CARD16      y;
+    };
+
+    inline static const
+    std::vector< std::string_view >& mask_names {
+        protocol::enum_names::zero_none };
+};
+
+struct CreateGlyphCursor {
+    inline static constexpr
+    std::string_view name { "CreateGlyphCursor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t     opcode;  // 94
+    private:
+        uint8_t     _unused;
+    public:
+        uint16_t    request_length;  // 8 request length
+        CURSOR      cid;
+        FONT        source_font;  // source-font
+        FONT        mask_font;  // mask-font 0 None
+        CARD16      source_char;  // source-char
+        CARD16      mask_char;  // mask-char
+        CARD16      fore_red;  // fore-red
+        CARD16      fore_green;  // fore-green
+        CARD16      fore_blue;  // fore-blue
+        CARD16      back_red;  // back-red
+        CARD16      back_green;  // back-green
+        CARD16      back_blue;  // back-blue
+    };
+
+    inline static const
+    std::vector< std::string_view >& mask_font_names {
+        protocol::enum_names::zero_none };
+};
+
+struct FreeCursor {
+    inline static constexpr
+    std::string_view name { "FreeCursor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t     opcode;  // 95
+    private:
+        uint8_t     _unused;
+    public:
+        uint16_t    request_length;  // 2 request length
+        CURSOR      cursor;
+    };
+};
+
+struct RecolorCursor {
+    inline static constexpr
+    std::string_view name { "RecolorCursor" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t     opcode;  // 96
+    private:
+        uint8_t     _unused;
+    public:
+        uint16_t    request_length;  // 5 request length
+        CURSOR      cursor;
+        CARD16      fore_red;  // fore-red
+        CARD16      fore_green;  // fore-green
+        CARD16      fore_blue;  // fore-blue
+        CARD16      back_red;  // back-red
+        CARD16      back_green;  // back-green
+        CARD16      back_blue;  // back-blue
+    };
+};
+
+struct QueryBestSize {
+    inline static constexpr
+    std::string_view name { "QueryBestSize" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 97
+        uint8_t    class_;  // 0 Cursor 1 Tile 2 Stipple
+        uint16_t   request_length;  // 3 request length
+        DRAWABLE   drawable;
+        CARD16     width;
+        CARD16     height;
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+        CARD16     width;
+        CARD16     height;
+    private:
+        uint8_t    _unused2[20];
+    };
+
+    inline static const
+    std::vector< std::string_view >& class_names {
+        protocol::enum_names::size_class };
+};
+
+struct QueryExtension {
+    inline static constexpr
+    std::string_view name { "QueryExtension" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 98
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 2+(n+p)/4 request length
+        uint16_t   n;  // length of name
+    private:
+        uint8_t    _unused2[2];
+    };
+    // followed by pad()n)B STRING8 name
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+        BOOL       present;  // present
+        CARD8      major_opcode;  // major-opcode
+        CARD8      first_event;  // first-event
+        CARD8      first_error;  // first-error
+    private:
+        uint8_t    _unused2[20];
+    };
+};
+
+struct ListExtensions {
+    inline static constexpr
+    std::string_view name { "ListExtensions" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 99
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        CARD8      n;  // unnamed, number of STRs in names
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // (n+p)/4 reply length
+    private:
+        uint8_t    _unused[24];
+    };
+    // followed by pad(n) LISTofSTR names
+};
+
+struct ChangeKeyboardMapping {
+    inline static constexpr
+    std::string_view name { "ChangeKeyboardMapping" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 100
+        uint8_t    keycode_count;  // n keycode-count
+        uint16_t   request_length;  // 2+nm request length
+        KEYCODE    first_keycode;  // first-keycode
+        uint8_t    keysyms_per_keycode;  // m keysyms-per-keycode
+    private:
+        uint8_t    _unused[2];
+    };
+    // followed by 4nmB LISTofKEYSYM keysyms
+};
+
+struct GetKeyboardMapping {
+    inline static constexpr
+    std::string_view name { "GetKeyboardMapping" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 101
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 2 request length
+        KEYCODE    first_keycode;  // first-keycode
+        uint8_t    m;  // count
+    private:
+        uint8_t    _unused2[2];
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    keysyms_per_keycode;  // n keysyms-per-keycode
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // nm reply length (m = count field from the request)
+    private:
+        uint8_t    _unused2[24];
+    };
+    // followed by 4nmB LISTofKEYSYM keysyms
+};
+
+struct ChangeKeyboardControl {
+    inline static constexpr
+    std::string_view name { "ChangeKeyboardControl" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 102
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2+n request length
+        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1) #x0001 key-click-percent #x0002 bell-percent #x0004 bell-pitch #x0008 bell-duration #x0010 led #x0020 led-mode #x0040 key #x0080 auto-repeat-mode
+    };
+    // followed by 4nB LISTofVALUE value-list
+    /*
+    VALUEs
+        INT8       key_click_percent;  // key-click-percent
+        INT8       bell_percent;  // bell-percent
+        INT16      bell_pitch;  // bell-pitch
+        INT16      bell_duration;  // bell-duration
+        CARD8      led;
+        uint8_t    led_mode;  // led-mode 0 Off 1 On
+        KEYCODE    key;
+        uint8_t    auto_repeat_mode;  // auto-repeat-mode 0 Off 1 On 2 Default
+     */
+    inline static const
+    std::vector< std::string_view >& value_names {
+        protocol::enum_names::keyctl_value_mask };
+    inline static const
+    std::vector< std::string_view >& led_mode_names {
+        protocol::enum_names::off_on };  // up to 1
+    inline static const
+    std::vector< std::string_view >& auto_repeat_mode_names {
+        protocol::enum_names::off_on };
+};
+
+struct GetKeyboardControl {
+    inline static constexpr
+    std::string_view name { "GetKeyboardControl" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 103
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    global_auto_repeat;  // global-auto-repeat 0 Off 1 On
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 5 reply length
+        CARD32     led_mask;  // led-mask
+        CARD8      key_click_percent;  // key-click-percent
+        CARD8      bell_percent;  // bell-percent
+        CARD16     bell_pitch;  // bell-pitch
+        CARD16     bell_duration;  // bell-duration
+    private:
+        uint8_t    _unused[2];
+    };
+    // followed by 32B LISTofCARD8 auto-repeats
+
+    inline static const
+    std::vector< std::string_view >& global_auto_repeat_names {
+        protocol::enum_names::off_on };  // up to 1
+};
+
+struct Bell {
+    inline static constexpr
+    std::string_view name { "Bell" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 104
+        INT8       percent;
+        uint16_t   request_length;  // 1 request length
+    };
+};
+
+struct ChangePointerControl {
+    inline static constexpr
+    std::string_view name { "ChangePointerControl" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 105
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3 request length
+        INT16      acceleration_numerator;  // acceleration-numerator
+        INT16      acceleration_denominator;  // acceleration-denominator
+        INT16      threshold;
+        BOOL       do_acceleration;  // do-acceleration
+        BOOL       do_threshold;  // do-threshold
+    };
+};
+
 /*
-
-PutImage
-     1     72                              opcode
-     1                                     format
-          0     Bitmap
-          1     XYPixmap
-          2     ZPixmap
-     2     6+(n+p)/4                       request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     2     CARD16                          width
-     2     CARD16                          height
-     2     INT16                           dst-x
-     2     INT16                           dst-y
-     1     CARD8                           left-pad
-     1     CARD8                           depth
-     2                                     unused
-     n     LISTofBYTE                      data
-     p                                     unused, p=pad(n)
-
-GetImage
-     1     73                              opcode
-     1                                     format
-          1     XYPixmap
-          2     ZPixmap
-     2     5                               request length
-     4     DRAWABLE                        drawable
-     2     INT16                           x
-     2     INT16                           y
-     2     CARD16                          width
-     2     CARD16                          height
-     4     CARD32                          plane-mask
-
-▶
-     1     1                               Reply
-     1     CARD8                           depth
-     2     CARD16                          sequence number
-     4     (n+p)/4                         reply length
-     4     VISUALID                        visual
-          0     None
-     20                                    unused
-     n     LISTofBYTE                      data
-     p                                     unused, p=pad(n)
-
-PolyText8
-     1     74                              opcode
-     1                                     unused
-     2     4+(n+p)/4                       request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     2     INT16                           x
-     2     INT16                           y
-     n     LISTofTEXTITEM8                 items
-     p                                     unused, p=pad(n)  (p is always 0
-                                           or 1)
-
-  TEXTITEM8
-     1     m                               length of string (cannot be 255)
-     1     INT8                            delta
-     m     STRING8                         string
-  or
-     1     255                             font-shift indicator
-     1                                     font byte 3 (most-significant)
-     1                                     font byte 2
-     1                                     font byte 1
-     1                                     font byte 0 (least-significant)
-
-PolyText16
-     1     75                              opcode
-     1                                     unused
-     2     4+(n+p)/4                       request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     2     INT16                           x
-     2     INT16                           y
-     n     LISTofTEXTITEM16                items
-     p                                     unused, p=pad(n)  (p must be 0 or
-                                           1)
-
-  TEXTITEM16
-     1     m                               number of CHAR2Bs in string
-                                           (cannot be 255)
-     1     INT8                            delta
-     2m     STRING16                       string
-  or
-     1     255                             font-shift indicator
-     1                                     font byte 3 (most-significant)
-     1                                     font byte 2
-     1                                     font byte 1
-     1                                     font byte 0 (least-significant)
-
-ImageText8
-     1     76                              opcode
-     1     n                               length of string
-     2     4+(n+p)/4                       request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     2     INT16                           x
-     2     INT16                           y
-     n     STRING8                         string
-     p                                     unused, p=pad(n)
-
-ImageText16
-     1     77                              opcode
-     1     n                               number of CHAR2Bs in string
-     2     4+(2n+p)/4                      request length
-     4     DRAWABLE                        drawable
-     4     GCONTEXT                        gc
-     2     INT16                           x
-     2     INT16                           y
-     2n     STRING16                       string
-     p                                     unused, p=pad(2n)
-
-CreateColormap
-     1     78                              opcode
-     1                                     alloc
-          0     None
-          1     All
-     2     4                               request length
-     4     COLORMAP                        mid
-     4     WINDOW                          window
-     4     VISUALID                        visual
-
-FreeColormap
-     1     79                              opcode
-     1                                     unused
-     2     2                               request length
-     4     COLORMAP                        cmap
-
-CopyColormapAndFree
-     1     80                              opcode
-     1                                     unused
-     2     3                               request length
-     4     COLORMAP                        mid
-     4     COLORMAP                        src-cmap
-
-InstallColormap
-     1     81                              opcode
-     1                                     unused
-     2     2                               request length
-     4     COLORMAP                        cmap
-
-UninstallColormap
-     1     82                              opcode
-     1                                     unused
-     2     2                               request length
-     4     COLORMAP                        cmap
-
-ListInstalledColormaps
-     1     83                              opcode
-     1                                     unused
-     2     2                               request length
-     4     WINDOW                          window
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     n                               reply length
-     2     n                               number of COLORMAPs in cmaps
-     22                                    unused
-     4n     LISTofCOLORMAP                 cmaps
-
-AllocColor
-     1     84                              opcode
-     1                                     unused
-     2     4                               request length
-     4     COLORMAP                        cmap
-     2     CARD16                          red
-     2     CARD16                          green
-     2     CARD16                          blue
-     2                                     unused
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     2     CARD16                          red
-     2     CARD16                          green
-     2     CARD16                          blue
-     2                                     unused
-     4     CARD32                          pixel
-     12                                    unused
-
-AllocNamedColor
-     1     85                              opcode
-     1                                     unused
-     2     3+(n+p)/4                       request length
-     4     COLORMAP                        cmap
-     2     n                               length of name
-     2                                     unused
-     n     STRING8                         name
-     p                                     unused, p=pad(n)
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     4     CARD32                          pixel
-     2     CARD16                          exact-red
-     2     CARD16                          exact-green
-     2     CARD16                          exact-blue
-     2     CARD16                          visual-red
-     2     CARD16                          visual-green
-     2     CARD16                          visual-blue
-     8                                     unused
-
-AllocColorCells
-     1     86                              opcode
-     1     BOOL                            contiguous
-     2     3                               request length
-     4     COLORMAP                        cmap
-     2     CARD16                          colors
-     2     CARD16                          planes
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     n+m                             reply length
-     2     n                               number of CARD32s in pixels
-     2     m                               number of CARD32s in masks
-     20                                    unused
-     4n     LISTofCARD32                   pixels
-     4m     LISTofCARD32                   masks
-
-AllocColorPlanes
-     1     87                              opcode
-     1     BOOL                            contiguous
-     2     4                               request length
-     4     COLORMAP                        cmap
-     2     CARD16                          colors
-     2     CARD16                          reds
-     2     CARD16                          greens
-     2     CARD16                          blues
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     n                               reply length
-     2     n                               number of CARD32s in pixels
-     2                                     unused
-     4     CARD32                          red-mask
-     4     CARD32                          green-mask
-     4     CARD32                          blue-mask
-     8                                     unused
-     4n     LISTofCARD32                   pixels
-
-FreeColors
-     1     88                              opcode
-     1                                     unused
-     2     3+n                             request length
-     4     COLORMAP                        cmap
-     4     CARD32                          plane-mask
-     4n     LISTofCARD32                   pixels
-
-StoreColors
-     1     89                              opcode
-     1                                     unused
-     2     2+3n                            request length
-     4     COLORMAP                        cmap
-     12n     LISTofCOLORITEM               items
-
-  COLORITEM
-     4     CARD32                          pixel
-     2     CARD16                          red
-     2     CARD16                          green
-     2     CARD16                          blue
-     1                                     do-red, do-green, do-blue
-          #x01     do-red (1 is True, 0 is False)
-          #x02     do-green (1 is True, 0 is False)
-          #x04     do-blue (1 is True, 0 is False)
-          #xF8     unused
-     1                                     unused
-
-StoreNamedColor
-     1     90                              opcode
-     1                                     do-red, do-green, do-blue
-          #x01     do-red (1 is True, 0 is False)
-          #x02     do-green (1 is True, 0 is False)
-          #x04     do-blue (1 is True, 0 is False)
-          #xF8     unused
-     2     4+(n+p)/4                       request length
-     4     COLORMAP                        cmap
-     4     CARD32                          pixel
-     2     n                               length of name
-     2                                     unused
-     n     STRING8                         name
-     p                                     unused, p=pad(n)
-
-QueryColors
-     1     91                              opcode
-     1                                     unused
-     2     2+n                             request length
-     4     COLORMAP                        cmap
-     4n     LISTofCARD32                   pixels
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     2n                              reply length
-     2     n                               number of RGBs in colors
-     22                                    unused
-     8n     LISTofRGB                      colors
-
-  RGB
-     2     CARD16                          red
-     2     CARD16                          green
-     2     CARD16                          blue
-     2                                     unused
-
-LookupColor
-     1     92                              opcode
-     1                                     unused
-     2     3+(n+p)/4                       request length
-     4     COLORMAP                        cmap
-     2     n                               length of name
-     2                                     unused
-     n     STRING8                         name
-     p                                     unused, p=pad(n)
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     2     CARD16                          exact-red
-     2     CARD16                          exact-green
-     2     CARD16                          exact-blue
-     2     CARD16                          visual-red
-     2     CARD16                          visual-green
-     2     CARD16                          visual-blue
-     12                                    unused
-
-CreateCursor
-     1     93                              opcode
-     1                                     unused
-     2     8                               request length
-     4     CURSOR                          cid
-     4     PIXMAP                          source
-     4     PIXMAP                          mask
-          0     None
-     2     CARD16                          fore-red
-     2     CARD16                          fore-green
-     2     CARD16                          fore-blue
-     2     CARD16                          back-red
-     2     CARD16                          back-green
-     2     CARD16                          back-blue
-     2     CARD16                          x
-     2     CARD16                          y
-
-CreateGlyphCursor
-     1     94                              opcode
-     1                                     unused
-     2     8                               request length
-     4     CURSOR                          cid
-     4     FONT                            source-font
-     4     FONT                            mask-font
-          0     None
-     2     CARD16                          source-char
-     2     CARD16                          mask-char
-     2     CARD16                          fore-red
-     2     CARD16                          fore-green
-     2     CARD16                          fore-blue
-     2     CARD16                          back-red
-     2     CARD16                          back-green
-     2     CARD16                          back-blue
-
-FreeCursor
-     1     95                              opcode
-     1                                     unused
-     2     2                               request length
-     4     CURSOR                          cursor
-
-RecolorCursor
-     1     96                              opcode
-     1                                     unused
-     2     5                               request length
-     4     CURSOR                          cursor
-     2     CARD16                          fore-red
-     2     CARD16                          fore-green
-     2     CARD16                          fore-blue
-     2     CARD16                          back-red
-     2     CARD16                          back-green
-     2     CARD16                          back-blue
-
-QueryBestSize
-     1     97                              opcode
-     1                                     class
-          0     Cursor
-          1     Tile
-          2     Stipple
-     2     3                               request length
-     4     DRAWABLE                        drawable
-     2     CARD16                          width
-     2     CARD16                          height
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     2     CARD16                          width
-     2     CARD16                          height
-     20                                    unused
-
-QueryExtension
-     1     98                              opcode
-     1                                     unused
-     2     2+(n+p)/4                       request length
-     2     n                               length of name
-     2                                     unused
-     n     STRING8                         name
-     p                                     unused, p=pad(n)
-
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     1     BOOL                            present
-     1     CARD8                           major-opcode
-     1     CARD8                           first-event
-     1     CARD8                           first-error
-     20                                    unused
-
-ListExtensions
-     1     99                              opcode
-     1                                     unused
-     2     1                               request length
-
-▶
-     1     1                               Reply
-     1     CARD8                           number of STRs in names
-     2     CARD16                          sequence number
-     4     (n+p)/4                         reply length
-     24                                    unused
-     n     LISTofSTR                       names
-     p                                     unused, p=pad(n)
-
-ChangeKeyboardMapping
-     1     100                             opcode
-     1     n                               keycode-count
-     2     2+nm                            request length
-     1     KEYCODE                         first-keycode
-     1     m                               keysyms-per-keycode
-     2                                     unused
-     4nm     LISTofKEYSYM                  keysyms
-
-GetKeyboardMapping
-     1     101                             opcode
-     1                                     unused
-     2     2                               request length
-     1     KEYCODE                         first-keycode
-     1     m                               count
-     2                                     unused
-
-▶
-     1     1                               Reply
-     1     n                               keysyms-per-keycode
-     2     CARD16                          sequence number
-     4     nm                              reply length (m = count field
-                                           from the request)
-     24                                    unused
-     4nm     LISTofKEYSYM                  keysyms
-
-ChangeKeyboardControl
-     1     102                             opcode
-     1                                     unused
-     2     2+n                             request length
-     4     BITMASK                         value-mask (has n bits set to 1)
-          #x0001     key-click-percent
-          #x0002     bell-percent
-          #x0004     bell-pitch
-          #x0008     bell-duration
-          #x0010     led
-          #x0020     led-mode
-          #x0040     key
-          #x0080     auto-repeat-mode
-     4n     LISTofVALUE                    value-list
-
-  VALUEs
-     1     INT8                            key-click-percent
-     1     INT8                            bell-percent
-     2     INT16                           bell-pitch
-     2     INT16                           bell-duration
-     1     CARD8                           led
-     1                                     led-mode
-          0     Off
-          1     On
-     1     KEYCODE                         key
-     1                                     auto-repeat-mode
-          0     Off
-          1     On
-          2     Default
-
-GetKeyboardControl
-     1     103                             opcode
-     1                                     unused
-     2     1                               request length
-
-▶
-     1     1                               Reply
-     1                                     global-auto-repeat
-          0     Off
-          1     On
-     2     CARD16                          sequence number
-     4     5                               reply length
-     4     CARD32                          led-mask
-     1     CARD8                           key-click-percent
-     1     CARD8                           bell-percent
-     2     CARD16                          bell-pitch
-     2     CARD16                          bell-duration
-     2                                     unused
-     32     LISTofCARD8                    auto-repeats
-
-Bell
-     1     104                             opcode
-     1     INT8                            percent
-     2     1                               request length
-
-ChangePointerControl
-     1     105                             opcode
-     1                                     unused
-     2     3                               request length
-     2     INT16                           acceleration-numerator
-     2     INT16                           acceleration-denominator
-     2     INT16                           threshold
-     1     BOOL                            do-acceleration
-     1     BOOL                            do-threshold
 
 GetPointerControl
      1     106                             opcode

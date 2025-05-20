@@ -615,14 +615,14 @@ std::vector<std::string_view> keyctl_value_mask {
     "auto-repeat-mode"    // 1 << 7
 };
 
-// protocol::shared_enums::names::off_on_toggle
 // Req 102 ChangeKeyboardControl.VALUE.led-mode 1B (up to 1)
 // Req 102 ChangeKeyboardControl.VALUE.auto-repeat-mode 1B
 // Req 103 GetKeyboardControl - Reply.global-auto-repeat 1B (up to 1)
 inline const
 std::vector<std::string_view> off_on {
-    "Off",  // 0
-    "On"    // 1
+    "Off",     // 0
+    "On",      // 1
+    "Default"  // 2
 };
 
 // Req 107 SetScreenSaver.prefer-blanking 1B
