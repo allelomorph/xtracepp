@@ -273,8 +273,9 @@ std::vector<std::string_view> window_attribute_map_state {
 };
 
 // Req 006 ChangeSaveSet.mode 1B
+// Req 109 ChangeHosts.mode 1B
 inline const
-std::vector<std::string_view> save_set_mode {
+std::vector<std::string_view> change_mode {
     "Insert",  // 0
     "Delete"   // 1
 };
@@ -630,7 +631,7 @@ std::vector<std::string_view> off_on {
 // Req 108 GetScreenSaver - Reply.prefer-blanking 1B (up to 1)
 // Req 108 GetScreenSaver - Reply.allow-exposures 1B (up to 1)
 inline const
-std::vector<std::string_view> screen_saver {
+std::vector<std::string_view> no_yes {
     "No",      // 0
     "Yes",     // 1
     "Default"  // 2

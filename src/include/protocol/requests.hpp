@@ -512,6 +512,10 @@ struct ChangeSaveSet {
         uint16_t   request_length;
         WINDOW     window;
     };
+
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::change_mode };
 };
 
 struct ReparentWindow {
@@ -3063,193 +3067,345 @@ struct ChangePointerControl {
     };
 };
 
-/*
+struct GetPointerControl {
+    inline static constexpr
+    std::string_view name { "GetPointerControl" };
 
-GetPointerControl
-     1     106                             opcode
-     1                                     unused
-     2     1                               request length
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 106
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     2     CARD16                          acceleration-numerator
-     2     CARD16                          acceleration-denominator
-     2     CARD16                          threshold
-     18                                    unused
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 TBD why 0?
+        CARD16     acceleration_numerator;  // acceleration-numerator
+        CARD16     acceleration_denominator;  // acceleration-denominator
+        CARD16     threshold;
+    private:
+        uint8_t    _unused2[18];
+    };
+};
 
-SetScreenSaver
-     1     107                             opcode
-     1                                     unused
-     2     3                               request length
-     2     INT16                           timeout
-     2     INT16                           interval
-     1                                     prefer-blanking
-          0     No
-          1     Yes
-          2     Default
-     1                                     allow-exposures
-          0     No
-          1     Yes
-          2     Default
-     2                                     unused
+struct SetScreenSaver {
+    inline static constexpr
+    std::string_view name { "SetScreenSaver" };
 
-GetScreenSaver
-     1     108                             opcode
-     1                                     unused
-     2     1                               request length
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 107
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 3 request length
+        INT16      timeout;
+        INT16      interval;
+        uint8_t    prefer_blanking;  // prefer-blanking 0 No 1 Yes 2 Default
+        uint8_t    allow_exposures;  // allow-exposures 0 No 1 Yes 2 Default
+    private:
+        uint8_t    _unused2[2];
+    };
 
-▶
-     1     1                               Reply
-     1                                     unused
-     2     CARD16                          sequence number
-     4     0                               reply length
-     2     CARD16                          timeout
-     2     CARD16                          interval
-     1                                     prefer-blanking
-          0     No
-          1     Yes
-     1                                     allow-exposures
-          0     No
-          1     Yes
-     18                                    unused
+    inline static const
+    std::vector< std::string_view >& prefer_blanking_names {
+        protocol::enum_names::no_yes };
+    inline static const
+    std::vector< std::string_view >& allow_exposures_names {
+        protocol::enum_names::no_yes };
+};
 
-ChangeHosts
-     1     109                             opcode
-     1                                     mode
-          0     Insert
-          1     Delete
-     2     2+(n+p)/4                       request length
-     1                                     family
-          0     Internet
-          1     DECnet
-          2     Chaos
-     1                                     unused
-     2     n                               length of address
-     n     LISTofCARD8                     address
-     p                                     unused, p=pad(n)
+struct GetScreenSaver {
+    inline static constexpr
+    std::string_view name { "GetScreenSaver" };
 
-ListHosts
-     1     110                             opcode
-     1                                     unused
-     2     1                               request length
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 108
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
 
-▶
-     1     1                               Reply
-     1                                     mode
-          0     Disabled
-          1     Enabled
-     2     CARD16                          sequence number
-     4     n/4                             reply length
-     2     CARD16                          number of HOSTs in hosts
-     22                                    unused
-     n     LISTofHOST                      hosts (n always a multiple of 4)
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+        uint8_t    _unused1;
+    public:
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 TBD why 0?
+        CARD16     timeout;
+        CARD16     interval;
+        uint8_t    prefer_blanking;  // prefer-blanking 0 No 1 Yes
+        uint8_t    allow_exposures;  // allow-exposures 0 No 1 Yes
+    private:
+        uint8_t    _unused2[18];
+    };
 
-SetAccessControl
-     1     111                             opcode
-     1                                     mode
-          0     Disable
-          1     Enable
-     2     1                               request length
+    inline static const
+    std::vector< std::string_view >& prefer_blanking_names {
+        protocol::enum_names::no_yes };  // up to 1
+    inline static const
+    std::vector< std::string_view >& allow_exposures_names {
+        protocol::enum_names::no_yes };  // up to 1
+};
 
-SetCloseDownMode
-     1     112                             opcode
-     1                                     mode
-          0     Destroy
-          1     RetainPermanent
-          2     RetainTemporary
-     2     1                               request length
+struct ChangeHosts {
+    inline static constexpr
+    std::string_view name { "ChangeHosts" };
 
-KillClient
-     1     113                             opcode
-     1                                     unused
-     2     2                               request length
-     4     CARD32                          resource
-          0     AllTemporary
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 109
+        uint8_t    mode;  // 0 Insert 1 Delete
+        uint16_t   request_length;  // 2+(n+p)/4 request length
+        uint8_t    family;  // 0 Internet 1 DECnet 2 Chaos
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   n;  // length of address
+    };
+    // pad(n)B LISTofCARD8 address
 
-RotateProperties
-     1     114                             opcode
-     1                                     unused
-     2     3+n                             request length
-     4     WINDOW                          window
-     2     n                               number of properties
-     2     INT16                           delta
-     4n    LISTofATOM                      properties
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::change_mode };
+    inline static const
+    std::vector< std::string_view >& family_names {
+        protocol::enum_names::host_family };  // up to 2
+};
 
-ForceScreenSaver
-     1     115                             opcode
-     1                                     mode
-          0     Reset
-          1     Activate
-     2     1                               request length
+struct ListHosts {
+    inline static constexpr
+    std::string_view name { "ListHosts" };
 
-SetPointerMapping
-     1     116                             opcode
-     1     n                               length of map
-     2     1+(n+p)/4                       request length
-     n     LISTofCARD8                     map
-     p                                     unused, p=pad(n)
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 110
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
 
-▶
-     1     1                               Reply
-     1                                     status
-          0     Success
-          1     Busy
-     2     CARD16                          sequence number
-     4     0                               reply length
-     24                                    unused
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    mode;  // 0 Disabled 1 Enabled
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // n/4 reply length
+        CARD16     n;  // unnamed, number of HOSTs in hosts
+    private:
+        uint8_t    _unused[22];
+    };
+    // followed by n4B LISTofHOST hosts n HOSTs
 
-GetPointerMapping
-     1     117                             opcode
-     1                                     unused
-     2     1                               request length
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::host_status_mode };
+};
 
-▶
-     1     1                               Reply
-     1     n                               length of map
-     2     CARD16                          sequence number
-     4     (n+p)/4                         reply length
-     24                                    unused
-     n     LISTofCARD8                     map
-     p                                     unused, p=pad(n)
+struct SetAccessControl {
+    inline static constexpr
+    std::string_view name { "SetAccessControl" };
 
-SetModifierMapping
-     1     118                             opcode
-     1     n                               keycodes-per-modifier
-     2     1+2n                            request length
-     8n    LISTofKEYCODE                   keycodes
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 111
+        uint8_t    mode;  // 0 Disable 1 Enable
+        uint16_t   request_length;  // 1 request length
+    };
 
-▶
-     1     1                               Reply
-     1                                     status
-          0     Success
-          1     Busy
-          2     Failed
-     2     CARD16                          sequence number
-     4     0                               reply length
-     24                                    unused
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::access_mode };
+};
 
-GetModifierMapping
-     1     119                             opcode
-     1                                     unused
-     2     1                               request length
+struct SetCloseDownMode {
+    inline static constexpr
+    std::string_view name { "SetCloseDownMode" };
 
-▶
-     1     1                               Reply
-     1     n                               keycodes-per-modifier
-     2     CARD16                          sequence number
-     4     2n                              reply length
-     24                                    unused
-     8n     LISTofKEYCODE                  keycodes
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 112
+        uint8_t    mode;  // 0 Destroy 1 RetainPermanent 2 RetainTemporary
+        uint16_t   request_length;  // 1 request length
+    };
 
-NoOperation
-     1     127                             opcode
-     1                                     unused
-     2     1+n                             request length
-     4n                                    unused
-*/
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::close_down_mode };
+};
+
+struct KillClient {
+    inline static constexpr
+    std::string_view name { "KillClient" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 113
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2 request length
+        CARD32     resource;  // 0 AllTemporary
+    };
+
+    inline static const
+    std::vector< std::string_view >& resource_names {
+        protocol::enum_names::client_resource };
+};
+
+struct RotateProperties {
+    inline static constexpr
+    std::string_view name { "RotateProperties" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 114
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 3+n request length
+        WINDOW     window;
+        uint16_t   n;  // number of properties
+        INT16      delta;
+    };
+    // 4nB LISTofATOM properties 4 ATOMs
+};
+
+struct ForceScreenSaver {
+    inline static constexpr
+    std::string_view name { "ForceScreenSaver" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 115
+        uint8_t    mode;  // 0 Reset 1 Activate
+        uint16_t   request_length;  // 1 request length
+    };
+
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::screen_saver_set_mode };
+};
+
+struct SetPointerMapping {
+    inline static constexpr
+    std::string_view name { "SetPointerMapping" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 116
+        uint8_t    n;  // length of map
+        uint16_t   request_length;  // 1+(n+p)/4 request length
+    };
+    // followed by pad(n)B LISTofCARD8 map
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    status;  // 0 Success 1 Busy
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+    private:
+        uint8_t    _unused[24];
+    };
+
+    inline static const
+    std::vector< std::string_view >& status_names {
+        protocol::enum_names::mapping_status };  // up to 1
+};
+
+struct GetPointerMapping {
+    inline static constexpr
+    std::string_view name { "GetPointerMapping" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 117
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    n;  // length of map
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // (n+p)/4 reply length
+    private:
+        uint8_t    _unused[24];
+    };
+    // followed by pad(n)B LISTofCARD8 map
+};
+
+struct SetModifierMapping {
+    inline static constexpr
+    std::string_view name { "SetModifierMapping" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 118
+        uint8_t    keycodes_per_modifier;  // n keycodes-per-modifier
+        uint16_t   request_length;  // 1+2n request length
+    };
+    // followed by 8nB LISTofKEYCODE keycodes n KEYCODEs
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    status;  // 0 Success 1 Busy 2 Failed
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 0 reply length TBD why 0?
+    private:
+        uint8_t    _unused[24];
+    };
+
+    inline static const
+    std::vector< std::string_view >& status_names {
+        protocol::enum_names::mapping_status };
+};
+
+struct GetModifierMapping {
+    inline static constexpr
+    std::string_view name { "GetModifierMapping" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 119
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 1 request length
+    };
+
+    struct [[gnu::packed]] ReplyEncoding {
+    private:
+        uint8_t    _prefix;  // 1 Reply
+    public:
+        uint8_t    keycodes_per_modifier;  // n keycodes-per-modifier
+        CARD16     sequence_number;  // sequence number
+        uint32_t   reply_length;  // 2n reply length
+    private:
+        uint8_t    _unused[24];
+    };
+    // followed by 8n LISTofKEYCODE keycodes n KEYCODEs
+};
+
+struct NoOperation {
+    inline static constexpr
+    std::string_view name { "NoOperation" };
+
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;  // 127
+    private:
+        uint8_t    _unused1;
+    public:
+        uint16_t   request_length;  // 1+n request length
+    };
+    // followed by uint8_t unused[4n]
+};
 
 }  // namespace requests
 
