@@ -50,140 +50,6 @@ namespace protocol {
 
 namespace requests {
 
-// // TBD make these extern or part of a logging func
-// constexpr int REQUEST_CT { 127 };
-// // names by opcode
-// constexpr std::array< std::string_view, REUQEST_CT + 1 > names {
-//     "",                         //   0 (reserved for TBD ??)
-//     "CreateWindow",             //   1
-//     "ChangeWindowAttributes",   //   2
-//     "GetWindowAttributes",      //   3
-//     "DestroyWindow",            //   4
-//     "DestroySubwindows",        //   5
-//     "ChangeSaveSet",            //   6
-//     "ReparentWindow",           //   7
-//     "MapWindow",                //   8
-//     "MapSubwindows",            //   9
-//     "UnmapWindow",              //  10
-//     "UnmapSubwindows",          //  11
-//     "ConfigureWindow",          //  12
-//     "CirculateWindow",          //  13
-//     "GetGeometry",              //  14
-//     "QueryTree",                //  15
-//     "InternAtom",               //  16
-//     "GetAtomName",              //  17
-//     "ChangeProperty",           //  18
-//     "DeleteProperty",           //  19
-//     "GetProperty",              //  20
-//     "ListProperties",           //  21
-//     "SetSelectionOwner",        //  22
-//     "GetSelectionOwner",        //  23
-//     "ConvertSelection",         //  24
-//     "SendEvent",                //  25
-//     "GrabPointer",              //  26
-//     "UngrabPointer",            //  27
-//     "GrabButton",               //  28
-//     "UngrabButton",             //  29
-//     "ChangeActivePointerGrab",  //  30
-//     "GrabKeyboard",             //  31
-//     "UngrabKeyboard",           //  32
-//     "GrabKey",                  //  33
-//     "UngrabKey",                //  34
-//     "AllowEvents",              //  35
-//     "GrabServer",               //  36
-//     "UngrabServer",             //  37
-//     "QueryPointer",             //  38
-//     "GetMotionEvents",          //  39
-//     "TranslateCoordinates",     //  40
-//     "WarpPointer",              //  41
-//     "SetInputFocus",            //  42
-//     "GetInputFocus",            //  43
-//     "QueryKeymap",              //  44
-//     "OpenFont",                 //  45
-//     "CloseFont",                //  46
-//     "QueryFont",                //  47
-//     "QueryTextExtents",         //  48
-//     "ListFonts",                //  49
-//     "ListFontsWithInfo",        //  50
-//     "SetFontPath",              //  51
-//     "GetFontPath",              //  52
-//     "CreatePixmap",             //  53
-//     "FreePixmap",               //  54
-//     "CreateGC",                 //  55
-//     "ChangeGC",                 //  56
-//     "CopyGC",                   //  57
-//     "SetDashes",                //  58
-//     "SetClipRectangles",        //  59
-//     "FreeGC",                   //  60
-//     "ClearArea",                //  61
-//     "CopyArea",                 //  62
-//     "CopyPlane",                //  63
-//     "PolyPoint",                //  64
-//     "PolyLine",                 //  65
-//     "PolySegment",              //  66
-//     "PolyRectangle",            //  67
-//     "PolyArc",                  //  68
-//     "FillPoly",                 //  69
-//     "PolyFillRectangle",        //  70
-//     "PolyFillArc",              //  71
-//     "PutImage",                 //  72
-//     "GetImage",                 //  73
-//     "PolyText8",                //  74
-//     "PolyText16",               //  75
-//     "ImageText8",               //  76
-//     "ImageText16",              //  77
-//     "CreateColormap",           //  78
-//     "FreeColormap",             //  79
-//     "CopyColormapAndFree",      //  80
-//     "InstallColormap",          //  81
-//     "UninstallColormap",        //  82
-//     "ListInstalledColormaps",   //  83
-//     "AllocColor",               //  84
-//     "AllocNamedColor",          //  85
-//     "AllocColorCells",          //  86
-//     "AllocColorPlanes",         //  87
-//     "FreeColors",               //  88
-//     "StoreColors",              //  89
-//     "StoreNamedColor",          //  90
-//     "QueryColors",              //  91
-//     "LookupColor",              //  92
-//     "CreateCursor",             //  93
-//     "CreateGlyphCursor",        //  94
-//     "FreeCursor",               //  95
-//     "RecolorCursor",            //  96
-//     "QueryBestSize",            //  97
-//     "QueryExtension",           //  98
-//     "ListExtensions",           //  99
-//     "ChangeKeyboardMapping",    // 100
-//     "GetKeyboardMapping",       // 101
-//     "ChangeKeyboardControl",    // 102
-//     "GetKeyboardControl",       // 103
-//     "Bell",                     // 104
-//     "ChangePointerControl",     // 105
-//     "GetPointerControl",        // 106
-//     "SetScreenSaver",           // 107
-//     "GetScreenSaver",           // 108
-//     "ChangeHosts",              // 109
-//     "ListHosts",                // 110
-//     "SetAccessControl",         // 111
-//     "SetCloseDownMode",         // 112
-//     "KillClient",               // 113
-//     "RotateProperties",         // 114
-//     "ForceScreenSaver",         // 115
-//     "SetPointerMapping",        // 116
-//     "GetPointerMapping",        // 117
-//     "SetModifierMapping",       // 118
-//     "GetModifierMapping",       // 119
-//     "",                         // 120 (unused) // TBD consider map instead?
-//     "",                         // 121 (unused)
-//     "",                         // 122 (unused)
-//     "",                         // 123 (unused)
-//     "",                         // 124 (unused)
-//     "",                         // 125 (unused)
-//     "",                         // 126 (unused)
-//     "NoOperation"               // 127
-// };
-
 namespace opcodes {
 
 enum Opcodes {
@@ -309,18 +175,150 @@ enum Opcodes {
     NOOPERATION               =  127
 };
 
+inline constexpr
+int MAX { NOOPERATION };
+
 }  // namespace opcodes
+
+inline constexpr
+std::string_view UNUSED_OPCODE_STRING { "(unused core opcode)" };
+
+// names by opcode
+inline constexpr
+std::array< std::string_view, opcodes::MAX + 1 > names {
+    UNUSED_OPCODE_STRING,       //   0 (TBD reserved??)
+    "CreateWindow",             //   1
+    "ChangeWindowAttributes",   //   2
+    "GetWindowAttributes",      //   3
+    "DestroyWindow",            //   4
+    "DestroySubwindows",        //   5
+    "ChangeSaveSet",            //   6
+    "ReparentWindow",           //   7
+    "MapWindow",                //   8
+    "MapSubwindows",            //   9
+    "UnmapWindow",              //  10
+    "UnmapSubwindows",          //  11
+    "ConfigureWindow",          //  12
+    "CirculateWindow",          //  13
+    "GetGeometry",              //  14
+    "QueryTree",                //  15
+    "InternAtom",               //  16
+    "GetAtomName",              //  17
+    "ChangeProperty",           //  18
+    "DeleteProperty",           //  19
+    "GetProperty",              //  20
+    "ListProperties",           //  21
+    "SetSelectionOwner",        //  22
+    "GetSelectionOwner",        //  23
+    "ConvertSelection",         //  24
+    "SendEvent",                //  25
+    "GrabPointer",              //  26
+    "UngrabPointer",            //  27
+    "GrabButton",               //  28
+    "UngrabButton",             //  29
+    "ChangeActivePointerGrab",  //  30
+    "GrabKeyboard",             //  31
+    "UngrabKeyboard",           //  32
+    "GrabKey",                  //  33
+    "UngrabKey",                //  34
+    "AllowEvents",              //  35
+    "GrabServer",               //  36
+    "UngrabServer",             //  37
+    "QueryPointer",             //  38
+    "GetMotionEvents",          //  39
+    "TranslateCoordinates",     //  40
+    "WarpPointer",              //  41
+    "SetInputFocus",            //  42
+    "GetInputFocus",            //  43
+    "QueryKeymap",              //  44
+    "OpenFont",                 //  45
+    "CloseFont",                //  46
+    "QueryFont",                //  47
+    "QueryTextExtents",         //  48
+    "ListFonts",                //  49
+    "ListFontsWithInfo",        //  50
+    "SetFontPath",              //  51
+    "GetFontPath",              //  52
+    "CreatePixmap",             //  53
+    "FreePixmap",               //  54
+    "CreateGC",                 //  55
+    "ChangeGC",                 //  56
+    "CopyGC",                   //  57
+    "SetDashes",                //  58
+    "SetClipRectangles",        //  59
+    "FreeGC",                   //  60
+    "ClearArea",                //  61
+    "CopyArea",                 //  62
+    "CopyPlane",                //  63
+    "PolyPoint",                //  64
+    "PolyLine",                 //  65
+    "PolySegment",              //  66
+    "PolyRectangle",            //  67
+    "PolyArc",                  //  68
+    "FillPoly",                 //  69
+    "PolyFillRectangle",        //  70
+    "PolyFillArc",              //  71
+    "PutImage",                 //  72
+    "GetImage",                 //  73
+    "PolyText8",                //  74
+    "PolyText16",               //  75
+    "ImageText8",               //  76
+    "ImageText16",              //  77
+    "CreateColormap",           //  78
+    "FreeColormap",             //  79
+    "CopyColormapAndFree",      //  80
+    "InstallColormap",          //  81
+    "UninstallColormap",        //  82
+    "ListInstalledColormaps",   //  83
+    "AllocColor",               //  84
+    "AllocNamedColor",          //  85
+    "AllocColorCells",          //  86
+    "AllocColorPlanes",         //  87
+    "FreeColors",               //  88
+    "StoreColors",              //  89
+    "StoreNamedColor",          //  90
+    "QueryColors",              //  91
+    "LookupColor",              //  92
+    "CreateCursor",             //  93
+    "CreateGlyphCursor",        //  94
+    "FreeCursor",               //  95
+    "RecolorCursor",            //  96
+    "QueryBestSize",            //  97
+    "QueryExtension",           //  98
+    "ListExtensions",           //  99
+    "ChangeKeyboardMapping",    // 100
+    "GetKeyboardMapping",       // 101
+    "ChangeKeyboardControl",    // 102
+    "GetKeyboardControl",       // 103
+    "Bell",                     // 104
+    "ChangePointerControl",     // 105
+    "GetPointerControl",        // 106
+    "SetScreenSaver",           // 107
+    "GetScreenSaver",           // 108
+    "ChangeHosts",              // 109
+    "ListHosts",                // 110
+    "SetAccessControl",         // 111
+    "SetCloseDownMode",         // 112
+    "KillClient",               // 113
+    "RotateProperties",         // 114
+    "ForceScreenSaver",         // 115
+    "SetPointerMapping",        // 116
+    "GetPointerMapping",        // 117
+    "SetModifierMapping",       // 118
+    "GetModifierMapping",       // 119
+    UNUSED_OPCODE_STRING,       // 120 (unused) // TBD consider map instead?
+    UNUSED_OPCODE_STRING,       // 121 (unused)
+    UNUSED_OPCODE_STRING,       // 122 (unused)
+    UNUSED_OPCODE_STRING,       // 123 (unused)
+    UNUSED_OPCODE_STRING,       // 124 (unused)
+    UNUSED_OPCODE_STRING,       // 125 (unused)
+    UNUSED_OPCODE_STRING,       // 126 (unused)
+    "NoOperation"               // 127
+};
 
 // TBD request "header" in protocol refers to 4B { opcode, depth, request_length }
 
-namespace impl {
-
-}  // namespace impl
-
 struct CreateWindow {
-    inline static constexpr
-    std::string_view name { "CreateWindow" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 1
         CARD8      depth;
@@ -384,9 +382,6 @@ struct CreateWindow {
 };
 
 struct ChangeWindowAttributes {
-    inline static constexpr
-    std::string_view name { "ChangeWindowAttributes" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 2
     private:
@@ -428,9 +423,6 @@ struct ChangeWindowAttributes {
 
 // TBD only inheriting from base to get enums for backing-store and class_
 struct GetWindowAttributes {
-    inline static constexpr
-    std::string_view name { "GetWindowAttributes" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 3
     private:
@@ -487,25 +479,16 @@ public:
 }  // namespace impl
 
 struct DestroyWindow {
-    inline static constexpr
-    std::string_view name { "DestroyWindow" };
-
     using Encoding = impl::_SimpleWindowReqEncoding;
     // Encoding::opcode == 4
 };
 
 struct DestroySubwindows {
-    inline static constexpr
-    std::string_view name { "DestroySubwindows" };
-
     using Encoding = impl::_SimpleWindowReqEncoding;
     // Encoding::opcode == 5
 };
 
 struct ChangeSaveSet {
-    inline static constexpr
-    std::string_view name { "ChangeSaveSet" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;   // 6
         uint8_t    mode;     // 0 Insert 1 Delete
@@ -519,9 +502,6 @@ struct ChangeSaveSet {
 };
 
 struct ReparentWindow {
-    inline static constexpr
-    std::string_view name { "ReparentWindow" };
-
     struct [[gnu::packed]] Encoding {
     private:
         uint8_t _prefix;  // 7
@@ -536,41 +516,26 @@ struct ReparentWindow {
 };
 
 struct MapWindow {
-    inline static constexpr
-    std::string_view name { "MapWindow" };
-
     using Encoding = impl::_SimpleWindowReqEncoding;
     // Encoding::opcode == 8
 };
 
 struct MapSubwindows {
-    inline static constexpr
-    std::string_view name { "MapSubwindows" };
-
     using Encoding = impl::_SimpleWindowReqEncoding;
     // Encoding::opcode == 9
 };
 
 struct UnmapWindow {
-    inline static constexpr
-    std::string_view name { "UnmapWindow" };
-
     using Encoding = impl::_SimpleWindowReqEncoding;
     // Encoding::opcode == 10
 };
 
 struct UnmapSubwindows {
-    inline static constexpr
-    std::string_view name { "UnmapSubwindows" };
-
     using Encoding = impl::_SimpleWindowReqEncoding;
     // Encoding::opcode == 11
 };
 
 struct ConfigureWindow {
-    inline static constexpr
-    std::string_view name { "ConfigureWindow" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 12
     private:
@@ -583,9 +548,8 @@ struct ConfigureWindow {
         uint8_t   _unused2[2];
     };
     // TBD use of n here implies only one VALUE set in list
-// followed by
-//     4n     LISTofVALUE                    value-list
-    // // VALUE members
+    // followed by
+    //     4n     LISTofVALUE                    value-list
     // INT16     x;
     // INT16     y;
     // CARD16    width;
@@ -603,9 +567,6 @@ struct ConfigureWindow {
 };
 
 struct CirculateWindow {
-    inline static constexpr
-    std::string_view name { "CirculateWindow" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 13
         uint8_t   direction;  // 0 RaiseLowest 1 LowerHighest
@@ -619,9 +580,6 @@ struct CirculateWindow {
 };
 
 struct GetGeometry {
-    inline static constexpr
-    std::string_view name { "GetGeometry" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 14
     private:
@@ -650,9 +608,6 @@ struct GetGeometry {
 };
 
 struct QueryTree {
-    inline static constexpr
-    std::string_view name { "QueryTree" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 15
     private:
@@ -676,12 +631,13 @@ struct QueryTree {
         uint8_t    _unused2[14];
     };
     // followed by 4n LISTofWINDOW  children
+
+    inline static const
+    std::vector< std::string_view >& parent_names {
+        protocol::enum_names::zero_none };
 };
 
 struct InternAtom {
-    inline static constexpr
-    std::string_view name { "InternAtom" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 16
         BOOL      only_if_exists;  // only-if-exists
@@ -710,9 +666,6 @@ struct InternAtom {
 };
 
 struct GetAtomName {
-    inline static constexpr
-    std::string_view name { "GetAtomName" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 17
     private:
@@ -737,9 +690,6 @@ struct GetAtomName {
 };
 
 struct ChangeProperty {
-    inline static constexpr
-    std::string_view name { "ChangeProperty" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 18
         uint8_t   mode;  // 0 Replace 1 Prepend 2 Append
@@ -770,9 +720,6 @@ struct ChangeProperty {
 };
 
 struct DeleteProperty {
-    inline static constexpr
-    std::string_view name { "DeleteProperty" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 19
     private:
@@ -785,9 +732,6 @@ struct DeleteProperty {
 };
 
 struct GetProperty {
-    inline static constexpr
-    std::string_view name { "GetProperty" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 20
         BOOL      delete_;  // delete
@@ -824,18 +768,15 @@ struct GetProperty {
     */
 
     inline static const
-    std::vector< std::string_view >& type_names_request {
+    std::vector< std::string_view >& request_type_names {
         protocol::enum_names::property_atom };
     inline static const
-    std::vector< std::string_view >& type_names_reply {
+    std::vector< std::string_view >& reply_type_names {
         protocol::enum_names::zero_none };
 
 };
 
 struct ListProperties {
-    inline static constexpr
-    std::string_view name { "ListProperties" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 21
     private:
@@ -860,9 +801,6 @@ struct ListProperties {
 };
 
 struct SetSelectionOwner {
-    inline static constexpr
-    std::string_view name { "SetSelectionOwner" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 22
     private:
@@ -875,14 +813,14 @@ struct SetSelectionOwner {
     };
 
     inline static const
+    std::vector< std::string_view >& owner_names {
+        protocol::enum_names::zero_none };
+    inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
 };
 
 struct GetSelectionOwner {
-    inline static constexpr
-    std::string_view name { "GetSelectionOwner" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 23
     private:
@@ -910,9 +848,6 @@ struct GetSelectionOwner {
 };
 
 struct ConvertSelection {
-    inline static constexpr
-    std::string_view name { "ConvertSelection" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t   opcode;  // 24
     private:
@@ -935,9 +870,6 @@ struct ConvertSelection {
 };
 
 struct SendEvent {
-    inline static constexpr
-    std::string_view name { "SendEvent" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 25
         BOOL       propagate;
@@ -957,9 +889,6 @@ struct SendEvent {
 };
 
 struct GrabPointer {
-    inline static constexpr
-    std::string_view name { "GrabPointer" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 26
         BOOL              owner_events;  // owner-events
@@ -1006,9 +935,6 @@ struct GrabPointer {
 };
 
 struct UngrabPointer {
-    inline static constexpr
-    std::string_view name { "UngrabPointer" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 27
     private:
@@ -1024,9 +950,6 @@ struct UngrabPointer {
 };
 
 struct GrabButton {
-    inline static constexpr
-    std::string_view name { "GrabButton" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 28
         BOOL              owner_events;  // owner-events
@@ -1062,9 +985,6 @@ struct GrabButton {
 };
 
 struct UngrabButton {
-    inline static constexpr
-    std::string_view name { "UngrabButton" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 29
         BUTTON            button;  // 1B 0 AnyButton
@@ -1081,9 +1001,6 @@ struct UngrabButton {
 };
 
 struct ChangeActivePointerGrab {
-    inline static constexpr
-    std::string_view name { "ChangeActivePointerGrab" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 30
     private:
@@ -1106,9 +1023,6 @@ struct ChangeActivePointerGrab {
 };
 
 struct GrabKeyboard {
-    inline static constexpr
-    std::string_view name { "GrabKeyboard" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 31
         BOOL              owner_events;  // owner-events
@@ -1148,9 +1062,6 @@ struct GrabKeyboard {
 };
 
 struct UngrabKeyboard {
-    inline static constexpr
-    std::string_view name { "UngrabKeyboard" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 32
     private:
@@ -1166,9 +1077,6 @@ struct UngrabKeyboard {
 };
 
 struct GrabKey {
-    inline static constexpr
-    std::string_view name { "GrabKey" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 33
         BOOL              owner_events;  // owner-events
@@ -1198,9 +1106,6 @@ struct GrabKey {
 };
 
 struct UngrabKey {
-    inline static constexpr
-    std::string_view name { "UngrabKey" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 34
         KEYCODE           key;  // 0 AnyKey
@@ -1221,9 +1126,6 @@ struct UngrabKey {
 };
 
 struct AllowEvents {
-    inline static constexpr
-    std::string_view name { "AllowEvents" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 35
         uint8_t           mode;  // 0 AsyncPointer 1 SyncPointer 2 ReplayPointer 3 AsyncKeyboard 4 SyncKeyboard 5 ReplayKeyboard 6 AsyncBoth 7 SyncBoth
@@ -1237,9 +1139,6 @@ struct AllowEvents {
 };
 
 struct GrabServer {
-    inline static constexpr
-    std::string_view name { "GrabServer" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 36
     private:
@@ -1250,9 +1149,6 @@ struct GrabServer {
 };
 
 struct UngrabServer {
-    inline static constexpr
-    std::string_view name { "UngrabServer" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 37
     private:
@@ -1263,9 +1159,6 @@ struct UngrabServer {
 };
 
 struct QueryPointer {
-    inline static constexpr
-    std::string_view name { "QueryPointer" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 38
     private:
@@ -1299,9 +1192,6 @@ struct QueryPointer {
 };
 
 struct GetMotionEvents {
-    inline static constexpr
-    std::string_view name { "GetMotionEvents" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 39
     private:
@@ -1341,9 +1231,6 @@ struct GetMotionEvents {
 };
 
 struct TranslateCoordinates {
-    inline static constexpr
-    std::string_view name { "TranslateCoordinates" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 40
     private:
@@ -1376,9 +1263,6 @@ struct TranslateCoordinates {
 };
 
 struct WarpPointer {
-    inline static constexpr
-    std::string_view name { "WarpPointer" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 41
     private:
@@ -1404,9 +1288,6 @@ struct WarpPointer {
 };
 
 struct SetInputFocus {
-    inline static constexpr
-    std::string_view name { "SetInputFocus" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 42
         uint8_t          revert_to;  // revert-to 0 None 1 PointerRoot 2 Parent
@@ -1427,9 +1308,6 @@ struct SetInputFocus {
 };
 
 struct GetInputFocus {
-    inline static constexpr
-    std::string_view name { "GetInputFocus" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 43
     private:
@@ -1459,9 +1337,6 @@ struct GetInputFocus {
 };
 
 struct QueryKeymap {
-    inline static constexpr
-    std::string_view name { "QueryKeymap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 44
     private:
@@ -1482,9 +1357,6 @@ struct QueryKeymap {
 };
 
 struct OpenFont {
-    inline static constexpr
-    std::string_view name { "OpenFont" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 45
     private:
@@ -1500,9 +1372,6 @@ struct OpenFont {
 };
 
 struct CloseFont {
-    inline static constexpr
-    std::string_view name { "CloseFont" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 46
     private:
@@ -1532,9 +1401,6 @@ struct [[gnu::packed]] CHARINFO {
 }  // namespace impl
 
 struct QueryFont {
-    inline static constexpr
-    std::string_view name { "QueryFont" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t          opcode;  // 47
     private:
@@ -1583,9 +1449,6 @@ struct QueryFont {
 };
 
 struct QueryTextExtents {
-    inline static constexpr
-    std::string_view name { "QueryTextExtents" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 48
         BOOL       odd_length;  // odd length, True if p = 2
@@ -1620,9 +1483,6 @@ struct QueryTextExtents {
 };
 
 struct ListFonts {
-    inline static constexpr
-    std::string_view name { "ListFonts" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 49
     private:
@@ -1650,9 +1510,6 @@ struct ListFonts {
 };
 
 struct ListFontsWithInfo {
-    inline static constexpr
-    std::string_view name { "ListFontsWithInfo" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 50
     private:
@@ -1716,9 +1573,6 @@ struct ListFontsWithInfo {
 };
 
 struct SetFontPath {
-    inline static constexpr
-    std::string_view name { "SetFontPath" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 51
     private:
@@ -1734,9 +1588,6 @@ struct SetFontPath {
 };
 
 struct GetFontPath {
-    inline static constexpr
-    std::string_view name { "GetFontPath" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 52
     private:
@@ -1761,9 +1612,6 @@ struct GetFontPath {
 };
 
 struct CreatePixmap {
-    inline static constexpr
-    std::string_view name { "CreatePixmap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 53
         CARD8      depth;
@@ -1776,9 +1624,6 @@ struct CreatePixmap {
 };
 
 struct FreePixmap {
-    inline static constexpr
-    std::string_view name { "FreePixmap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 54
     private:
@@ -1790,9 +1635,6 @@ struct FreePixmap {
 };
 
 struct CreateGC {
-    inline static constexpr
-    std::string_view name { "CreateGC" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 55
     private:
@@ -1864,9 +1706,6 @@ struct CreateGC {
 };
 
 struct ChangeGC {
-    inline static constexpr
-    std::string_view name { "ChangeGC" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 56
     private:
@@ -1937,9 +1776,6 @@ struct ChangeGC {
 };
 
 struct CopyGC {
-    inline static constexpr
-    std::string_view name { "CopyGC" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 57
     private:
@@ -1957,9 +1793,6 @@ struct CopyGC {
 };
 
 struct SetDashes {
-    inline static constexpr
-    std::string_view name { "SetDashes" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 58
     private:
@@ -1974,9 +1807,6 @@ struct SetDashes {
 };
 
 struct SetClipRectangles {
-    inline static constexpr
-    std::string_view name { "SetClipRectangles" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 59
         uint8_t    ordering;  // 0 UnSorted 1 YSorted 2 YXSorted 3 YXBanded
@@ -1993,9 +1823,6 @@ struct SetClipRectangles {
 };
 
 struct FreeGC {
-    inline static constexpr
-    std::string_view name { "FreeGC" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 60
     private:
@@ -2007,9 +1834,6 @@ struct FreeGC {
 };
 
 struct ClearArea {
-    inline static constexpr
-    std::string_view name { "ClearArea" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 61
         uint16_t   request_length;  // 4 request length
@@ -2022,9 +1846,6 @@ struct ClearArea {
 };
 
 struct CopyArea {
-    inline static constexpr
-    std::string_view name { "CopyArea" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 62
     private:
@@ -2044,9 +1865,6 @@ struct CopyArea {
 };
 
 struct CopyPlane {
-    inline static constexpr
-    std::string_view name { "CopyPlane" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 63
     private:
@@ -2067,9 +1885,6 @@ struct CopyPlane {
 };
 
 struct PolyPoint {
-    inline static constexpr
-    std::string_view name { "PolyPoint" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 64
         uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
@@ -2086,9 +1901,6 @@ struct PolyPoint {
 
 // TBD same as PolyPoint other than name, use base type?
 struct PolyLine {
-    inline static constexpr
-    std::string_view name { "PolyLine" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 65
         uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
@@ -2104,9 +1916,6 @@ struct PolyLine {
 };
 
 struct PolySegment {
-    inline static constexpr
-    std::string_view name { "PolySegment" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 66
     private:
@@ -2125,9 +1934,6 @@ struct PolySegment {
 };
 
 struct PolyRectangle {
-    inline static constexpr
-    std::string_view name { "PolyRectangle" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 67
     private:
@@ -2141,9 +1947,6 @@ struct PolyRectangle {
 };
 
 struct PolyArc {
-    inline static constexpr
-    std::string_view name { "PolyArc" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 68
     private:
@@ -2157,9 +1960,6 @@ struct PolyArc {
 };
 
 struct FillPoly {
-    inline static constexpr
-    std::string_view name { "FillPoly" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 69
     private:
@@ -2177,9 +1977,6 @@ struct FillPoly {
 };
 
 struct PolyFillRectangle {
-    inline static constexpr
-    std::string_view name { "PolyFillRectangle" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 70
     private:
@@ -2193,9 +1990,6 @@ struct PolyFillRectangle {
 };
 
 struct PolyFillArc {
-    inline static constexpr
-    std::string_view name { "PolyFillArc" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 71
     private:
@@ -2209,9 +2003,6 @@ struct PolyFillArc {
 };
 
 struct PutImage {
-    inline static constexpr
-    std::string_view name { "PutImage" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 72
         uint8_t    format;  // 0 Bitmap 1 XYPixmap 2 ZPixmap
@@ -2235,9 +2026,6 @@ struct PutImage {
 };
 
 struct GetImage {
-    inline static constexpr
-    std::string_view name { "GetImage" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 73
         uint8_t    format;  // 1 XYPixmap 2 ZPixmap
@@ -2273,9 +2061,6 @@ struct GetImage {
 };
 
 struct PolyText8 {
-    inline static constexpr
-    std::string_view name { "PolyText8" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 74
     private:
@@ -2306,9 +2091,6 @@ struct PolyText8 {
 };
 
 struct PolyText16 {
-    inline static constexpr
-    std::string_view name { "PolyText16" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 75
     private:
@@ -2339,9 +2121,6 @@ struct PolyText16 {
 };
 
 struct ImageText8 {
-    inline static constexpr
-    std::string_view name { "ImageText8" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 76
         uint8_t    n;  // length of string
@@ -2355,9 +2134,6 @@ struct ImageText8 {
 };
 
 struct ImageText16 {
-    inline static constexpr
-    std::string_view name { "ImageText16" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 77
         uint8_t    n;  // length of string in CHAR2B
@@ -2371,9 +2147,6 @@ struct ImageText16 {
 };
 
 struct CreateColormap {
-    inline static constexpr
-    std::string_view name { "CreateColormap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 78
         uint8_t    alloc;  // 0 None 1 All
@@ -2389,9 +2162,6 @@ struct CreateColormap {
 };
 
 struct FreeColormap {
-    inline static constexpr
-    std::string_view name { "FreeColormap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 79
     private:
@@ -2403,9 +2173,6 @@ struct FreeColormap {
 };
 
 struct CopyColormapAndFree {
-    inline static constexpr
-    std::string_view name { "CopyColormapAndFree" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 80
     private:
@@ -2418,9 +2185,6 @@ struct CopyColormapAndFree {
 };
 
 struct InstallColormap {
-    inline static constexpr
-    std::string_view name { "InstallColormap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 81
     private:
@@ -2432,9 +2196,6 @@ struct InstallColormap {
 };
 
 struct UninstallColormap {
-    inline static constexpr
-    std::string_view name { "UninstallColormap" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 82
     private:
@@ -2446,9 +2207,6 @@ struct UninstallColormap {
 };
 
 struct ListInstalledColormaps {
-    inline static constexpr
-    std::string_view name { "ListInstalledColormaps" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 83
     private:
@@ -2473,9 +2231,6 @@ struct ListInstalledColormaps {
 };
 
 struct AllocColor {
-    inline static constexpr
-    std::string_view name { "AllocColor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 84
     private:
@@ -2510,9 +2265,6 @@ struct AllocColor {
 };
 
 struct AllocNamedColor {
-    inline static constexpr
-    std::string_view name { "AllocNamedColor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 85
     private:
@@ -2546,9 +2298,6 @@ struct AllocNamedColor {
 };
 
 struct AllocColorCells {
-    inline static constexpr
-    std::string_view name { "AllocColorCells" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 86
         BOOL       contiguous;
@@ -2575,9 +2324,6 @@ struct AllocColorCells {
 };
 
 struct AllocColorPlanes {
-    inline static constexpr
-    std::string_view name { "AllocColorPlanes" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 87
         BOOL       contiguous;
@@ -2610,9 +2356,6 @@ struct AllocColorPlanes {
 };
 
 struct FreeColors {
-    inline static constexpr
-    std::string_view name { "FreeColors" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 88
     private:
@@ -2626,9 +2369,6 @@ struct FreeColors {
 };
 
 struct StoreColors {
-    inline static constexpr
-    std::string_view name { "StoreColors" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 89
     private:
@@ -2655,9 +2395,6 @@ struct StoreColors {
 };
 
 struct StoreNamedColor {
-    inline static constexpr
-    std::string_view name { "StoreNamedColor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 90
         uint8_t    do_rgb_mask;  // & 0x01 do-red & 0x02 do-green & 0x04 do-blue 0xF8 unused
@@ -2676,9 +2413,6 @@ struct StoreNamedColor {
 };
 
 struct QueryColors {
-    inline static constexpr
-    std::string_view name { "QueryColors" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 91
     private:
@@ -2712,9 +2446,6 @@ struct QueryColors {
 };
 
 struct LookupColor {
-    inline static constexpr
-    std::string_view name { "LookupColor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 92
     private:
@@ -2747,9 +2478,6 @@ struct LookupColor {
 };
 
 struct CreateCursor {
-    inline static constexpr
-    std::string_view name { "CreateCursor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t     opcode;  // 93
     private:
@@ -2775,9 +2503,6 @@ struct CreateCursor {
 };
 
 struct CreateGlyphCursor {
-    inline static constexpr
-    std::string_view name { "CreateGlyphCursor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t     opcode;  // 94
     private:
@@ -2803,9 +2528,6 @@ struct CreateGlyphCursor {
 };
 
 struct FreeCursor {
-    inline static constexpr
-    std::string_view name { "FreeCursor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t     opcode;  // 95
     private:
@@ -2817,9 +2539,6 @@ struct FreeCursor {
 };
 
 struct RecolorCursor {
-    inline static constexpr
-    std::string_view name { "RecolorCursor" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t     opcode;  // 96
     private:
@@ -2837,9 +2556,6 @@ struct RecolorCursor {
 };
 
 struct QueryBestSize {
-    inline static constexpr
-    std::string_view name { "QueryBestSize" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 97
         uint8_t    class_;  // 0 Cursor 1 Tile 2 Stipple
@@ -2868,9 +2584,6 @@ struct QueryBestSize {
 };
 
 struct QueryExtension {
-    inline static constexpr
-    std::string_view name { "QueryExtension" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 98
     private:
@@ -2900,9 +2613,6 @@ struct QueryExtension {
 };
 
 struct ListExtensions {
-    inline static constexpr
-    std::string_view name { "ListExtensions" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 99
     private:
@@ -2925,9 +2635,6 @@ struct ListExtensions {
 };
 
 struct ChangeKeyboardMapping {
-    inline static constexpr
-    std::string_view name { "ChangeKeyboardMapping" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 100
         uint8_t    keycode_count;  // n keycode-count
@@ -2941,9 +2648,6 @@ struct ChangeKeyboardMapping {
 };
 
 struct GetKeyboardMapping {
-    inline static constexpr
-    std::string_view name { "GetKeyboardMapping" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 101
     private:
@@ -2970,9 +2674,6 @@ struct GetKeyboardMapping {
 };
 
 struct ChangeKeyboardControl {
-    inline static constexpr
-    std::string_view name { "ChangeKeyboardControl" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 102
     private:
@@ -3005,9 +2706,6 @@ struct ChangeKeyboardControl {
 };
 
 struct GetKeyboardControl {
-    inline static constexpr
-    std::string_view name { "GetKeyboardControl" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 103
     private:
@@ -3039,9 +2737,6 @@ struct GetKeyboardControl {
 };
 
 struct Bell {
-    inline static constexpr
-    std::string_view name { "Bell" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 104
         INT8       percent;
@@ -3050,9 +2745,6 @@ struct Bell {
 };
 
 struct ChangePointerControl {
-    inline static constexpr
-    std::string_view name { "ChangePointerControl" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 105
     private:
@@ -3068,9 +2760,6 @@ struct ChangePointerControl {
 };
 
 struct GetPointerControl {
-    inline static constexpr
-    std::string_view name { "GetPointerControl" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 106
     private:
@@ -3095,9 +2784,6 @@ struct GetPointerControl {
 };
 
 struct SetScreenSaver {
-    inline static constexpr
-    std::string_view name { "SetScreenSaver" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 107
     private:
@@ -3121,9 +2807,6 @@ struct SetScreenSaver {
 };
 
 struct GetScreenSaver {
-    inline static constexpr
-    std::string_view name { "GetScreenSaver" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 108
     private:
@@ -3156,9 +2839,6 @@ struct GetScreenSaver {
 };
 
 struct ChangeHosts {
-    inline static constexpr
-    std::string_view name { "ChangeHosts" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 109
         uint8_t    mode;  // 0 Insert 1 Delete
@@ -3180,9 +2860,6 @@ struct ChangeHosts {
 };
 
 struct ListHosts {
-    inline static constexpr
-    std::string_view name { "ListHosts" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 110
     private:
@@ -3210,9 +2887,6 @@ struct ListHosts {
 };
 
 struct SetAccessControl {
-    inline static constexpr
-    std::string_view name { "SetAccessControl" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 111
         uint8_t    mode;  // 0 Disable 1 Enable
@@ -3225,9 +2899,6 @@ struct SetAccessControl {
 };
 
 struct SetCloseDownMode {
-    inline static constexpr
-    std::string_view name { "SetCloseDownMode" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 112
         uint8_t    mode;  // 0 Destroy 1 RetainPermanent 2 RetainTemporary
@@ -3240,9 +2911,6 @@ struct SetCloseDownMode {
 };
 
 struct KillClient {
-    inline static constexpr
-    std::string_view name { "KillClient" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 113
     private:
@@ -3258,9 +2926,6 @@ struct KillClient {
 };
 
 struct RotateProperties {
-    inline static constexpr
-    std::string_view name { "RotateProperties" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 114
     private:
@@ -3275,9 +2940,6 @@ struct RotateProperties {
 };
 
 struct ForceScreenSaver {
-    inline static constexpr
-    std::string_view name { "ForceScreenSaver" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 115
         uint8_t    mode;  // 0 Reset 1 Activate
@@ -3290,9 +2952,6 @@ struct ForceScreenSaver {
 };
 
 struct SetPointerMapping {
-    inline static constexpr
-    std::string_view name { "SetPointerMapping" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 116
         uint8_t    n;  // length of map
@@ -3317,9 +2976,6 @@ struct SetPointerMapping {
 };
 
 struct GetPointerMapping {
-    inline static constexpr
-    std::string_view name { "GetPointerMapping" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 117
     private:
@@ -3342,9 +2998,6 @@ struct GetPointerMapping {
 };
 
 struct SetModifierMapping {
-    inline static constexpr
-    std::string_view name { "SetModifierMapping" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 118
         uint8_t    keycodes_per_modifier;  // n keycodes-per-modifier
@@ -3369,9 +3022,6 @@ struct SetModifierMapping {
 };
 
 struct GetModifierMapping {
-    inline static constexpr
-    std::string_view name { "GetModifierMapping" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 119
     private:
@@ -3394,9 +3044,6 @@ struct GetModifierMapping {
 };
 
 struct NoOperation {
-    inline static constexpr
-    std::string_view name { "NoOperation" };
-
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 127
     private:
