@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <array>
+#include <tuple>
 
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
@@ -335,25 +336,24 @@ struct CreateWindow {
         uint32_t   value_mask; // 4B BITMASK value-mask (has n bits set to 1)
     };
     // followed by 4n bytes LISTofVALUE value-list
-    // TBD !!! the usual method of casting the buffer to a struct ptr will not work here,
-    //   as the nature of value masks is to indicate via flags which members will be serialized
-    // struct [[gnu::packed]] Value {  // VALUE
-    //     PIXMAP            background-pixmap;  // 0 None 1 ParentRelative
-    //     CARD32            background-pixel;
-    //     PIXMAP            border-pixmap;  // 0 CopyFromParent
-    //     CARD32            border-pixel;
-    //     BITGRAVITY        bit-gravity;
-    //     WINGRAVITY        win-gravity;
-    //     uint8_t           backing-store  // 0 NotUseful 1 WhenMapped 2 Always
-    //     CARD32            backing-planes;
-    //     CARD32            backing-pixel;
-    //     BOOL              override-redirect;
-    //     BOOL              save-under;
-    //     SETofEVENT        event-mask
-    //     SETofDEVICEEVENT  do-not-propagate-mask
-    //     COLORMAP          colormap;  // 0 CopyFromParent
-    //     CURSOR            cursor;  // 0 None
-    // };
+    inline static constexpr
+    std::tuple<
+        PIXMAP,            // background-pixmap // 0 None 1 ParentRelative
+        CARD32,            // background-pixel
+        PIXMAP,            // border-pixmap // 0 CopyFromParent
+        CARD32,            // border-pixel
+        BITGRAVITY,        // bit-gravity
+        WINGRAVITY,        // win-gravity
+        uint8_t,           // backing-store // 0 NotUseful 1 WhenMapped 2 Always
+        CARD32,            // backing-planes
+        CARD32,            // backing-pixel
+        BOOL,              // override-redirect
+        BOOL,              // save-under
+        SETofEVENT,        // event-mask
+        SETofDEVICEEVENT,  // do-not-propagate-mask
+        COLORMAP,          // colormap // 0 CopyFromParent
+        CURSOR             // cursor // 0 None
+        > value_types {};
 
     inline static const
     std::vector< std::string_view >& class_names {
@@ -400,6 +400,24 @@ struct ChangeWindowAttributes {
     // followed by 4n bytes LISTofVALUE value-list
     // 4n     LISTofVALUE                    value-list
     // encodings are the same as for CreateWindow
+    inline static constexpr
+    std::tuple<
+        PIXMAP,              // background-pixmap // 0 None 1 ParentRelative
+        CARD32,              // background-pixel
+        PIXMAP,              // border-pixmap // 0 CopyFromParent
+        CARD32,              // border-pixel
+        BITGRAVITY,          // bit-gravity
+        WINGRAVITY,          // win-gravity
+        uint8_t,             // backing-store // 0 NotUseful 1 WhenMapped 2 Always
+        CARD32,              // backing-planes
+        CARD32,              // backing-pixel
+        BOOL,                // override-redirect
+        BOOL,                // save-under
+        SETofEVENT,          // event-mask
+        SETofDEVICEEVENT,    // do-not-propagate-mask
+        COLORMAP,            // colormap // 0 CopyFromParent
+        CURSOR               // cursor // 0 None
+        > value_types {};
 
     inline static const
     std::vector< std::string_view >& class_names {
@@ -563,6 +581,16 @@ struct ConfigureWindow {
     // CARD16    border_width;  // border-width
     // WINDOW    sibling;
     // uint8_t   stack_mode;  // stack-mode  // 0 Above 1 Below 2 TopIf 3 BottomIf 4 Opposite
+    inline static constexpr
+    std::tuple<
+        INT16,   // x;
+        INT16,   // y;
+        CARD16,  // width;
+        CARD16,  // height;
+        CARD16,  // border-width
+        WINDOW,  // sibling;
+        uint8_t  // stack-mode  // 0 Above 1 Below 2 TopIf 3 BottomIf 4 Opposite
+        > value_types {};
 
     inline static const
     std::vector< std::string_view >& value_names {
@@ -1652,36 +1680,36 @@ struct CreateGC {
         uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
     };
     // followed by 4nB LISTofVALUE value-list
+    inline static constexpr
+    std::tuple<
+        uint8_t,  // function  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
+        CARD32,   // plane-mask
+        CARD32,   // foreground
+        CARD32,   // background
+        CARD16,   // line-width
+        uint8_t,  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
+        uint8_t,  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
+        uint8_t,  // join-style 0 Miter 1 Round 2 Bevel
+        uint8_t,  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
+        uint8_t,  // fill-rule 0 EvenOdd 1 Winding
+        PIXMAP,   // tile
+        PIXMAP,   // stipple
+        INT16,    // tile-stipple-x-origin
+        INT16,    // tile-stipple-y-origin
+        FONT,     // font
+        uint8_t,  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
+        BOOL,     // graphics-exposures
+        INT16,    // clip-x-origin
+        INT16,    // clip-y-origin
+        PIXMAP,   // clip-mask 0 None
+        CARD16,   // dash-offset
+        CARD8,    // dashes  // dashes
+        uint8_t   // arc-mode 0 Chord 1 PieSlice
+        > value_types {};
 
     inline static const
     std::vector< std::string_view >& value_names {
         protocol::enum_names::gc_value_mask };
-    /*
-  VALUEs
-     uint8_t     function;  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
-     CARD32      plane_mask;  // plane-mask
-     CARD32      foreground;
-     CARD32      background;
-     CARD16      line_width;  // line-width
-     uint8_t     line_style;  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
-     uint8_t     cap_style;  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
-     uint8_t     join_style;  // join-style 0 Miter 1 Round 2 Bevel
-     uint8_t     fill_style;  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
-     uint8_t     fill_rule;  // fill-rule 0 EvenOdd 1 Winding
-     PIXMAP      tile;
-     PIXMAP      stipple;
-     INT16       tile_stipple_x_origin;  // tile-stipple-x-origin
-     INT16       tile_stipple_y_origin;  // tile-stipple-y-origin
-     FONT        font;
-     uint8_t     subwindow_mode;  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
-     BOOL        graphics_exposures;  // graphics-exposures
-     INT16       clip_x_origin;  // clip-x-origin
-     INT16       clip_y_origin;  // clip-y-origin
-     PIXMAP      clip_mask;  // clip-mask 0 None
-     CARD16      dash_offset;  // dash-offset
-     CARD8       dashes;  // dashes
-     uint8_t     arc-mode;  // arc_mode 0 Chord 1 PieSlice
-    */
     inline static const
     std::vector< std::string_view >& function_names {
         protocol::enum_names::gc_value_function };
@@ -1711,6 +1739,7 @@ struct CreateGC {
         protocol::enum_names::gc_value_arc_mode };
 };
 
+// TBD value encodings shared with CreateGC
 struct ChangeGC {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 56
@@ -1722,36 +1751,36 @@ struct ChangeGC {
         uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
     };
     // followed by 4nB LISTofVALUE value-list
+    inline static constexpr
+    std::tuple<
+        uint8_t,  // function  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
+        CARD32,   // plane-mask
+        CARD32,   // foreground
+        CARD32,   // background
+        CARD16,   // line-width
+        uint8_t,  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
+        uint8_t,  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
+        uint8_t,  // join-style 0 Miter 1 Round 2 Bevel
+        uint8_t,  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
+        uint8_t,  // fill-rule 0 EvenOdd 1 Winding
+        PIXMAP,   // tile
+        PIXMAP,   // stipple
+        INT16,    // tile-stipple-x-origin
+        INT16,    // tile-stipple-y-origin
+        FONT,     // font
+        uint8_t,  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
+        BOOL,     // graphics-exposures
+        INT16,    // clip-x-origin
+        INT16,    // clip-y-origin
+        PIXMAP,   // clip-mask 0 None
+        CARD16,   // dash-offset
+        CARD8,    // dashes  // dashes
+        uint8_t   // arc-mode 0 Chord 1 PieSlice
+        > value_types {};
 
     inline static const
     std::vector< std::string_view >& value_names {
         protocol::enum_names::gc_value_mask };
-    /*
-  VALUEs
-     uint8_t     function;  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
-     CARD32      plane_mask;  // plane-mask
-     CARD32      foreground;
-     CARD32      background;
-     CARD16      line_width;  // line-width
-     uint8_t     line_style;  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
-     uint8_t     cap_style;  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
-     uint8_t     join_style;  // join-style 0 Miter 1 Round 2 Bevel
-     uint8_t     fill_style;  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
-     uint8_t     fill_rule;  // fill-rule 0 EvenOdd 1 Winding
-     PIXMAP      tile;
-     PIXMAP      stipple;
-     INT16       tile_stipple_x_origin;  // tile-stipple-x-origin
-     INT16       tile_stipple_y_origin;  // tile-stipple-y-origin
-     FONT        font;
-     uint8_t     subwindow_mode;  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
-     BOOL        graphics_exposures;  // graphics-exposures
-     INT16       clip_x_origin;  // clip-x-origin
-     INT16       clip_y_origin;  // clip-y-origin
-     PIXMAP      clip_mask;  // clip-mask 0 None
-     CARD16      dash_offset;  // dash-offset
-     CARD8       dashes;  // dashes
-     uint8_t     arc-mode;  // arc_mode 0 Chord 1 PieSlice
-    */
     inline static const
     std::vector< std::string_view >& function_names {
         protocol::enum_names::gc_value_function };
@@ -2689,17 +2718,18 @@ struct ChangeKeyboardControl {
         uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1) #x0001 key-click-percent #x0002 bell-percent #x0004 bell-pitch #x0008 bell-duration #x0010 led #x0020 led-mode #x0040 key #x0080 auto-repeat-mode
     };
     // followed by 4nB LISTofVALUE value-list
-    /*
-    VALUEs
-        INT8       key_click_percent;  // key-click-percent
-        INT8       bell_percent;  // bell-percent
-        INT16      bell_pitch;  // bell-pitch
-        INT16      bell_duration;  // bell-duration
-        CARD8      led;
-        uint8_t    led_mode;  // led-mode 0 Off 1 On
-        KEYCODE    key;
-        uint8_t    auto_repeat_mode;  // auto-repeat-mode 0 Off 1 On 2 Default
-     */
+    inline static constexpr
+    std::tuple<
+        INT8,     // key-click-percent
+        INT8,     // bell-percent
+        INT16,    // bell-pitch
+        INT16,    // bell-duration
+        CARD8,    // led;
+        uint8_t,  // led-mode 0 Off 1 On
+        KEYCODE,  // key;
+        uint8_t   // auto-repeat-mode 0 Off 1 On 2 Default
+        > value_types {};
+
     inline static const
     std::vector< std::string_view >& value_names {
         protocol::enum_names::keyctl_value_mask };

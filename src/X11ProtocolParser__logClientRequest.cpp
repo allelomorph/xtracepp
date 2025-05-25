@@ -20,8 +20,7 @@ size_t X11ProtocolParser::_logCreateWindow(
     const uint8_t* _data { data };
     size_t bytes_parsed {};
 
-    using namespace protocol;
-    using CreateWindow = requests::CreateWindow;
+    using CreateWindow = protocol::requests::CreateWindow;
     const CreateWindow::Encoding* encoding {
         reinterpret_cast< const CreateWindow::Encoding* >( _data ) };
     bytes_parsed += sizeof( CreateWindow::Encoding );
@@ -46,26 +45,9 @@ size_t X11ProtocolParser::_logCreateWindow(
         { "colormap",              "d", CreateWindow::colormap_names },
         { "cursor",                "d", CreateWindow::cursor_names }
     };
-    static constexpr std::tuple<
-            PIXMAP,              // background-pixmap
-            CARD32,              // background-pixel
-            PIXMAP,              // border-pixmap
-            CARD32,              // border-pixel
-            BITGRAVITY,          // bit-gravity
-            WINGRAVITY,          // win-gravity
-            uint8_t,             // backing-store
-            CARD32,              // backing-planes
-            CARD32,              // backing-pixel
-            BOOL,                // override-redirect
-            BOOL,                // save-under
-            SETofEVENT,          // event-mask
-            SETofDEVICEEVENT,    // do-not-propagate-mask
-            COLORMAP,            // colormap
-            CURSOR               // cursor
-        > value_list_types;
     _LISTofVALUEParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
-        encoding->value_mask, value_list_types,
+        encoding->value_mask, CreateWindow::value_types,
         _LISTofVALUEParsingInputs{ value_list_strings, "    " },
         _data, &value_list_outputs );
     assert( value_list_outputs.values_parsed == encoding->request_length - 8 );
