@@ -13,40 +13,40 @@ namespace enum_names {
 // BITGRAVITY
 inline const
 std::vector<std::string_view> bitgravity {
-     "Forget",     //  0
-     "NorthWest",  //  1
-     "North",      //  2
-     "NorthEast",  //  3
-     "West",       //  4
-     "Center",     //  5
-     "East",       //  6
-     "SouthWest",  //  7
-     "South",      //  8
-     "SouthEast",  //  9
-     "Static"      // 10
+    "Forget",     //  0
+    "NorthWest",  //  1
+    "North",      //  2
+    "NorthEast",  //  3
+    "West",       //  4
+    "Center",     //  5
+    "East",       //  6
+    "SouthWest",  //  7
+    "South",      //  8
+    "SouthEast",  //  9
+    "Static"      // 10
 };
 
 // WINGRAVITY
 inline const
 std::vector<std::string_view> wingravity {
-     "Unmap",      //  0
-     "NorthWest",  //  1
-     "North",      //  2
-     "NorthEast",  //  3
-     "West",       //  4
-     "Center",     //  5
-     "East",       //  6
-     "SouthWest",  //  7
-     "South",      //  8
-     "SouthEast",  //  9
-     "Static"      // 10
+    "Unmap",      //  0
+    "NorthWest",  //  1
+    "North",      //  2
+    "NorthEast",  //  3
+    "West",       //  4
+    "Center",     //  5
+    "East",       //  6
+    "SouthWest",  //  7
+    "South",      //  8
+    "SouthEast",  //  9
+    "Static"      // 10
 };
 
 //BOOL
 inline const
 std::vector<std::string_view> bool_ {
-     "False",  // 0
-     "True"    // 1
+    "False",  // 0
+    "True"    // 1
 };
 
 // SETofEVENT
@@ -54,31 +54,31 @@ std::vector<std::string_view> bool_ {
 // SETofDEVICEEVENT
 inline const
 std::vector<std::string_view> set_of_event {
-     "KeyPress",              // 1 <<  0
-     "KeyRelease",            // 1 <<  1
-     "ButtonPress",           // 1 <<  2
-     "ButtonRelease",         // 1 <<  3
-     "EnterWindow",           // 1 <<  4
-     "LeaveWindow",           // 1 <<  5
-     "PointerMotion",         // 1 <<  6
-     "PointerMotionHint",     // 1 <<  7
-     "Button1Motion",         // 1 <<  8
-     "Button2Motion",         // 1 <<  9
-     "Button3Motion",         // 1 << 10
-     "Button4Motion",         // 1 << 11
-     "Button5Motion",         // 1 << 12
-     "ButtonMotion",          // 1 << 13
-     "KeymapState",           // 1 << 14
-     "Exposure",              // 1 << 15
-     "VisibilityChange",      // 1 << 16
-     "StructureNotify",       // 1 << 17
-     "ResizeRedirect",        // 1 << 18
-     "SubstructureNotify",    // 1 << 19
-     "SubstructureRedirect",  // 1 << 20
-     "FocusChange",           // 1 << 21
-     "PropertyChange",        // 1 << 22
-     "ColormapChange",        // 1 << 23
-     "OwnerGrabButton"        // 1 << 24
+    "KeyPress",              // 1 <<  0
+    "KeyRelease",            // 1 <<  1
+    "ButtonPress",           // 1 <<  2
+    "ButtonRelease",         // 1 <<  3
+    "EnterWindow",           // 1 <<  4
+    "LeaveWindow",           // 1 <<  5
+    "PointerMotion",         // 1 <<  6
+    "PointerMotionHint",     // 1 <<  7
+    "Button1Motion",         // 1 <<  8
+    "Button2Motion",         // 1 <<  9
+    "Button3Motion",         // 1 << 10
+    "Button4Motion",         // 1 << 11
+    "Button5Motion",         // 1 << 12
+    "ButtonMotion",          // 1 << 13
+    "KeymapState",           // 1 << 14
+    "Exposure",              // 1 << 15
+    "VisibilityChange",      // 1 << 16
+    "StructureNotify",       // 1 << 17
+    "ResizeRedirect",        // 1 << 18
+    "SubstructureNotify",    // 1 << 19
+    "SubstructureRedirect",  // 1 << 20
+    "FocusChange",           // 1 << 21
+    "PropertyChange",        // 1 << 22
+    "ColormapChange",        // 1 << 23
+    "OwnerGrabButton"        // 1 << 24
 };
 // SETofEVENT
 //     #xFE000000     unused but must be zero
@@ -94,19 +94,19 @@ std::vector<std::string_view> set_of_event {
 // SETofKEYBUTMASK
 inline const
 std::vector<std::string_view> set_of_keybutmask {
-     "Shift",    // 1 <<  0
-     "Lock",     // 1 <<  1
-     "Control",  // 1 <<  2
-     "Mod1",     // 1 <<  3
-     "Mod2",     // 1 <<  4
-     "Mod3",     // 1 <<  5
-     "Mod4",     // 1 <<  6
-     "Mod5",     // 1 <<  7
-     "Button1",  // 1 <<  8
-     "Button2",  // 1 <<  9
-     "Button3",  // 1 << 10
-     "Button4",  // 1 << 11
-     "Button5"   // 1 << 12
+    "Shift",    // 1 <<  0
+    "Lock",     // 1 <<  1
+    "Control",  // 1 <<  2
+    "Mod1",     // 1 <<  3
+    "Mod2",     // 1 <<  4
+    "Mod3",     // 1 <<  5
+    "Mod4",     // 1 <<  6
+    "Mod5",     // 1 <<  7
+    "Button1",  // 1 <<  8
+    "Button2",  // 1 <<  9
+    "Button3",  // 1 << 10
+    "Button4",  // 1 << 11
+    "Button5"   // 1 << 12
 };
 // SETofKEYBUTMASK
 //   #xE000     unused but must be zero
