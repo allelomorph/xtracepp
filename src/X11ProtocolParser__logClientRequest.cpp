@@ -30,27 +30,21 @@ size_t X11ProtocolParser::_logCreateWindow(
     // TBD mask VALUES need name parsing
     static const std::vector<
         _LISTofVALUEParsingInputs::_VALUEParsingStrings > value_list_strings {
-        { "background-pixmap",     "d", { "None", "ParentRelative" } },
+        { "background-pixmap",     "d", CreateWindow::background_pixmap_names },
         { "background-pixel",      "d", {} },
-        { "border-pixmap",         "d", { "CopyFromParent" } },
+        { "border-pixmap",         "d", CreateWindow::border_pixmap_names },
         { "border-pixel",          "d", {} },
-        { "bit-gravity",           "d", { "Forget", "NorthWest", "North",
-                                          "NorthEast", "West", "Center", "East",
-                                          "SouthWest", "South", "SouthEast",
-                                          "Static" } },
-        { "win-gravity",           "d", { "Unmap", "NorthWest", "North",
-                                          "NorthEast", "West", "Center", "East",
-                                          "SouthWest", "South", "SouthEast",
-                                          "Static" } },
-        { "backing-store",         "d", { "NotUseful", "WhenMapped", "Always" } },
+        { "bit-gravity",           "d", CreateWindow::bit_gravity_names },
+        { "win-gravity",           "d", CreateWindow::win_gravity_names },
+        { "backing-store",         "d", CreateWindow::backing_store_names },
         { "backing-planes",        "d", {} },
         { "backing-pixel",         "d", {} },
         { "override-redirect",     "d", {} },
         { "save-under",            "d", {} },
         { "event-mask",            "",  {} },
         { "do-not-propagate-mask", "",  {} },
-        { "colormap",              "d", { "CopyFromParent" } },
-        { "cursor",                "d", { "None" } }
+        { "colormap",              "d", CreateWindow::colormap_names },
+        { "cursor",                "d", CreateWindow::cursor_names }
     };
     static constexpr std::tuple<
             PIXMAP,              // background-pixmap

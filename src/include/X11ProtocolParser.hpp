@@ -55,7 +55,7 @@ private:
         struct _VALUEParsingStrings {
             std::string_view name;
             std::string_view fmt_specifier;
-            std::vector<std::string_view> enum_names;
+            const std::vector<std::string_view>& enum_names;
         };
         const std::vector< _VALUEParsingStrings >& strings;
         size_t name_width {};
@@ -74,6 +74,7 @@ private:
     };
 
     // tuple iteration allows for run time taversal of heterogeneous list of types
+    // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
     // TBD recommended tuple iteration pattern using recursive templating
     template< size_t I = 0, typename... Args >
     auto _parseLISTofVALUE(
