@@ -27,23 +27,24 @@ size_t X11ProtocolParser::_logCreateWindow(
     _data += sizeof( CreateWindow::Encoding );
 
     // TBD mask VALUES need name parsing
+    const std::vector< std::string_view >& vn { CreateWindow::value_names };
     static const std::vector<
         _LISTofVALUEParsingInputs::_VALUEParsingStrings > value_list_strings {
-        { "background-pixmap",     "d", CreateWindow::background_pixmap_names },
-        { "background-pixel",      "d", {} },
-        { "border-pixmap",         "d", CreateWindow::border_pixmap_names },
-        { "border-pixel",          "d", {} },
-        { "bit-gravity",           "d", CreateWindow::bit_gravity_names },
-        { "win-gravity",           "d", CreateWindow::win_gravity_names },
-        { "backing-store",         "d", CreateWindow::backing_store_names },
-        { "backing-planes",        "d", {} },
-        { "backing-pixel",         "d", {} },
-        { "override-redirect",     "d", {} },
-        { "save-under",            "d", {} },
-        { "event-mask",            "",  {} },
-        { "do-not-propagate-mask", "",  {} },
-        { "colormap",              "d", CreateWindow::colormap_names },
-        { "cursor",                "d", CreateWindow::cursor_names }
+        /* background-pixmap     */ { vn[0],  "d", CreateWindow::background_pixmap_names },
+        /* background-pixel      */ { vn[1],  "d", {} },
+        /* border-pixmap         */ { vn[2],  "d", CreateWindow::border_pixmap_names },
+        /* border-pixel          */ { vn[3],  "d", {} },
+        /* bit-gravity           */ { vn[4],  "d", CreateWindow::bit_gravity_names },
+        /* win-gravity           */ { vn[5],  "d", CreateWindow::win_gravity_names },
+        /* backing-store         */ { vn[6],  "d", CreateWindow::backing_store_names },
+        /* backing-planes        */ { vn[7],  "d", {} },
+        /* backing-pixel         */ { vn[8],  "d", {} },
+        /* override-redirect     */ { vn[9],  "d", {} },
+        /* save-under            */ { vn[10], "d", {} },
+        /* event-mask            */ { vn[11],  "", {} },
+        /* do-not-propagate-mask */ { vn[12],  "", {} },
+        /* colormap              */ { vn[13], "d", CreateWindow::colormap_names },
+        /* cursor                */ { vn[14], "d", CreateWindow::cursor_names }
     };
     _LISTofVALUEParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
