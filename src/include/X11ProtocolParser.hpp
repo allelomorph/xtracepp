@@ -36,14 +36,63 @@ private:
         return _padToAlignment( n, _ALIGN );
     }
 
-    template< typename T >
-    auto _parseSimpleType( const uint8_t** data, size_t* bytes_parsed ) ->
-        std::enable_if_t< std::is_arithmetic_v< T >, T > {
-        T val { *reinterpret_cast< T* >( *data ) };
-        *bytes_parsed += sizeof( T );
-        *data += sizeof( T );
-        return val;
+    // template< typename T >
+    // auto _parseSimpleType( const uint8_t** data, size_t* bytes_parsed ) ->
+    //     std::enable_if_t< std::is_arithmetic_v< T >, T > {
+    //     T val { *reinterpret_cast< T* >( *data ) };
+    //     *bytes_parsed += sizeof( T );
+    //     *data += sizeof( T );
+    //     return val;
+    // }
+
+    // TBD pass in verbosity flag?
+    template < typename T >
+    auto _formatCommonType(
+        const T value,
+        const std::vector< std::string_view >& enum_names = {},
+        const size_t max_enum = 0, const size_t min_enum = 0 ) ->
+        std::enable_if_t<std::is_integral_v<T>, std::string> {
+
+        std::string result { fmt::format( "{:d}", value ) };
+        if ( max_enum == 0 && !enum_names.empty() )
+            max_enum = enum_names.size() - 1;
+        for ( size_t enum_ { min_enum }; enum_ <= max_enum; ++enum_ ) {
+            if ( enum_ == value ) {
+                result += fmt::format( " ({})", enum_names[enum_] );
+                break;
+            }
+        }
+        return result;
     }
+
+    // std::string _formatCommonType( const TIMESTAMP  time );
+    // std::string _formatCommonType( const CURSOR     cursor );
+    // std::string _formatCommonType( const COLORMAP   colormap );
+    // std::string _formatCommonType( const ATOM       atom );
+    // std::string _formatCommonType( const VISUALID   visualid );
+    // std::string _formatCommonType( const WINDOW     window );
+    // std::string _formatCommonType( const PIXMAP     pixmap );
+    // std::string _formatCommonType( const DRAWABLE   drawable );
+    // std::string _formatCommonType( const FONT       font );
+    // std::string _formatCommonType( const GCONTEXT   gcontext );
+    // std::string _formatCommonType( const FONTABLE   fontable );
+    // std::string _formatCommonType( const BITGRAVITY bitgravity );
+    // std::string _formatCommonType( const WINGRAVITY wingravity );
+    // std::string _formatCommonType( const BOOL       bool_ );
+    // std::string _formatCommonType( const SETofEVENT setofevent );
+    // std::string _formatCommonType( const SETofPOINTEREVENT setofpointerevent );
+    // std::string _formatCommonType( const SETofDEVICEEVENT setofdeviceevent );
+    // std::string _formatCommonType( const KEYSYM     keysym );
+    // std::string _formatCommonType( const KEYCODE    keycode );
+    // std::string _formatCommonType( const BUTTON     button );
+    // std::string _formatCommonType( const SETofKEYMASK setofkeymask );
+    // std::string _formatCommonType( const SETofKEYBUTMASK setofkeybutmask );
+    // // TBD STR parsed differently
+    // // TBD CHAR2B parsed differently
+    // std::string _formatCommonType( const POINT      point );
+    // std::string _formatCommonType( const RECTANGLE  rectangle );
+    // std::string _formatCommonType( const ARC        arc );
+    // std::string _formatCommonType( const HOST       host );
 
     struct _LISTofVALUEParsingOutputs {
         std::string str     {};
