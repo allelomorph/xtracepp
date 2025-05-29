@@ -561,7 +561,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 assert( !conn.client_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
-                size_t bytes_parsed { parser.logClientPackets( &conn, &settings ) };
+                size_t bytes_parsed { parser.logClientPackets( &conn, settings ) };
                 assert( bytes_parsed == bytes_read );
             }
         }
@@ -636,7 +636,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 assert( !conn.server_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
-                size_t bytes_parsed { parser.logServerPackets( &conn, &settings ) };
+                size_t bytes_parsed { parser.logServerPackets( &conn, settings ) };
                 assert( bytes_parsed == bytes_read );
             }
         }

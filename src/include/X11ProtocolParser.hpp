@@ -172,9 +172,11 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
 
     size_t _logClientPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
+        Connection* conn, uint8_t* data, const size_t sz,
+        const Settings::Verbosity verbosity );
     size_t _logServerPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
+        Connection* conn, uint8_t* data, const size_t sz,
+        const Settings::Verbosity verbosity );
 
     size_t _logServerError(
         Connection* conn, uint8_t* data, const size_t sz );
@@ -186,9 +188,10 @@ private:
 
     size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const uint8_t opcode );
+        const uint8_t opcode, const Settings::Verbosity verbosity );
     size_t _logCreateWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
+        Connection* conn, const uint8_t* data, const size_t sz,
+        const Settings::Verbosity verbosity );
     size_t _logChangeWindowAttributes(
         Connection* conn, const uint8_t* data, const size_t sz );
     // size_t _logGetWindowAttributes(
@@ -432,8 +435,8 @@ public:
     X11ProtocolParser() {}
 
     void setLogFileStream( FILE* log_fs );
-    size_t logClientPackets( Connection* conn, Settings* settings );
-    size_t logServerPackets( Connection* conn, Settings* settings );
+    size_t logClientPackets( Connection* conn, const Settings& settings );
+    size_t logServerPackets( Connection* conn, const Settings& settings );
 };
 
 

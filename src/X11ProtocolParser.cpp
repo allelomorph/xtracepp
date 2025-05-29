@@ -292,7 +292,8 @@ size_t X11ProtocolParser::_logServerResponse(
 }
 
 size_t X11ProtocolParser::_logClientPacket(
-    Connection* conn, uint8_t* data, const size_t sz ) {
+    Connection* conn, uint8_t* data, const size_t sz,
+    const Settings::Verbosity verbosity ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
@@ -311,7 +312,7 @@ size_t X11ProtocolParser::_logClientPacket(
         assert( *data != 0 );
 //        const uint8_t first_byte { *data };
         // TBD use enum instead of magic values
-        bytes_parsed = _logClientRequest( conn, data, sz, *data );
+        bytes_parsed = _logClientRequest( conn, data, sz, *data, verbosity );
         //assert( bytes_parsed == 32 );
         break;
     default:
@@ -321,7 +322,8 @@ size_t X11ProtocolParser::_logClientPacket(
 }
 
 size_t X11ProtocolParser::_logServerPacket(
-    Connection* conn, uint8_t* data, const size_t sz ) {
+    Connection* conn, uint8_t* data, const size_t sz,
+    const Settings::Verbosity verbosity ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
@@ -420,16 +422,17 @@ void X11ProtocolParser::setLogFileStream( FILE* log_fs ) {
 //       QueryExtension gets positive response from server, to then enable
 //       that extension)
 size_t X11ProtocolParser::logClientPackets( Connection* conn,
-                                            Settings* settings ) {
+                                            const Settings& settings ) {
     assert( conn != nullptr );
-    assert( settings != nullptr );
+//    assert( settings != nullptr );
     uint8_t* data { conn->client_buffer.data() };
     size_t   tl_bytes_parsed {};
     for ( const size_t bytes_to_parse { conn->client_buffer.size() };
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
-            _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
-        if ( settings->readwritedebug ) {
+            _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed,
+                              settings.verbosity ) };
+        if ( settings.readwritedebug ) {
             fmt::println( _log_fs, "{:03d}:<:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
         }
@@ -440,16 +443,17 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn,
 }
 
 size_t X11ProtocolParser::logServerPackets( Connection* conn,
-                                            Settings* settings ) {
+                                            const Settings& settings ) {
     assert( conn != nullptr );
-    assert( settings != nullptr );
+//    assert( settings != nullptr );
     uint8_t* data { conn->server_buffer.data() };
     size_t   tl_bytes_parsed {};
     for ( const size_t bytes_to_parse { conn->server_buffer.size() };
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
-            _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
-        if ( settings->readwritedebug ) {
+            _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed,
+                              settings.verbosity ) };
+        if ( settings.readwritedebug ) {
             fmt::println( _log_fs, "{:03d}:>:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
         }

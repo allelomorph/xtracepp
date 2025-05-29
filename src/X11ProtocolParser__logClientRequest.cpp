@@ -13,7 +13,8 @@
 
 
 size_t X11ProtocolParser::_logCreateWindow(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
+    Connection* conn, const uint8_t* data, const size_t sz,
+    const Settings::Verbosity verbosity ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );  // TBD check min size
@@ -578,7 +579,8 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
 // }
 
 size_t X11ProtocolParser::_logClientRequest(
-    Connection* conn, const uint8_t* data, const size_t sz, const uint8_t opcode ) {
+    Connection* conn, const uint8_t* data, const size_t sz, const uint8_t opcode,
+    const Settings::Verbosity verbosity ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= 4 ); // TBD
@@ -590,7 +592,7 @@ size_t X11ProtocolParser::_logClientRequest(
     using namespace protocol::requests;
     switch ( opcode ) {
     case opcodes::CREATEWINDOW:
-        bytes_parsed = _logCreateWindow( conn, data, sz );
+        bytes_parsed = _logCreateWindow( conn, data, sz, verbosity );
         break;
     case opcodes::CHANGEWINDOWATTRIBUTES:
         bytes_parsed = _logChangeWindowAttributes( conn, data, sz );
