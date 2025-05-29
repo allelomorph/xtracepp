@@ -3,6 +3,7 @@
 #include <cctype>      // isprint
 
 #include <fmt/format.h>
+//#include <fmt/printf.h>
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
@@ -64,10 +65,11 @@ size_t X11ProtocolParser::_logCreateWindow(
     static constexpr std::array< std::string_view, 1 > visual_enum_names {
         "CopyFromParent"
     };
-    _log_os << fmt::format( "{:03d}:<:client request {:>3d}: CreateWindow\n",
-                            conn->id, encoding->opcode );
-    _log_os << fmt::format(
-        R"(  depth:          {:d}
+    fmt::print( _log_fs,
+                "{:03d}:<:client request {:>3d}: CreateWindow\n",
+                conn->id, encoding->opcode );
+    fmt::print(
+        _log_fs, R"(  depth:          {:d}
   request length: {:d} (4B units) (8 + {:d} VALUE)
   wid:            {:d}
   parent:         {:d}

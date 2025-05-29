@@ -3,7 +3,7 @@
 
 
 //#include <ostream>
-#include <iostream>  // cout
+//#include <iostream>  // cout
 #include <tuple>
 #include <string>
 #include <string_view>
@@ -12,6 +12,8 @@
 #include <algorithm>  // max
 
 #include <cassert>
+
+#include <stdio.h>  // stdout
 
 #include <fmt/format.h>
 
@@ -23,7 +25,9 @@ class X11ProtocolParser {
 private:
     static constexpr size_t _ALIGN { 4 };
 
-    std::ostream _log_os { std::cout.rdbuf() };
+    // TBD make member of server instead?
+//    std::ostream _log_os { std::cout.rdbuf() };
+    FILE* _log_fs { stdout };
 
     void _bufferHexDump( const uint8_t* data, const size_t sz );
 
@@ -428,7 +432,7 @@ private:
 public:
     X11ProtocolParser() {}
 
-    void syncLogStream( const std::ostream& log_os );
+    void setLogFileStream( FILE* log_fs );
     size_t logClientPackets( Connection* conn, Settings* settings );
     size_t logServerPackets( Connection* conn, Settings* settings );
 };

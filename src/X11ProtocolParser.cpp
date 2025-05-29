@@ -2,7 +2,11 @@
 
 #include <cctype>      // isprint
 
+//#include <sys/stat.h>  // stat struct stat
+#include <stdio.h>  // FILE feof ferror
+
 #include <fmt/format.h>
+//#include <fmt/printf.h>
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
@@ -40,8 +44,8 @@ void X11ProtocolParser::_bufferHexDump( const uint8_t* data, const size_t sz ) {
             as_ascii += fmt::format( "{:c}",
                                      ( std::isprint( *_data ) ) ? *_data : '.' );
         }
-        std::cerr << fmt::format(
-            "{:08x}  {: <23}  {: <23}  {}\n",
+        fmt::print(
+            stderr, "{:08x}  {: <23}  {: <23}  {}\n",
             address_index, group1, group2, as_ascii );
     }
 }
@@ -71,8 +75,8 @@ size_t X11ProtocolParser::_logConnectionInitiation(
 
     // TBD asserts close log file without logging anything
     assert( header->byte_order == 'B' || header->byte_order == 'l' );
-    _log_os << fmt::format(
-        R"({:03d}:<:client "{}" requesting connection:
+    fmt::print(
+        _log_fs, R"({:03d}:<:client "{}" requesting connection:
   byte-order:         {}
   X protocol version: {:d}.{:d}
   auth protocol:      {}
@@ -104,7 +108,8 @@ size_t X11ProtocolParser::_logServerResponse(
         std::string_view reason {
             reinterpret_cast< const char* >( _data ), header->n };
         _data += _pad( header->n );
-        _log_os << fmt::format(
+        fmt::print(
+            _log_fs,
             "{:03d}:>:server refused connection: X protocol version: {:d}.{:d}, "
             "reason: \"{}\"\n",
             conn->id,  header->protocol_major_version,
@@ -122,7 +127,8 @@ size_t X11ProtocolParser::_logServerResponse(
         std::string_view reason {
             reinterpret_cast< const char* >( _data ), reason_padded_sz };
         _data += reason_padded_sz;
-        _log_os << fmt::format(
+        fmt::print(
+            _log_fs,
             "{:03d}:>:server requested further authentication: reason: \"{}\"\n",
             conn->id, reason_padded_sz );
         conn->status = Connection::AUTHENTICATION;
@@ -136,8 +142,8 @@ size_t X11ProtocolParser::_logServerResponse(
         assert( header->image_byte_order < 2 );  // TBD enum
         assert( header->bitmap_format_bit_order < 2 );  // TBD enum
 
-        _log_os << fmt::format(
-            R"({:03d}:>:server accepted connection
+        fmt::print(
+            _log_fs, R"({:03d}:>:server accepted connection
   X protocol version:          {:d}.{:d}
   release_number:              {}
   release_id_base:             {}
@@ -171,34 +177,34 @@ size_t X11ProtocolParser::_logServerResponse(
         std::string_view vendor {
             reinterpret_cast< const char* >( _data ), header->v };
         _data += _pad( header->v );
-        _log_os << fmt::format(
-            R"(  vendor:                      "{}"
+        fmt::print( _log_fs, R"(  vendor:                      "{}"
 )",
-            vendor );
+                      vendor );
 
         // followed by LISTofFORMAT pixmap-formats of n * sizeof(FORMAT) bytes
         const ServerAcceptance::Format* pixmap_formats {
             reinterpret_cast< const ServerAcceptance::Format* >( _data ) };
         _data += sizeof( ServerAcceptance::Format ) * header->n;
-        _log_os << "  pixmap_formats: [\n";
+        fmt::print( _log_fs, "  pixmap_formats: [\n" );
         for ( uint8_t pm_ct { header->n }, pm_i {}; pm_i < pm_ct; ++pm_i ) {
-            _log_os << fmt::format(
+            fmt::print(
+                _log_fs,
                 "    [ depth: {:3d} bits_per_pixel: {:3d} scanline_pad: {:3d} ]{}\n",
                 pixmap_formats[pm_i].depth,
                 pixmap_formats[pm_i].bits_per_pixel,
                 pixmap_formats[pm_i].scanline_pad,
                 ( pm_i < pm_ct - 1 ) ? "," : "" );
         }
-        _log_os << "  ]\n";
+        fmt::print( _log_fs, "  ]\n" );
 
         // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
-        _log_os << "  roots: [\n";
+        fmt::print( _log_fs, "  roots: [\n" );
         for ( uint8_t s_ct { header->r }, s_i {}; s_i < s_ct; ++s_i ) {
             const ServerAcceptance::Screen::Header* screen {
                 reinterpret_cast< const ServerAcceptance::Screen::Header* >( _data ) };
             _data += sizeof( ServerAcceptance::Screen::Header );
-            _log_os << fmt::format(
-                R"(    [
+            fmt::print(
+                _log_fs, R"(    [
       root:                  {}
       default_colormap:      {}
       white_pixel:           {}
@@ -231,13 +237,13 @@ size_t X11ProtocolParser::_logServerResponse(
                 screen->save_unders,
                 screen->root_depth );
             // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4) ((d * sizeof(_DepthHeader) + lists of VISUALTYPE) )
-            _log_os << "      allowed_depths: [\n";
+            fmt::print( _log_fs, "      allowed_depths: [\n" );
             for ( uint8_t d_ct { screen->d }, d_i {}; d_i < d_ct; ++d_i ) {
                 const ServerAcceptance::Screen::Depth::Header* depth {
                     reinterpret_cast< const ServerAcceptance::Screen::Depth::Header* >( _data ) };
                 _data += sizeof( ServerAcceptance::Screen::Depth::Header );
-                _log_os << fmt::format(
-                    R"(        [
+                fmt::print(
+                    _log_fs, R"(        [
           depth: {:d}
           visuals: [
 )",
@@ -247,8 +253,8 @@ size_t X11ProtocolParser::_logServerResponse(
                     const ServerAcceptance::Screen::Depth::VisualType* visual {
                         reinterpret_cast< const ServerAcceptance::Screen::Depth::VisualType* >( _data ) };
                     _data += sizeof( ServerAcceptance::Screen::Depth::VisualType );
-                    _log_os << fmt::format(
-                        R"(            [
+                    fmt::print(
+                        _log_fs, R"(            [
               visual_id:          {}
               class_:             {:d}
               bits_per_rgb_value: {:d}
@@ -267,16 +273,16 @@ size_t X11ProtocolParser::_logServerResponse(
                         visual->blue_mask,
                         ( v_i < v_ct - 1 ) ? "," : "" );
                 }
-                _log_os << "          ]\n";              // end of visuals
-                _log_os << fmt::format( "        ]{}\n", // end of depth
-                    ( d_i < d_ct - 1 ) ? "," : "" );
+                fmt::print( _log_fs, "          ]\n" );              // end of visuals
+                fmt::print( _log_fs, "        ]{}\n", // end of depth
+                            ( d_i < d_ct - 1 ) ? "," : "" );
             }
-            _log_os << "      ]\n";                      // end of depths
-            _log_os << fmt::format( "    ]{}\n",         // end of screen
-                                    ( s_i < s_ct - 1 ) ? "," : "" );
+            fmt::print( _log_fs, "      ]\n" );                      // end of depths
+            fmt::print( _log_fs, "    ]{}\n",         // end of screen
+                        ( s_i < s_ct - 1 ) ? "," : "" );
         }
-        _log_os << "  ]\n";                              // end of roots (screens)
-        _log_os << std::flush;
+        fmt::print( _log_fs, "  ]\n" );                              // end of roots (screens)
+        fflush( _log_fs );
         conn->status = Connection::OPEN;
     }
         break;
@@ -403,11 +409,10 @@ size_t X11ProtocolParser::_logServerEvent(
     return sz;
 }
 
-void X11ProtocolParser::syncLogStream( const std::ostream& log_os ) {
-    // TBD errors?
-    assert( log_os.good() );
-    _log_os.rdbuf( log_os.rdbuf() );
-    assert( _log_os.good() );
+void X11ProtocolParser::setLogFileStream( FILE* log_fs ) {
+    assert( log_fs != nullptr );
+    assert( !feof( log_fs ) && !ferror( log_fs ) );
+    _log_fs = log_fs;
 }
 
 // client packets begin with:
@@ -427,9 +432,9 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn,
         size_t bytes_parsed {
             _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings->readwritedebug ) {
-            _log_os << fmt::format(
-                "{:03d}:<:parsed   {:4d} bytes\n",
-                conn->id, bytes_parsed );
+            fmt::print( _log_fs,
+                        "{:03d}:<:parsed   {:4d} bytes\n",
+                        conn->id, bytes_parsed );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
@@ -448,9 +453,9 @@ size_t X11ProtocolParser::logServerPackets( Connection* conn,
         size_t bytes_parsed {
             _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings->readwritedebug ) {
-            _log_os << fmt::format(
-                "{:03d}:>:parsed   {:4d} bytes\n",
-                conn->id, bytes_parsed );
+            fmt::print( _log_fs,
+                        "{:03d}:>:parsed   {:4d} bytes\n",
+                        conn->id, bytes_parsed );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;

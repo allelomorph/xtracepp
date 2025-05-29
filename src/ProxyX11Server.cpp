@@ -27,6 +27,7 @@
 #include <netdb.h> // 'struct addrinfo' getaddrinfo freeaddrinfo
 
 #include <fmt/format.h>
+//#include <fmt/printf.h>
 
 #include "ProxyX11Server.hpp"
 #include "Connection.hpp"
@@ -437,8 +438,8 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
                 _open_fds.erase( conn.client_fd );
                 conn.closeClientSocket();
                 if ( settings.readwritedebug ) {
-                    settings.log_os << fmt::format(
-                        "{:03d}:>:sent EOF\n", conn.id );
+                    fmt::print( settings.log_fs,
+                                "{:03d}:>:sent EOF\n", conn.id );
                 }
             } else {
                 // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
@@ -461,8 +462,8 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
                 _open_fds.erase( conn.server_fd );
                 conn.closeServerSocket();
                 if ( settings.readwritedebug ) {
-                    settings.log_os << fmt::format(
-                        "{:03d}:<:sent EOF\n", conn.id );
+                    fmt::print( settings.log_fs,
+                                "{:03d}:<:sent EOF\n", conn.id );
                 }
             } else {
                 // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
@@ -511,7 +512,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
             if ( FD_ISSET( conn.client_fd, exceptfds ) ) {
                 _open_fds.erase( conn.client_fd );
                 conn.closeClientSocket();
-                settings.log_os << fmt::format(
+                fmt::print(
+                    settings.log_fs,
                     "{:03d}: exceptional condition in communication with client\n",
                     conn.id );
                 continue;
@@ -524,9 +526,9 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                     bytes_written = conn.forwardPacketToClient();  // conn.server_buffer.write( conn.client_fd )
                 } catch ( const std::system_error& e ) {
                     if ( settings.readwritedebug ) {
-                        settings.log_os << fmt::format(
-                            "{:03d}:>:error writing to client: {}\n",
-                            conn.id, e.code().message() );
+                        fmt::print( settings.log_fs,
+                                    "{:03d}:>:error writing to client: {}\n",
+                                    conn.id, e.code().message() );
                     }
                     _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
@@ -535,9 +537,9 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 assert( bytes_written > 0 );
                 // TBD should already be parsed, immediately after read
                 if ( settings.readwritedebug ) {
-                    settings.log_os << fmt::format(
-                        "{:03d}:>:wrote    {:4d} bytes\n",
-                        conn.id, bytes_written );
+                    fmt::print( settings.log_fs,
+                                  "{:03d}:>:wrote    {:4d} bytes\n",
+                                  conn.id, bytes_written );
                 }
             }
             if ( FD_ISSET( conn.client_fd, readfds ) ) {
@@ -546,7 +548,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                     bytes_read = conn.bufferPacketFromClient();  // conn.client_buffer.read( conn.client_fd )
                 } catch ( const std::system_error& e ) {
                     if ( settings.readwritedebug ) {
-                        settings.log_os << fmt::format(
+                        fmt::print(
+                            settings.log_fs,
                             "{:03d}:<:error reading from client buffer: {}\n",
                             conn.id, e.code().message() );
                     }
@@ -556,17 +559,17 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 if ( bytes_read == 0 ) {
                     if ( settings.readwritedebug ) {
-                        settings.log_os << fmt::format(
-                            "{:03d}:<:got EOF\n", conn.id );
+                        fmt::print( settings.log_fs,
+                                    "{:03d}:<:got EOF\n", conn.id );
                     }
                     _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
                     continue;
                 }
                 if ( settings.readwritedebug ) {
-                    settings.log_os << fmt::format(
-                        "{:03d}:<:received {:4d} bytes\n",
-                        conn.id, bytes_read );
+                    fmt::print( settings.log_fs,
+                                "{:03d}:<:received {:4d} bytes\n",
+                                conn.id, bytes_read );
                 }
                 assert( !conn.client_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
@@ -575,7 +578,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
             }
         }
         if ( conn.clientSocketIsClosed() && !conn.server_buffer.empty() ) {
-            settings.log_os << fmt::format(
+            fmt::print(
+                settings.log_fs,
                 "{:03d}:>: discarded {} bytes sent from server to client\n",
                 conn.id, conn.server_buffer.size() );
         }
@@ -583,7 +587,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
             if ( FD_ISSET( conn.server_fd, exceptfds ) ) {
                 _open_fds.erase( conn.server_fd );
                 conn.closeServerSocket();
-                settings.log_os << fmt::format(
+                fmt::print(
+                    settings.log_fs,
                     "{:03d}: exceptional condition in communication with server\n",
                     conn.id );
                 continue;
@@ -596,9 +601,9 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                     bytes_written = conn.forwardPacketToServer();  // conn.client_buffer.write( conn.server_fd )
                 } catch ( const std::system_error& e ) {
                     if ( settings.readwritedebug ) {
-                        settings.log_os << fmt::format(
-                            "{:03d}:<:error writing to server: {}\n",
-                            conn.id, e.code().message() );
+                        fmt::print( settings.log_fs,
+                                    "{:03d}:<:error writing to server: {}\n",
+                                    conn.id, e.code().message() );
                     }
                     _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
@@ -607,9 +612,9 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 assert( bytes_written > 0 );
                 // TBD should already be parsed, immediately after read
                 if ( settings.readwritedebug ) {
-                    settings.log_os << fmt::format(
-                        "{:03d}:<:wrote    {:4d} bytes\n",
-                        conn.id, bytes_written );
+                    fmt::print( settings.log_fs,
+                                "{:03d}:<:wrote    {:4d} bytes\n",
+                                conn.id, bytes_written );
                 }
             }
             if ( FD_ISSET( conn.server_fd, readfds ) ) {
@@ -618,7 +623,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                     bytes_read = conn.bufferPacketFromServer();  // conn.server_buffer.read( conn.server_fd )
                 } catch ( const std::system_error& e ) {
                     if ( settings.readwritedebug ) {
-                        settings.log_os << fmt::format(
+                        fmt::print(
+                            settings.log_fs,
                             "{:03d}:>:error reading from server buffer: {}\n",
                             conn.id, e.code().message() );
                     }
@@ -628,17 +634,17 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 if ( bytes_read == 0 ) {
                     if ( settings.readwritedebug ) {
-                        settings.log_os << fmt::format(
-                            "{:03d}:>:got EOF\n", conn.id );
+                        fmt::print( settings.log_fs,
+                                    "{:03d}:>:got EOF\n", conn.id );
                     }
                     _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
                     continue;
                 }
                 if ( settings.readwritedebug ) {
-                    settings.log_os << fmt::format(
-                        "{:03d}:>:received {:4d} bytes\n",
-                        conn.id, bytes_read );
+                    fmt::print( settings.log_fs,
+                                "{:03d}:>:received {:4d} bytes\n",
+                                conn.id, bytes_read );
                 }
                 assert( !conn.server_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
@@ -647,7 +653,8 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
             }
         }
         if ( conn.serverSocketIsClosed() && !conn.client_buffer.empty() ) {
-            settings.log_os << fmt::format(
+            fmt::print(
+                settings.log_fs,
                 "{:03d}:<: discarded {} bytes sent from client to server\n",
                 conn.id, conn.client_buffer.size() );
         }
@@ -757,7 +764,7 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
     //     copy_authentication();
     // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     _parseDisplayNames();
-    parser.syncLogStream( settings.log_os );
+    parser.setLogFileStream( settings.log_fs );
 }
 
 int ProxyX11Server::run() {

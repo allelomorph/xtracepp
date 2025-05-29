@@ -1,6 +1,7 @@
 #include <unistd.h>  // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
 #include <getopt.h>  // getopt_long
 #include <stdlib.h>  // strtoll exit
+#include <stdio.h>   // fclose fopen
 
 #include <cassert>
 
@@ -9,11 +10,12 @@
 #include <string_view>
 
 #include "Settings.hpp"
+#include "errors.hpp"
 
 
 Settings::~Settings() {
-    log_os << std::flush;
-    log_ofs.close();
+    fflush( log_fs );
+    fclose( log_fs );
 }
 
 void Settings::parseFromArgv(const int argc, char* const* argv) {
@@ -68,7 +70,6 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         //     break;
         case 'o':
             if ( log_path != nullptr ) {
-                log_ofs.close();
                 std::filesystem::remove( log_path );
                 std::cerr << argv[0] << ": -o option may only be used once" << std::endl;
                 exit( EXIT_FAILURE );
@@ -80,19 +81,20 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
             // getopt_long edge case: parsing an option that takes arguments,
             //   followed by another option with no whitespace in between, eg:
             //   " -o--help " (optarg == "--help") or " -f-k " (optarg == "-k")
+            // TBD error quit if any optarg starts with '-', not just log_path
             if ( log_path[0] == '-' ) {
                 std::cerr << argv[0] <<
                     ": file path passed to -o option may not begin with '-' to "
                     "prevent option parsing errors" << std::endl;
                 exit( EXIT_FAILURE );
             }
-            log_ofs.open( log_path );
-            if ( !log_ofs.good() ) {
-                // TBD exception / message
+            log_fs = fopen( log_path, "w" );
+            if ( log_fs == nullptr ) {
+                std::cerr << argv[0] <<
+                    ": could not open log file \"" << log_path << "\": " <<
+                    errors::system::message( "" ) << std::endl;
                 exit( EXIT_FAILURE );
             }
-            // https://stackoverflow.com/q/366955/
-            log_os.rdbuf( log_ofs.rdbuf() );
             break;
         case '\0':
             switch( _long_only_option ) {

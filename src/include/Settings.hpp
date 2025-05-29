@@ -3,6 +3,7 @@
 
 
 #include <getopt.h>  // `struct option` required_argument no_argument
+#include <stdio.h>   // FILE stdout
 
 #include <cstdint>   // SIZE_MAX
 
@@ -67,8 +68,9 @@ public:
     // bool print_counts             { false };
     // bool print_offsets            { false };
     const char*   log_path        { nullptr };
-    std::ofstream log_ofs         {};
-    std::ostream  log_os          { std::cout.rdbuf() };
+    // std::ofstream log_ofs         {};
+    // std::ostream  log_os          { std::cout.rdbuf() };
+    FILE* log_fs                  { stdout };
     const char*   out_displayname { nullptr };
     const char*   in_displayname  { nullptr };
     // const char* out_authfile      { nullptr };
