@@ -68,8 +68,6 @@ public:
     // bool print_counts             { false };
     // bool print_offsets            { false };
     const char*   log_path        { nullptr };
-    // std::ofstream log_ofs         {};
-    // std::ostream  log_os          { std::cout.rdbuf() };
     FILE* log_fs                  { stdout };
     const char*   out_displayname { nullptr };
     const char*   in_displayname  { nullptr };

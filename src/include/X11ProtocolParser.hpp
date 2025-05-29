@@ -26,7 +26,6 @@ private:
     static constexpr size_t _ALIGN { 4 };
 
     // TBD make member of server instead?
-//    std::ostream _log_os { std::cout.rdbuf() };
     FILE* _log_fs { stdout };
 
     void _bufferHexDump( const uint8_t* data, const size_t sz );

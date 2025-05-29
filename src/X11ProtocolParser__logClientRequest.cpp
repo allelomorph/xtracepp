@@ -65,9 +65,8 @@ size_t X11ProtocolParser::_logCreateWindow(
     static constexpr std::array< std::string_view, 1 > visual_enum_names {
         "CopyFromParent"
     };
-    fmt::print( _log_fs,
-                "{:03d}:<:client request {:>3d}: CreateWindow\n",
-                conn->id, encoding->opcode );
+    fmt::println( _log_fs, "{:03d}:<:client request {:>3d}: CreateWindow",
+                  conn->id, encoding->opcode );
     fmt::print(
         _log_fs, R"(  depth:          {:d}
   request length: {:d} (4B units) (8 + {:d} VALUE)
