@@ -1,3 +1,7 @@
+#ifndef ENUM_NAMES_HPP
+#define ENUM_NAMES_HPP
+
+
 #include <vector>
 #include <string_view>
 
@@ -776,3 +780,6 @@ std::vector<std::string_view> mapping_state {
 }  // namespace enum_names
 
 }  // namespace protocol
+
+
+#endif  // ENUM_NAMES_HPP
