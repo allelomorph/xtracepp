@@ -10,6 +10,7 @@
 #include <type_traits>  // enable_if_t remove_reference_t
 #include <vector>
 #include <algorithm>  // max
+#include <limits>
 
 #include <cassert>
 
@@ -19,6 +20,8 @@
 
 #include "Connection.hpp"
 #include "Settings.hpp"
+#include "protocol/enum_names.hpp"
+#include "protocol/common_types.hpp"
 
 
 class X11ProtocolParser {
@@ -48,54 +51,193 @@ private:
     //     return val;
     // }
 
-    // TBD pass in verbosity flag?
-    template < typename T >
-    auto _formatCommonType(
-        const T value,
-        const std::vector< std::string_view >& enum_names = {},
-        const size_t max_enum = 0, const size_t min_enum = 0 ) ->
-        std::enable_if_t<std::is_integral_v<T>, std::string> {
+    // TBD for CURSOR COLORMAP ATOM VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
+    static constexpr uint32_t
+    _TOP_3_OF_32_BITS { 0xE0000000 };
 
-        std::string result { fmt::format( "{:d}", value ) };
-        if ( max_enum == 0 && !enum_names.empty() )
-            max_enum = enum_names.size() - 1;
-        for ( size_t enum_ { min_enum }; enum_ <= max_enum; ++enum_ ) {
-            if ( enum_ == value ) {
-                result += fmt::format( " ({})", enum_names[enum_] );
-                break;
-            }
-        }
-        return result;
+    template < typename T >
+    inline auto _top_three_bits_zero( const T value ) ->
+        std::enable_if_t< std::is_integral_v< T > && sizeof( T ) == 4,
+            bool > {
+        return ( value & _TOP_3_OF_32_BITS == 0 );
     }
 
-    // std::string _formatCommonType( const TIMESTAMP  time );
-    // std::string _formatCommonType( const CURSOR     cursor );
-    // std::string _formatCommonType( const COLORMAP   colormap );
-    // std::string _formatCommonType( const ATOM       atom );
-    // std::string _formatCommonType( const VISUALID   visualid );
-    // std::string _formatCommonType( const WINDOW     window );
-    // std::string _formatCommonType( const PIXMAP     pixmap );
-    // std::string _formatCommonType( const DRAWABLE   drawable );
-    // std::string _formatCommonType( const FONT       font );
-    // std::string _formatCommonType( const GCONTEXT   gcontext );
-    // std::string _formatCommonType( const FONTABLE   fontable );
-    // std::string _formatCommonType( const BITGRAVITY bitgravity );
-    // std::string _formatCommonType( const WINGRAVITY wingravity );
-    // std::string _formatCommonType( const BOOL       bool_ );
-    // std::string _formatCommonType( const SETofEVENT setofevent );
-    // std::string _formatCommonType( const SETofPOINTEREVENT setofpointerevent );
-    // std::string _formatCommonType( const SETofDEVICEEVENT setofdeviceevent );
-    // std::string _formatCommonType( const KEYSYM     keysym );
-    // std::string _formatCommonType( const KEYCODE    keycode );
-    // std::string _formatCommonType( const BUTTON     button );
-    // std::string _formatCommonType( const SETofKEYMASK setofkeymask );
-    // std::string _formatCommonType( const SETofKEYBUTMASK setofkeybutmask );
-    // // TBD STR parsed differently
-    // // TBD CHAR2B parsed differently
-    // std::string _formatCommonType( const POINT      point );
-    // std::string _formatCommonType( const RECTANGLE  rectangle );
-    // std::string _formatCommonType( const ARC        arc );
-    // std::string _formatCommonType( const HOST       host );
+    static constexpr size_t _UNINITIALIZED_SZ { std::numeric_limits<size_t>::max() };
+    // TBD [u]intXX_t CURSOR COLORMAP VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
+    template < typename T >
+    auto _formatInteger(
+        const T value, const Settings::Verbosity verbosity,
+        const std::vector< std::string_view >& enum_names = {},
+        size_t max_enum = _UNINITIALIZED_SZ,
+        size_t min_enum = _UNINITIALIZED_SZ ) ->
+        std::enable_if_t<std::is_integral_v<T>, std::string> {
+
+        assert( value != _UNINITIALIZED_SZ );
+        if ( !enum_names.empty() ) {
+            if ( max_enum == _UNINITIALIZED_SZ )
+                max_enum = enum_names.size() - 1;
+            if ( min_enum == _UNINITIALIZED_SZ )
+                min_enum = 0;
+        }
+        std::string name_str {
+            ( !enum_names.empty() && value <= max_enum && value >= min_enum ) ?
+            enum_names[ value ] : "" };
+        if ( verbosity == Settings::Verbosity::Debug ) {
+            // fmt counts "0x" as part of width when using '#'
+            static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
+            const std::string hex_str { fmt::format( "{:#0{}x}", value, hex_width ) };
+            return name_str.empty() ? hex_str :
+                fmt::format( "{} ({})", hex_str, name_str );
+        }
+        return name_str.empty() ? fmt::format( "{:d}", value ) : name_str;
+    }
+
+    template < typename T >
+    auto _formatBitmask(
+        const T mask, const Settings::Verbosity verbosity,
+        const std::vector< std::string_view >& flag_names,
+        size_t max_flag_i = _UNINITIALIZED_SZ ) ->
+        std::enable_if_t<std::is_integral_v<T>, std::string> {
+
+        if ( max_flag_i == _UNINITIALIZED_SZ )
+            max_flag_i = flag_names.size() - 1;
+        // fmt counts "0x" as part of width when using '#'
+        static constexpr size_t hex_width { ( sizeof( mask ) * 2 ) + 2 };
+        std::string hex_str { fmt::format( "{:#0{}x}", mask, hex_width ) };
+        std::string flag_str;
+        for ( size_t i {}; i <= max_flag_i; ++i ) {
+            if ( mask & ( 1 << i ) ) {
+                flag_str.append( flag_str.empty() ? "" : " & " );
+                flag_str.append( flag_names[i] );
+            }
+        }
+        if ( verbosity == Settings::Verbosity::Debug ) {
+            return flag_str.empty() ? hex_str :
+                fmt::format( "{} ({})", hex_str, flag_str );
+        }
+        return flag_str.empty() ? hex_str : flag_str;
+    }
+
+    // TBD can't use overload like _formatCommonType as aliases don't differentiate
+    //   under type resolution
+
+//     // function alias
+// #include <utility>
+//     template <typename... Args>
+//     auto g(Args&&... args) -> decltype(f(std::forward<Args>(args)...)) {
+//         return f(std::forward<Args>(args)...);
+//     }
+
+    std::string
+    _formatTIMESTAMP( const protocol::TIMESTAMP time,
+                      const Settings::Verbosity verbosity );
+
+    inline std::string
+    _formatCURSOR( const protocol::CURSOR cursor,
+                   const Settings::Verbosity verbosity ) {
+        return _formatInteger( cursor, verbosity,
+                               protocol::enum_names::zero_none );
+    }
+
+    // COLORMAP could use zero_none or zero_copy_from_parent, just use _formatInteger
+
+    std::string
+    _formatATOM( const protocol::ATOM atom,
+                 const Settings::Verbosity verbosity );
+
+    // VISUALID could use zero_none or zero_copy_from_parent, just use _formatInteger
+
+    // WINDOW could use zero_none, event_destination, or input_focus; just use _formatInteger
+
+    // PIXMAP could use zero_copy_from_parent, window_attribute_background_pixmap, or zero_none; just use _formatInteger
+
+    // TBD DRAWABLE?
+
+    inline std::string
+    _formatFONT( const protocol::FONT font,
+                 const Settings::Verbosity verbosity ) {
+        return _formatInteger( font, verbosity,
+                               protocol::enum_names::zero_none );
+    }
+
+    // TBD GCONTEXT?
+    // TBD FONTABLE?
+
+    inline std::string
+    _formatBITGRAVITY( const protocol::BITGRAVITY bitgravity,
+                       const Settings::Verbosity verbosity ) {
+        return _formatInteger( bitgravity, verbosity,
+                               protocol::enum_names::bitgravity );
+    }
+
+    inline std::string
+    _formatWINGRAVITY( const protocol::WINGRAVITY wingravity,
+                       const Settings::Verbosity verbosity ) {
+        return _formatInteger( wingravity, verbosity,
+                               protocol::enum_names::wingravity );
+    }
+
+    inline std::string
+    _formatBOOL( const protocol::BOOL bool_,
+                 const Settings::Verbosity verbosity ) {
+        return _formatInteger( bool_, verbosity,
+                               protocol::enum_names::bool_ );
+    }
+
+    inline std::string
+    _formatSETofEVENT( const protocol::SETofEVENT setofevent,
+                       const Settings::Verbosity verbosity ) {
+        // SETofEVENT
+        //     #xFE000000     unused but must be zero
+        return _formatBitmask( setofevent, verbosity,
+                               protocol::enum_names::set_of_event );
+    }
+
+    std::string
+    _formatSETofPOINTEREVENT( const protocol::SETofPOINTEREVENT setofpointerevent,
+                              const Settings::Verbosity verbosity );
+    std::string
+    _formatSETofDEVICEEVENT( const protocol::SETofDEVICEEVENT setofdeviceevent,
+                             const Settings::Verbosity verbosity );
+
+    inline std::string
+    _formatKEYCODE( const protocol::KEYCODE keycode,
+                    const Settings::Verbosity verbosity ) {
+        return _formatInteger( keycode, verbosity,
+                               protocol::enum_names::key );
+    }
+
+    inline std::string
+    _formatBUTTON( const protocol::BUTTON button,
+                   const Settings::Verbosity verbosity ) {
+        return _formatInteger( button, verbosity,
+                               protocol::enum_names::button );
+    }
+
+    std::string
+    _formatSETofKEYMASK( const protocol::SETofKEYMASK setofkeymask,
+                         const Settings::Verbosity verbosity );
+
+    inline std::string
+    _formatSETofKEYBUTMASK( const protocol::SETofKEYBUTMASK setofkeybutmask,
+                            const Settings::Verbosity verbosity ) {
+        // SETofKEYBUTMASK
+        //   #xE000     unused but must be zero
+        return _formatBitmask( setofkeybutmask, verbosity,
+                               protocol::enum_names::set_of_keybutmask );
+    }
+
+    std::string
+    _formatPOINT( const protocol::POINT point,
+                  const Settings::Verbosity verbosity );
+    std::string
+    _formatRECTANGLE( const protocol::RECTANGLE rectangle,
+                      const Settings::Verbosity verbosity );
+    std::string
+    _formatARC( const protocol::ARC arc,
+                const Settings::Verbosity verbosity );
+
+    // TBD HOST?
 
     struct _LISTofVALUEParsingOutputs {
         std::string str     {};
