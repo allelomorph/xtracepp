@@ -4,7 +4,7 @@
 
 //#include <ostream>
 //#include <iostream>  // cout
-#include <tuple>
+#include <tuple>  // tuple_sz
 #include <string>
 #include <string_view>
 #include <type_traits>  // enable_if_t remove_reference_t
@@ -26,6 +26,7 @@
 
 class X11ProtocolParser {
 private:
+    // TBD change to PAD_ALIGN_SZ to differentiate from VALUE default size
     static constexpr size_t _ALIGN { 4 };
 
     // TBD make member of server instead?
@@ -62,26 +63,29 @@ private:
         return ( value & _TOP_3_OF_32_BITS == 0 );
     }
 
-    static constexpr size_t _UNINITIALIZED_SZ { std::numeric_limits<size_t>::max() };
-    // TBD [u]intXX_t CURSOR COLORMAP VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
-    template < typename T >
-    auto _formatInteger(
-        const T value, const Settings::Verbosity verbosity,
-        const std::vector< std::string_view >& enum_names = {},
-        size_t max_enum = _UNINITIALIZED_SZ,
-        size_t min_enum = _UNINITIALIZED_SZ ) ->
-        std::enable_if_t<std::is_integral_v<T>, std::string> {
+    // TBD sentinel necessary?
+    static constexpr uint32_t _UNINITIALIZED {
+        std::numeric_limits< uint32_t >::max() };
 
-        assert( value != _UNINITIALIZED_SZ );
+    // TBD [u]intXX_t CURSOR COLORMAP VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
+    template < typename ValueT >
+    auto _formatInteger(
+        const ValueT value, const Settings::Verbosity verbosity,
+        const std::vector< std::string_view >& enum_names = {},
+        uint32_t max_enum = _UNINITIALIZED,
+        uint32_t min_enum = _UNINITIALIZED ) ->
+        std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
+
+        std::string name_str {};
         if ( !enum_names.empty() ) {
-            if ( max_enum == _UNINITIALIZED_SZ )
+            assert( max_enum < std::numeric_limits< ValueT >::max() );
+            if ( max_enum == _UNINITIALIZED )
                 max_enum = enum_names.size() - 1;
-            if ( min_enum == _UNINITIALIZED_SZ )
+            if ( min_enum == _UNINITIALIZED )
                 min_enum = 0;
+            if ( value <= ValueT( max_enum ) && value >= ValueT( min_enum ) )
+                name_str = std::string( enum_names[ value ] );
         }
-        std::string name_str {
-            ( !enum_names.empty() && value <= max_enum && value >= min_enum ) ?
-            enum_names[ value ] : "" };
         if ( verbosity == Settings::Verbosity::Debug ) {
             // fmt counts "0x" as part of width when using '#'
             static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
@@ -92,20 +96,20 @@ private:
         return name_str.empty() ? fmt::format( "{:d}", value ) : name_str;
     }
 
-    template < typename T >
+    template < typename MaskT >
     auto _formatBitmask(
-        const T mask, const Settings::Verbosity verbosity,
+        const MaskT mask, const Settings::Verbosity verbosity,
         const std::vector< std::string_view >& flag_names,
-        size_t max_flag_i = _UNINITIALIZED_SZ ) ->
-        std::enable_if_t<std::is_integral_v<T>, std::string> {
-
-        if ( max_flag_i == _UNINITIALIZED_SZ )
+        uint32_t max_flag_i = _UNINITIALIZED ) ->
+        std::enable_if_t< std::is_integral_v< MaskT > && !std::is_signed_v< MaskT >,
+                          std::string > {
+        if ( max_flag_i == _UNINITIALIZED )
             max_flag_i = flag_names.size() - 1;
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( mask ) * 2 ) + 2 };
         std::string hex_str { fmt::format( "{:#0{}x}", mask, hex_width ) };
         std::string flag_str;
-        for ( size_t i {}; i <= max_flag_i; ++i ) {
+        for ( uint32_t i {}; i <= max_flag_i; ++i ) {
             if ( mask & ( 1 << i ) ) {
                 flag_str.append( flag_str.empty() ? "" : " & " );
                 flag_str.append( flag_names[i] );
@@ -242,70 +246,93 @@ private:
     struct _LISTofVALUEParsingOutputs {
         std::string str     {};
         int values_parsed   {};
-        size_t bytes_parsed {};
     };
 
+    template < typename TupleT >
     struct _LISTofVALUEParsingInputs {
-        struct _VALUEParsingStrings {
-            std::string_view name;
-            std::string_view fmt_specifier;
-            const std::vector<std::string_view>& enum_names;
+        const TupleT& types;
+        const std::vector< std::string_view >& names;
+        // TBD how about tuple of format funcs instead?
+        struct EnumTraits {
+            const std::vector< std::string_view >& names;
+            uint32_t min { _UNINITIALIZED };
+            uint32_t max { _UNINITIALIZED };
+            bool is_mask {};
+
+            EnumTraits(
+                const std::vector<std::string_view>& names_ = {},
+                const bool is_mask_ = false,
+                const uint32_t max_ = _UNINITIALIZED,
+                const uint32_t min_ = _UNINITIALIZED ) :
+                names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
         };
-        const std::vector< _VALUEParsingStrings >& strings;
-        size_t name_width {};
+        const std::vector< EnumTraits >& enums;
+        Settings::Verbosity verbosity;
         std::string indent;
+        size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
-            const std::vector< _VALUEParsingStrings >& _strings,
-            const std::string _indent ) :
-            strings( _strings ), indent( _indent ) {
-            for ( const _VALUEParsingStrings& strs : _strings ) {
-                name_width = std::max( name_width, strs.name.size() );
+            const TupleT& types_, const std::vector<std::string_view>& names_,
+            const std::vector< EnumTraits >& enums_,
+            const Settings::Verbosity verbosity_,
+            const std::string& indent_ ) :
+            types( types_ ), names( names_ ), enums( enums_ ),
+            verbosity( verbosity_ ), indent( indent_ ) {
+            assert( std::tuple_size< TupleT >{} ==
+                    names.size() == enums.size() );
+            for ( const std::string_view& value_name : names ) {
+                name_width = std::max( name_width, value_name.size() );
             }
-            ++name_width;
         }
     };
+
+    // TBD not efficient to have static vars in templated function...
+    static constexpr int _VALUE_ENCODING_SZ { 4 };
 
     // tuple iteration allows for run time taversal of heterogeneous list of types
     // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
     // TBD recommended tuple iteration pattern using recursive templating
-    template< size_t I = 0, typename... Args >
+    template< size_t I = 0, typename... Args, typename TupleT >
     auto _parseLISTofVALUE(
-        const uint32_t /*value_mask*/, const std::tuple< Args... >& /*value_types*/,
-        const _LISTofVALUEParsingInputs& /*inputs*/,
+        const uint32_t /*value_mask*/, const _LISTofVALUEParsingInputs< TupleT >& /*inputs*/,
         const uint8_t* /*data*/, _LISTofVALUEParsingOutputs* /*outputs*/ ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
     }
 
     // TBD recommended tuple iteration pattern using recursive templating
-    template< size_t I = 0, typename... Args >
+    template< size_t I = 0, typename... Args, typename TupleT >
     auto _parseLISTofVALUE(
-        const uint32_t value_mask, const std::tuple< Args... >& value_types,
-        const _LISTofVALUEParsingInputs& inputs,
+        const uint32_t value_mask, const _LISTofVALUEParsingInputs< TupleT >& inputs,
         const uint8_t* data, _LISTofVALUEParsingOutputs* outputs ) ->
         std::enable_if_t< I < sizeof...( Args ), void > {
 
-        // TBD not efficient to have static vars in templated function...
-        static constexpr int ALIGN { 4 };
-        const _LISTofVALUEParsingInputs::_VALUEParsingStrings& strings {
-            inputs.strings[ I ] };
         if ( value_mask & ( 1 << I ) ) {
             using ValueT = std::remove_reference_t<
-                decltype( std::get< I >( value_types ) ) >;
-            ValueT value { *reinterpret_cast< ValueT* >( data + ( I * ALIGN ) ) };
-            std::string format {
-                std::string( "{}{: <{}}: {:" ) + strings.fmt_specifier.data() + "}{}\n" };
-            outputs->str += fmt::format(
-                format, inputs.indent, strings.name, inputs.name_width, value,
-                ( !strings.enum_names.empty() &&
-                  value < int( strings.enum_names.size() ) ) ?
-                fmt::format( " ({})", strings.enum_names[ value ] ) : "" );
-            outputs->values_parsed  += 1;
-            outputs->bytes_parsed   += ALIGN;
+                decltype( std::get< I >( inputs.types ) ) >;
+            ValueT value { *reinterpret_cast< ValueT* >( data ) };
+            // TBD how to pick the right _format func when ValueT is unknown? use enum?
+            const typename _LISTofVALUEParsingInputs< TupleT >::EnumTraits& enum_ {
+                inputs.enums[I] };
+            const std::string value_str {
+                enum_.is_mask ?
+                _formatBitmask( value, inputs.verbosity, enum_.names, enum_.max ) :
+                _formatInteger( value, inputs.verbosity, enum_.names, enum_.max, enum_.min )
+            };
+            if ( inputs.verbosity == Settings::Verbosity::Singleline ) {
+                outputs->str += fmt::format( "{}{}: {}",
+                                             outputs->values_parsed != 0 ? ", " : "",
+                                             inputs.names[I], value_str );
+            } else {
+                outputs->str += fmt::format( "{}{: <{}}: {}\n",
+                                             inputs.indent,
+                                             inputs.names[I], inputs.name_width,
+                                             value_str );
+            }
+            outputs->values_parsed += 1;
         }
-        _parseLISTofVALUE< I + 1, Args... >(
-            value_mask, value_types, inputs, data, outputs );
+        _parseLISTofVALUE< I + 1, Args..., TupleT >(
+            value_mask, inputs, data + _VALUE_ENCODING_SZ, outputs );
     }
 
     size_t _logConnectionInitiation(

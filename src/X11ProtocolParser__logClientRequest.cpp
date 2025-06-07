@@ -29,32 +29,36 @@ size_t X11ProtocolParser::_logCreateWindow(
     _data += sizeof( CreateWindow::Encoding );
 
     // TBD mask VALUES need name parsing
-    const std::vector< std::string_view >& vn { CreateWindow::value_names };
-    static const std::vector<
-        _LISTofVALUEParsingInputs::_VALUEParsingStrings > value_list_strings {
-        /* background-pixmap     */ { vn[0],  "d", CreateWindow::background_pixmap_names },
-        /* background-pixel      */ { vn[1],  "d", {} },
-        /* border-pixmap         */ { vn[2],  "d", CreateWindow::border_pixmap_names },
-        /* border-pixel          */ { vn[3],  "d", {} },
-        /* bit-gravity           */ { vn[4],  "d", CreateWindow::bit_gravity_names },
-        /* win-gravity           */ { vn[5],  "d", CreateWindow::win_gravity_names },
-        /* backing-store         */ { vn[6],  "d", CreateWindow::backing_store_names },
-        /* backing-planes        */ { vn[7],  "d", {} },
-        /* backing-pixel         */ { vn[8],  "d", {} },
-        /* override-redirect     */ { vn[9],  "d", {} },
-        /* save-under            */ { vn[10], "d", {} },
-        /* event-mask            */ { vn[11],  "", {} },
-        /* do-not-propagate-mask */ { vn[12],  "", {} },
-        /* colormap              */ { vn[13], "d", CreateWindow::colormap_names },
-        /* cursor                */ { vn[14], "d", CreateWindow::cursor_names }
+    _LISTofVALUEParsingInputs value_list_inputs {
+        CreateWindow::value_types,
+        CreateWindow::value_names,
+        /* EnumTraits */ {
+            /* background-pixmap     */ { CreateWindow::background_pixmap_names },
+            /* background-pixel      */ {},
+            /* border-pixmap         */ { CreateWindow::border_pixmap_names },
+            /* border-pixel          */ {},
+            /* bit-gravity           */ { CreateWindow::bit_gravity_names },
+            /* win-gravity           */ { CreateWindow::win_gravity_names },
+            /* backing-store         */ { CreateWindow::backing_store_names },
+            /* backing-planes        */ {},
+            /* backing-pixel         */ {},
+            /* override-redirect     */ {},
+            /* save-under            */ {},
+            /* event-mask            */ { protocol::enum_names::set_of_event, true },  /* SETofEVENT */
+            /* do-not-propagate-mask */ { protocol::enum_names::set_of_event, true, 13 },  /* SETofDEVICEEVENT */
+            /* colormap              */ { CreateWindow::colormap_names },
+            /* cursor                */ { CreateWindow::cursor_names }
+        },
+        verbosity,
+        /* indent */ "    "
     };
     _LISTofVALUEParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
-        encoding->value_mask, CreateWindow::value_types,
-        _LISTofVALUEParsingInputs{ value_list_strings, "    " },
+        encoding->value_mask, value_list_inputs,
         _data, &value_list_outputs );
     assert( value_list_outputs.values_parsed == encoding->request_length - 8 );
-    bytes_parsed += value_list_outputs.bytes_parsed;
+    // TBD use constant VALUE_ENCODING_SZ
+    bytes_parsed += value_list_outputs.values_parsed * 4;
 
     // TBD visual assert failure implies this may not always be in enum
 //    assert( encoding->class_ <= 2 );
