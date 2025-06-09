@@ -143,16 +143,28 @@ private:
                                protocol::enum_names::zero_none );
     }
 
-    // COLORMAP could use zero_none or zero_copy_from_parent, just use _formatInteger
+    // COLORMAP could use zero_none or zero_copy_from_parent
+    std::string
+    _formatCommonType( const protocol::COLORMAP colormap,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     std::string
     _formatCommonType( const protocol::ATOM atom );
 
-    // VISUALID could use zero_none or zero_copy_from_parent, just use _formatInteger
+    // VISUALID could use zero_none or zero_copy_from_parent
+    std::string
+    _formatCommonType( const protocol::VISUALID visualid,
+                       const std::vector< std::string_view >& enum_names = {} );
 
-    // WINDOW could use zero_none, event_destination, or input_focus; just use _formatInteger
+    // WINDOW could use zero_none, event_destination, or input_focus
+    std::string
+    _formatCommonType( const protocol::WINDOW window,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     // PIXMAP could use zero_copy_from_parent, window_attribute_background_pixmap, or zero_none; just use _formatInteger
+    std::string
+    _formatCommonType( const protocol::PIXMAP pixmap,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     // TBD DRAWABLE?
 

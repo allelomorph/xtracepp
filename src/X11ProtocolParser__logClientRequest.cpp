@@ -58,11 +58,7 @@ size_t X11ProtocolParser::_logCreateWindow(
     // TBD use constant VALUE_ENCODING_SZ
     bytes_parsed += value_list_outputs.values_parsed * 4;
 
-    // TBD shouldn't this always be 0?
-//    assert( encoding->visual == 0 );
-    static constexpr std::array< std::string_view, 1 > visual_enum_names {
-        "CopyFromParent"
-    };
+    // TBD make intro line into distinct func?
     fmt::println( _log_fs, "{:03d}:<:client request {:>3d}: CreateWindow",
                   conn->id, encoding->opcode );
     fmt::print(
@@ -77,21 +73,21 @@ size_t X11ProtocolParser::_logCreateWindow(
   border-width:   {:d}
   class:          {}
   visual:         {}
-  value-mask:     {:#012x}
+  value-mask:     {}
   value-list:     [
 {}  ]
 )",
         encoding->depth,
         encoding->request_length, ( encoding->request_length - 8 ),
-        _formatInteger( encoding->wid.data ),
-        _formatInteger( encoding->parent.data ),
+        _formatCommonType( encoding->wid ),
+        _formatCommonType( encoding->parent ),
         encoding->x, encoding->y,
         encoding->width, encoding->height,
         encoding->border_width,
         _formatInteger( encoding->class_,
                         protocol::enum_names::window_class ),
-        _formatInteger( encoding->visual.data,
-                        protocol::enum_names::zero_copy_from_parent ),
+        _formatCommonType( encoding->visual,
+                           protocol::enum_names::zero_copy_from_parent ),
         encoding->value_mask, value_list_outputs.str
         );
     return bytes_parsed;

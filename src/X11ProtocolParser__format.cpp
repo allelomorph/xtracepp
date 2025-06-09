@@ -37,6 +37,17 @@ X11ProtocolParser::_formatCommonType( const protocol::TIMESTAMP time ) {
     return name_str.empty() ? time_str : name_str;
 }
 
+// COLORMAP could use zero_none or zero_copy_from_parent
+std::string
+X11ProtocolParser::_formatCommonType( const protocol::COLORMAP colormap,
+                                      const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::zero_none ||
+                enum_names == protocol::enum_names::zero_copy_from_parent );
+    }
+    return _formatInteger( colormap.data, enum_names );
+}
+
 std::string
 X11ProtocolParser::_formatCommonType( const protocol::ATOM atom ) {
     assert( _top_three_bits_zero( atom.data ) );
@@ -50,6 +61,41 @@ X11ProtocolParser::_formatCommonType( const protocol::ATOM atom ) {
         return fmt::format( "{:#0{}x} (\"{}\")", atom.data, hex_width, atom_strv );
     }
     return fmt::format( "\"{}\"", atom_strv );
+}
+
+// VISUALID could use zero_none or zero_copy_from_parent
+std::string
+X11ProtocolParser::_formatCommonType( const protocol::VISUALID visualid,
+                                      const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::zero_none ||
+                enum_names == protocol::enum_names::zero_copy_from_parent );
+    }
+    return _formatInteger( visualid.data, enum_names );
+}
+
+// WINDOW could use zero_none, event_destination, or input_focus
+std::string
+X11ProtocolParser::_formatCommonType( const protocol::WINDOW window,
+                                      const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::zero_none ||
+                enum_names == protocol::enum_names::event_destination ||
+                enum_names == protocol::enum_names::input_focus );
+    }
+    return _formatInteger( window.data, enum_names );
+}
+
+// PIXMAP could use zero_copy_from_parent, window_attribute_background_pixmap, or zero_none
+std::string
+X11ProtocolParser::_formatCommonType( const protocol::PIXMAP pixmap,
+                                      const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::zero_copy_from_parent ||
+                enum_names == protocol::enum_names::window_attribute_background_pixmap ||
+                enum_names == protocol::enum_names::zero_none );
+    }
+    return _formatInteger( pixmap.data, enum_names );
 }
 
 std::string

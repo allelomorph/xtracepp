@@ -220,8 +220,8 @@ size_t X11ProtocolParser::_logServerResponse(
       save_unders:           {}
       root_depth:            {:d}
 )",
-                _formatInteger( screen->root.data ),
-                _formatInteger( screen->default_colormap.data ),
+                _formatCommonType( screen->root ),
+                _formatCommonType( screen->default_colormap ),
                 screen->white_pixel,
                 screen->black_pixel,
                 _formatCommonType( screen->current_input_masks ),
@@ -231,7 +231,7 @@ size_t X11ProtocolParser::_logServerResponse(
                 screen->height_in_millimeters,
                 screen->min_installed_maps,
                 screen->max_installed_maps,
-                _formatInteger( screen->root_visual.data ),
+                _formatCommonType( screen->root_visual ),
                 screen->backing_stores,
                 _formatCommonType( screen->save_unders ),
                 screen->root_depth );
@@ -263,7 +263,7 @@ size_t X11ProtocolParser::_logServerResponse(
               blue_mask:          {:#08x}
             ]{}
 )",
-                        _formatInteger( visual->visual_id.data ),
+                        _formatCommonType( visual->visual_id ),
                         visual->class_,
                         visual->bits_per_rgb_value,
                         visual->colormap_entries,

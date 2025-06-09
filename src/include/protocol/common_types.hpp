@@ -27,7 +27,6 @@ using CARD32       = uint32_t;
 
 using BYTE         = uint8_t;
 // using LISTofBYTE   = BYTE*;
-
 // common simple types
 
 // TBD switching to structs with data member from aliases to allow for overloading and type resolution
