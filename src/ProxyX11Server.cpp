@@ -752,6 +752,7 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
     // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     _parseDisplayNames();
     parser.setLogFileStream( settings.log_fs );
+    parser.setVerbosity( settings.verbosity );
 }
 
 int ProxyX11Server::run() {

@@ -32,6 +32,8 @@ private:
     // TBD make member of server instead?
     FILE* _log_fs { stdout };
 
+    Settings::Verbosity _verbosity {};
+
     void _bufferHexDump( const uint8_t* data, const size_t sz );
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
@@ -70,7 +72,7 @@ private:
     // TBD [u]intXX_t CURSOR COLORMAP VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
     template < typename ValueT >
     auto _formatInteger(
-        const ValueT value, const Settings::Verbosity verbosity,
+        const ValueT value,
         const std::vector< std::string_view >& enum_names = {},
         uint32_t max_enum = _UNINITIALIZED,
         uint32_t min_enum = _UNINITIALIZED ) ->
@@ -86,7 +88,7 @@ private:
             if ( value <= ValueT( max_enum ) && value >= ValueT( min_enum ) )
                 name_str = std::string( enum_names[ value ] );
         }
-        if ( verbosity == Settings::Verbosity::Debug ) {
+        if ( _verbosity == Settings::Verbosity::Debug ) {
             // fmt counts "0x" as part of width when using '#'
             static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
             const std::string hex_str { fmt::format( "{:#0{}x}", value, hex_width ) };
@@ -98,7 +100,7 @@ private:
 
     template < typename MaskT >
     auto _formatBitmask(
-        const MaskT mask, const Settings::Verbosity verbosity,
+        const MaskT mask,
         const std::vector< std::string_view >& flag_names,
         uint32_t max_flag_i = _UNINITIALIZED ) ->
         std::enable_if_t< std::is_integral_v< MaskT > && !std::is_signed_v< MaskT >,
@@ -115,7 +117,7 @@ private:
                 flag_str.append( flag_names[i] );
             }
         }
-        if ( verbosity == Settings::Verbosity::Debug ) {
+        if ( _verbosity == Settings::Verbosity::Debug ) {
             return flag_str.empty() ? hex_str :
                 fmt::format( "{} ({})", hex_str, flag_str );
         }
@@ -133,21 +135,18 @@ private:
 //     }
 
     std::string
-    _formatTIMESTAMP( const protocol::TIMESTAMP time,
-                      const Settings::Verbosity verbosity );
+    _formatTIMESTAMP( const protocol::TIMESTAMP time );
 
     inline std::string
-    _formatCURSOR( const protocol::CURSOR cursor,
-                   const Settings::Verbosity verbosity ) {
-        return _formatInteger( cursor, verbosity,
+    _formatCURSOR( const protocol::CURSOR cursor ) {
+        return _formatInteger( cursor,
                                protocol::enum_names::zero_none );
     }
 
     // COLORMAP could use zero_none or zero_copy_from_parent, just use _formatInteger
 
     std::string
-    _formatATOM( const protocol::ATOM atom,
-                 const Settings::Verbosity verbosity );
+    _formatATOM( const protocol::ATOM atom );
 
     // VISUALID could use zero_none or zero_copy_from_parent, just use _formatInteger
 
@@ -158,9 +157,8 @@ private:
     // TBD DRAWABLE?
 
     inline std::string
-    _formatFONT( const protocol::FONT font,
-                 const Settings::Verbosity verbosity ) {
-        return _formatInteger( font, verbosity,
+    _formatFONT( const protocol::FONT font ) {
+        return _formatInteger( font,
                                protocol::enum_names::zero_none );
     }
 
@@ -168,78 +166,65 @@ private:
     // TBD FONTABLE?
 
     inline std::string
-    _formatBITGRAVITY( const protocol::BITGRAVITY bitgravity,
-                       const Settings::Verbosity verbosity ) {
-        return _formatInteger( bitgravity, verbosity,
+    _formatBITGRAVITY( const protocol::BITGRAVITY bitgravity ) {
+        return _formatInteger( bitgravity,
                                protocol::enum_names::bitgravity );
     }
 
     inline std::string
-    _formatWINGRAVITY( const protocol::WINGRAVITY wingravity,
-                       const Settings::Verbosity verbosity ) {
-        return _formatInteger( wingravity, verbosity,
+    _formatWINGRAVITY( const protocol::WINGRAVITY wingravity ) {
+        return _formatInteger( wingravity,
                                protocol::enum_names::wingravity );
     }
 
     inline std::string
-    _formatBOOL( const protocol::BOOL bool_,
-                 const Settings::Verbosity verbosity ) {
-        return _formatInteger( bool_, verbosity,
+    _formatBOOL( const protocol::BOOL bool_ ) {
+        return _formatInteger( bool_,
                                protocol::enum_names::bool_ );
     }
 
     inline std::string
-    _formatSETofEVENT( const protocol::SETofEVENT setofevent,
-                       const Settings::Verbosity verbosity ) {
+    _formatSETofEVENT( const protocol::SETofEVENT setofevent ) {
         // SETofEVENT
         //     #xFE000000     unused but must be zero
-        return _formatBitmask( setofevent, verbosity,
+        return _formatBitmask( setofevent,
                                protocol::enum_names::set_of_event );
     }
 
     std::string
-    _formatSETofPOINTEREVENT( const protocol::SETofPOINTEREVENT setofpointerevent,
-                              const Settings::Verbosity verbosity );
+    _formatSETofPOINTEREVENT( const protocol::SETofPOINTEREVENT setofpointerevent );
     std::string
-    _formatSETofDEVICEEVENT( const protocol::SETofDEVICEEVENT setofdeviceevent,
-                             const Settings::Verbosity verbosity );
+    _formatSETofDEVICEEVENT( const protocol::SETofDEVICEEVENT setofdeviceevent );
 
     inline std::string
-    _formatKEYCODE( const protocol::KEYCODE keycode,
-                    const Settings::Verbosity verbosity ) {
-        return _formatInteger( keycode, verbosity,
+    _formatKEYCODE( const protocol::KEYCODE keycode ) {
+        return _formatInteger( keycode,
                                protocol::enum_names::key );
     }
 
     inline std::string
-    _formatBUTTON( const protocol::BUTTON button,
-                   const Settings::Verbosity verbosity ) {
-        return _formatInteger( button, verbosity,
+    _formatBUTTON( const protocol::BUTTON button ) {
+        return _formatInteger( button,
                                protocol::enum_names::button );
     }
 
     std::string
-    _formatSETofKEYMASK( const protocol::SETofKEYMASK setofkeymask,
-                         const Settings::Verbosity verbosity );
+    _formatSETofKEYMASK( const protocol::SETofKEYMASK setofkeymask );
 
     inline std::string
-    _formatSETofKEYBUTMASK( const protocol::SETofKEYBUTMASK setofkeybutmask,
-                            const Settings::Verbosity verbosity ) {
+    _formatSETofKEYBUTMASK( const protocol::SETofKEYBUTMASK setofkeybutmask ) {
         // SETofKEYBUTMASK
         //   #xE000     unused but must be zero
-        return _formatBitmask( setofkeybutmask, verbosity,
+        return _formatBitmask( setofkeybutmask,
                                protocol::enum_names::set_of_keybutmask );
     }
 
     std::string
-    _formatPOINT( const protocol::POINT point,
-                  const Settings::Verbosity verbosity );
+    _formatPOINT( const protocol::POINT point );
     std::string
-    _formatRECTANGLE( const protocol::RECTANGLE rectangle,
-                      const Settings::Verbosity verbosity );
+    _formatRECTANGLE( const protocol::RECTANGLE rectangle );
     std::string
-    _formatARC( const protocol::ARC arc,
-                const Settings::Verbosity verbosity );
+    _formatARC( const protocol::ARC arc );
 
     // TBD HOST?
 
@@ -267,7 +252,6 @@ private:
                 names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
         };
         const std::vector< EnumTraits >& enums;
-        Settings::Verbosity verbosity;
         std::string indent;
         size_t name_width {};
 
@@ -275,10 +259,9 @@ private:
         _LISTofVALUEParsingInputs(
             const TupleT& types_, const std::vector<std::string_view>& names_,
             const std::vector< EnumTraits >& enums_,
-            const Settings::Verbosity verbosity_,
             const std::string& indent_ ) :
-            types( types_ ), names( names_ ), enums( enums_ ),
-            verbosity( verbosity_ ), indent( indent_ ) {
+            types( types_ ), names( names_ ),
+            enums( enums_ ), indent( indent_ ) {
             assert( std::tuple_size< TupleT >{} ==
                     names.size() == enums.size() );
             for ( const std::string_view& value_name : names ) {
@@ -319,7 +302,7 @@ private:
                 _formatBitmask( value, inputs.verbosity, enum_.names, enum_.max ) :
                 _formatInteger( value, inputs.verbosity, enum_.names, enum_.max, enum_.min )
             };
-            if ( inputs.verbosity == Settings::Verbosity::Singleline ) {
+            if ( _verbosity == Settings::Verbosity::Singleline ) {
                 outputs->str += fmt::format( "{}{}: {}",
                                              outputs->values_parsed != 0 ? ", " : "",
                                              inputs.names[I], value_str );
@@ -341,11 +324,9 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
 
     size_t _logClientPacket(
-        Connection* conn, uint8_t* data, const size_t sz,
-        const Settings::Verbosity verbosity );
+        Connection* conn, uint8_t* data, const size_t sz );
     size_t _logServerPacket(
-        Connection* conn, uint8_t* data, const size_t sz,
-        const Settings::Verbosity verbosity );
+        Connection* conn, uint8_t* data, const size_t sz );
 
     size_t _logServerError(
         Connection* conn, uint8_t* data, const size_t sz );
@@ -357,10 +338,9 @@ private:
 
     size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const uint8_t opcode, const Settings::Verbosity verbosity );
+        const uint8_t opcode );
     size_t _logCreateWindow(
-        Connection* conn, const uint8_t* data, const size_t sz,
-        const Settings::Verbosity verbosity );
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logChangeWindowAttributes(
         Connection* conn, const uint8_t* data, const size_t sz );
     // size_t _logGetWindowAttributes(
@@ -604,6 +584,9 @@ public:
     X11ProtocolParser() {}
 
     void setLogFileStream( FILE* log_fs );
+    inline void setVerbosity( const Settings::Verbosity verbosity ) {
+        _verbosity = verbosity;
+    }
     size_t logClientPackets( Connection* conn, const Settings& settings );
     size_t logServerPackets( Connection* conn, const Settings& settings );
 };

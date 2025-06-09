@@ -14,8 +14,7 @@
 // TBD assert( _top_three_bits_zero() ) should maybe happen instead at parse time
 
 std::string
-X11ProtocolParser::_formatTIMESTAMP( const protocol::TIMESTAMP time,
-                                     const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatTIMESTAMP( const protocol::TIMESTAMP time ) {
     static const std::vector<std::string_view>& enum_names {
         protocol::enum_names::time };
     static const size_t max_enum {
@@ -28,7 +27,7 @@ X11ProtocolParser::_formatTIMESTAMP( const protocol::TIMESTAMP time,
               gmtime( reinterpret_cast< time_t* >( const_cast< protocol::TIMESTAMP* >( &time ) ) ) );
     const std::string name_str {
         ( time <= max_enum ) ? enum_names[ time ] : "" };
-    if ( verbosity == Settings::Verbosity::Debug ) {
+    if ( _verbosity == Settings::Verbosity::Debug ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( time ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x} ({})", time, hex_width,
@@ -38,14 +37,13 @@ X11ProtocolParser::_formatTIMESTAMP( const protocol::TIMESTAMP time,
 }
 
 std::string
-X11ProtocolParser::_formatATOM( const protocol::ATOM atom,
-                                const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatATOM( const protocol::ATOM atom ) {
     assert( _top_three_bits_zero( atom ) );
     // TBD need to handle interned atoms
     assert( atom <= protocol::atoms::PREDEFINED_MAX );
     const std::string_view& atom_strv {
         protocol::atoms::predefined[ atom ] };
-    if ( verbosity == Settings::Verbosity::Debug ) {
+    if ( _verbosity == Settings::Verbosity::Debug ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( atom ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x} (\"{}\")", atom, hex_width, atom_strv );
@@ -54,35 +52,35 @@ X11ProtocolParser::_formatATOM( const protocol::ATOM atom,
 }
 
 std::string
-X11ProtocolParser::_formatSETofPOINTEREVENT( const protocol::SETofPOINTEREVENT setofpointerevent,
-                                             const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatSETofPOINTEREVENT(
+    const protocol::SETofPOINTEREVENT setofpointerevent ) {
     // SETofPOINTEREVENT
     //      encodings are the same as for SETofEVENT, except with
     //      #xFFFF8003     unused but must be zero
     static constexpr size_t MAX_FLAG_I { 14 };
-    return _formatBitmask( setofpointerevent, verbosity,
+    return _formatBitmask( setofpointerevent,
                            protocol::enum_names::set_of_event, MAX_FLAG_I );
 }
 
 std::string
-X11ProtocolParser::_formatSETofDEVICEEVENT( const protocol::SETofDEVICEEVENT setofdeviceevent,
-                                            const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatSETofDEVICEEVENT(\
+    const protocol::SETofDEVICEEVENT setofdeviceevent ) {
     // SETofDEVICEEVENT
     //      encodings are the same as for SETofEVENT, except with
     //      #xFFFFC0B0     unused but must be zero
     static constexpr size_t MAX_FLAG_I { 13 };
-    return _formatBitmask( setofdeviceevent, verbosity,
+    return _formatBitmask( setofdeviceevent,
                            protocol::enum_names::set_of_event, MAX_FLAG_I );
 }
 
 std::string
-X11ProtocolParser::_formatSETofKEYMASK( const protocol::SETofKEYMASK setofkeymask,
-                                        const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatSETofKEYMASK(
+    const protocol::SETofKEYMASK setofkeymask ) {
     // SETofKEYMASK
     //      encodings are the same as for SETofKEYBUTMASK, except with
     //      #xFF00          unused but must be zero
     static constexpr size_t MAX_FLAG_I { 7 };
-    return _formatBitmask( setofkeymask, verbosity,
+    return _formatBitmask( setofkeymask,
                            protocol::enum_names::set_of_keybutmask, MAX_FLAG_I );
 }
 
@@ -91,34 +89,31 @@ X11ProtocolParser::_formatSETofKEYMASK( const protocol::SETofKEYMASK setofkeymas
 
 // TBD indent
 std::string
-X11ProtocolParser::_formatPOINT( const protocol::POINT point,
-                                 const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatPOINT( const protocol::POINT point ) {
     return fmt::format( "{{ x: {}, y: {} }}",
-                        _formatInteger( point.x, verbosity ),
-                        _formatInteger( point.y, verbosity ) );
+                        _formatInteger( point.x ),
+                        _formatInteger( point.y ) );
 }
 
 // TBD indent
 std::string
-X11ProtocolParser::_formatRECTANGLE( const protocol::RECTANGLE rectangle,
-                                     const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatRECTANGLE( const protocol::RECTANGLE rectangle ) {
     return fmt::format( "{{ x: {}, y: {}, width: {}, height: {} }}",
-                        _formatInteger( rectangle.x, verbosity ),
-                        _formatInteger( rectangle.y, verbosity ),
-                        _formatInteger( rectangle.width, verbosity ),
-                        _formatInteger( rectangle.height, verbosity ) );
+                        _formatInteger( rectangle.x ),
+                        _formatInteger( rectangle.y ),
+                        _formatInteger( rectangle.width ),
+                        _formatInteger( rectangle.height ) );
 }
 
 // TBD indent
 std::string
-X11ProtocolParser::_formatARC( const protocol::ARC arc,
-                               const Settings::Verbosity verbosity ) {
+X11ProtocolParser::_formatARC( const protocol::ARC arc ) {
     return fmt::format(
         "{{ x: {}, y: {}, width: {}, height: {}, angle1: {}, angle2: {} }}",
-        _formatInteger( arc.x, verbosity ),
-        _formatInteger( arc.y, verbosity ),
-        _formatInteger( arc.width, verbosity ),
-        _formatInteger( arc.height, verbosity ),
-        _formatInteger( arc.angle1, verbosity ),
-        _formatInteger( arc.angle2, verbosity ) );
+        _formatInteger( arc.x ),
+        _formatInteger( arc.y ),
+        _formatInteger( arc.width ),
+        _formatInteger( arc.height ),
+        _formatInteger( arc.angle1 ),
+        _formatInteger( arc.angle2 ) );
 }

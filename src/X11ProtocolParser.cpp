@@ -292,8 +292,7 @@ size_t X11ProtocolParser::_logServerResponse(
 }
 
 size_t X11ProtocolParser::_logClientPacket(
-    Connection* conn, uint8_t* data, const size_t sz,
-    const Settings::Verbosity verbosity ) {
+    Connection* conn, uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
@@ -312,7 +311,7 @@ size_t X11ProtocolParser::_logClientPacket(
         assert( *data != 0 );
 //        const uint8_t first_byte { *data };
         // TBD use enum instead of magic values
-        bytes_parsed = _logClientRequest( conn, data, sz, *data, verbosity );
+        bytes_parsed = _logClientRequest( conn, data, sz, *data );
         //assert( bytes_parsed == 32 );
         break;
     default:
@@ -322,8 +321,7 @@ size_t X11ProtocolParser::_logClientPacket(
 }
 
 size_t X11ProtocolParser::_logServerPacket(
-    Connection* conn, uint8_t* data, const size_t sz,
-    const Settings::Verbosity verbosity ) {
+    Connection* conn, uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );
@@ -415,6 +413,7 @@ void X11ProtocolParser::setLogFileStream( FILE* log_fs ) {
     _log_fs = log_fs;
 }
 
+// TBD pass in readwritedebug or keep as private parser var like verbosity?
 // client packets begin with:
 //   - first contact: 'B' or 'l' (66 or 108)
 //   - requests: opcode of 1-119, 127
@@ -430,8 +429,7 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn,
     for ( const size_t bytes_to_parse { conn->client_buffer.size() };
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
-            _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed,
-                              settings.verbosity ) };
+            _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings.readwritedebug ) {
             fmt::println( _log_fs, "{:03d}:<:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
@@ -451,8 +449,7 @@ size_t X11ProtocolParser::logServerPackets( Connection* conn,
     for ( const size_t bytes_to_parse { conn->server_buffer.size() };
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
-            _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed,
-                              settings.verbosity ) };
+            _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings.readwritedebug ) {
             fmt::println( _log_fs, "{:03d}:>:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
