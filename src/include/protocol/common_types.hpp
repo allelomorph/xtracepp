@@ -11,9 +11,6 @@ namespace protocol {
 
 // base types
 
-using BYTE         = uint8_t;
-// using LISTofBYTE   = BYTE*;
-
 using INT8         = int8_t;
 using INT16        = int16_t;
 using INT32        = int32_t;
@@ -28,28 +25,47 @@ using CARD32       = uint32_t;
 // using LISTofCARD16 = CARD16*;
 // using LISTofCARD32 = CARD32*;
 
+using BYTE         = uint8_t;
+// using LISTofBYTE   = BYTE*;
+
 // common simple types
 
-using TIMESTAMP       = CARD32;
+// TBD switching to structs with data member from aliases to allow for overloading and type resolution
+
+struct [[gnu::packed]] TIMESTAMP {
+    CARD32 data;
+};
 // using LISTofTIMESTAMP = TIMESTAMP*;
 
-using CURSOR          = CARD32;  // (top three bits guaranteed to be zero)
+struct [[gnu::packed]] CURSOR {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
 // using LISTofCURSOR    = CURSOR*;
 
-using COLORMAP        = CARD32;  // (top three bits guaranteed to be zero)
+struct [[gnu::packed]] COLORMAP {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
 // using LISTofCOLORMAP  = COLORMAP*;
 
-using ATOM            = CARD32;  // (top three bits guaranteed to be zero)
+struct [[gnu::packed]] ATOM {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
 // using LISTofATOM      = ATOM*;
 
-using VISUALID        = CARD32;  // (top three bits guaranteed to be zero)
+struct [[gnu::packed]] VISUALID {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
 // using LISTofVISUALID  = VISUALID*;
 
-//using VALUE           = CARD32;  // (used only in LISTofVALUE)
+//struct [[gnu::packed]] VALUE           = CARD32;  // (used only in LISTofVALUE)
 // using LISTofVALUE     = VALUE*;
 
-using WINDOW          = CARD32;  // (top three bits guaranteed to be zero)
-using PIXMAP          = CARD32;  // (top three bits guaranteed to be zero)
+struct [[gnu::packed]] WINDOW {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
+struct [[gnu::packed]] PIXMAP {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
 union DRAWABLE {
     WINDOW window;
     PIXMAP pixmap;
@@ -58,8 +74,12 @@ union DRAWABLE {
 // using LISTofPIXMAP    = PIXMAP*;
 // using LISTofDRAWABLE  = DRAWABLE*;
 
-using FONT            = CARD32;  // (top three bits guaranteed to be zero)
-using GCONTEXT        = CARD32;  // (top three bits guaranteed to be zero)
+struct [[gnu::packed]] FONT {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
+struct [[gnu::packed]] GCONTEXT {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
 union FONTABLE {
     FONT     font;
     GCONTEXT gcontext;
@@ -91,7 +111,9 @@ union FONTABLE {
 // TBD need to decide between:
 //   - enum class: collision protection but need to convert to compare
 //   - enum: less verbose comparison but need prefixes or namespaces to avoid collisions
-using BITGRAVITY = CARD8;
+struct [[gnu::packed]] BITGRAVITY {
+    CARD8 data;
+};
 // enum BitGravity {
 //     FORGET,      //  0
 //     NORTHWEST,   //  1
@@ -119,7 +141,9 @@ using BITGRAVITY = CARD8;
 //     "Static"       //10
 // };
 
-using WINGRAVITY = CARD8;
+struct [[gnu::packed]] WINGRAVITY {
+    CARD8 data;
+};
 // enum WinGravity {
 //     UNMAP,       //  0
 //     NORTHWEST,   //  1
@@ -157,14 +181,22 @@ using WINGRAVITY = CARD8;
 //   - https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Common_Types
 //   give a width for BOOL, but seemingly all its other appearances in #Encoding
 //   indicate 1 byte
-using BOOL = uint8_t;
+struct [[gnu::packed]] BOOL {
+    uint8_t data;
+};
 
 // events
 
-using SETofEVENT        = CARD32;
-using SETofPOINTEREVENT = CARD16;
-// 2B in GetWindowAttributes reply, 4 in CreateWindow LISTofVALUE
-using SETofDEVICEEVENT  = CARD16;
+struct [[gnu::packed]] SETofEVENT {
+    CARD32 data;
+};
+struct [[gnu::packed]] SETofPOINTEREVENT {
+    CARD16 data;
+};
+// TBD 2B in GetWindowAttributes reply, 4 in CreateWindow LISTofVALUE (disregard, VALUEs are always 4B)
+struct [[gnu::packed]] SETofDEVICEEVENT {
+    CARD16 data;
+};
 // enum EventMaskFlags {
 //     KEYPRESS             = 1 <<  0,  // KeyPress
 //     KEYRELEASE           = 1 <<  1,  // KeyRelease
@@ -201,9 +233,15 @@ using SETofDEVICEEVENT  = CARD16;
 
 // input
 
-using KEYSYM  = CARD32;  // (top three bits guaranteed to be zero)
-using KEYCODE = CARD8;
-using BUTTON  = CARD8;
+struct [[gnu::packed]] KEYSYM {
+    CARD32 data;  // (top three bits guaranteed to be zero)
+};
+struct [[gnu::packed]] KEYCODE {
+    CARD8 data;
+};
+struct [[gnu::packed]] BUTTON {
+    CARD8 data;
+};
 /*
 enum class KEYMASK {
     Shift, Lock, Control,
@@ -218,8 +256,12 @@ union KEYBUTMASK {
 };
 */
 // TBD are these sets only 2 bytes?
-using SETofKEYBUTMASK = CARD16;
-using SETofKEYMASK    = CARD16;
+struct [[gnu::packed]] SETofKEYBUTMASK {
+    CARD16 data;
+};
+struct [[gnu::packed]] SETofKEYMASK {
+    CARD16 data;
+};
 /*
 enum class KeyButMaskFlags {
     Shift   = 1 << 0,

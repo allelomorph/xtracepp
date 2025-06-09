@@ -58,11 +58,6 @@ size_t X11ProtocolParser::_logCreateWindow(
     // TBD use constant VALUE_ENCODING_SZ
     bytes_parsed += value_list_outputs.values_parsed * 4;
 
-    // TBD visual assert failure implies this may not always be in enum
-//    assert( encoding->class_ <= 2 );
-    static constexpr std::array< std::string_view, 3 > class_enum_names {
-        "CopyFromParent", "InputOutput", "InputOnly"
-    };
     // TBD shouldn't this always be 0?
 //    assert( encoding->visual == 0 );
     static constexpr std::array< std::string_view, 1 > visual_enum_names {
@@ -73,31 +68,30 @@ size_t X11ProtocolParser::_logCreateWindow(
     fmt::print(
         _log_fs, R"(  depth:          {:d}
   request length: {:d} (4B units) (8 + {:d} VALUE)
-  wid:            {:d}
-  parent:         {:d}
+  wid:            {}
+  parent:         {}
   x:              {:d}
   y:              {:d}
   width:          {:d}
   height:         {:d}
   border-width:   {:d}
-  class:          {:d}{}
-  visual:         {:d}{}
+  class:          {}
+  visual:         {}
   value-mask:     {:#012x}
   value-list:     [
 {}  ]
 )",
         encoding->depth,
         encoding->request_length, ( encoding->request_length - 8 ),
-        encoding->wid, encoding->parent,
+        _formatInteger( encoding->wid.data ),
+        _formatInteger( encoding->parent.data ),
         encoding->x, encoding->y,
         encoding->width, encoding->height,
         encoding->border_width,
-        encoding->class_,
-        ( encoding->class_ < 3 ) ?
-        fmt::format( " ({})", class_enum_names[ encoding->class_ ] ) : "",
-        encoding->visual,
-        ( encoding->visual < 1 ) ?
-        fmt::format( " ({})", visual_enum_names[ encoding->visual ] ) : "",
+        _formatInteger( encoding->class_,
+                        protocol::enum_names::window_class ),
+        _formatInteger( encoding->visual.data,
+                        protocol::enum_names::zero_copy_from_parent ),
         encoding->value_mask, value_list_outputs.str
         );
     return bytes_parsed;

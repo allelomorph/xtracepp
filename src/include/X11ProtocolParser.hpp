@@ -135,18 +135,18 @@ private:
 //     }
 
     std::string
-    _formatTIMESTAMP( const protocol::TIMESTAMP time );
+    _formatCommonType( const protocol::TIMESTAMP time );
 
     inline std::string
-    _formatCURSOR( const protocol::CURSOR cursor ) {
-        return _formatInteger( cursor,
+    _formatCommonType( const protocol::CURSOR cursor ) {
+        return _formatInteger( cursor.data,
                                protocol::enum_names::zero_none );
     }
 
     // COLORMAP could use zero_none or zero_copy_from_parent, just use _formatInteger
 
     std::string
-    _formatATOM( const protocol::ATOM atom );
+    _formatCommonType( const protocol::ATOM atom );
 
     // VISUALID could use zero_none or zero_copy_from_parent, just use _formatInteger
 
@@ -157,8 +157,8 @@ private:
     // TBD DRAWABLE?
 
     inline std::string
-    _formatFONT( const protocol::FONT font ) {
-        return _formatInteger( font,
+    _formatCommonType( const protocol::FONT font ) {
+        return _formatInteger( font.data,
                                protocol::enum_names::zero_none );
     }
 
@@ -166,65 +166,65 @@ private:
     // TBD FONTABLE?
 
     inline std::string
-    _formatBITGRAVITY( const protocol::BITGRAVITY bitgravity ) {
-        return _formatInteger( bitgravity,
+    _formatCommonType( const protocol::BITGRAVITY bitgravity ) {
+        return _formatInteger( bitgravity.data,
                                protocol::enum_names::bitgravity );
     }
 
     inline std::string
-    _formatWINGRAVITY( const protocol::WINGRAVITY wingravity ) {
-        return _formatInteger( wingravity,
+    _formatCommonType( const protocol::WINGRAVITY wingravity ) {
+        return _formatInteger( wingravity.data,
                                protocol::enum_names::wingravity );
     }
 
     inline std::string
-    _formatBOOL( const protocol::BOOL bool_ ) {
-        return _formatInteger( bool_,
+    _formatCommonType( const protocol::BOOL bool_ ) {
+        return _formatInteger( bool_.data,
                                protocol::enum_names::bool_ );
     }
 
     inline std::string
-    _formatSETofEVENT( const protocol::SETofEVENT setofevent ) {
+    _formatCommonType( const protocol::SETofEVENT setofevent ) {
         // SETofEVENT
         //     #xFE000000     unused but must be zero
-        return _formatBitmask( setofevent,
+        return _formatBitmask( setofevent.data,
                                protocol::enum_names::set_of_event );
     }
 
     std::string
-    _formatSETofPOINTEREVENT( const protocol::SETofPOINTEREVENT setofpointerevent );
+    _formatCommonType( const protocol::SETofPOINTEREVENT setofpointerevent );
     std::string
-    _formatSETofDEVICEEVENT( const protocol::SETofDEVICEEVENT setofdeviceevent );
+    _formatCommonType( const protocol::SETofDEVICEEVENT setofdeviceevent );
 
     inline std::string
-    _formatKEYCODE( const protocol::KEYCODE keycode ) {
-        return _formatInteger( keycode,
+    _formatCommonType( const protocol::KEYCODE keycode ) {
+        return _formatInteger( keycode.data,
                                protocol::enum_names::key );
     }
 
     inline std::string
-    _formatBUTTON( const protocol::BUTTON button ) {
-        return _formatInteger( button,
+    _formatCommonType( const protocol::BUTTON button ) {
+        return _formatInteger( button.data,
                                protocol::enum_names::button );
     }
 
     std::string
-    _formatSETofKEYMASK( const protocol::SETofKEYMASK setofkeymask );
+    _formatCommonType( const protocol::SETofKEYMASK setofkeymask );
 
     inline std::string
-    _formatSETofKEYBUTMASK( const protocol::SETofKEYBUTMASK setofkeybutmask ) {
+    _formatCommonType( const protocol::SETofKEYBUTMASK setofkeybutmask ) {
         // SETofKEYBUTMASK
         //   #xE000     unused but must be zero
-        return _formatBitmask( setofkeybutmask,
+        return _formatBitmask( setofkeybutmask.data,
                                protocol::enum_names::set_of_keybutmask );
     }
 
     std::string
-    _formatPOINT( const protocol::POINT point );
+    _formatCommonType( const protocol::POINT point );
     std::string
-    _formatRECTANGLE( const protocol::RECTANGLE rectangle );
+    _formatCommonType( const protocol::RECTANGLE rectangle );
     std::string
-    _formatARC( const protocol::ARC arc );
+    _formatCommonType( const protocol::ARC arc );
 
     // TBD HOST?
 

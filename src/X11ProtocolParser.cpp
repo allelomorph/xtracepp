@@ -153,8 +153,8 @@ size_t X11ProtocolParser::_logServerResponse(
   bitmap_format_bit_order:     {}
   bitmap_format_scanline_unit: {:d}
   bitmap_format_scanline_pad:  {:d}
-  min_keycode:                 {:d}
-  max_keycode:                 {:d}
+  min_keycode:                 {}
+  max_keycode:                 {}
 )",
             conn->id,
             header->protocol_major_version, header->protocol_minor_version,
@@ -169,8 +169,9 @@ size_t X11ProtocolParser::_logServerResponse(
             ( header->bitmap_format_bit_order == 0 ) ? "LeastSignificant" : "MostSignificant",
             header->bitmap_format_scanline_unit,
             header->bitmap_format_scanline_pad,
-            header->min_keycode,
-            header->max_keycode );
+            _formatCommonType( header->min_keycode ),
+            _formatCommonType( header->max_keycode )
+            );
 
         // followed by STRING8 vendor of v bytes, plus p bytes to round up to multiple of 4
         std::string_view vendor {
@@ -207,7 +208,7 @@ size_t X11ProtocolParser::_logServerResponse(
       default_colormap:      {}
       white_pixel:           {}
       black_pixel:           {}
-      current_input_masks:   {:#x}
+      current_input_masks:   {}
       width_in_pixels:       {:d}
       height_in_pixels:      {:d}
       width_in_millimeters:  {:d}
@@ -216,23 +217,23 @@ size_t X11ProtocolParser::_logServerResponse(
       max_installed_maps:    {:d}
       root_visual:           {}
       backing_stores:        {:d}
-      save_unders:           {:d}
+      save_unders:           {}
       root_depth:            {:d}
 )",
-                screen->root,
-                screen->default_colormap,
+                _formatInteger( screen->root.data ),
+                _formatInteger( screen->default_colormap.data ),
                 screen->white_pixel,
                 screen->black_pixel,
-                screen->current_input_masks,
+                _formatCommonType( screen->current_input_masks ),
                 screen->width_in_pixels,
                 screen->height_in_pixels,
                 screen->width_in_millimeters,
                 screen->height_in_millimeters,
                 screen->min_installed_maps,
                 screen->max_installed_maps,
-                screen->root_visual,
+                _formatInteger( screen->root_visual.data ),
                 screen->backing_stores,
-                screen->save_unders,
+                _formatCommonType( screen->save_unders ),
                 screen->root_depth );
             // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4) ((d * sizeof(_DepthHeader) + lists of VISUALTYPE) )
             fmt::println( _log_fs, "      allowed_depths: [" );
@@ -262,7 +263,7 @@ size_t X11ProtocolParser::_logServerResponse(
               blue_mask:          {:#08x}
             ]{}
 )",
-                        visual->visual_id,
+                        _formatInteger( visual->visual_id.data ),
                         visual->class_,
                         visual->bits_per_rgb_value,
                         visual->colormap_entries,
