@@ -371,12 +371,6 @@ struct CreateWindow {
     std::vector< std::string_view >& border_pixmap_names {
         protocol::enum_names::zero_copy_from_parent };
     inline static const
-    std::vector< std::string_view >& bit_gravity_names {
-        protocol::enum_names::bitgravity };
-    inline static const
-    std::vector< std::string_view >& win_gravity_names {
-        protocol::enum_names::wingravity };
-    inline static const
     std::vector< std::string_view >& backing_store_names {
         protocol::enum_names::window_attribute_backing_store };
     inline static const

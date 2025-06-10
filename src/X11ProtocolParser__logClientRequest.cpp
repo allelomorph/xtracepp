@@ -27,24 +27,23 @@ size_t X11ProtocolParser::_logCreateWindow(
     bytes_parsed += sizeof( CreateWindow::Encoding );
     _data += sizeof( CreateWindow::Encoding );
 
-    // TBD mask VALUES need name parsing
-    _LISTofVALUEParsingInputs value_list_inputs {
+    const _LISTofVALUEParsingInputs value_list_inputs {
         CreateWindow::value_types,
         CreateWindow::value_names,
-        /* EnumTraits */ {
+        /* Traits */ {
             /* background-pixmap     */ { CreateWindow::background_pixmap_names },
             /* background-pixel      */ {},
             /* border-pixmap         */ { CreateWindow::border_pixmap_names },
             /* border-pixel          */ {},
-            /* bit-gravity           */ { CreateWindow::bit_gravity_names },
-            /* win-gravity           */ { CreateWindow::win_gravity_names },
+            /* bit-gravity           */ {},
+            /* win-gravity           */ {},
             /* backing-store         */ { CreateWindow::backing_store_names },
             /* backing-planes        */ {},
             /* backing-pixel         */ {},
             /* override-redirect     */ {},
             /* save-under            */ {},
-            /* event-mask            */ { protocol::enum_names::set_of_event, true },  /* SETofEVENT */
-            /* do-not-propagate-mask */ { protocol::enum_names::set_of_event, true, 13 },  /* SETofDEVICEEVENT */
+            /* event-mask            */ {},
+            /* do-not-propagate-mask */ {},
             /* colormap              */ { CreateWindow::colormap_names },
             /* cursor                */ { CreateWindow::cursor_names }
         },
@@ -55,8 +54,7 @@ size_t X11ProtocolParser::_logCreateWindow(
         encoding->value_mask, value_list_inputs,
         _data, &value_list_outputs );
     assert( value_list_outputs.values_parsed == encoding->request_length - 8 );
-    // TBD use constant VALUE_ENCODING_SZ
-    bytes_parsed += value_list_outputs.values_parsed * 4;
+    bytes_parsed += value_list_outputs.values_parsed * _VALUE_ENCODING_SZ;
 
     // TBD make intro line into distinct func?
     fmt::println( _log_fs, "{:03d}:<:client request {:>3d}: CreateWindow",
@@ -82,13 +80,15 @@ size_t X11ProtocolParser::_logCreateWindow(
         _formatCommonType( encoding->wid ),
         _formatCommonType( encoding->parent ),
         encoding->x, encoding->y,
-        encoding->width, encoding->height,
+        encoding->width,
+        encoding->height,
         encoding->border_width,
         _formatInteger( encoding->class_,
                         protocol::enum_names::window_class ),
         _formatCommonType( encoding->visual,
                            protocol::enum_names::zero_copy_from_parent ),
-        encoding->value_mask, value_list_outputs.str
+        _formatBitmask( encoding->value_mask ),
+        value_list_outputs.str
         );
     return bytes_parsed;
 }

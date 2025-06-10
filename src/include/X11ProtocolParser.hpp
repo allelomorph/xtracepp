@@ -80,7 +80,7 @@ private:
 
         std::string name_str {};
         if ( !enum_names.empty() ) {
-            assert( max_enum < std::numeric_limits< ValueT >::max() );
+            assert( value != _UNINITIALIZED );
             if ( max_enum == _UNINITIALIZED )
                 max_enum = enum_names.size() - 1;
             if ( min_enum == _UNINITIALIZED )
@@ -125,9 +125,6 @@ private:
         }
         return flag_str.empty() ? hex_str : flag_str;
     }
-
-    // TBD can't use overload like _formatCommonType as aliases don't differentiate
-    //   under type resolution
 
 //     // function alias
 // #include <utility>
@@ -254,9 +251,9 @@ private:
         // TBD how about tuple of format funcs instead?
         struct EnumTraits {
             const std::vector< std::string_view >& names;
-            uint32_t min { _UNINITIALIZED };
-            uint32_t max { _UNINITIALIZED };
-            bool is_mask {};
+            const uint32_t min;
+            const uint32_t max;
+            const bool is_mask {};
 
             EnumTraits(
                 const std::vector<std::string_view>& names_ = {},
@@ -265,19 +262,19 @@ private:
                 const uint32_t min_ = _UNINITIALIZED ) :
                 names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
         };
-        const std::vector< EnumTraits >& enums;
+        const std::vector< EnumTraits >& traits;
         std::string indent;
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
             const TupleT& types_, const std::vector<std::string_view>& names_,
-            const std::vector< EnumTraits >& enums_,
+            const std::vector< EnumTraits >& traits_,
             const std::string& indent_ ) :
             types( types_ ), names( names_ ),
-            enums( enums_ ), indent( indent_ ) {
+            traits( traits_ ), indent( indent_ ) {
             assert( std::tuple_size< TupleT >{} ==
-                    names.size() == enums.size() );
+                    names.size() == traits.size() );
             for ( const std::string_view& value_name : names ) {
                 name_width = std::max( name_width, value_name.size() );
             }
@@ -285,7 +282,7 @@ private:
     };
 
     // TBD not efficient to have static vars in templated function...
-    static constexpr int _VALUE_ENCODING_SZ { 4 };
+    static constexpr size_t _VALUE_ENCODING_SZ { sizeof( protocol::CARD32 ) };
 
     // tuple iteration allows for run time taversal of heterogeneous list of types
     // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
@@ -309,13 +306,21 @@ private:
                 decltype( std::get< I >( inputs.types ) ) >;
             ValueT value { *reinterpret_cast< ValueT* >( data ) };
             // TBD how to pick the right _format func when ValueT is unknown? use enum?
-            const typename _LISTofVALUEParsingInputs< TupleT >::EnumTraits& enum_ {
-                inputs.enums[I] };
-            const std::string value_str {
-                enum_.is_mask ?
-                _formatBitmask( value, inputs.verbosity, enum_.names, enum_.max ) :
-                _formatInteger( value, inputs.verbosity, enum_.names, enum_.max, enum_.min )
-            };
+            const typename _LISTofVALUEParsingInputs< TupleT >::EnumTraits& traits {
+                inputs.traits[I] };
+            std::string value_str;
+            if ( std::is_integral_v< ValueT > ) {
+                value_str = traits.is_mask ?
+                    _formatBitmask( value, traits.names, traits.max ) :
+                    _formatInteger( value, traits.names, traits.max );
+            } else {
+                if ( traits.names.empty() )
+                     value_str = _formatCommonType( value );
+                else if ( traits.max == _UNINITIALIZED )
+                    return _formatCommonType( value, traits.names );
+                else  // if ( min == UNINIT )
+                    return _formatCommonType( value, traits.names, traits.max );
+            }
             if ( _verbosity == Settings::Verbosity::Singleline ) {
                 outputs->str += fmt::format( "{}{}: {}",
                                              outputs->values_parsed != 0 ? ", " : "",
