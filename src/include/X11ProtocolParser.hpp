@@ -101,20 +101,22 @@ private:
     template < typename MaskT >
     auto _formatBitmask(
         const MaskT mask,
-        const std::vector< std::string_view >& flag_names,
+        const std::vector< std::string_view >& flag_names = {},
         uint32_t max_flag_i = _UNINITIALIZED ) ->
         std::enable_if_t< std::is_integral_v< MaskT > && !std::is_signed_v< MaskT >,
                           std::string > {
-        if ( max_flag_i == _UNINITIALIZED )
-            max_flag_i = flag_names.size() - 1;
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( mask ) * 2 ) + 2 };
         std::string hex_str { fmt::format( "{:#0{}x}", mask, hex_width ) };
         std::string flag_str;
-        for ( uint32_t i {}; i <= max_flag_i; ++i ) {
-            if ( mask & ( 1 << i ) ) {
-                flag_str.append( flag_str.empty() ? "" : " & " );
-                flag_str.append( flag_names[i] );
+        if ( !flag_names.empty() ) {
+            if ( max_flag_i == _UNINITIALIZED )
+                max_flag_i = flag_names.size() - 1;
+            for ( uint32_t i {}; i <= max_flag_i; ++i ) {
+                if ( mask & ( 1 << i ) ) {
+                    flag_str.append( flag_str.empty() ? "" : " & " );
+                    flag_str.append( flag_names[i] );
+                }
             }
         }
         if ( _verbosity == Settings::Verbosity::Debug ) {
