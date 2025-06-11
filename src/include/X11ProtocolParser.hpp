@@ -36,6 +36,16 @@ private:
 
     void _bufferHexDump( const uint8_t* data, const size_t sz );
 
+    static constexpr std::string_view _WHITESPACE {
+        "                                                           "
+        "                                                           "
+    };
+    static constexpr uint32_t _TAB_SZ { 2 };  // in spaces
+    inline std::string_view _makeIndent( const uint32_t tab_ct ) {
+        assert( tab_ct * _TAB_SZ <= _WHITESPACE.size() );
+        return { _WHITESPACE.data(), tab_ct * _TAB_SZ };
+    }
+
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
     inline size_t _padToAlignment( const size_t n, const size_t align ) {
@@ -125,13 +135,6 @@ private:
         }
         return flag_str.empty() ? hex_str : flag_str;
     }
-
-//     // function alias
-// #include <utility>
-//     template <typename... Args>
-//     auto g(Args&&... args) -> decltype(f(std::forward<Args>(args)...)) {
-//         return f(std::forward<Args>(args)...);
-//     }
 
     std::string
     _formatCommonType( const protocol::TIMESTAMP time );
@@ -264,18 +267,19 @@ private:
         const std::vector< std::string_view >& names;
         // TBD how about tuple of format funcs instead?
         const std::vector< _EnumTraits >& traits;
-        std::string indent;
+        const std::string_view& indent {};
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
             const TupleT& types_, const std::vector<std::string_view>& names_,
             const std::vector< _EnumTraits >& traits_,
-            const std::string& indent_ ) :
+            const std::string_view& indent_ ) :
             types( types_ ), names( names_ ),
             traits( traits_ ), indent( indent_ ) {
             assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
+            assert( indent.size() >= _TAB_SZ );
             for ( const std::string_view& value_name : names ) {
                 name_width = std::max( name_width, value_name.size() );
             }
@@ -324,9 +328,15 @@ private:
     template< size_t I = 0, typename... Args >
     auto _parseLISTofVALUE(
         const uint32_t /*value_mask*/,
-        const _LISTofVALUEParsingInputs< std::tuple< Args... > >& /*inputs*/,
-        const uint8_t* /*data*/, _LISTofVALUEParsingOutputs* /*outputs*/ ) ->
+        const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
+        const uint8_t* /*data*/, _LISTofVALUEParsingOutputs* outputs ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
+        if ( _verbosity == Settings::Verbosity::Singleline ) {
+            outputs->str += " ]";
+        } else {
+            outputs->str += fmt::format(
+                "{}]", _makeIndent( ( inputs.indent.size() / _TAB_SZ ) - 1 ) );
+        }
     }
 
     // TBD recommended tuple iteration pattern using recursive templating
@@ -336,19 +346,25 @@ private:
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         const uint8_t* data, _LISTofVALUEParsingOutputs* outputs ) ->
         std::enable_if_t< I < sizeof...( Args ), void > {
+        if ( outputs->str.empty() ) {
+            outputs->str += '[';
+            outputs->str +=
+                _verbosity == Settings::Verbosity::Singleline ? ' ' : '\n';
+        }
         using ValueT = std::remove_reference_t<
             decltype( std::get< I >( inputs.types ) ) >;
         if ( value_mask & ( 1 << I ) ) {
             const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
             const std::string value_str { _formatVALUE( value, inputs.traits[I] ) };
             if ( _verbosity == Settings::Verbosity::Singleline ) {
-                outputs->str += fmt::format( "{}{}: {}",
+                outputs->str += fmt::format( "{}{}={}",
                                              outputs->values_parsed != 0 ? ", " : "",
                                              inputs.names[I], value_str );
             } else {
-                outputs->str += fmt::format( "{}{: <{}}: {}\n",
+                outputs->str += fmt::format( "{}{: <{}} = {}\n",
                                              inputs.indent,
-                                             inputs.names[I], inputs.name_width,
+                                             inputs.names[I],
+                                             inputs.name_width,
                                              value_str );
             }
             outputs->values_parsed += 1;
@@ -622,6 +638,8 @@ private:
 public:
     X11ProtocolParser() {}
 
+    // TBD maybe import FILE*, verbosity, and readwritedebug all in one
+    //   importSettings func call
     void setLogFileStream( FILE* log_fs );
     inline void setVerbosity( const Settings::Verbosity verbosity ) {
         _verbosity = verbosity;
