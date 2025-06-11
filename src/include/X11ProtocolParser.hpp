@@ -69,7 +69,7 @@ private:
     static constexpr uint32_t _UNINITIALIZED {
         std::numeric_limits< uint32_t >::max() };
 
-    // TBD [u]intXX_t CURSOR COLORMAP VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
+    // TBD [u]intXX_t CARDXX INTXX
     template < typename ValueT >
     auto _formatInteger(
         const ValueT value,
@@ -244,36 +244,37 @@ private:
         int values_parsed   {};
     };
 
+    struct _EnumTraits {
+        const std::vector< std::string_view >& names;
+        const uint32_t min;
+        const uint32_t max;
+        const bool is_mask {};
+
+        _EnumTraits(
+            const std::vector<std::string_view>& names_ = {},
+            const bool is_mask_ = false,
+            const uint32_t max_ = _UNINITIALIZED,
+            const uint32_t min_ = _UNINITIALIZED ) :
+            names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
+    };
+
     template < typename TupleT >
     struct _LISTofVALUEParsingInputs {
         const TupleT& types;
         const std::vector< std::string_view >& names;
         // TBD how about tuple of format funcs instead?
-        struct EnumTraits {
-            const std::vector< std::string_view >& names;
-            const uint32_t min;
-            const uint32_t max;
-            const bool is_mask {};
-
-            EnumTraits(
-                const std::vector<std::string_view>& names_ = {},
-                const bool is_mask_ = false,
-                const uint32_t max_ = _UNINITIALIZED,
-                const uint32_t min_ = _UNINITIALIZED ) :
-                names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
-        };
-        const std::vector< EnumTraits >& traits;
+        const std::vector< _EnumTraits >& traits;
         std::string indent;
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
             const TupleT& types_, const std::vector<std::string_view>& names_,
-            const std::vector< EnumTraits >& traits_,
+            const std::vector< _EnumTraits >& traits_,
             const std::string& indent_ ) :
             types( types_ ), names( names_ ),
             traits( traits_ ), indent( indent_ ) {
-            assert( std::tuple_size< TupleT >{} ==
+            assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
             for ( const std::string_view& value_name : names ) {
                 name_width = std::max( name_width, value_name.size() );
@@ -281,46 +282,65 @@ private:
         }
     };
 
+    template < typename T >
+    struct is_variable_enum_common_type : public std::false_type {};
+    // TBD explicit template specializations need to be outside class declaration
+
+    // TBD [u]intXX_t CARDXX INTXX
+    template < typename ValueT >
+    inline auto _formatVALUE(
+        const ValueT value, const _EnumTraits& traits ) ->
+        std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
+        return traits.is_mask ?
+            _formatBitmask( value, traits.names, traits.max ) :
+            _formatInteger( value, traits.names, traits.max );
+    }
+
+    // TBD two fmtCT args (uncertain enum_names)
+    // PIXMAP WINDOW VISUALID COLORMAP
+    template < typename ValueT >
+    inline auto _formatVALUE(
+        const ValueT value, const _EnumTraits& traits ) ->
+        std::enable_if_t< is_variable_enum_common_type< ValueT >::value, std::string > {
+        return _formatCommonType( value, traits.names );
+    }
+
+    // TBD one fmtCT arg
+    // TIMESTAMP CURSOR ATOM FONT BITGRAVITY WINGRAVITY BOOL SETofEVENT SETofPOINTEREVENT SETofDEVICEEVENT KEYCODE BUTTON SETofKEYMASK SETofKEYBUTMASK POINT RECTANGLE ARC
+    template < typename ValueT >
+    inline auto _formatVALUE(
+        const ValueT value, const _EnumTraits& /*traits*/ ) ->
+        std::enable_if_t< !std::is_integral_v< ValueT > &&
+                          !is_variable_enum_common_type< ValueT >::value, std::string > {
+        return _formatCommonType( value );
+    }
+
     // TBD not efficient to have static vars in templated function...
     static constexpr size_t _VALUE_ENCODING_SZ { sizeof( protocol::CARD32 ) };
 
     // tuple iteration allows for run time taversal of heterogeneous list of types
     // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
     // TBD recommended tuple iteration pattern using recursive templating
-    template< size_t I = 0, typename... Args, typename TupleT >
+    template< size_t I = 0, typename... Args >
     auto _parseLISTofVALUE(
-        const uint32_t /*value_mask*/, const _LISTofVALUEParsingInputs< TupleT >& /*inputs*/,
+        const uint32_t /*value_mask*/,
+        const _LISTofVALUEParsingInputs< std::tuple< Args... > >& /*inputs*/,
         const uint8_t* /*data*/, _LISTofVALUEParsingOutputs* /*outputs*/ ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
     }
 
     // TBD recommended tuple iteration pattern using recursive templating
-    template< size_t I = 0, typename... Args, typename TupleT >
+    template< size_t I = 0, typename... Args >
     auto _parseLISTofVALUE(
-        const uint32_t value_mask, const _LISTofVALUEParsingInputs< TupleT >& inputs,
+        const uint32_t value_mask,
+        const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         const uint8_t* data, _LISTofVALUEParsingOutputs* outputs ) ->
         std::enable_if_t< I < sizeof...( Args ), void > {
-
+        using ValueT = std::remove_reference_t<
+            decltype( std::get< I >( inputs.types ) ) >;
         if ( value_mask & ( 1 << I ) ) {
-            using ValueT = std::remove_reference_t<
-                decltype( std::get< I >( inputs.types ) ) >;
-            ValueT value { *reinterpret_cast< ValueT* >( data ) };
-            // TBD how to pick the right _format func when ValueT is unknown? use enum?
-            const typename _LISTofVALUEParsingInputs< TupleT >::EnumTraits& traits {
-                inputs.traits[I] };
-            std::string value_str;
-            if ( std::is_integral_v< ValueT > ) {
-                value_str = traits.is_mask ?
-                    _formatBitmask( value, traits.names, traits.max ) :
-                    _formatInteger( value, traits.names, traits.max );
-            } else {
-                if ( traits.names.empty() )
-                     value_str = _formatCommonType( value );
-                else if ( traits.max == _UNINITIALIZED )
-                    return _formatCommonType( value, traits.names );
-                else  // if ( min == UNINIT )
-                    return _formatCommonType( value, traits.names, traits.max );
-            }
+            const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
+            const std::string value_str { _formatVALUE( value, inputs.traits[I] ) };
             if ( _verbosity == Settings::Verbosity::Singleline ) {
                 outputs->str += fmt::format( "{}{}: {}",
                                              outputs->values_parsed != 0 ? ", " : "",
@@ -333,7 +353,7 @@ private:
             }
             outputs->values_parsed += 1;
         }
-        _parseLISTofVALUE< I + 1, Args..., TupleT >(
+        _parseLISTofVALUE< I + 1, Args... >(
             value_mask, inputs, data + _VALUE_ENCODING_SZ, outputs );
     }
 
@@ -609,6 +629,22 @@ public:
     size_t logClientPackets( Connection* conn, const Settings& settings );
     size_t logServerPackets( Connection* conn, const Settings& settings );
 };
+
+template <>
+struct X11ProtocolParser::is_variable_enum_common_type< protocol::PIXMAP > :
+    public std::true_type {};
+
+template <>
+struct X11ProtocolParser::is_variable_enum_common_type< protocol::WINDOW > :
+    public std::true_type {};
+
+template <>
+struct X11ProtocolParser::is_variable_enum_common_type< protocol::VISUALID > :
+    public std::true_type {};
+
+template <>
+struct X11ProtocolParser::is_variable_enum_common_type< protocol::COLORMAP > :
+    public std::true_type {};
 
 
 #endif  // X11PROTOCOLPARSER_HPP

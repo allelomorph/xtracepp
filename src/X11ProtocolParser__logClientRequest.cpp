@@ -27,26 +27,29 @@ size_t X11ProtocolParser::_logCreateWindow(
     bytes_parsed += sizeof( CreateWindow::Encoding );
     _data += sizeof( CreateWindow::Encoding );
 
+    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
+    //   nested in value_list_inputs initializer
+    const std::vector< _EnumTraits > value_traits {
+        /* background-pixmap     */ { CreateWindow::background_pixmap_names },
+        /* background-pixel      */ {},
+        /* border-pixmap         */ { CreateWindow::border_pixmap_names },
+        /* border-pixel          */ {},
+        /* bit-gravity           */ {},
+        /* win-gravity           */ {},
+        /* backing-store         */ { CreateWindow::backing_store_names },
+        /* backing-planes        */ {},
+        /* backing-pixel         */ {},
+        /* override-redirect     */ {},
+        /* save-under            */ {},
+        /* event-mask            */ {},
+        /* do-not-propagate-mask */ {},
+        /* colormap              */ { CreateWindow::colormap_names },
+        /* cursor                */ { CreateWindow::cursor_names }
+    };
     const _LISTofVALUEParsingInputs value_list_inputs {
         CreateWindow::value_types,
         CreateWindow::value_names,
-        /* Traits */ {
-            /* background-pixmap     */ { CreateWindow::background_pixmap_names },
-            /* background-pixel      */ {},
-            /* border-pixmap         */ { CreateWindow::border_pixmap_names },
-            /* border-pixel          */ {},
-            /* bit-gravity           */ {},
-            /* win-gravity           */ {},
-            /* backing-store         */ { CreateWindow::backing_store_names },
-            /* backing-planes        */ {},
-            /* backing-pixel         */ {},
-            /* override-redirect     */ {},
-            /* save-under            */ {},
-            /* event-mask            */ {},
-            /* do-not-propagate-mask */ {},
-            /* colormap              */ { CreateWindow::colormap_names },
-            /* cursor                */ { CreateWindow::cursor_names }
-        },
+        value_traits,
         /* indent */ "    "
     };
     _LISTofVALUEParsingOutputs value_list_outputs;
