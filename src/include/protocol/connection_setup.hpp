@@ -16,7 +16,7 @@ namespace connection_setup {
 //   6000 + N.
 
 struct ClientInitiation {
-    struct __attribute__((packed)) Header {
+    struct [[gnu::packed]] Header {
         CARD8    byte_order;  //  byte-order #x42 'B' MSB first (bigend) #x6C 'l' LSB first (littleend)
     private:
         uint8_t  _unused1;
@@ -27,7 +27,7 @@ struct ClientInitiation {
         uint16_t d;                       // length of authorization-protocol-data
     private:
         uint16_t _unused2;
-    } header;
+    };
     // header is followed by STRING8 of n bytes, authorization_protocol_name (authorization-protocol-name)
     // followed by p bytes to pad n to multiple of 4
     // then STRING8 of d bytes, authorization_protocol_data (authorization-protocol-data)
@@ -45,32 +45,32 @@ struct ClientInitiation {
 enum success { FAILED, SUCCESS, AUTHENTICATE };  // Failed, Success, Authenticate
 
 struct ServerRefusal {
-    // preceeded by uint8_t success == FAILED
-    struct __attribute__((packed)) Header {
+    struct [[gnu::packed]] Header {
+        uint8_t  success;  // 0 protocol::connection_setup::FAILED
         uint8_t  n;  // length of reason in bytes
         CARD16   protocol_major_version;  // protocol-major-version
         CARD16   protocol_minor_version;  // protocol-minor-version
         uint16_t reason_aligned_units; // (n+p)/4 length in 4-byte units of "additional data" // unnamed in protocol
-    } header;
+    };
     // followed by STRING8 reason of n bytes, plus p bytes to round up to multiple of 4
 };
 
 // Information received by the client if further authentication is required:
 struct ServerRequireFurtherAuthentication {
-    // preceeded by uint8_t success == AUTHENTICATE
-    struct __attribute__((packed)) Header {
+    struct [[gnu::packed]] Header {
+        uint8_t  success;  // 1 protocol::connection_setup::AUTHENTICATE
     private:
         uint8_t  _unused[5];
     public:
         uint16_t reason_aligned_units; // (n+p)/4 length in 4-byte units of "additional data" // unnamed in protocol
-    } header;
+    };
     // followed by STRING8 reason of up to reason_aligned_units * 4 bytes
 };
 
 // Information received by the client if the connection is accepted:
 struct ServerAcceptance {
-    // preceeded by uint8_t success == SUCCESS
-    struct __attribute__((packed)) Header {
+    struct [[gnu::packed]] Header {
+        uint8_t  success;  // 2 protocol::connection_setup::SUCCESS
     private:
         uint8_t  _unused1;  // not to be confused with leading success byte
     public:
@@ -93,19 +93,26 @@ struct ServerAcceptance {
         KEYCODE  max_keycode;  // max-keycode
     private:
         uint8_t  _unused2[4];
-    } header;
+    };
     // followed by STRING8 vendor of v bytes, plus p bytes to round up to multiple of 4
     // followed by LISTofFORMAT pixmap-formats of n*sizeof(Format) bytes
-    struct __attribute__((packed)) Format {  // FORMAT
+    // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
+
+    inline static const std::vector< std::string_view >&
+    byte_order_names { protocol::enum_names::image_byte_order };
+    inline static const std::vector< std::string_view >&
+    bit_order_names { protocol::enum_names::bitmap_format_bit_order };
+
+    struct [[gnu::packed]] Format {  // FORMAT
         CARD8   depth;
         CARD8   bits_per_pixel;  // bits-per-pixel
         CARD8   scanline_pad;  // scanline-pad
     private:
         uint8_t _unused[5];
     };
-    // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
+
     struct Screen {  // SCREEN
-        struct __attribute__((packed)) Header {
+        struct [[gnu::packed]] Header {
             WINDOW     root;
             COLORMAP   default_colormap;  // default-colormap
             CARD32     white_pixel;  // white-pixel
@@ -122,10 +129,15 @@ struct ServerAcceptance {
             BOOL       save_unders;  // save-unders
             CARD8      root_depth;  // root-depth
             CARD8      d;  // number of DEPTHs in allowed-depths // unnamed in protocol
-        } header;
+        };
         // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4) ((d * sizeof(_DepthHeader) + lists of VISUALTYPE) )
+
+        inline static const
+        std::vector< std::string_view >& backing_stores_names {
+            protocol::enum_names::screen_backing_stores };
+
         struct Depth {  // DEPTH
-            struct __attribute__((packed)) Header {
+            struct [[gnu::packed]] Header {
                 CARD8    depth;
             private:
                 uint8_t  _unused1;
@@ -133,18 +145,25 @@ struct ServerAcceptance {
                 uint16_t n;  // number of VISUALTYPES in visuals
             private:
                 uint8_t  _unused2[4];
-            } header;
+            };
             // followed by LISTofVISUALTYPE visuals of n*sizeof(VisualType) bytes
-            struct __attribute__((packed)) VisualType {  // VISUALTYPE
-                VISUALID visual_id;  // visual-id
-                uint8_t  class_;  // class // 0 StaticGray 1 GrayScale 2 StaticColor 3 PseudoColor 4 TrueColor 5 DirectColor
-                CARD8    bits_per_rgb_value;  // bits-per-rgb-value
-                CARD16   colormap_entries;  // colormap-entries
-                CARD32   red_mask;  // red-mask
-                CARD32   green_mask;  // green-mask
-                CARD32   blue_mask;  // blue-mask
-            private:
-                uint8_t  _unused[4];
+
+            struct [[gnu::packed]] VisualType {  // VISUALTYPE
+                struct [[gnu::packed]] Encoding {
+                    VISUALID visual_id;  // visual-id
+                    uint8_t  class_;  // class // 0 StaticGray 1 GrayScale 2 StaticColor 3 PseudoColor 4 TrueColor 5 DirectColor
+                    CARD8    bits_per_rgb_value;  // bits-per-rgb-value
+                    CARD16   colormap_entries;  // colormap-entries
+                    CARD32   red_mask;  // red-mask
+                    CARD32   green_mask;  // green-mask
+                    CARD32   blue_mask;  // blue-mask
+                private:
+                    uint8_t  _unused[4];
+                };
+
+                inline static const
+                std::vector< std::string_view >& class_names {
+                    protocol::enum_names::visualtype_class };
             };
         };
     };

@@ -34,17 +34,12 @@ private:
 
     Settings::Verbosity _verbosity {};
 
-    void _bufferHexDump( const uint8_t* data, const size_t sz );
+    std::string
+    _bufferHexDump( const uint8_t* data, const size_t sz );
 
-    static constexpr std::string_view _WHITESPACE {
-        "                                                           "
-        "                                                           "
-    };
     static constexpr uint32_t _TAB_SZ { 2 };  // in spaces
-    inline std::string_view _makeIndent( const uint32_t tab_ct ) {
-        assert( tab_ct * _TAB_SZ <= _WHITESPACE.size() );
-        return { _WHITESPACE.data(), tab_ct * _TAB_SZ };
-    }
+    std::string_view
+    _tabIndent( const uint32_t tab_ct );
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
@@ -242,9 +237,9 @@ private:
 
     // TBD HOST?
 
-    struct _LISTofVALUEParsingOutputs {
-        std::string str     {};
-        int values_parsed   {};
+    struct _LISTParsingOutputs {
+        std::string str       {};
+        uint32_t bytes_parsed {};
     };
 
     struct _EnumTraits {
@@ -267,19 +262,18 @@ private:
         const std::vector< std::string_view >& names;
         // TBD how about tuple of format funcs instead?
         const std::vector< _EnumTraits >& traits;
-        const std::string_view& indent {};
+        const uint32_t tab_ct;
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
             const TupleT& types_, const std::vector<std::string_view>& names_,
             const std::vector< _EnumTraits >& traits_,
-            const std::string_view& indent_ ) :
+            const uint32_t tab_ct_ ) :
             types( types_ ), names( names_ ),
-            traits( traits_ ), indent( indent_ ) {
+            traits( traits_ ), tab_ct( tab_ct_ ) {
             assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
-            assert( indent.size() >= _TAB_SZ );
             for ( const std::string_view& value_name : names ) {
                 name_width = std::max( name_width, value_name.size() );
             }
@@ -329,13 +323,13 @@ private:
     auto _parseLISTofVALUE(
         const uint32_t /*value_mask*/,
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-        const uint8_t* /*data*/, _LISTofVALUEParsingOutputs* outputs ) ->
+        const uint8_t* /*data*/, _LISTParsingOutputs* outputs ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
         if ( _verbosity == Settings::Verbosity::Singleline ) {
             outputs->str += " ]";
         } else {
             outputs->str += fmt::format(
-                "{}]", _makeIndent( ( inputs.indent.size() / _TAB_SZ ) - 1 ) );
+                "{}]", _tabIndent( inputs.tab_ct - 1 ) );
         }
     }
 
@@ -344,7 +338,7 @@ private:
     auto _parseLISTofVALUE(
         const uint32_t value_mask,
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-        const uint8_t* data, _LISTofVALUEParsingOutputs* outputs ) ->
+        const uint8_t* data, _LISTParsingOutputs* outputs ) ->
         std::enable_if_t< I < sizeof...( Args ), void > {
         if ( outputs->str.empty() ) {
             outputs->str += '[';
@@ -356,25 +350,40 @@ private:
         if ( value_mask & ( 1 << I ) ) {
             const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
             const std::string value_str { _formatVALUE( value, inputs.traits[I] ) };
+            const std::string_view indent { _tabIndent( inputs.tab_ct ) };
             if ( _verbosity == Settings::Verbosity::Singleline ) {
                 outputs->str += fmt::format( "{}{}={}",
-                                             outputs->values_parsed != 0 ? ", " : "",
+                                             outputs->bytes_parsed == 0 ? "" : ", ",
                                              inputs.names[I], value_str );
             } else {
                 outputs->str += fmt::format( "{}{: <{}} = {}\n",
-                                             inputs.indent,
+                                             indent,
                                              inputs.names[I],
                                              inputs.name_width,
                                              value_str );
             }
-            outputs->values_parsed += 1;
+            outputs->bytes_parsed += _VALUE_ENCODING_SZ;
         }
         _parseLISTofVALUE< I + 1, Args... >(
             value_mask, inputs, data + _VALUE_ENCODING_SZ, outputs );
     }
 
-    size_t _logConnectionInitiation(
+    size_t _logClientInitiation(
         const Connection* conn, const uint8_t* data, const size_t sz );
+    size_t _logServerRefusal(
+        Connection* conn, const uint8_t* data );
+    size_t _logServerRequireFurtherAuthentication(
+        Connection* conn, const uint8_t* data );
+    _LISTParsingOutputs _parseLISTofFORMAT(
+        const uint8_t* data, const uint32_t format_ct, const uint32_t tab_ct );
+    _LISTParsingOutputs _parseLISTofSCREEN(
+        const uint8_t* data, const uint32_t screen_ct, const uint32_t tab_ct );
+    _LISTParsingOutputs _parseLISTofDEPTH(
+        const uint8_t* data, const uint32_t depth_ct, const uint32_t tab_ct );
+    _LISTParsingOutputs _parseLISTofVISUALTYPE(
+        const uint8_t* data, const uint32_t vt_ct, const uint32_t tab_ct );
+    size_t _logServerAcceptance(
+        Connection* conn, const uint8_t* data );
     size_t _logServerResponse(
         Connection* conn, const uint8_t* data, const size_t sz );
 

@@ -3,7 +3,6 @@
 #include <cctype>      // isprint
 
 #include <fmt/format.h>
-//#include <fmt/printf.h>
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
@@ -51,22 +50,20 @@ size_t X11ProtocolParser::_logCreateWindow(
         CreateWindow::value_types,
         CreateWindow::value_names,
         value_traits,
-        _makeIndent( tab_ct + 1 )
+        tab_ct + 1
     };
-    _LISTofVALUEParsingOutputs value_list_outputs;
+    _LISTParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         _data, &value_list_outputs );
-    assert( encoding->request_length ==
-            ( sizeof( CreateWindow::Encoding ) / 4 ) +
-            value_list_outputs.values_parsed );
-    bytes_parsed += value_list_outputs.values_parsed * _VALUE_ENCODING_SZ;
+    bytes_parsed += value_list_outputs.bytes_parsed;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     // TBD make intro line into distinct func?
     fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
                 conn->id, encoding->opcode,
                 protocol::requests::names[ encoding->opcode ] );
-    const std::string_view indent { _makeIndent( tab_ct ) };
+    const std::string_view indent { _tabIndent( tab_ct ) };
     if ( _verbosity == Settings::Verbosity::Singleline ) {
         fmt::println( _log_fs, "{{ depth={}, wid={}, parent={}, x={}, y={}, "
                       "width={}, height={}, border-width={}, class={}, "
@@ -86,24 +83,25 @@ size_t X11ProtocolParser::_logCreateWindow(
                       _formatBitmask( encoding->value_mask ),
                       value_list_outputs.str
             );
-    } else {
-        constexpr uint32_t name_width { sizeof("request length") - 1 };
-        fmt::println( "{{" );
-        if ( _verbosity == Settings::Verbosity::Debug ) {
-            fmt::println( "{}{: <{}} = {}",
-                          indent, "opcode", name_width,
-                          _formatInteger( encoding->opcode ) );
-        }
+        return bytes_parsed;
+    }
+    constexpr uint32_t name_width { sizeof("request length") - 1 };
+    fmt::println( "{{" );
+    if ( _verbosity == Settings::Verbosity::Debug ) {
         fmt::println( "{}{: <{}} = {}",
-                      indent, "depth", name_width,
-                      _formatInteger( encoding->depth ) );
-        if ( _verbosity == Settings::Verbosity::Debug ) {
-            fmt::println( "{}{: <{}} = {} (4B units)",
-                          indent, "request length", name_width,
-                          _formatInteger( encoding->request_length ) );
-        }
-        fmt::print(
-            _log_fs, R"({}{: <{}} = {}
+                      indent, "opcode", name_width,
+                      _formatInteger( encoding->opcode ) );
+    }
+    fmt::println( "{}{: <{}} = {}",
+                  indent, "depth", name_width,
+                  _formatInteger( encoding->depth ) );
+    if ( _verbosity == Settings::Verbosity::Debug ) {
+        fmt::println( "{}{: <{}} = {} (4B units)",
+                      indent, "request length", name_width,
+                      _formatInteger( encoding->request_length ) );
+    }
+    fmt::print(
+        _log_fs, R"({}{: <{}} = {}
 {}{: <{}} = {}
 {}{: <{}} = {}
 {}{: <{}} = {}
@@ -116,31 +114,30 @@ size_t X11ProtocolParser::_logCreateWindow(
 {}{: <{}} = {}
 {}}}
 )",
-            indent, "wid", name_width,
-            _formatCommonType( encoding->wid ),
-            indent, "parent", name_width,
-            _formatCommonType( encoding->parent ),
-            indent, "x", name_width,
-            _formatInteger( encoding->x ),
-            indent, "y", name_width,
-            _formatInteger( encoding->y ),
-            indent, "width", name_width,
-            _formatInteger( encoding->width ),
-            indent, "height", name_width,
-            _formatInteger( encoding->height ),
-            indent, "border_width", name_width,
-            _formatInteger( encoding->border_width ),
-            indent, "class", name_width,
-            _formatInteger( encoding->class_, CreateWindow::class_names ),
-            indent, "visual", name_width,
-            _formatCommonType( encoding->visual, CreateWindow::visual_names ),
-            indent, "value_mask", name_width,
-            _formatBitmask( encoding->value_mask ),
-            indent, "value_list", name_width,
-            value_list_outputs.str,
-            _makeIndent( tab_ct - 1 )
-            );
-    }
+        indent, "wid", name_width,
+        _formatCommonType( encoding->wid ),
+        indent, "parent", name_width,
+        _formatCommonType( encoding->parent ),
+        indent, "x", name_width,
+        _formatInteger( encoding->x ),
+        indent, "y", name_width,
+        _formatInteger( encoding->y ),
+        indent, "width", name_width,
+        _formatInteger( encoding->width ),
+        indent, "height", name_width,
+        _formatInteger( encoding->height ),
+        indent, "border_width", name_width,
+        _formatInteger( encoding->border_width ),
+        indent, "class", name_width,
+        _formatInteger( encoding->class_, CreateWindow::class_names ),
+        indent, "visual", name_width,
+        _formatCommonType( encoding->visual, CreateWindow::visual_names ),
+        indent, "value_mask", name_width,
+        _formatBitmask( encoding->value_mask ),
+        indent, "value_list", name_width,
+        value_list_outputs.str,
+        _tabIndent( tab_ct - 1 )
+        );
     return bytes_parsed;
 }
 
