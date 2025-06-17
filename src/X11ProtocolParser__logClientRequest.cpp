@@ -17,16 +17,14 @@ size_t X11ProtocolParser::_logCreateWindow(
     assert( data != nullptr );
     assert( sz > 0 );  // TBD check min size
 
-    const uint8_t* _data { data };
     size_t bytes_parsed {};
 
     using CreateWindow = protocol::requests::CreateWindow;
     const CreateWindow::Encoding* encoding {
-        reinterpret_cast< const CreateWindow::Encoding* >( _data ) };
+        reinterpret_cast< const CreateWindow::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateWindow::Encoding );
-    _data += sizeof( CreateWindow::Encoding );
 
-    static const uint32_t tab_ct { 1 };
+    static const uint32_t tab_ct {};
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     const std::vector< _EnumTraits > value_traits {
@@ -50,94 +48,67 @@ size_t X11ProtocolParser::_logCreateWindow(
         CreateWindow::value_types,
         CreateWindow::value_names,
         value_traits,
-        tab_ct + 1
+        tab_ct + 2
     };
     _LISTParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
-        _data, &value_list_outputs );
+        data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
+    const std::string struct_whtspc {
+        _verbosity == Settings::Verbosity::Singleline ? " " :
+        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
+    const std::string memb_whtspc {
+        _verbosity == Settings::Verbosity::Singleline ? " " :
+        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
+    const std::string_view equals {
+        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const uint32_t name_width (
+        _verbosity == Settings::Verbosity::Singleline ? 0 :
+        sizeof( "border-width" ) - 1
+        );
     // TBD make intro line into distinct func?
     fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
                 conn->id, encoding->opcode,
                 protocol::requests::names[ encoding->opcode ] );
-    const std::string_view indent { _tabIndent( tab_ct ) };
-    if ( _verbosity == Settings::Verbosity::Singleline ) {
-        fmt::println( _log_fs, "{{ depth={}, wid={}, parent={}, x={}, y={}, "
-                      "width={}, height={}, border-width={}, class={}, "
-                      "visual={}, value-mask={}, value-list={} }}",
-                      _formatInteger( encoding->depth ),
-                      _formatCommonType( encoding->wid ),
-                      _formatCommonType( encoding->parent ),
-                      _formatInteger( encoding->x ),
-                      _formatInteger( encoding->y ),
-                      _formatInteger( encoding->width ),
-                      _formatInteger( encoding->height ),
-                      _formatInteger( encoding->border_width ),
-                      _formatInteger( encoding->class_,
-                                      protocol::enum_names::window_class ),
-                      _formatCommonType( encoding->visual,
-                                         protocol::enum_names::zero_copy_from_parent ),
-                      _formatBitmask( encoding->value_mask ),
-                      value_list_outputs.str
-            );
-        return bytes_parsed;
-    }
-    constexpr uint32_t name_width { sizeof("request length") - 1 };
-    fmt::println( "{{" );
-    if ( _verbosity == Settings::Verbosity::Debug ) {
-        fmt::println( "{}{: <{}} = {}",
-                      indent, "opcode", name_width,
-                      _formatInteger( encoding->opcode ) );
-    }
-    fmt::println( "{}{: <{}} = {}",
-                  indent, "depth", name_width,
-                  _formatInteger( encoding->depth ) );
-    if ( _verbosity == Settings::Verbosity::Debug ) {
-        fmt::println( "{}{: <{}} = {} (4B units)",
-                      indent, "request length", name_width,
-                      _formatInteger( encoding->request_length ) );
-    }
-    fmt::print(
-        _log_fs, R"({}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}{: <{}} = {}
-{}}}
-)",
-        indent, "wid", name_width,
+    fmt::println(
+        _log_fs,
+        "{{"
+        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
+        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
+        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
+        "{}}}",
+        memb_whtspc, "depth", name_width, equals,
+        _formatInteger( encoding->depth ),
+        memb_whtspc, "wid", name_width, equals,
         _formatCommonType( encoding->wid ),
-        indent, "parent", name_width,
+        memb_whtspc, "parent", name_width, equals,
         _formatCommonType( encoding->parent ),
-        indent, "x", name_width,
+        memb_whtspc, "x", name_width, equals,
         _formatInteger( encoding->x ),
-        indent, "y", name_width,
+        memb_whtspc, "y", name_width, equals,
         _formatInteger( encoding->y ),
-        indent, "width", name_width,
+        memb_whtspc, "width", name_width, equals,
         _formatInteger( encoding->width ),
-        indent, "height", name_width,
+        memb_whtspc, "height", name_width, equals,
         _formatInteger( encoding->height ),
-        indent, "border_width", name_width,
+        memb_whtspc, "border-width", name_width, equals,
         _formatInteger( encoding->border_width ),
-        indent, "class", name_width,
-        _formatInteger( encoding->class_, CreateWindow::class_names ),
-        indent, "visual", name_width,
-        _formatCommonType( encoding->visual, CreateWindow::visual_names ),
-        indent, "value_mask", name_width,
+        memb_whtspc, "class", name_width, equals,
+        _formatInteger( encoding->class_,
+                        protocol::enum_names::window_class ),
+        memb_whtspc, "visual", name_width, equals,
+        _formatCommonType( encoding->visual,
+                           protocol::enum_names::zero_copy_from_parent ),
+        memb_whtspc, "value-mask", name_width, equals,
         _formatBitmask( encoding->value_mask ),
-        indent, "value_list", name_width,
+        memb_whtspc, "value-list", name_width, equals,
         value_list_outputs.str,
-        _tabIndent( tab_ct - 1 )
+        struct_whtspc
         );
+    assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
