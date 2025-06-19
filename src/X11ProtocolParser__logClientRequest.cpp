@@ -6,7 +6,7 @@
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
-#include "Settings.hpp"
+//#include "Settings.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
 
@@ -57,56 +57,52 @@ size_t X11ProtocolParser::_logCreateWindow(
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string struct_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "border-width" ) - 1
-        );
+        _multiline ? sizeof( "border-width" ) - 1 : 0 );
+
     // TBD make intro line into distinct func?
     fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
                 conn->id, encoding->opcode,
                 protocol::requests::names[ encoding->opcode ] );
     fmt::println(
         _log_fs,
-        "{{"
-        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
+        "{{{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        memb_whtspc, "depth", name_width, equals,
-        _formatInteger( encoding->depth ),
-        memb_whtspc, "wid", name_width, equals,
-        _formatCommonType( encoding->wid ),
-        memb_whtspc, "parent", name_width, equals,
-        _formatCommonType( encoding->parent ),
-        memb_whtspc, "x", name_width, equals,
-        _formatInteger( encoding->x ),
-        memb_whtspc, "y", name_width, equals,
-        _formatInteger( encoding->y ),
-        memb_whtspc, "width", name_width, equals,
-        _formatInteger( encoding->width ),
-        memb_whtspc, "height", name_width, equals,
-        _formatInteger( encoding->height ),
-        memb_whtspc, "border-width", name_width, equals,
-        _formatInteger( encoding->border_width ),
-        memb_whtspc, "class", name_width, equals,
+        _separator,
+        memb_indent, "depth", name_width, _equals,
+        _formatInteger( encoding->depth ), _separator,
+        memb_indent, "wid", name_width, _equals,
+        _formatCommonType( encoding->wid ), _separator,
+        memb_indent, "parent", name_width, _equals,
+        _formatCommonType( encoding->parent ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "width", name_width, _equals,
+        _formatInteger( encoding->width ), _separator,
+        memb_indent, "height", name_width, _equals,
+        _formatInteger( encoding->height ), _separator,
+        memb_indent, "border-width", name_width, _equals,
+        _formatInteger( encoding->border_width ), _separator,
+        memb_indent, "class", name_width, _equals,
         _formatInteger( encoding->class_,
-                        protocol::enum_names::window_class ),
-        memb_whtspc, "visual", name_width, equals,
+                        protocol::enum_names::window_class ), _separator,
+        memb_indent, "visual", name_width, _equals,
         _formatCommonType( encoding->visual,
-                           protocol::enum_names::zero_copy_from_parent ),
-        memb_whtspc, "value-mask", name_width, equals,
-        _formatBitmask( encoding->value_mask ),
-        memb_whtspc, "value-list", name_width, equals,
-        value_list_outputs.str,
-        struct_whtspc
+                           protocol::enum_names::zero_copy_from_parent ), _separator,
+        memb_indent, "value-mask", name_width, _equals,
+        _formatBitmask( encoding->value_mask ), _separator,
+        memb_indent, "value-list", name_width, _equals,
+        value_list_outputs.str, _separator,
+        struct_indent
         );
     assert( bytes_parsed == sz );
     return bytes_parsed;

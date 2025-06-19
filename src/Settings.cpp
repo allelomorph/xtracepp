@@ -100,22 +100,11 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
                 exit( EXIT_FAILURE );
             }
             break;
-        case 'v': {
-            std::string_view _optarg { optarg };
-            if ( _optarg == "singleline" || _optarg == "0" ) {
-                verbosity = Verbosity::Singleline;
-            } else if ( _optarg == "multiline" || _optarg == "1" ) {
-                verbosity = Verbosity::Multiline;
-            } else if ( _optarg == "debug" || _optarg == "2" ) {
-                verbosity = Verbosity::Debug;
-            } else {
-                fmt::println(
-                    stderr,
-                    "{}: valid parameters for -v/--verbosity are 0/singleline, 1/multiline, 2/debug",
-                    argv[0] );
-                exit( EXIT_FAILURE );
-            }
-        }
+        case 'm':
+            multiline = true;
+            break;
+        case 'v':
+            verbose = true;
             break;
         case '\0':
             switch( _long_only_option ) {
@@ -128,7 +117,6 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
 --denyextensions, -e		Fake unavailability of all extensions
 --readwritedebug, -w		Print amounts of data read/sent
 --outfile, -o <filename>	Output to file instead of stdout
---verbosity, -v <level>         0/singleline (default), 1/multiline, 2/debug
 )",
                     argv[0], argv[0] );
                     // "--maxlistlength, -m <maximum number of entries in each list shown>\n"

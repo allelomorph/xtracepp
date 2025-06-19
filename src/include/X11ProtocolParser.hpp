@@ -29,10 +29,15 @@ private:
     // TBD change to PAD_ALIGN_SZ to differentiate from VALUE default size
     static constexpr size_t _ALIGN { 4 };
 
-    // TBD make member of server instead?
-    FILE* _log_fs { stdout };
+    // TBD settings imported from server class
+    FILE* _log_fs         { stdout };
+    bool  _multiline      {};
+    bool  _verbose        {};
+    bool  _readwritedebug {};
 
-    Settings::Verbosity _verbosity {};
+    // TBD formatting
+    char             _separator { ' ' };  // '\n'  for multiline
+    std::string_view _equals    { "=" };  // " = " for multiline
 
     std::string
     _bufferHexDump( const uint8_t* data, const size_t sz );
@@ -93,7 +98,7 @@ private:
             if ( value <= ValueT( max_enum ) && value >= ValueT( min_enum ) )
                 name_str = std::string( enum_names[ value ] );
         }
-        if ( _verbosity == Settings::Verbosity::Debug ) {
+        if ( _verbose ) {
             // fmt counts "0x" as part of width when using '#'
             static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
             const std::string hex_str { fmt::format( "{:#0{}x}", value, hex_width ) };
@@ -124,7 +129,7 @@ private:
                 }
             }
         }
-        if ( _verbosity == Settings::Verbosity::Debug ) {
+        if ( _verbose ) {
             return flag_str.empty() ? hex_str :
                 fmt::format( "{} ({})", hex_str, flag_str );
         }
@@ -325,11 +330,11 @@ private:
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         const uint8_t* /*data*/, _LISTParsingOutputs* outputs ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
-        if ( _verbosity == Settings::Verbosity::Singleline ) {
-            outputs->str += " ]";
-        } else {
+        if ( _multiline ) {
             outputs->str += fmt::format(
                 "{}]", _tabIndent( inputs.tab_ct - 1 ) );
+        } else {
+            outputs->str += " ]";
         }
     }
 
@@ -343,7 +348,7 @@ private:
         if ( outputs->str.empty() ) {
             outputs->str += '[';
             outputs->str +=
-                _verbosity == Settings::Verbosity::Singleline ? ' ' : '\n';
+                _multiline ? '\n' : ' ';
         }
         using ValueT = std::remove_reference_t<
             decltype( std::get< I >( inputs.types ) ) >;
@@ -351,16 +356,16 @@ private:
             const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
             const std::string value_str { _formatVALUE( value, inputs.traits[I] ) };
             const std::string_view indent { _tabIndent( inputs.tab_ct ) };
-            if ( _verbosity == Settings::Verbosity::Singleline ) {
-                outputs->str += fmt::format( "{}{}={}",
-                                             outputs->bytes_parsed == 0 ? "" : ", ",
-                                             inputs.names[I], value_str );
-            } else {
+            if ( _multiline ) {
                 outputs->str += fmt::format( "{}{: <{}} = {}\n",
                                              indent,
                                              inputs.names[I],
                                              inputs.name_width,
                                              value_str );
+            } else {
+                outputs->str += fmt::format( "{}{}={}",
+                                             outputs->bytes_parsed == 0 ? "" : ", ",
+                                             inputs.names[I], value_str );
             }
             outputs->bytes_parsed += _VALUE_ENCODING_SZ;
         }
@@ -647,14 +652,11 @@ private:
 public:
     X11ProtocolParser() {}
 
-    // TBD maybe import FILE*, verbosity, and readwritedebug all in one
-    //   importSettings func call
-    void setLogFileStream( FILE* log_fs );
-    inline void setVerbosity( const Settings::Verbosity verbosity ) {
-        _verbosity = verbosity;
-    }
-    size_t logClientPackets( Connection* conn, const Settings& settings );
-    size_t logServerPackets( Connection* conn, const Settings& settings );
+    void importSettings(
+        FILE* log_fs, const bool multiline,
+        const bool verbose, const bool readwritedebug );
+    size_t logClientPackets( Connection* conn );
+    size_t logServerPackets( Connection* conn );
 };
 
 template <>

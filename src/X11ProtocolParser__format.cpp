@@ -5,7 +5,7 @@
 #include <fmt/format.h>
 
 #include "X11ProtocolParser.hpp"
-#include "Settings.hpp"
+//#include "Settings.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
 #include "protocol/predefined_atoms.hpp"
@@ -28,7 +28,7 @@ X11ProtocolParser::_formatCommonType( const protocol::TIMESTAMP time ) {
               gmtime( &_time ) );
     const std::string name_str {
         ( time.data <= max_enum ) ? enum_names[ time.data ] : "" };
-    if ( _verbosity == Settings::Verbosity::Debug ) {
+    if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( time.data ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x} ({})", time.data, hex_width,
@@ -55,7 +55,7 @@ X11ProtocolParser::_formatCommonType( const protocol::ATOM atom ) {
     assert( atom.data <= protocol::atoms::PREDEFINED_MAX );
     const std::string_view& atom_strv {
         protocol::atoms::predefined[ atom.data ] };
-    if ( _verbosity == Settings::Verbosity::Debug ) {
+    if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( atom.data ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x} (\"{}\")", atom.data, hex_width, atom_strv );

@@ -37,11 +37,12 @@ private:
         // {"keeprunning",          no_argument,       NULL,              'k'},
         {"denyextensions",       no_argument,       NULL,              'e'},
         {"readwritedebug",       no_argument,       NULL,              'w'},
-        // {"maxlistlength",        required_argument, NULL,              'm'},
+        // {"maxlistlength",        required_argument, NULL,              'm'},  // TBD conlfict with multiline
         {"outfile",              required_argument, NULL,              'o'},
         // {"buffered",             no_argument,       NULL,              'b'},
         // {"interactive",          no_argument,       NULL,              'i'},
-        {"verbosity",            required_argument, NULL,              'v'},
+        {"multiline",            no_argument,          NULL,           'm'},
+        {"verbose",              no_argument,          NULL,           'v'},
         {"help",                 no_argument,       &_long_only_option, LO_HELP},
         {"version",              no_argument,       &_long_only_option, LO_VERSION},
         // {"timestamps",           no_argument,       &_long_only_option, LO_TIMESTAMPS},
@@ -52,17 +53,16 @@ private:
         {NULL,                   0,                 NULL,              0}
     };
     //static constexpr std::string_view _optstring { "+d:D:f:F:cnWskiewm:o:b" };
-    static constexpr std::string_view _optstring { "+d:D:ewo:v:" };
+    static constexpr std::string_view _optstring { "+d:D:ewo:mv" };
 
 public:
-    enum class Verbosity { Singleline, Multiline, Debug };
-
     bool readwritedebug           { false };
     // bool copyauth                 { true };
     bool stopifnoactiveconnx      { true };   // stopwhennone
     bool waitforclient            { false };
     bool denyallextensions        { false };
-    Verbosity verbosity           { Verbosity::Singleline };
+    bool multiline                { false };
+    bool verbose                  { false };
     // bool interactive              { false };
     // bool print_timestamps         { false };
     // bool print_reltimestamps      { false };

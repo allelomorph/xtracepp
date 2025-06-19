@@ -85,19 +85,14 @@ size_t X11ProtocolParser::_logClientInitiation(
     bytes_parsed += _pad( header->d );
     assert( bytes_parsed == sz );
 
-    const uint32_t tab_ct {};
-    const std::string struct_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "authorization-protocol-data" ) - 1
-        );
+        _multiline ? sizeof( "authorization-protocol-data" ) - 1 : 0 );
+
     fmt::print( _log_fs, "{:03d}:<:client \"{}\" requesting connection ",
                 conn->id, conn->client_desc );
     // TBD may be security concerns with logging auth data
@@ -109,40 +104,47 @@ size_t X11ProtocolParser::_logClientInitiation(
     // }
     fmt::println(
         _log_fs,
-        "{{"
-        "{}{: <{}}{}{}"
-        "{}{}"
-        "{}{: <{}}{}\"{}\""
+        "{{{}"
+        "{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}({:d} bytes)"
+        "{}"
+        "{}{: <{}}{}\"{}\"{}"
+        "{}"
+        "{}{: <{}}{}({:d} bytes){}"
         "{}}}",
-        memb_whtspc, "byte-order", name_width, equals,
+        _separator,
+        memb_indent, "byte-order", name_width, _equals,
         _formatInteger( ( header->byte_order == 'l' ) ? 0 : 1,
-                        protocol::enum_names::image_byte_order ),
-        _verbosity == Settings::Verbosity::Debug ?
-        fmt::format( "{}{: <{}}{}{}{}{: <{}}{}{}",
-                     memb_whtspc, "protocol-major-version", name_width, equals,
-                     _formatInteger( header->protocol_major_version ),
-                     memb_whtspc, "protocol-minor-version", name_width, equals,
-                     _formatInteger( header->protocol_minor_version ) ) :
-        fmt::format( "{}{: <{}}{}{:d}.{:d}",
-                     memb_whtspc, "protocol version", name_width, equals,
-                     header->protocol_major_version,
-                     header->protocol_minor_version ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (length in bytes of authorization-protocol-name)",
-            memb_whtspc, "n", name_width, equals,
-                     _formatInteger( header->n ) ),
-        memb_whtspc, "authorization-protocol-name", name_width, equals,
-        auth_protocol_name,
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (length in bytes of authorization-protocol-data)",
-                     memb_whtspc, "d", name_width, equals,
-                     _formatInteger( header->d ) ),
+                        protocol::enum_names::image_byte_order ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}"
+            "{}{: <{}}{}{}{}",
+            memb_indent, "protocol-major-version", name_width, _equals,
+            _formatInteger( header->protocol_major_version ), _separator,
+            memb_indent, "protocol-minor-version", name_width, _equals,
+            _formatInteger( header->protocol_minor_version ), _separator ) :
+        fmt::format(
+            "{}{: <{}}{}{:d}.{:d}{}",
+            memb_indent, "protocol version", name_width, _equals,
+            header->protocol_major_version,
+            header->protocol_minor_version, _separator ),
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (length in bytes of authorization-protocol-name){}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( header->n ), _separator ) : "",
+        memb_indent, "authorization-protocol-name", name_width, _equals,
+        auth_protocol_name, _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (length in bytes of authorization-protocol-data){}",
+            memb_indent, "d", name_width, _equals,
+            _formatInteger( header->d ), _separator ) : "",
         // TBD may be security concerns with logging auth data
-        memb_whtspc, "authorization-protocol-data", name_width, equals,
-        header->d,
-        struct_whtspc
+        memb_indent, "authorization-protocol-data", name_width, _equals,
+        header->d, _separator,
+        struct_indent
         );
     return bytes_parsed;
 }
@@ -163,52 +165,57 @@ size_t X11ProtocolParser::_logServerRefusal(
         reinterpret_cast< const char* >( data + bytes_parsed ), header->n };
     bytes_parsed += _pad( header->n );
 
-    const uint32_t tab_ct {};
-    const std::string struct_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "protocol-major-version" ) - 1
-        );
+        _multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
+
     fmt::print( _log_fs, "{:03d}:>:server refused connection ",
                 conn->id );
     fmt::println(
         _log_fs,
-        "{{"
-        "{}{}{}{}"
-        "{}{: <{}}{}\"{}\""
+        "{{{}"
+        "{}"
+        "{}"
+        "{}"
+        "{}"
+        "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (status: failed)",
-                     memb_whtspc, "success", name_width, equals,
-                     _formatInteger( header->success ) ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (length of reason in bytes)",
-                     memb_whtspc, "n", name_width, equals,
-                     _formatInteger( header->n ) ),
-        _verbosity == Settings::Verbosity::Debug ?
-        fmt::format( "{}{: <{}}{}{}{}{: <{}}{}{}",
-                     memb_whtspc, "protocol-major-version", name_width, equals,
-                     _formatInteger( header->protocol_major_version ),
-                     memb_whtspc, "protocol-minor-version", name_width, equals,
-                     _formatInteger( header->protocol_minor_version ) ) :
-        fmt::format( "{}{: <{}}{}{:d}.{:d}",
-                     memb_whtspc, "protocol version", name_width, equals,
-                     header->protocol_major_version,
-                     header->protocol_minor_version ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (padded length of reason in 4 byte units)",
-                     memb_whtspc, "reason aligned units", name_width, equals,
-                     _formatInteger( header->reason_aligned_units ) ),
-        memb_whtspc, "reason", name_width, equals,
-        reason,
-        struct_whtspc
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (status: failed){}",
+            memb_indent, "success", name_width, _equals,
+            _formatInteger( header->success ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (length of reason in bytes){}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( header->n ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}"
+            "{}{: <{}}{}{}{}",
+            memb_indent, "protocol-major-version", name_width, _equals,
+            _formatInteger( header->protocol_major_version ), _separator,
+            memb_indent, "protocol-minor-version", name_width, _equals,
+            _formatInteger( header->protocol_minor_version ), _separator ) :
+        fmt::format(
+            "{}{: <{}}{}{:d}.{:d}{}",
+            memb_indent, "protocol version", name_width, _equals,
+            header->protocol_major_version,
+            header->protocol_minor_version, _separator ),
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
+            memb_indent, "reason aligned units", name_width, _equals,
+            _formatInteger( header->reason_aligned_units ), _separator ) : "",
+        memb_indent, "reason", name_width, _equals,
+        reason, _separator,
+        struct_indent
         );
     return bytes_parsed;
 }
@@ -231,38 +238,37 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
         reason_padded_sz };
     bytes_parsed += reason_padded_sz;
 
-    const uint32_t tab_ct {};
-    const std::string struct_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "success" ) - 1
-        );
+        _multiline ? sizeof( "success" ) - 1 : 0 );
+
     fmt::print( _log_fs, "{:03d}:>:server requested further authentication ",
                 conn->id );
     fmt::println(
         _log_fs,
-        "{{"
-        "{}{}"
-        "{}{: <{}}{}\"{}\""
+        "{{{}"
+        "{}"
+        "{}"
+        "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (status: authentication)",
-                     memb_whtspc, "success", name_width, equals,
-                     _formatInteger( header->success ) ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (padded length of reason in 4 byte units)",
-                     memb_whtspc, "reason aligned units", name_width, equals,
-                     _formatInteger( header->reason_aligned_units ) ),
-        memb_whtspc, "reason", name_width, equals,
-        reason,
-        struct_whtspc
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (status: authentication){}",
+            memb_indent, "success", name_width, _equals,
+            _formatInteger( header->success ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
+            memb_indent, "reason aligned units", name_width, _equals,
+            _formatInteger( header->reason_aligned_units ), _separator ) : "",
+        memb_indent, "reason", name_width, _equals,
+        reason, _separator,
+        struct_indent
         );
     return bytes_parsed;
 }
@@ -277,35 +283,31 @@ X11ProtocolParser::_parseLISTofFORMAT(
     using namespace protocol::connection_setup;
     const ServerAcceptance::Format* pixmap_formats {
         reinterpret_cast< const ServerAcceptance::Format* >( data ) };
-    const std::string list_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    // const std::string memb_whtspc {
-    //     _verbosity == Settings::Verbosity::Singleline ? " " :
-    //     fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    // const std::string_view equals {
-    //     _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
-    // const uint32_t name_width (
-    //     _verbosity == Settings::Verbosity::Singleline ? 0 :
-    //     sizeof( "bits-per-pixel" ) - 1 );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    // const std::string_view memb_indent {
+    //     _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "bits-per-pixel" ) - 1 : 0 );
     // TBD for now FORMAT struct is single line regardless of verbosity
     outputs.str += '[';
+    if ( format_ct > 0 )
+        outputs.str += _separator;
     for ( uint32_t i {}; i < format_ct; ++i ) {
         outputs.str += fmt::format(
-            "{}{{ depth={} bits-per-pixel={} scanline-pad={} }}{}",
-            list_whtspc,
+            "{}{{ depth={} bits-per-pixel={} scanline-pad={} }}{}{}",
+            struct_indent,
             _formatInteger( pixmap_formats[i].depth ),
             _formatInteger( pixmap_formats[i].bits_per_pixel ),
             _formatInteger( pixmap_formats[i].scanline_pad ),
-            i == format_ct - 1 ? "" : ","
+            i == format_ct - 1 ? "" : ",",
+            _separator
             );
         outputs.bytes_parsed += sizeof( ServerAcceptance::Format );
     }
-    if ( format_ct > 0 ) {
-        outputs.str +=
-            _verbosity == Settings::Verbosity::Singleline ? " " :
-            fmt::format( "\n{}", _tabIndent( tab_ct - 1 ) );
-    }
+    if ( format_ct > 0 )
+        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -317,21 +319,17 @@ X11ProtocolParser::_parseLISTofSCREEN(
     assert( tab_ct > 0 );
 
     X11ProtocolParser::_LISTParsingOutputs outputs;
-    const std::string list_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const std::string_view list_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "height-in-millimeters" ) - 1
-        );
+        _multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     outputs.str += '[';
+    if ( screen_ct > 0 )
+        outputs.str += _separator;
     for ( uint32_t i {}; i < screen_ct; ++i ) {
         const ServerAcceptance::Screen::Header* header {
             reinterpret_cast< const ServerAcceptance::Screen::Header* >(
@@ -344,54 +342,52 @@ X11ProtocolParser::_parseLISTofSCREEN(
         outputs.bytes_parsed += allowed_depths_outputs.bytes_parsed;
 
         outputs.str += fmt::format(
-            "{}{{"
-            "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-            "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-            "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-            "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-            "{}}}{}",
-            list_whtspc,
-            memb_whtspc, "root", name_width, equals,
-            _formatCommonType( header->root ),
-            memb_whtspc, "default-colormap", name_width, equals,
-            _formatCommonType( header->default_colormap ),
-            memb_whtspc, "white-pixel", name_width, equals,
-            _formatInteger( header->white_pixel ),
-            memb_whtspc, "black-pixel", name_width, equals,
-            _formatInteger( header->black_pixel ),
-            memb_whtspc, "current-input-masks", name_width, equals,
-            _formatCommonType( header->current_input_masks ),
-            memb_whtspc, "width-in-pixels", name_width, equals,
-            _formatInteger( header->width_in_pixels ),
-            memb_whtspc, "height-in-pixels", name_width, equals,
-            _formatInteger( header->height_in_pixels ),
-            memb_whtspc, "width-in-millimeters", name_width, equals,
-            _formatInteger( header->width_in_millimeters ),
-            memb_whtspc, "height-in-millimeters", name_width, equals,
-            _formatInteger( header->height_in_millimeters ),
-            memb_whtspc, "min-installed-maps", name_width, equals,
-            _formatInteger( header->min_installed_maps ),
-            memb_whtspc, "max-installed-maps", name_width, equals,
-            _formatInteger( header->max_installed_maps ),
-            memb_whtspc, "root-visual", name_width, equals,
-            _formatCommonType( header->root_visual ),
-            memb_whtspc, "backing-stores", name_width, equals,
+            "{}{{{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+            "{}}}{}{}",
+            list_indent, _separator,
+            memb_indent, "root", name_width, _equals,
+            _formatCommonType( header->root ), _separator,
+            memb_indent, "default-colormap", name_width, _equals,
+            _formatCommonType( header->default_colormap ), _separator,
+            memb_indent, "white-pixel", name_width, _equals,
+            _formatInteger( header->white_pixel ), _separator,
+            memb_indent, "black-pixel", name_width, _equals,
+            _formatInteger( header->black_pixel ), _separator,
+            memb_indent, "current-input-masks", name_width, _equals,
+            _formatCommonType( header->current_input_masks ), _separator,
+            memb_indent, "width-in-pixels", name_width, _equals,
+            _formatInteger( header->width_in_pixels ), _separator,
+            memb_indent, "height-in-pixels", name_width, _equals,
+            _formatInteger( header->height_in_pixels ), _separator,
+            memb_indent, "width-in-millimeters", name_width, _equals,
+            _formatInteger( header->width_in_millimeters ), _separator,
+            memb_indent, "height-in-millimeters", name_width, _equals,
+            _formatInteger( header->height_in_millimeters ), _separator,
+            memb_indent, "min-installed-maps", name_width, _equals,
+            _formatInteger( header->min_installed_maps ), _separator,
+            memb_indent, "max-installed-maps", name_width, _equals,
+            _formatInteger( header->max_installed_maps ), _separator,
+            memb_indent, "root-visual", name_width, _equals,
+            _formatCommonType( header->root_visual ), _separator,
+            memb_indent, "backing-stores", name_width, _equals,
             _formatInteger( header->backing_stores,
                             ServerAcceptance::Screen::backing_stores_names ),
-            memb_whtspc, "save-unders", name_width, equals,
-            _formatCommonType( header->save_unders ),
-            memb_whtspc, "root-depth", name_width, equals,
-            _formatInteger( header->root_depth ),
-            memb_whtspc, "allowed-depths", name_width, equals,
-            allowed_depths_outputs.str,
-            list_whtspc, i == screen_ct - 1 ? "" : ","
+            _separator,
+            memb_indent, "save-unders", name_width, _equals,
+            _formatCommonType( header->save_unders ), _separator,
+            memb_indent, "root-depth", name_width, _equals,
+            _formatInteger( header->root_depth ), _separator,
+            memb_indent, "allowed-depths", name_width, _equals,
+            allowed_depths_outputs.str, _separator,
+            list_indent, i == screen_ct - 1 ? "" : ",", _separator
             );
     }
-    if ( screen_ct > 0 ) {
-        outputs.str +=
-            _verbosity == Settings::Verbosity::Singleline ? " " :
-            fmt::format( "\n{}", _tabIndent( tab_ct - 1 ) );
-    }
+    if ( screen_ct > 0 )
+        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -403,21 +399,17 @@ X11ProtocolParser::_parseLISTofDEPTH(
     assert( tab_ct > 0 );
 
     X11ProtocolParser::_LISTParsingOutputs outputs;
-    const std::string list_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const std::string_view list_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "visuals" ) - 1
-        );
+        _multiline ? sizeof( "visuals" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     outputs.str += '[';
+    if ( depth_ct > 0 )
+        outputs.str += _separator;
     for ( uint32_t i {}; i < depth_ct; ++i ) {
         const ServerAcceptance::Screen::Depth::Header* header {
             reinterpret_cast< const ServerAcceptance::Screen::Depth::Header* >(
@@ -430,28 +422,26 @@ X11ProtocolParser::_parseLISTofDEPTH(
         outputs.bytes_parsed += visuals_outputs.bytes_parsed;
 
         outputs.str += fmt::format(
-            "{}{{"
-            "{}{: <{}}{}{}"
+            "{}{{{}"
+            "{}{: <{}}{}{}{}"
             "{}"
-            "{}{: <{}}{}{}"
-            "{}}}{}",
-            list_whtspc,
-            memb_whtspc, "depth", name_width, equals,
-            _formatInteger( header->depth ),
-            _verbosity != Settings::Verbosity::Debug ? "" :
-            fmt::format( "{}{: <{}}{}{}",
-                         memb_whtspc, "n", name_width, equals,
-                         _formatInteger( header->n ) ),
-            memb_whtspc, "visuals", name_width, equals,
-            visuals_outputs.str,
-            list_whtspc, i == depth_ct - 1 ? "" : ","
+            "{}{: <{}}{}{}{}"
+            "{}}}{}{}",
+            list_indent, _separator,
+            memb_indent, "depth", name_width, _equals,
+            _formatInteger( header->depth ), _separator,
+            _verbose ?
+            fmt::format(
+                "{}{: <{}}{}{}{}",
+                memb_indent, "n", name_width, _equals,
+                _formatInteger( header->n ), _separator ) : "",
+            memb_indent, "visuals", name_width, _equals,
+            visuals_outputs.str, _separator,
+            list_indent, i == depth_ct - 1 ? "" : ",", _separator
             );
     }
-    if ( depth_ct > 0 ) {
-        outputs.str +=
-            _verbosity == Settings::Verbosity::Singleline ? " " :
-            fmt::format( "\n{}", _tabIndent( tab_ct - 1 ) );
-    }
+    if ( depth_ct > 0 )
+        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -463,21 +453,17 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
     assert( tab_ct > 0 );
 
     X11ProtocolParser::_LISTParsingOutputs outputs;
-    const std::string list_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    // const std::string memb_whtspc {
-    //     _verbosity == Settings::Verbosity::Singleline ? " " :
-    //     fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    // const std::string_view equals {
-    //     _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
-    // const uint32_t name_width (
-    //     _verbosity == Settings::Verbosity::Singleline ? 0 :
-    //     sizeof( "bits-per-rgb-value" ) - 1
-    //     );
+    const std::string_view list_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "bits-per-rgb-value" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     outputs.str += '[';
+    if ( vt_ct > 0 )
+        outputs.str += _separator;
     for ( uint32_t i {}; i < vt_ct; ++i ) {
         const ServerAcceptance::Screen::Depth::VisualType::Encoding* visualtype {
             reinterpret_cast< const ServerAcceptance::Screen::Depth::VisualType::Encoding* >(
@@ -486,8 +472,8 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
 
         // TBD for now VISUALTYPE struct is single line regardless of verbosity
         outputs.str += fmt::format(
-            "{}{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}{}",
-            list_whtspc,
+            "{}{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}{}{}",
+            list_indent,
             "visual-id",
             _formatCommonType( visualtype->visual_id ),
             "class",
@@ -503,37 +489,35 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
             _formatBitmask( visualtype->green_mask ),
             "blue-mask",
             _formatBitmask( visualtype->blue_mask ),
-            i == vt_ct - 1 ? "" : ","
+            i == vt_ct - 1 ? "" : ",", _separator
             );
         // outputs.str += fmt::format(
-        //     "{}{{"
-        //     "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-        //     "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-        //     "{}}}{}",
-        //     list_whtspc,
-        //     memb_whtspc, "visual-id", name_width, equals,
-        //     _formatCommonType( visualtype->visual_id ),
-        //     memb_whtspc, "class", name_width, equals,
+        //     "{}{{{}"
+        //     "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        //     "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        //     "{}}}{}{}",
+        //     list_indent, _separator,
+        //     memb_indent, "visual-id", name_width, _equals,
+        //     _formatCommonType( visualtype->visual_id ), _separator,
+        //     memb_indent, "class", name_width, _equals,
         //     _formatInteger( visualtype->class_,
         //                     ServerAcceptance::Screen::Depth::VisualType::class_names ),
-        //     memb_whtspc, "bits-per-rgb-value", name_width, equals,
-        //     _formatInteger( visualtype->bits_per_rgb_value ),
-        //     memb_whtspc, "colormap-entries", name_width, equals,
-        //     _formatInteger( visualtype->colormap_entries ),
-        //     memb_whtspc, "red-mask", name_width, equals,
-        //     _formatBitmask( visualtype->red_mask ),
-        //     memb_whtspc, "green-mask", name_width, equals,
-        //     _formatBitmask( visualtype->green_mask ),
-        //     memb_whtspc, "blue-mask", name_width, equals,
-        //     _formatBitmask( visualtype->blue_mask ),
-        //     list_whtspc, i == vt_ct - 1 ? "" : ","
+        //      _separator,
+        //     memb_indent, "bits-per-rgb-value", name_width, _equals,
+        //     _formatInteger( visualtype->bits_per_rgb_value ), _separator,
+        //     memb_indent, "colormap-entries", name_width, _equals,
+        //     _formatInteger( visualtype->colormap_entries ), _separator,
+        //     memb_indent, "red-mask", name_width, _equals,
+        //     _formatBitmask( visualtype->red_mask ), _separator,
+        //     memb_indent, "green-mask", name_width, _equals,
+        //     _formatBitmask( visualtype->green_mask ), _separator,
+        //     memb_indent, "blue-mask", name_width, _equals,
+        //     _formatBitmask( visualtype->blue_mask ), _separator,
+        //     list_indent, i == vt_ct - 1 ? "" : ",", _separator
         //     );
     }
-    if ( vt_ct > 0 ) {
-        outputs.str +=
-            _verbosity == Settings::Verbosity::Singleline ? " " :
-            fmt::format( "\n{}", _tabIndent( tab_ct - 1 ) );
-    }
+    if ( vt_ct > 0 )
+        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -554,7 +538,7 @@ size_t X11ProtocolParser::_logServerAcceptance(
         reinterpret_cast< const char* >( data + bytes_parsed ), header->v };
     bytes_parsed += _pad( header->v );
 
-    const uint32_t tab_ct {};
+    const uint32_t tab_ct { 0 };
     // followed by LISTofFORMAT pixmap-formats of n * sizeof(FORMAT) bytes
     _LISTParsingOutputs pixmap_formats_outputs {
         _parseLISTofFORMAT( data + bytes_parsed, header->n, tab_ct + 2 ) };
@@ -565,95 +549,97 @@ size_t X11ProtocolParser::_logServerAcceptance(
         _parseLISTofSCREEN( data + bytes_parsed, header->r, tab_ct + 2 ) };
     bytes_parsed += roots_outputs.bytes_parsed;
 
-    const std::string struct_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct ) ) };
-    const std::string memb_whtspc {
-        _verbosity == Settings::Verbosity::Singleline ? " " :
-        fmt::format( "\n{}", _tabIndent( tab_ct + 1 ) ) };
-    const std::string_view equals {
-        _verbosity == Settings::Verbosity::Singleline ? "=" : " = " };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _verbosity == Settings::Verbosity::Singleline ? 0 :
-        sizeof( "bitmap-format-scanline-unit" ) - 1
-        );
+        _multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
 
     fmt::print( _log_fs, "{:03d}:>:server accepted connection ",
                 conn->id );
     fmt::println(
         _log_fs,
-        "{{"
+        "{{{}"
         "{}{}{}"
-        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}{}"
+        "{}{: <{}}{}{}{}"
         "{}{}"
-        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}{}"
-        "{}{: <{}}{}{}{}{: <{}}{}{}{}{: <{}}{}\"{}\""
-        "{}{: <{}}{}{}{}{: <{}}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (status: accepted)",
-                     memb_whtspc, "success", name_width, equals,
-                     _formatInteger( header->success ) ),
-        _verbosity == Settings::Verbosity::Debug ?
-        fmt::format( "{}{: <{}}{}{}{}{: <{}}{}{}",
-                     memb_whtspc, "protocol-major-version", name_width, equals,
-                     _formatInteger( header->protocol_major_version ),
-                     memb_whtspc, "protocol-minor-version", name_width, equals,
-                     _formatInteger( header->protocol_minor_version ) ) :
-        fmt::format( "{}{: <{}}{}{:d}.{:d}",
-                     memb_whtspc, "protocol version", name_width, equals,
-                     header->protocol_major_version,
-                     header->protocol_minor_version ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
+        _separator,
+        _verbose ?
         fmt::format(
-            "{}{: <{}}{}{} (length of (padded) vendor + pixmap-formats + roots, in 4-byte units)",
-            memb_whtspc, "ad", name_width, equals,
-            _formatInteger( header->ad ) ),
-        memb_whtspc, "release-number", name_width, equals,
-        _formatInteger( header->release_number ),
-        memb_whtspc, "release-id-base", name_width, equals,
-        _formatInteger( header->release_id_base ),
-        memb_whtspc, "release-id-mask", name_width, equals,
-        _formatInteger( header->release_id_mask ),
-        memb_whtspc, "motion-buffer-size", name_width, equals,
-        _formatInteger( header->motion_buffer_size ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (length of vendor in bytes)",
-                     memb_whtspc, "v", name_width, equals,
-                     _formatInteger( header->v ) ),
-        memb_whtspc, "maximum-request-length", name_width, equals,
-        _formatInteger( header->maximum_request_length ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (number of SCREENs in roots)",
-                     memb_whtspc, "r", name_width, equals,
-                     _formatInteger( header->r ) ),
-        _verbosity != Settings::Verbosity::Debug ? "" :
-        fmt::format( "{}{: <{}}{}{} (number of FORMATs in pixmap-formats)",
-                     memb_whtspc, "n", name_width, equals,
-                     _formatInteger( header->n ) ),
-        memb_whtspc, "image-byte-order", name_width, equals,
+            "{}{: <{}}{}{} (status: accepted){}",
+            memb_indent, "success", name_width, _equals,
+            _formatInteger( header->success ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}"
+            "{}{: <{}}{}{}{}",
+            memb_indent, "protocol-major-version", name_width, _equals,
+            _formatInteger( header->protocol_major_version ), _separator,
+            memb_indent, "protocol-minor-version", name_width, _equals,
+            _formatInteger( header->protocol_minor_version ), _separator ) :
+        fmt::format(
+            "{}{: <{}}{}{:d}.{:d}{}",
+            memb_indent, "protocol version", name_width, _equals,
+            header->protocol_major_version,
+            header->protocol_minor_version, _separator ),
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (length of (padded) vendor + pixmap-formats + roots, in 4-byte units){}",
+            memb_indent, "ad", name_width, _equals,
+            _formatInteger( header->ad ), _separator ) : "",
+        memb_indent, "release-number", name_width, _equals,
+        _formatInteger( header->release_number ), _separator,
+        memb_indent, "release-id-base", name_width, _equals,
+        _formatInteger( header->release_id_base ), _separator,
+        memb_indent, "release-id-mask", name_width, _equals,
+        _formatInteger( header->release_id_mask ), _separator,
+        memb_indent, "motion-buffer-size", name_width, _equals,
+        _formatInteger( header->motion_buffer_size ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (length of vendor in bytes){}",
+            memb_indent, "v", name_width, _equals,
+            _formatInteger( header->v ), _separator ) : "",
+        memb_indent, "maximum-request-length", name_width, _equals,
+        _formatInteger( header->maximum_request_length ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (number of SCREENs in roots){}",
+                     memb_indent, "r", name_width, _equals,
+            _formatInteger( header->r ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{} (number of FORMATs in pixmap-formats){}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( header->n ), _separator ) : "",
+        memb_indent, "image-byte-order", name_width, _equals,
         _formatInteger( header->image_byte_order,
-                        ServerAcceptance::byte_order_names ),
-        memb_whtspc, "bitmap-format-bit-order", name_width, equals,
+                        ServerAcceptance::byte_order_names ), _separator,
+        memb_indent, "bitmap-format-bit-order", name_width, _equals,
         _formatInteger( header->bitmap_format_bit_order,
-                        ServerAcceptance::bit_order_names ),
-        memb_whtspc, "bitmap-format-scanline-unit", name_width, equals,
-        _formatInteger( header->bitmap_format_scanline_unit ),
-        memb_whtspc, "bitmap-format-scanline-pad", name_width, equals,
-        _formatInteger( header->bitmap_format_scanline_pad ),
-        memb_whtspc, "min-keycode", name_width, equals,
-        _formatCommonType( header->min_keycode ),
-        memb_whtspc, "max-keycode", name_width, equals,
-        _formatCommonType( header->max_keycode ),
-        memb_whtspc, "vendor", name_width, equals,
-        vendor,
-        memb_whtspc, "pixmap-formats", name_width, equals,
-        pixmap_formats_outputs.str,
-        memb_whtspc, "roots", name_width, equals,
-        roots_outputs.str,
-        struct_whtspc
+                        ServerAcceptance::bit_order_names ), _separator,
+        memb_indent, "bitmap-format-scanline-unit", name_width, _equals,
+        _formatInteger( header->bitmap_format_scanline_unit ), _separator,
+        memb_indent, "bitmap-format-scanline-pad", name_width, _equals,
+        _formatInteger( header->bitmap_format_scanline_pad ), _separator,
+        memb_indent, "min-keycode", name_width, _equals,
+        _formatCommonType( header->min_keycode ), _separator,
+        memb_indent, "max-keycode", name_width, _equals,
+        _formatCommonType( header->max_keycode ), _separator,
+        memb_indent, "vendor", name_width, _equals,
+        vendor, _separator,
+        memb_indent, "pixmap-formats", name_width, _equals,
+        pixmap_formats_outputs.str, _separator,
+        memb_indent, "roots", name_width, _equals,
+        roots_outputs.str, _separator,
+        struct_indent
         );
     return bytes_parsed;
 }
@@ -810,10 +796,21 @@ size_t X11ProtocolParser::_logServerEvent(
     return sz;
 }
 
-void X11ProtocolParser::setLogFileStream( FILE* log_fs ) {
+void X11ProtocolParser::importSettings(
+    FILE* log_fs, const bool multiline,
+    const bool verbose, const bool readwritedebug ) {
     assert( log_fs != nullptr );
     assert( !feof( log_fs ) && !ferror( log_fs ) );
+
     _log_fs = log_fs;
+    _multiline = multiline;
+    _verbose = verbose;
+    _readwritedebug = readwritedebug;
+
+    if ( _multiline ) {
+        _separator = '\n';
+        _equals    = " = ";
+    }
 }
 
 // TBD pass in readwritedebug or keep as private parser var like verbosity?
@@ -823,8 +820,7 @@ void X11ProtocolParser::setLogFileStream( FILE* log_fs ) {
 //   - extension enable: ??? (logs of xtrace indicate packets sent after
 //       QueryExtension gets positive response from server, to then enable
 //       that extension)
-size_t X11ProtocolParser::logClientPackets( Connection* conn,
-                                            const Settings& settings ) {
+size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
     assert( conn != nullptr );
 
     uint8_t* data { conn->client_buffer.data() };
@@ -833,7 +829,7 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn,
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
             _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
-        if ( settings.readwritedebug ) {
+        if ( _readwritedebug ) {
             fmt::println( _log_fs, "{:03d}:<:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
         }
@@ -844,8 +840,7 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn,
     return tl_bytes_parsed;
 }
 
-size_t X11ProtocolParser::logServerPackets( Connection* conn,
-                                            const Settings& settings ) {
+size_t X11ProtocolParser::logServerPackets( Connection* conn ) {
     assert( conn != nullptr );
 
     uint8_t* data { conn->server_buffer.data() };
@@ -854,7 +849,7 @@ size_t X11ProtocolParser::logServerPackets( Connection* conn,
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
             _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
-        if ( settings.readwritedebug ) {
+        if ( _readwritedebug ) {
             fmt::println( _log_fs, "{:03d}:>:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
         }
