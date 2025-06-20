@@ -22,7 +22,18 @@ add_executable(request_test
 )
 target_include_directories(request_test PRIVATE
   ${X11_xcb_INCLUDE_PATH}
+  ${PROJECT_SOURCE_DIR}/src/include
 )
 target_link_libraries(request_test PUBLIC
+  ${X11_xcb_LIB}
+)
+
+add_executable(ServerRefusal_test
+  ServerRefusal_test.cpp
+)
+target_include_directories(ServerRefusal_test PRIVATE
+  ${X11_xcb_INCLUDE_PATH}
+)
+target_link_libraries(ServerRefusal_test PUBLIC
   ${X11_xcb_LIB}
 )
