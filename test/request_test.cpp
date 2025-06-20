@@ -27,12 +27,8 @@ int main(const int argc, const char* const* argv) {
     switch ( opcode ) {
     case protocol::requests::opcodes::CREATEWINDOW:             {  //   1
         // Create the window
-        const xcb_window_t window { xcb_generate_id ( connection ) };
-        const uint32_t value_list[15] {
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0
-        };
+        const xcb_window_t window { /*xcb_generate_id ( connection )*/ };
+        const uint32_t value_list[15] {};
         xcb_create_window(
             connection,                    // Connection
             XCB_COPY_FROM_PARENT,          // depth (same as root)
@@ -54,11 +50,7 @@ int main(const int argc, const char* const* argv) {
     case protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES:   {  //   2
         const xcb_window_t      window {};
         const uint32_t          value_mask {};
-        const uint32_t          value_list[15] {
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0
-        };
+        const uint32_t          value_list[15] {};
         xcb_change_window_attributes(
             connection,
             window,
