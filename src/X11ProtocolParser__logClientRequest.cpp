@@ -24,7 +24,7 @@ size_t X11ProtocolParser::_logCreateWindow(
         reinterpret_cast< const CreateWindow::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateWindow::Encoding );
 
-    static const uint32_t tab_ct {};
+    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     const std::vector< _EnumTraits > value_traits {
@@ -62,7 +62,7 @@ size_t X11ProtocolParser::_logCreateWindow(
     const std::string_view memb_indent {
         _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "border-width" ) - 1 : 0 );
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
 
     // TBD make intro line into distinct func?
     fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
@@ -71,13 +71,26 @@ size_t X11ProtocolParser::_logCreateWindow(
     fmt::println(
         _log_fs,
         "{{{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "depth", name_width, _equals,
         _formatInteger( encoding->depth ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "wid", name_width, _equals,
         _formatCommonType( encoding->wid ), _separator,
         memb_indent, "parent", name_width, _equals,
@@ -110,7 +123,89 @@ size_t X11ProtocolParser::_logCreateWindow(
 
 size_t X11ProtocolParser::_logChangeWindowAttributes(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return sz;
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+
+    using ChangeWindowAttributes = protocol::requests::ChangeWindowAttributes;
+    const ChangeWindowAttributes::Encoding* encoding {
+        reinterpret_cast< const ChangeWindowAttributes::Encoding* >( data ) };
+    bytes_parsed += sizeof( ChangeWindowAttributes::Encoding );
+
+    static const uint32_t tab_ct { 0 };
+    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
+    //   nested in value_list_inputs initializer
+    // VALUE list encoding same as CreateWindow
+    const std::vector< _EnumTraits > value_traits {
+        /* background-pixmap     */ { ChangeWindowAttributes::background_pixmap_names },
+        /* background-pixel      */ {},
+        /* border-pixmap         */ { ChangeWindowAttributes::border_pixmap_names },
+        /* border-pixel          */ {},
+        /* bit-gravity           */ {},
+        /* win-gravity           */ {},
+        /* backing-store         */ { ChangeWindowAttributes::backing_store_names },
+        /* backing-planes        */ {},
+        /* backing-pixel         */ {},
+        /* override-redirect     */ {},
+        /* save-under            */ {},
+        /* event-mask            */ {},
+        /* do-not-propagate-mask */ {},
+        /* colormap              */ { ChangeWindowAttributes::colormap_names },
+        /* cursor                */ { ChangeWindowAttributes::cursor_names }
+    };
+    const _LISTofVALUEParsingInputs value_list_inputs {
+        ChangeWindowAttributes::value_types,
+        ChangeWindowAttributes::value_names,
+        value_traits,
+        tab_ct + 2
+    };
+    _LISTParsingOutputs value_list_outputs;
+    _parseLISTofVALUE(
+        encoding->value_mask, value_list_inputs,
+        data + bytes_parsed, &value_list_outputs );
+    bytes_parsed += value_list_outputs.bytes_parsed;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+
+    // TBD make intro line into distinct func?
+    fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
+                conn->id, encoding->opcode,
+                protocol::requests::names[ encoding->opcode ] );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        memb_indent, "value-mask", name_width, _equals,
+        _formatBitmask( encoding->value_mask ), _separator,
+        memb_indent, "value-list", name_width, _equals,
+        value_list_outputs.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 // size_t X11ProtocolParser::_logGetWindowAttributes(

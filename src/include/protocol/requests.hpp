@@ -439,7 +439,6 @@ struct ChangeWindowAttributes {
         protocol::enum_names::zero_none };
 };
 
-// TBD only inheriting from base to get enums for backing-store and class_
 struct GetWindowAttributes {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 3
