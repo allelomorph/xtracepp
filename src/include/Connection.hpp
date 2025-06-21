@@ -20,8 +20,6 @@ private:
     static constexpr int _FD_CLOSED  { -1 };
     inline static uint32_t  _next_id {};
 
-    // TBD sequence can't get bigger than 4 bytes?
-    inline static uint32_t             _next_seq_num { 1 };
     // 1-indexed so begin with one dummy member
     // TBD this allows for lookup of request traits when parsing Error/Reply
     std::vector< uint8_t > _request_opcodes_by_seq_num { 1 };
