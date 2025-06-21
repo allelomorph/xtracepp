@@ -36,7 +36,7 @@ public:
 
 // TBD connection states are: uncontacted > open > closed
 //                                        > closed ( general fail )
-//                                        > authentication negotiation > closed
+//                                        > authentication negotiation > closed ( auth fail )
 //                                                                     > open > closed
     enum Status {
         // before handshake is completed to open
