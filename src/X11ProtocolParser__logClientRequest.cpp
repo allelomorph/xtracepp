@@ -63,11 +63,6 @@ size_t X11ProtocolParser::_logCreateWindow(
         _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         _multiline ? sizeof( "request length" ) - 1 : 0 );
-
-    // TBD make intro line into distinct func?
-    fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
-                conn->id, encoding->opcode,
-                protocol::requests::names[ encoding->opcode ] );
     fmt::println(
         _log_fs,
         "{{{}"
@@ -174,11 +169,6 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
         _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         _multiline ? sizeof( "request length" ) - 1 : 0 );
-
-    // TBD make intro line into distinct func?
-    fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
-                conn->id, encoding->opcode,
-                protocol::requests::names[ encoding->opcode ] );
     fmt::println(
         _log_fs,
         "{{{}"
@@ -229,11 +219,6 @@ size_t X11ProtocolParser::_logGetWindowAttributes(
         _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         _multiline ? sizeof( "request length" ) - 1 : 0 );
-
-    // TBD make intro line into distinct func?
-    fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
-                conn->id, encoding->opcode,
-                protocol::requests::names[ encoding->opcode ] );
     fmt::println(
         _log_fs,
         "{{{}"
@@ -845,380 +830,383 @@ size_t X11ProtocolParser::_logNoOperation(
 }
 
 size_t X11ProtocolParser::_logClientRequest(
-    Connection* conn, const uint8_t* data, const size_t sz, const uint8_t opcode ) {
+    Connection* conn, const uint8_t* data, const size_t sz,
+    const uint8_t opcode ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= 4 ); // TBD
-    // TBD core opcodes only to start
-    assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );
+    assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );  // TBD core opcodes only to start
+
     // map opcode to sequence number to aid in parsing request errors and replies
     conn->registerRequest( opcode );
     size_t bytes_parsed {};
-    using namespace protocol::requests;
+
+    fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
+                conn->id, opcode, protocol::requests::names[ opcode ] );
+    using namespace protocol::requests::opcodes;
     switch ( opcode ) {
-    case opcodes::CREATEWINDOW:
+    case CREATEWINDOW:
         bytes_parsed = _logCreateWindow( conn, data, sz );
         break;
-    case opcodes::CHANGEWINDOWATTRIBUTES:
+    case CHANGEWINDOWATTRIBUTES:
         bytes_parsed = _logChangeWindowAttributes( conn, data, sz );
         break;
-    case opcodes::GETWINDOWATTRIBUTES:
+    case GETWINDOWATTRIBUTES:
         bytes_parsed = _logGetWindowAttributes( conn, data, sz );
         break;
-    case opcodes::DESTROYWINDOW:
+    case DESTROYWINDOW:
         bytes_parsed = _logDestroyWindow( conn, data, sz );
         break;
-    case opcodes::DESTROYSUBWINDOWS:
+    case DESTROYSUBWINDOWS:
         bytes_parsed = _logDestroySubwindows( conn, data, sz );
         break;
-    case opcodes::CHANGESAVESET:
+    case CHANGESAVESET:
         bytes_parsed = _logChangeSaveSet( conn, data, sz );
         break;
-    case opcodes::REPARENTWINDOW:
+    case REPARENTWINDOW:
         bytes_parsed = _logReparentWindow( conn, data, sz );
         break;
-    case opcodes::MAPWINDOW:
+    case MAPWINDOW:
         bytes_parsed = _logMapWindow( conn, data, sz );
         break;
-    case opcodes::MAPSUBWINDOWS:
+    case MAPSUBWINDOWS:
         bytes_parsed = _logMapSubwindows( conn, data, sz );
         break;
-    case opcodes::UNMAPWINDOW:
+    case UNMAPWINDOW:
         bytes_parsed = _logUnmapWindow( conn, data, sz );
         break;
-    case opcodes::UNMAPSUBWINDOWS:
+    case UNMAPSUBWINDOWS:
         bytes_parsed = _logUnmapSubwindows( conn, data, sz );
         break;
-    case opcodes::CONFIGUREWINDOW:
+    case CONFIGUREWINDOW:
         bytes_parsed = _logConfigureWindow( conn, data, sz );
         break;
-    case opcodes::CIRCULATEWINDOW:
+    case CIRCULATEWINDOW:
         bytes_parsed = _logCirculateWindow( conn, data, sz );
         break;
-    case opcodes::GETGEOMETRY:
+    case GETGEOMETRY:
         bytes_parsed = _logGetGeometry( conn, data, sz );
         break;
-    case opcodes::QUERYTREE:
+    case QUERYTREE:
         bytes_parsed = _logQueryTree( conn, data, sz );
         break;
-    case opcodes::INTERNATOM:
+    case INTERNATOM:
         bytes_parsed = _logInternAtom( conn, data, sz );
         break;
-    case opcodes::GETATOMNAME:
+    case GETATOMNAME:
         bytes_parsed = _logGetAtomName( conn, data, sz );
         break;
-    case opcodes::CHANGEPROPERTY:
+    case CHANGEPROPERTY:
         bytes_parsed = _logChangeProperty( conn, data, sz );
         break;
-    case opcodes::DELETEPROPERTY:
+    case DELETEPROPERTY:
         bytes_parsed = _logDeleteProperty( conn, data, sz );
         break;
-    case opcodes::GETPROPERTY:
+    case GETPROPERTY:
         bytes_parsed = _logGetProperty( conn, data, sz );
         break;
-    case opcodes::LISTPROPERTIES:
+    case LISTPROPERTIES:
         bytes_parsed = _logListProperties( conn, data, sz );
         break;
-    case opcodes::SETSELECTIONOWNER:
+    case SETSELECTIONOWNER:
         bytes_parsed = _logSetSelectionOwner( conn, data, sz );
         break;
-    case opcodes::GETSELECTIONOWNER:
+    case GETSELECTIONOWNER:
         bytes_parsed = _logGetSelectionOwner( conn, data, sz );
         break;
-    case opcodes::CONVERTSELECTION:
+    case CONVERTSELECTION:
         bytes_parsed = _logConvertSelection( conn, data, sz );
         break;
-    case opcodes::SENDEVENT:
+    case SENDEVENT:
         bytes_parsed = _logSendEvent( conn, data, sz );
         break;
-    case opcodes::GRABPOINTER:
+    case GRABPOINTER:
         bytes_parsed = _logGrabPointer( conn, data, sz );
         break;
-    case opcodes::UNGRABPOINTER:
+    case UNGRABPOINTER:
         bytes_parsed = _logUngrabPointer( conn, data, sz );
         break;
-    case opcodes::GRABBUTTON:
+    case GRABBUTTON:
         bytes_parsed = _logGrabButton( conn, data, sz );
         break;
-    case opcodes::UNGRABBUTTON:
+    case UNGRABBUTTON:
         bytes_parsed = _logUngrabButton( conn, data, sz );
         break;
-    case opcodes::CHANGEACTIVEPOINTERGRAB:
+    case CHANGEACTIVEPOINTERGRAB:
         bytes_parsed = _logChangeActivePointerGrab( conn, data, sz );
         break;
-    case opcodes::GRABKEYBOARD:
+    case GRABKEYBOARD:
         bytes_parsed = _logGrabKeyboard( conn, data, sz );
         break;
-    case opcodes::UNGRABKEYBOARD:
+    case UNGRABKEYBOARD:
         bytes_parsed = _logUngrabKeyboard( conn, data, sz );
         break;
-    case opcodes::GRABKEY:
+    case GRABKEY:
         bytes_parsed = _logGrabKey( conn, data, sz );
         break;
-    case opcodes::UNGRABKEY:
+    case UNGRABKEY:
         bytes_parsed = _logUngrabKey( conn, data, sz );
         break;
-    case opcodes::ALLOWEVENTS:
+    case ALLOWEVENTS:
         bytes_parsed = _logAllowEvents( conn, data, sz );
         break;
-    case opcodes::GRABSERVER:
+    case GRABSERVER:
         bytes_parsed = _logGrabServer( conn, data, sz );
         break;
-    case opcodes::UNGRABSERVER:
+    case UNGRABSERVER:
         bytes_parsed = _logUngrabServer( conn, data, sz );
         break;
-    case opcodes::QUERYPOINTER:
+    case QUERYPOINTER:
         bytes_parsed = _logQueryPointer( conn, data, sz );
         break;
-    case opcodes::GETMOTIONEVENTS:
+    case GETMOTIONEVENTS:
         bytes_parsed = _logGetMotionEvents( conn, data, sz );
         break;
-    case opcodes::TRANSLATECOORDINATES:
+    case TRANSLATECOORDINATES:
         bytes_parsed = _logTranslateCoordinates( conn, data, sz );
         break;
-    case opcodes::WARPPOINTER:
+    case WARPPOINTER:
         bytes_parsed = _logWarpPointer( conn, data, sz );
         break;
-    case opcodes::SETINPUTFOCUS:
+    case SETINPUTFOCUS:
         bytes_parsed = _logSetInputFocus( conn, data, sz );
         break;
-    case opcodes::GETINPUTFOCUS:
+    case GETINPUTFOCUS:
         bytes_parsed = _logGetInputFocus( conn, data, sz );
         break;
-    case opcodes::QUERYKEYMAP:
+    case QUERYKEYMAP:
         bytes_parsed = _logQueryKeymap( conn, data, sz );
         break;
-    case opcodes::OPENFONT:
+    case OPENFONT:
         bytes_parsed = _logOpenFont( conn, data, sz );
         break;
-    case opcodes::CLOSEFONT:
+    case CLOSEFONT:
         bytes_parsed = _logCloseFont( conn, data, sz );
         break;
-    case opcodes::QUERYFONT:
+    case QUERYFONT:
         bytes_parsed = _logQueryFont( conn, data, sz );
         break;
-    case opcodes::QUERYTEXTEXTENTS:
+    case QUERYTEXTEXTENTS:
         bytes_parsed = _logQueryTextExtents( conn, data, sz );
         break;
-    case opcodes::LISTFONTS:
+    case LISTFONTS:
         bytes_parsed = _logListFonts( conn, data, sz );
         break;
-    case opcodes::LISTFONTSWITHINFO:
+    case LISTFONTSWITHINFO:
         bytes_parsed = _logListFontsWithInfo( conn, data, sz );
         break;
-    case opcodes::SETFONTPATH:
+    case SETFONTPATH:
         bytes_parsed = _logSetFontPath( conn, data, sz );
         break;
-    case opcodes::GETFONTPATH:
+    case GETFONTPATH:
         bytes_parsed = _logGetFontPath( conn, data, sz );
         break;
-    case opcodes::CREATEPIXMAP:
+    case CREATEPIXMAP:
         bytes_parsed = _logCreatePixmap( conn, data, sz );
         break;
-    case opcodes::FREEPIXMAP:
+    case FREEPIXMAP:
         bytes_parsed = _logFreePixmap( conn, data, sz );
         break;
-    case opcodes::CREATEGC:
+    case CREATEGC:
         bytes_parsed = _logCreateGC( conn, data, sz );
         break;
-    case opcodes::CHANGEGC:
+    case CHANGEGC:
         bytes_parsed = _logChangeGC( conn, data, sz );
         break;
-    case opcodes::COPYGC:
+    case COPYGC:
         bytes_parsed = _logCopyGC( conn, data, sz );
         break;
-    case opcodes::SETDASHES:
+    case SETDASHES:
         bytes_parsed = _logSetDashes( conn, data, sz );
         break;
-    case opcodes::SETCLIPRECTANGLES:
+    case SETCLIPRECTANGLES:
         bytes_parsed = _logSetClipRectangles( conn, data, sz );
         break;
-    case opcodes::FREEGC:
+    case FREEGC:
         bytes_parsed = _logFreeGC( conn, data, sz );
         break;
-    case opcodes::CLEARAREA:
+    case CLEARAREA:
         bytes_parsed = _logClearArea( conn, data, sz );
         break;
-    case opcodes::COPYAREA:
+    case COPYAREA:
         bytes_parsed = _logCopyArea( conn, data, sz );
         break;
-    case opcodes::COPYPLANE:
+    case COPYPLANE:
         bytes_parsed = _logCopyPlane( conn, data, sz );
         break;
-    case opcodes::POLYPOINT:
+    case POLYPOINT:
         bytes_parsed = _logPolyPoint( conn, data, sz );
         break;
-    case opcodes::POLYLINE:
+    case POLYLINE:
         bytes_parsed = _logPolyLine( conn, data, sz );
         break;
-    case opcodes::POLYSEGMENT:
+    case POLYSEGMENT:
         bytes_parsed = _logPolySegment( conn, data, sz );
         break;
-    case opcodes::POLYRECTANGLE:
+    case POLYRECTANGLE:
         bytes_parsed = _logPolyRectangle( conn, data, sz );
         break;
-    case opcodes::POLYARC:
+    case POLYARC:
         bytes_parsed = _logPolyArc( conn, data, sz );
         break;
-    case opcodes::FILLPOLY:
+    case FILLPOLY:
         bytes_parsed = _logFillPoly( conn, data, sz );
         break;
-    case opcodes::POLYFILLRECTANGLE:
+    case POLYFILLRECTANGLE:
         bytes_parsed = _logPolyFillRectangle( conn, data, sz );
         break;
-    case opcodes::POLYFILLARC:
+    case POLYFILLARC:
         bytes_parsed = _logPolyFillArc( conn, data, sz );
         break;
-    case opcodes::PUTIMAGE:
+    case PUTIMAGE:
         bytes_parsed = _logPutImage( conn, data, sz );
         break;
-    case opcodes::GETIMAGE:
+    case GETIMAGE:
         bytes_parsed = _logGetImage( conn, data, sz );
         break;
-    case opcodes::POLYTEXT8:
+    case POLYTEXT8:
         bytes_parsed = _logPolyText8( conn, data, sz );
         break;
-    case opcodes::POLYTEXT16:
+    case POLYTEXT16:
         bytes_parsed = _logPolyText16( conn, data, sz );
         break;
-    case opcodes::IMAGETEXT8:
+    case IMAGETEXT8:
         bytes_parsed = _logImageText8( conn, data, sz );
         break;
-    case opcodes::IMAGETEXT16:
+    case IMAGETEXT16:
         bytes_parsed = _logImageText16( conn, data, sz );
         break;
-    case opcodes::CREATECOLORMAP:
+    case CREATECOLORMAP:
         bytes_parsed = _logCreateColormap( conn, data, sz );
         break;
-    case opcodes::FREECOLORMAP:
+    case FREECOLORMAP:
         bytes_parsed = _logFreeColormap( conn, data, sz );
         break;
-    case opcodes::COPYCOLORMAPANDFREE:
+    case COPYCOLORMAPANDFREE:
         bytes_parsed = _logCopyColormapAndFree( conn, data, sz );
         break;
-    case opcodes::INSTALLCOLORMAP:
+    case INSTALLCOLORMAP:
         bytes_parsed = _logInstallColormap( conn, data, sz );
         break;
-    case opcodes::UNINSTALLCOLORMAP:
+    case UNINSTALLCOLORMAP:
         bytes_parsed = _logUninstallColormap( conn, data, sz );
         break;
-    case opcodes::LISTINSTALLEDCOLORMAPS:
+    case LISTINSTALLEDCOLORMAPS:
         bytes_parsed = _logListInstalledColormaps( conn, data, sz );
         break;
-    case opcodes::ALLOCCOLOR:
+    case ALLOCCOLOR:
         bytes_parsed = _logAllocColor( conn, data, sz );
         break;
-    case opcodes::ALLOCNAMEDCOLOR:
+    case ALLOCNAMEDCOLOR:
         bytes_parsed = _logAllocNamedColor( conn, data, sz );
         break;
-    case opcodes::ALLOCCOLORCELLS:
+    case ALLOCCOLORCELLS:
         bytes_parsed = _logAllocColorCells( conn, data, sz );
         break;
-    case opcodes::ALLOCCOLORPLANES:
+    case ALLOCCOLORPLANES:
         bytes_parsed = _logAllocColorPlanes( conn, data, sz );
         break;
-    case opcodes::FREECOLORS:
+    case FREECOLORS:
         bytes_parsed = _logFreeColors( conn, data, sz );
         break;
-    case opcodes::STORECOLORS:
+    case STORECOLORS:
         bytes_parsed = _logStoreColors( conn, data, sz );
         break;
-    case opcodes::STORENAMEDCOLOR:
+    case STORENAMEDCOLOR:
         bytes_parsed = _logStoreNamedColor( conn, data, sz );
         break;
-    case opcodes::QUERYCOLORS:
+    case QUERYCOLORS:
         bytes_parsed = _logQueryColors( conn, data, sz );
         break;
-    case opcodes::LOOKUPCOLOR:
+    case LOOKUPCOLOR:
         bytes_parsed = _logLookupColor( conn, data, sz );
         break;
-    case opcodes::CREATECURSOR:
+    case CREATECURSOR:
         bytes_parsed = _logCreateCursor( conn, data, sz );
         break;
-    case opcodes::CREATEGLYPHCURSOR:
+    case CREATEGLYPHCURSOR:
         bytes_parsed = _logCreateGlyphCursor( conn, data, sz );
         break;
-    case opcodes::FREECURSOR:
+    case FREECURSOR:
         bytes_parsed = _logFreeCursor( conn, data, sz );
         break;
-    case opcodes::RECOLORCURSOR:
+    case RECOLORCURSOR:
         bytes_parsed = _logRecolorCursor( conn, data, sz );
         break;
-    case opcodes::QUERYBESTSIZE:
+    case QUERYBESTSIZE:
         bytes_parsed = _logQueryBestSize( conn, data, sz );
         break;
-    case opcodes::QUERYEXTENSION:
+    case QUERYEXTENSION:
         bytes_parsed = _logQueryExtension( conn, data, sz );
         break;
-    case opcodes::LISTEXTENSIONS:
+    case LISTEXTENSIONS:
         bytes_parsed = _logListExtensions( conn, data, sz );
         break;
-    case opcodes::CHANGEKEYBOARDMAPPING:
+    case CHANGEKEYBOARDMAPPING:
         bytes_parsed = _logChangeKeyboardMapping( conn, data, sz );
         break;
-    case opcodes::GETKEYBOARDMAPPING:
+    case GETKEYBOARDMAPPING:
         bytes_parsed = _logGetKeyboardMapping( conn, data, sz );
         break;
-    case opcodes::CHANGEKEYBOARDCONTROL:
+    case CHANGEKEYBOARDCONTROL:
         bytes_parsed = _logChangeKeyboardControl( conn, data, sz );
         break;
-    case opcodes::GETKEYBOARDCONTROL:
+    case GETKEYBOARDCONTROL:
         bytes_parsed = _logGetKeyboardControl( conn, data, sz );
         break;
-    case opcodes::BELL:
+    case BELL:
         bytes_parsed = _logBell( conn, data, sz );
         break;
-    case opcodes::CHANGEPOINTERCONTROL:
+    case CHANGEPOINTERCONTROL:
         bytes_parsed = _logChangePointerControl( conn, data, sz );
         break;
-    case opcodes::GETPOINTERCONTROL:
+    case GETPOINTERCONTROL:
         bytes_parsed = _logGetPointerControl( conn, data, sz );
         break;
-    case opcodes::SETSCREENSAVER:
+    case SETSCREENSAVER:
         bytes_parsed = _logSetScreenSaver( conn, data, sz );
         break;
-    case opcodes::GETSCREENSAVER:
+    case GETSCREENSAVER:
         bytes_parsed = _logGetScreenSaver( conn, data, sz );
         break;
-    case opcodes::CHANGEHOSTS:
+    case CHANGEHOSTS:
         bytes_parsed = _logChangeHosts( conn, data, sz );
         break;
-    case opcodes::LISTHOSTS:
+    case LISTHOSTS:
         bytes_parsed = _logListHosts( conn, data, sz );
         break;
-    case opcodes::SETACCESSCONTROL:
+    case SETACCESSCONTROL:
         bytes_parsed = _logSetAccessControl( conn, data, sz );
         break;
-    case opcodes::SETCLOSEDOWNMODE:
+    case SETCLOSEDOWNMODE:
         bytes_parsed = _logSetCloseDownMode( conn, data, sz );
         break;
-    case opcodes::KILLCLIENT:
+    case KILLCLIENT:
         bytes_parsed = _logKillClient( conn, data, sz );
         break;
-    case opcodes::ROTATEPROPERTIES:
+    case ROTATEPROPERTIES:
         bytes_parsed = _logRotateProperties( conn, data, sz );
         break;
-    case opcodes::FORCESCREENSAVER:
+    case FORCESCREENSAVER:
         bytes_parsed = _logForceScreenSaver( conn, data, sz );
         break;
-    case opcodes::SETPOINTERMAPPING:
+    case SETPOINTERMAPPING:
         bytes_parsed = _logSetPointerMapping( conn, data, sz );
         break;
-    case opcodes::GETPOINTERMAPPING:
+    case GETPOINTERMAPPING:
         bytes_parsed = _logGetPointerMapping( conn, data, sz );
         break;
-    case opcodes::SETMODIFIERMAPPING:
+    case SETMODIFIERMAPPING:
         bytes_parsed = _logSetModifierMapping( conn, data, sz );
         break;
-    case opcodes::GETMODIFIERMAPPING:
+    case GETMODIFIERMAPPING:
         bytes_parsed = _logGetModifierMapping( conn, data, sz );
         break;
-    case opcodes::NOOPERATION:
+    case NOOPERATION:
         bytes_parsed = _logNoOperation( conn, data, sz );
         break;
     default:
         break;
     };
-    // return bytes_parsed;
-    return sz;  // TBD testing only
+    return bytes_parsed;
 }
