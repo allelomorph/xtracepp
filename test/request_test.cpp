@@ -24,8 +24,9 @@ int main(const int argc, const char* const* argv) {
     assert( setup  != nullptr );
     assert( screen != nullptr );
 
+    using namespace protocol::requests::opcodes;
     switch ( opcode ) {
-    case protocol::requests::opcodes::CREATEWINDOW:             {  //   1
+    case CREATEWINDOW:             {  //   1
         // Create the window
         const xcb_window_t window { /*xcb_generate_id ( connection )*/ };
         const uint32_t value_list[15] {};
@@ -47,7 +48,7 @@ int main(const int argc, const char* const* argv) {
             // value-mask
             value_list );                 // value-list
     }   break;
-    case protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES:   {  //   2
+    case CHANGEWINDOWATTRIBUTES:   {  //   2
         const xcb_window_t      window {};
         const uint32_t          value_mask {};
         const uint32_t          value_list[15] {};
@@ -62,28 +63,29 @@ int main(const int argc, const char* const* argv) {
             // value-mask
             value_list );                 // value-list
     }   break;
-    case protocol::requests::opcodes::GETWINDOWATTRIBUTES:      {  //   3
+    case GETWINDOWATTRIBUTES:      {  //   3
         const xcb_window_t      window {};
         xcb_get_window_attributes(
             connection, window );
+        // TBD separate testing of reply encoding would require creation of a valid window
     }   break;
-    case protocol::requests::opcodes::DESTROYWINDOW:            {  //   4
+    case DESTROYWINDOW:            {  //   4
         const xcb_window_t      window {};
         xcb_destroy_window(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::DESTROYSUBWINDOWS:        {  //   5
+    case DESTROYSUBWINDOWS:        {  //   5
         const xcb_window_t      window {};
         xcb_destroy_subwindows(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::CHANGESAVESET:            {  //   6
+    case CHANGESAVESET:            {  //   6
         const uint8_t           mode {};
         const xcb_window_t      window {};
         xcb_change_save_set
             (connection, mode, window);
     }   break;
-    case protocol::requests::opcodes::REPARENTWINDOW:           {  //   7
+    case REPARENTWINDOW:           {  //   7
         const xcb_window_t      window {};
         const xcb_window_t      parent {};
         const int16_t           x {};
@@ -91,62 +93,62 @@ int main(const int argc, const char* const* argv) {
         xcb_reparent_window(
             connection, window, parent, x, y);
     }   break;
-    case protocol::requests::opcodes::MAPWINDOW:                {  //   8
+    case MAPWINDOW:                {  //   8
         const xcb_window_t      window {};
         xcb_map_window(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::MAPSUBWINDOWS:            {  //   9
+    case MAPSUBWINDOWS:            {  //   9
         const xcb_window_t      window {};
         xcb_map_subwindows(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::UNMAPWINDOW:              {  //  10
+    case UNMAPWINDOW:              {  //  10
         const xcb_window_t      window {};
         xcb_unmap_window(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::UNMAPSUBWINDOWS:          {  //  11
+    case UNMAPSUBWINDOWS:          {  //  11
         const xcb_window_t      window {};
         xcb_unmap_subwindows(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::CONFIGUREWINDOW:          {  //  12
+    case CONFIGUREWINDOW:          {  //  12
         const xcb_window_t      window {};
         const uint16_t          value_mask {};
         const void*             value_list {};
         xcb_configure_window(
             connection, window, value_mask, value_list);
     }   break;
-    case protocol::requests::opcodes::CIRCULATEWINDOW:          {  //  13
+    case CIRCULATEWINDOW:          {  //  13
         const uint8_t           direction {};
         const xcb_window_t      window {};
         xcb_circulate_window(
             connection, direction, window);
     }   break;
-    case protocol::requests::opcodes::GETGEOMETRY:              {  //  14
+    case GETGEOMETRY:              {  //  14
         const xcb_drawable_t    drawable {};
         xcb_get_geometry(
             connection, drawable);
     }   break;
-    case protocol::requests::opcodes::QUERYTREE:                {  //  15
+    case QUERYTREE:                {  //  15
         const xcb_window_t      window {};
         xcb_query_tree(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::INTERNATOM:               {  //  16
+    case INTERNATOM:               {  //  16
         const uint8_t           only_if_exists {};
         const uint16_t          name_len {};
         const char*             name {};
         xcb_intern_atom(
             connection, only_if_exists, name_len, name);
     }   break;
-    case protocol::requests::opcodes::GETATOMNAME:              {  //  17
+    case GETATOMNAME:              {  //  17
         const xcb_atom_t        atom {};
         xcb_get_atom_name(
             connection, atom);
     }   break;
-    case protocol::requests::opcodes::CHANGEPROPERTY:           {  //  18
+    case CHANGEPROPERTY:           {  //  18
         const uint8_t           mode {};
         const xcb_window_t      window {};
         const xcb_atom_t        property {};
@@ -158,13 +160,13 @@ int main(const int argc, const char* const* argv) {
             connection, mode, window, property,
             type, format, data_len, data);
     }   break;
-    case protocol::requests::opcodes::DELETEPROPERTY:           {  //  19
+    case DELETEPROPERTY:           {  //  19
         const xcb_window_t      window {};
         const xcb_atom_t        property {};
         xcb_delete_property_checked(
             connection, window, property);
     }   break;
-    case protocol::requests::opcodes::GETPROPERTY:              {  //  20
+    case GETPROPERTY:              {  //  20
         const uint8_t           _delete {};
         const xcb_window_t      window {};
         const xcb_atom_t        property {};
@@ -175,24 +177,24 @@ int main(const int argc, const char* const* argv) {
             connection, _delete, window, property,
             type, long_offset, long_length);
     }   break;
-    case protocol::requests::opcodes::LISTPROPERTIES:           {  //  21
+    case LISTPROPERTIES:           {  //  21
         const xcb_window_t      window {};
         xcb_list_properties(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::SETSELECTIONOWNER:        {  //  22
+    case SETSELECTIONOWNER:        {  //  22
         const xcb_window_t      owner {};
         const xcb_atom_t        selection {};
         const xcb_timestamp_t   time {};
         xcb_set_selection_owner(
             connection, owner, selection, time);
     }   break;
-    case protocol::requests::opcodes::GETSELECTIONOWNER:        {  //  23
+    case GETSELECTIONOWNER:        {  //  23
         const xcb_atom_t        selection {};
         xcb_get_selection_owner(
             connection, selection);
     }   break;
-    case protocol::requests::opcodes::CONVERTSELECTION:         {  //  24
+    case CONVERTSELECTION:         {  //  24
         const xcb_window_t      requestor {};
         const xcb_atom_t        selection {};
         const xcb_atom_t        target {};
@@ -201,7 +203,7 @@ int main(const int argc, const char* const* argv) {
         xcb_convert_selection(
             connection, requestor, selection, target, property, time);
     }   break;
-    case protocol::requests::opcodes::SENDEVENT:                {  //  25
+    case SENDEVENT:                {  //  25
         const uint8_t           propagate {};
         const xcb_window_t      destination {};
         const uint32_t          event_mask {};
@@ -209,7 +211,7 @@ int main(const int argc, const char* const* argv) {
         xcb_send_event(
             connection, propagate, destination, event_mask, event);
     }   break;
-    case protocol::requests::opcodes::GRABPOINTER:              {  //  26
+    case GRABPOINTER:              {  //  26
         const uint8_t           owner_events {};
         const xcb_window_t      grab_window {};
         const uint16_t          event_mask {};
@@ -222,12 +224,12 @@ int main(const int argc, const char* const* argv) {
             connection, owner_events, grab_window, event_mask,
             pointer_mode, keyboard_mode, confine_to, cursor, time);
     }   break;
-    case protocol::requests::opcodes::UNGRABPOINTER:            {  //  27
+    case UNGRABPOINTER:            {  //  27
         const xcb_timestamp_t   time {};
         xcb_ungrab_pointer(
             connection, time);
     }   break;
-    case protocol::requests::opcodes::GRABBUTTON:               {  //  28
+    case GRABBUTTON:               {  //  28
         const uint8_t           owner_events {};
         const xcb_window_t      grab_window {};
         const uint16_t          event_mask {};
@@ -241,21 +243,21 @@ int main(const int argc, const char* const* argv) {
             connection, owner_events, grab_window, event_mask,
             pointer_mode, keyboard_mode, confine_to, cursor, button, modifiers);
     }   break;
-    case protocol::requests::opcodes::UNGRABBUTTON:             {  //  29
+    case UNGRABBUTTON:             {  //  29
         const uint8_t           button {};
         const xcb_window_t      grab_window {};
         const uint16_t          modifiers {};
         xcb_ungrab_button(
             connection, button, grab_window, modifiers);
     }   break;
-    case protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB:  {  //  30
+    case CHANGEACTIVEPOINTERGRAB:  {  //  30
         const xcb_cursor_t      cursor {};
         const xcb_timestamp_t   time {};
         const uint16_t          event_mask {};
         xcb_change_active_pointer_grab(
             connection, cursor, time, event_mask);
     }   break;
-    case protocol::requests::opcodes::GRABKEYBOARD:             {  //  31
+    case GRABKEYBOARD:             {  //  31
         const uint8_t           owner_events {};
         const xcb_window_t      grab_window {};
         const xcb_timestamp_t   time {};
@@ -265,12 +267,12 @@ int main(const int argc, const char* const* argv) {
             connection, owner_events, grab_window, time,
             pointer_mode, keyboard_mode);
     }   break;
-    case protocol::requests::opcodes::UNGRABKEYBOARD:           {  //  32
+    case UNGRABKEYBOARD:           {  //  32
         const xcb_timestamp_t   time {};
         xcb_ungrab_keyboard(
             connection, time);
     }   break;
-    case protocol::requests::opcodes::GRABKEY:                  {  //  33
+    case GRABKEY:                  {  //  33
         const uint8_t           owner_events {};
         const xcb_window_t      grab_window {};
         const uint16_t          modifiers {};
@@ -281,40 +283,40 @@ int main(const int argc, const char* const* argv) {
             connection, owner_events, grab_window,
             modifiers, key, pointer_mode, keyboard_mode);
     }   break;
-    case protocol::requests::opcodes::UNGRABKEY:                {  //  34
+    case UNGRABKEY:                {  //  34
         const xcb_keycode_t     key {};
         const xcb_window_t      grab_window {};
         const uint16_t          modifiers {};
         xcb_ungrab_key(
             connection, key, grab_window, modifiers);
     }   break;
-    case protocol::requests::opcodes::ALLOWEVENTS:              {  //  35
+    case ALLOWEVENTS:              {  //  35
         const uint8_t           mode {};
         const xcb_timestamp_t   time {};
         xcb_allow_events(
             connection, mode, time);
     }   break;
-    case protocol::requests::opcodes::GRABSERVER:               {  //  36
+    case GRABSERVER:               {  //  36
         xcb_grab_server(
             connection);
     }   break;
-    case protocol::requests::opcodes::UNGRABSERVER:             {  //  37
+    case UNGRABSERVER:             {  //  37
         xcb_grab_server(
             connection);
     }   break;
-    case protocol::requests::opcodes::QUERYPOINTER:             {  //  38
+    case QUERYPOINTER:             {  //  38
         const xcb_window_t      window {};
         xcb_query_pointer(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::GETMOTIONEVENTS:          {  //  39
+    case GETMOTIONEVENTS:          {  //  39
         const xcb_window_t      window {};
         const xcb_timestamp_t   start {};
         const xcb_timestamp_t   stop {};
         xcb_get_motion_events(
             connection, window, start, stop);
     }   break;
-    case protocol::requests::opcodes::TRANSLATECOORDINATES:     {  //  40
+    case TRANSLATECOORDINATES:     {  //  40
         const xcb_window_t      src_window {};
         const xcb_window_t      dst_window {};
         const int16_t           src_x {};
@@ -322,7 +324,7 @@ int main(const int argc, const char* const* argv) {
         xcb_translate_coordinates(
             connection, src_window, dst_window, src_x, src_y);
     }   break;
-    case protocol::requests::opcodes::WARPPOINTER:              {  //  41
+    case WARPPOINTER:              {  //  41
         const xcb_window_t      src_window {};
         const xcb_window_t      dst_window {};
         const int16_t           src_x {};
@@ -335,70 +337,70 @@ int main(const int argc, const char* const* argv) {
             connection, src_window, dst_window,
             src_x, src_y, src_width, src_height, dst_x, dst_y);
     }   break;
-    case protocol::requests::opcodes::SETINPUTFOCUS:            {  //  42
+    case SETINPUTFOCUS:            {  //  42
         const uint8_t           revert_to {};
         const xcb_window_t      focus {};
         const xcb_timestamp_t   time {};
         xcb_set_input_focus(
             connection, revert_to, focus, time);
     }   break;
-    case protocol::requests::opcodes::GETINPUTFOCUS:            {  //  43
+    case GETINPUTFOCUS:            {  //  43
         xcb_get_input_focus(
             connection);
     }   break;
-    case protocol::requests::opcodes::QUERYKEYMAP:              {  //  44
+    case QUERYKEYMAP:              {  //  44
         xcb_query_keymap (
             connection);
     }   break;
-    case protocol::requests::opcodes::OPENFONT:                 {  //  45
+    case OPENFONT:                 {  //  45
         const xcb_font_t        fid {};
         const uint16_t          name_len {};
         const char*             name {};
         xcb_open_font(
             connection, fid, name_len, name);
     }   break;
-    case protocol::requests::opcodes::CLOSEFONT:                {  //  46
+    case CLOSEFONT:                {  //  46
         const xcb_font_t        font {};
         xcb_close_font(
             connection, font);
     }   break;
-    case protocol::requests::opcodes::QUERYFONT:                {  //  47
+    case QUERYFONT:                {  //  47
         const xcb_fontable_t    font {};
         xcb_query_font(
             connection, font);
     }   break;
-    case protocol::requests::opcodes::QUERYTEXTEXTENTS:         {  //  48
+    case QUERYTEXTEXTENTS:         {  //  48
         const xcb_fontable_t    font {};
         const uint32_t          string_len {};
         const xcb_char2b_t*     string {};
         xcb_query_text_extents(
             connection, font, string_len, string);
     }   break;
-    case protocol::requests::opcodes::LISTFONTS:                {  //  49
+    case LISTFONTS:                {  //  49
         const uint16_t          max_names {};
         const uint16_t          pattern_len {};
         const char*             pattern {};
         xcb_list_fonts(
             connection, max_names, pattern_len, pattern);
     }   break;
-    case protocol::requests::opcodes::LISTFONTSWITHINFO:        {  //  50
+    case LISTFONTSWITHINFO:        {  //  50
         const uint16_t          max_names {};
         const uint16_t          pattern_len {};
         const char*             pattern {};
         xcb_list_fonts_with_info(
             connection, max_names, pattern_len, pattern);
     }   break;
-    case protocol::requests::opcodes::SETFONTPATH:              {  //  51
+    case SETFONTPATH:              {  //  51
         const uint16_t          font_qty {};
         const xcb_str_t*        font {};
         xcb_set_font_path(
             connection, font_qty, font);
     }   break;
-    case protocol::requests::opcodes::GETFONTPATH:              {  //  52
+    case GETFONTPATH:              {  //  52
         xcb_get_font_path(
             connection);
     }   break;
-    case protocol::requests::opcodes::CREATEPIXMAP:             {  //  53
+    case CREATEPIXMAP:             {  //  53
         const uint8_t           depth {};
         const xcb_pixmap_t      pid {};
         const xcb_drawable_t    drawable {};
@@ -407,12 +409,12 @@ int main(const int argc, const char* const* argv) {
         xcb_create_pixmap(
             connection, depth, pid, drawable, width, height);
     }   break;
-    case protocol::requests::opcodes::FREEPIXMAP:               {  //  54
+    case FREEPIXMAP:               {  //  54
         const xcb_pixmap_t      pixmap {};
         xcb_free_pixmap(
             connection, pixmap);
     }   break;
-    case protocol::requests::opcodes::CREATEGC:                 {  //  55
+    case CREATEGC:                 {  //  55
         const xcb_gcontext_t    cid {};
         const xcb_drawable_t    drawable {};
         const uint32_t          value_mask {};
@@ -420,21 +422,21 @@ int main(const int argc, const char* const* argv) {
         xcb_create_gc(
             connection, cid, drawable, value_mask, value_list);
     }   break;
-    case protocol::requests::opcodes::CHANGEGC:                 {  //  56
+    case CHANGEGC:                 {  //  56
         const xcb_gcontext_t    gc {};
         const uint32_t          value_mask {};
         const void*             value_list {};
         xcb_change_gc(
             connection, gc, value_mask, value_list);
     }   break;
-    case protocol::requests::opcodes::COPYGC:                   {  //  57
+    case COPYGC:                   {  //  57
         const xcb_gcontext_t    src_gc {};
         const xcb_gcontext_t    dst_gc {};
         const uint32_t          value_mask {};
         xcb_copy_gc(
             connection, src_gc, dst_gc, value_mask);
     }   break;
-    case protocol::requests::opcodes::SETDASHES:                {  //  58
+    case SETDASHES:                {  //  58
         xcb_gcontext_t          gc {};
         const uint16_t          dash_offset {};
         const uint16_t          dashes_len {};
@@ -442,7 +444,7 @@ int main(const int argc, const char* const* argv) {
         xcb_set_dashes(
             connection, gc, dash_offset, dashes_len, dashes);
     }   break;
-    case protocol::requests::opcodes::SETCLIPRECTANGLES:        {  //  59
+    case SETCLIPRECTANGLES:        {  //  59
         const uint8_t           ordering {};
         const xcb_gcontext_t    gc {};
         const int16_t           clip_x_origin {};
@@ -453,12 +455,12 @@ int main(const int argc, const char* const* argv) {
             connection, ordering, gc, clip_x_origin, clip_y_origin,
             rectangles_len, rectangles);
     }   break;
-    case protocol::requests::opcodes::FREEGC:                   {  //  60
+    case FREEGC:                   {  //  60
         const xcb_gcontext_t    gc {};
         xcb_free_gc(
             connection, gc);
     }   break;
-    case protocol::requests::opcodes::CLEARAREA:                {  //  61
+    case CLEARAREA:                {  //  61
         const uint8_t           exposures {};
         const xcb_window_t      window {};
         const int16_t           x {};
@@ -468,7 +470,7 @@ int main(const int argc, const char* const* argv) {
         xcb_clear_area(
             connection, exposures, window, x, y, width, height);
     }   break;
-    case protocol::requests::opcodes::COPYAREA:                 {  //  62
+    case COPYAREA:                 {  //  62
         const xcb_drawable_t    src_drawable {};
         const xcb_drawable_t    dst_drawable {};
         const xcb_gcontext_t    gc {};
@@ -483,7 +485,7 @@ int main(const int argc, const char* const* argv) {
             src_x, src_y, dst_x, dst_y,
             width, height);
     }   break;
-    case protocol::requests::opcodes::COPYPLANE:                {  //  63
+    case COPYPLANE:                {  //  63
         const xcb_drawable_t    src_drawable {};
         const xcb_drawable_t    dst_drawable {};
         const xcb_gcontext_t    gc {};
@@ -500,7 +502,7 @@ int main(const int argc, const char* const* argv) {
             width, height, bit_plane);
     }
         break;
-    case protocol::requests::opcodes::POLYPOINT:                {  //  64
+    case POLYPOINT:                {  //  64
         const uint8_t           coordinate_mode {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
@@ -509,7 +511,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_point(
             connection, coordinate_mode, drawable, gc, points_len, points);
     }   break;
-    case protocol::requests::opcodes::POLYLINE:                 {  //  65
+    case POLYLINE:                 {  //  65
         const uint8_t           coordinate_mode {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
@@ -518,7 +520,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_line(
             connection, coordinate_mode, drawable, gc, points_len, points);
     }   break;
-    case protocol::requests::opcodes::POLYSEGMENT:              {  //  66
+    case POLYSEGMENT:              {  //  66
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const uint32_t          segments_len {};
@@ -526,7 +528,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_segment(
             connection, drawable, gc, segments_len, segments);
     }   break;
-    case protocol::requests::opcodes::POLYRECTANGLE:            {  //  67
+    case POLYRECTANGLE:            {  //  67
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const uint32_t          rectangles_len {};
@@ -534,7 +536,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_rectangle(
             connection, drawable, gc, rectangles_len, rectangles);
     }   break;
-    case protocol::requests::opcodes::POLYARC:                  {  //  68
+    case POLYARC:                  {  //  68
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const uint32_t          arcs_len {};
@@ -542,7 +544,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_arc(
             connection, drawable, gc, arcs_len, arcs);
     }   break;
-    case protocol::requests::opcodes::FILLPOLY:                 {  //  69
+    case FILLPOLY:                 {  //  69
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const uint8_t           shape {};
@@ -552,7 +554,7 @@ int main(const int argc, const char* const* argv) {
         xcb_fill_poly(
             connection, drawable, gc, shape, coordinate_mode, points_len, points);
     }   break;
-    case protocol::requests::opcodes::POLYFILLRECTANGLE:        {  //  70
+    case POLYFILLRECTANGLE:        {  //  70
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const uint32_t          rectangles_len {};
@@ -560,7 +562,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_fill_rectangle(
             connection, drawable, gc, rectangles_len, rectangles);
     }   break;
-    case protocol::requests::opcodes::POLYFILLARC:              {  //  71
+    case POLYFILLARC:              {  //  71
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const uint32_t          arcs_len {};
@@ -568,7 +570,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_fill_arc(
             connection, drawable, gc, arcs_len, arcs);
     }   break;
-    case protocol::requests::opcodes::PUTIMAGE:                 {  //  72
+    case PUTIMAGE:                 {  //  72
         const uint8_t           format {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
@@ -584,7 +586,7 @@ int main(const int argc, const char* const* argv) {
             connection, format, drawable, gc, width, height,
             dst_x, dst_y, left_pad, depth, data_len, data);
     }   break;
-    case protocol::requests::opcodes::GETIMAGE:                 {  //  73
+    case GETIMAGE:                 {  //  73
         const uint8_t           format {};
         const xcb_drawable_t    drawable {};
         const int16_t           x {};
@@ -595,7 +597,7 @@ int main(const int argc, const char* const* argv) {
         xcb_get_image(
             connection, format, drawable, x, y, width, height, plane_mask);
     }   break;
-    case protocol::requests::opcodes::POLYTEXT8:                {  //  74
+    case POLYTEXT8:                {  //  74
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const int16_t           x {};
@@ -606,7 +608,7 @@ int main(const int argc, const char* const* argv) {
             connection, drawable, gc, x, y, items_len, items);
     }
         break;
-    case protocol::requests::opcodes::POLYTEXT16:               {  //  75
+    case POLYTEXT16:               {  //  75
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const int16_t           x {};
@@ -616,7 +618,7 @@ int main(const int argc, const char* const* argv) {
         xcb_poly_text_16(
             connection, drawable, gc, x, y, items_len, items);
     }   break;
-    case protocol::requests::opcodes::IMAGETEXT8:               {  //  76
+    case IMAGETEXT8:               {  //  76
         const uint8_t           string_len {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
@@ -626,7 +628,7 @@ int main(const int argc, const char* const* argv) {
         xcb_image_text_8(
             connection, string_len, drawable, gc, x, y, string);
     }   break;
-    case protocol::requests::opcodes::IMAGETEXT16:              {  //  77
+    case IMAGETEXT16:              {  //  77
         const uint8_t           string_len {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
@@ -636,7 +638,7 @@ int main(const int argc, const char* const* argv) {
         xcb_image_text_16(
             connection, string_len, drawable, gc, x, y, string);
     }   break;
-    case protocol::requests::opcodes::CREATECOLORMAP:           {  //  78
+    case CREATECOLORMAP:           {  //  78
         const uint8_t           alloc {};
         const xcb_colormap_t    mid {};
         const xcb_window_t      window {};
@@ -644,33 +646,33 @@ int main(const int argc, const char* const* argv) {
         xcb_create_colormap(
             connection, alloc, mid, window, visual);
     }   break;
-    case protocol::requests::opcodes::FREECOLORMAP:             {  //  79
+    case FREECOLORMAP:             {  //  79
         const xcb_colormap_t    cmap {};
         xcb_free_colormap(
             connection, cmap);
     }   break;
-    case protocol::requests::opcodes::COPYCOLORMAPANDFREE:      {  //  80
+    case COPYCOLORMAPANDFREE:      {  //  80
         const xcb_colormap_t    mid {};
         const xcb_colormap_t    src_cmap {};
         xcb_copy_colormap_and_free(
             connection, mid, src_cmap);
     }   break;
-    case protocol::requests::opcodes::INSTALLCOLORMAP:          {  //  81
+    case INSTALLCOLORMAP:          {  //  81
         const xcb_colormap_t    cmap {};
         xcb_install_colormap (
             connection, cmap);
     }   break;
-    case protocol::requests::opcodes::UNINSTALLCOLORMAP:        {  //  82
+    case UNINSTALLCOLORMAP:        {  //  82
         const xcb_colormap_t    cmap {};
         xcb_uninstall_colormap(
             connection, cmap);
     }   break;
-    case protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS:   {  //  83
+    case LISTINSTALLEDCOLORMAPS:   {  //  83
         const xcb_window_t      window {};
         xcb_list_installed_colormaps(
             connection, window);
     }   break;
-    case protocol::requests::opcodes::ALLOCCOLOR:               {  //  84
+    case ALLOCCOLOR:               {  //  84
         const xcb_colormap_t    cmap {};
         const uint16_t          red {};
         const uint16_t          green {};
@@ -678,14 +680,14 @@ int main(const int argc, const char* const* argv) {
         xcb_alloc_color(
             connection, cmap, red, green, blue);
     }   break;
-    case protocol::requests::opcodes::ALLOCNAMEDCOLOR:          {  //  85
+    case ALLOCNAMEDCOLOR:          {  //  85
         const xcb_colormap_t    cmap {};
         const uint16_t          name_len {};
         const char*             name {};
         xcb_alloc_named_color(
             connection, cmap, name_len, name);
     }   break;
-    case protocol::requests::opcodes::ALLOCCOLORCELLS:          {  //  86
+    case ALLOCCOLORCELLS:          {  //  86
         const uint8_t           contiguous {};
         const xcb_colormap_t    cmap {};
         const uint16_t          colors {};
@@ -693,7 +695,7 @@ int main(const int argc, const char* const* argv) {
         xcb_alloc_color_cells(
             connection, contiguous, cmap, colors, planes);
     }   break;
-    case protocol::requests::opcodes::ALLOCCOLORPLANES:         {  //  87
+    case ALLOCCOLORPLANES:         {  //  87
         const uint8_t           contiguous {};
         const xcb_colormap_t    cmap {};
         const uint16_t          colors {};
@@ -704,7 +706,7 @@ int main(const int argc, const char* const* argv) {
             connection, contiguous, cmap, colors, reds, greens, blues);
     }
         break;
-    case protocol::requests::opcodes::FREECOLORS:               {  //  88
+    case FREECOLORS:               {  //  88
         const xcb_colormap_t    cmap {};
         const uint32_t          plane_mask {};
         const uint32_t          pixels_len {};
@@ -712,14 +714,14 @@ int main(const int argc, const char* const* argv) {
         xcb_free_colors(
             connection, cmap, plane_mask, pixels_len, pixels);
     }   break;
-    case protocol::requests::opcodes::STORECOLORS:              {  //  89
+    case STORECOLORS:              {  //  89
         const xcb_colormap_t    cmap {};
         const uint32_t          items_len {};
         const xcb_coloritem_t*  items {};
         xcb_store_colors(
             connection, cmap, items_len, items);
     }   break;
-    case protocol::requests::opcodes::STORENAMEDCOLOR:          {  //  90
+    case STORENAMEDCOLOR:          {  //  90
         const uint8_t           flags {};
         const xcb_colormap_t    cmap {};
         const uint32_t          pixel {};
@@ -728,21 +730,21 @@ int main(const int argc, const char* const* argv) {
         xcb_store_named_color(
             connection, flags, cmap, pixel, name_len, name);
     }   break;
-    case protocol::requests::opcodes::QUERYCOLORS:              {  //  91
+    case QUERYCOLORS:              {  //  91
         const xcb_colormap_t    cmap {};
         const uint32_t          pixels_len {};
         const uint32_t*         pixels {};
         xcb_query_colors(
             connection, cmap, pixels_len, pixels);
     }   break;
-    case protocol::requests::opcodes::LOOKUPCOLOR:              {  //  92
+    case LOOKUPCOLOR:              {  //  92
         const xcb_colormap_t    cmap {};
         const uint16_t          name_len {};
         const char*             name {};
         xcb_lookup_color(
             connection, cmap, name_len, name);
     }   break;
-    case protocol::requests::opcodes::CREATECURSOR:             {  //  93
+    case CREATECURSOR:             {  //  93
         const xcb_cursor_t      cid {};
         const xcb_pixmap_t      source {};
         const xcb_pixmap_t      mask {};
@@ -761,7 +763,7 @@ int main(const int argc, const char* const* argv) {
             fore_red, fore_green, fore_blue,
             back_red, back_green, back_blue, x, y);
     }   break;
-    case protocol::requests::opcodes::CREATEGLYPHCURSOR:        {  //  94
+    case CREATEGLYPHCURSOR:        {  //  94
         const xcb_cursor_t      cid {};
         const xcb_font_t        source_font {};
         const xcb_font_t        mask_font {};
@@ -777,12 +779,12 @@ int main(const int argc, const char* const* argv) {
             connection, cid, source_font, mask_font, source_char, mask_char,
             fore_red, fore_green, fore_blue, back_red, back_green, back_blue);
     }   break;
-    case protocol::requests::opcodes::FREECURSOR:               {  //  95
+    case FREECURSOR:               {  //  95
         const xcb_cursor_t      cursor {};
         xcb_free_cursor(
             connection, cursor);
     }   break;
-    case protocol::requests::opcodes::RECOLORCURSOR:            {  //  96
+    case RECOLORCURSOR:            {  //  96
         const xcb_cursor_t      cursor {};
         const uint16_t          fore_red {};
         const uint16_t          fore_green {};
@@ -794,7 +796,7 @@ int main(const int argc, const char* const* argv) {
             connection, cursor, fore_red, fore_green, fore_blue,
             back_red, back_green, back_blue);
     }   break;
-    case protocol::requests::opcodes::QUERYBESTSIZE:            {  //  97
+    case QUERYBESTSIZE:            {  //  97
         const uint8_t           _class {};
         const xcb_drawable_t    drawable {};
         const uint16_t          width {};
@@ -802,17 +804,17 @@ int main(const int argc, const char* const* argv) {
         xcb_query_best_size(
             connection, _class, drawable, width, height);
     }   break;
-    case protocol::requests::opcodes::QUERYEXTENSION:           {  //  98
+    case QUERYEXTENSION:           {  //  98
         const uint16_t          name_len {};
         const char*             name {};
         xcb_query_extension(
             connection, name_len, name);
     }   break;
-    case protocol::requests::opcodes::LISTEXTENSIONS:           {  //  99
+    case LISTEXTENSIONS:           {  //  99
         xcb_list_extensions(
             connection);
     }   break;
-    case protocol::requests::opcodes::CHANGEKEYBOARDMAPPING:    {  // 100
+    case CHANGEKEYBOARDMAPPING:    {  // 100
         const uint8_t           keycode_count {};
         const xcb_keycode_t     first_keycode {};
         const uint8_t           keysyms_per_keycode {};
@@ -822,28 +824,28 @@ int main(const int argc, const char* const* argv) {
             keysyms_per_keycode, keysyms);
 
     }   break;
-    case protocol::requests::opcodes::GETKEYBOARDMAPPING:       {  // 101
+    case GETKEYBOARDMAPPING:       {  // 101
         const xcb_keycode_t     first_keycode {};
         const uint8_t           count {};
         xcb_get_keyboard_mapping (
             connection, first_keycode, count);
     }   break;
-    case protocol::requests::opcodes::CHANGEKEYBOARDCONTROL:    {  // 102
+    case CHANGEKEYBOARDCONTROL:    {  // 102
         const uint32_t          value_mask {};
         const void*             value_list {};
         xcb_change_keyboard_control(
             connection, value_mask, value_list);
     }   break;
-    case protocol::requests::opcodes::GETKEYBOARDCONTROL:       {  // 103
+    case GETKEYBOARDCONTROL:       {  // 103
         xcb_get_keyboard_control(
             connection);
     }   break;
-    case protocol::requests::opcodes::BELL:                     {  // 104
+    case BELL:                     {  // 104
         const int8_t            percent {};
         xcb_bell(
             connection, percent);
     }   break;
-    case protocol::requests::opcodes::CHANGEPOINTERCONTROL:     {  // 105
+    case CHANGEPOINTERCONTROL:     {  // 105
         const int16_t           acceleration_numerator {};
         const int16_t           acceleration_denominator {};
         const int16_t           threshold {};
@@ -853,10 +855,10 @@ int main(const int argc, const char* const* argv) {
             connection, acceleration_numerator, acceleration_denominator,
             threshold, do_acceleration, do_threshold);
     }   break;
-    case protocol::requests::opcodes::GETPOINTERCONTROL:        {  // 106
+    case GETPOINTERCONTROL:        {  // 106
         xcb_get_pointer_control(connection);
     }   break;
-    case protocol::requests::opcodes::SETSCREENSAVER:           {  // 107
+    case SETSCREENSAVER:           {  // 107
         const int16_t           timeout {};
         const int16_t           interval {};
         const uint8_t           prefer_blanking {};
@@ -864,11 +866,11 @@ int main(const int argc, const char* const* argv) {
         xcb_set_screen_saver(
             connection, timeout, interval, prefer_blanking, allow_exposures);
     }   break;
-    case protocol::requests::opcodes::GETSCREENSAVER:           {  // 108
+    case GETSCREENSAVER:           {  // 108
         xcb_get_screen_saver(
             connection);
     }   break;
-    case protocol::requests::opcodes::CHANGEHOSTS:              {  // 109
+    case CHANGEHOSTS:              {  // 109
         const uint8_t           mode {};
         const uint8_t           family {};
         const uint16_t          address_len {};
@@ -876,26 +878,26 @@ int main(const int argc, const char* const* argv) {
         xcb_change_hosts(
             connection, mode, family, address_len, address);
     }   break;
-    case protocol::requests::opcodes::LISTHOSTS:                {  // 110
+    case LISTHOSTS:                {  // 110
         xcb_list_hosts(
             connection);
     }   break;
-    case protocol::requests::opcodes::SETACCESSCONTROL:         {  // 111
+    case SETACCESSCONTROL:         {  // 111
         const uint8_t           mode {};
         xcb_set_access_control(
             connection, mode);
     }   break;
-    case protocol::requests::opcodes::SETCLOSEDOWNMODE:         {  // 112
+    case SETCLOSEDOWNMODE:         {  // 112
         const uint8_t           mode {};
         xcb_set_close_down_mode(
             connection, mode);
     }   break;
-    case protocol::requests::opcodes::KILLCLIENT:               {  // 113
+    case KILLCLIENT:               {  // 113
         const uint32_t          resource {};
         xcb_kill_client (
             connection, resource);
     }   break;
-    case protocol::requests::opcodes::ROTATEPROPERTIES:         {  // 114
+    case ROTATEPROPERTIES:         {  // 114
         const xcb_window_t      window {};
         const uint16_t          atoms_len {};
         const int16_t           delta {};
@@ -903,33 +905,33 @@ int main(const int argc, const char* const* argv) {
         xcb_rotate_properties(
             connection, window, atoms_len, delta, atoms);
     }   break;
-    case protocol::requests::opcodes::FORCESCREENSAVER:         {  // 115
+    case FORCESCREENSAVER:         {  // 115
         const uint8_t           mode {};
         xcb_force_screen_saver(
             connection, mode);
 
     }   break;
-    case protocol::requests::opcodes::SETPOINTERMAPPING:        {  // 116
+    case SETPOINTERMAPPING:        {  // 116
         const uint8_t           map_len {};
         const uint8_t*          map     {};
         xcb_set_pointer_mapping(
             connection, map_len, map);
     }   break;
-    case protocol::requests::opcodes::GETPOINTERMAPPING:        {  // 117
+    case GETPOINTERMAPPING:        {  // 117
         xcb_get_pointer_mapping(
             connection);
     }   break;
-    case protocol::requests::opcodes::SETMODIFIERMAPPING:       {  // 118
+    case SETMODIFIERMAPPING:       {  // 118
         const uint8_t           keycodes_per_modifier {};
         const xcb_keycode_t*    keycodes {};
         xcb_set_modifier_mapping(
             connection, keycodes_per_modifier, keycodes);
     }   break;
-    case protocol::requests::opcodes::GETMODIFIERMAPPING:       {  // 119
+    case GETMODIFIERMAPPING:       {  // 119
         xcb_get_modifier_mapping(
             connection);
     }   break;
-    case protocol::requests::opcodes::NOOPERATION:              {  // 127
+    case NOOPERATION:              {  // 127
         xcb_no_operation(
             connection);
     }   break;
