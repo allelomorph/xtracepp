@@ -19,7 +19,7 @@ size_t X11ProtocolParser::_logCreateWindow(
 
     size_t bytes_parsed {};
 
-    using CreateWindow = protocol::requests::CreateWindow;
+    using protocol::requests::CreateWindow;
     const CreateWindow::Encoding* encoding {
         reinterpret_cast< const CreateWindow::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateWindow::Encoding );
@@ -129,7 +129,7 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
 
     size_t bytes_parsed {};
 
-    using ChangeWindowAttributes = protocol::requests::ChangeWindowAttributes;
+    using protocol::requests::ChangeWindowAttributes;
     const ChangeWindowAttributes::Encoding* encoding {
         reinterpret_cast< const ChangeWindowAttributes::Encoding* >( data ) };
     bytes_parsed += sizeof( ChangeWindowAttributes::Encoding );
