@@ -1,4 +1,5 @@
 #include <string_view>
+#include <unordered_set>
 
 #include <cctype>      // isprint
 
@@ -18,11 +19,11 @@ size_t X11ProtocolParser::_logCreateWindow(
     assert( sz > 0 );  // TBD check min size
 
     size_t bytes_parsed {};
-
     using protocol::requests::CreateWindow;
     const CreateWindow::Encoding* encoding {
         reinterpret_cast< const CreateWindow::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateWindow::Encoding );
+    assert( encoding->opcode == 1 );
 
     static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
@@ -123,11 +124,11 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
     assert( sz > 0 );  // TBD check min size
 
     size_t bytes_parsed {};
-
     using protocol::requests::ChangeWindowAttributes;
     const ChangeWindowAttributes::Encoding* encoding {
         reinterpret_cast< const ChangeWindowAttributes::Encoding* >( data ) };
     bytes_parsed += sizeof( ChangeWindowAttributes::Encoding );
+    assert( encoding->opcode == 2 );
 
     static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
@@ -198,18 +199,31 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
     return bytes_parsed;
 }
 
-size_t X11ProtocolParser::_logGetWindowAttributes(
+size_t X11ProtocolParser::_logSimpleWindowRequest(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz > 0 );  // TBD check min size
 
     size_t bytes_parsed {};
-
-    using protocol::requests::GetWindowAttributes;
-    const GetWindowAttributes::Encoding* encoding {
-        reinterpret_cast< const GetWindowAttributes::Encoding* >( data ) };
-    bytes_parsed += sizeof( GetWindowAttributes::Encoding );
+    using protocol::requests::impl::SimpleWindowReqEncoding;
+    const SimpleWindowReqEncoding* encoding {
+        reinterpret_cast< const SimpleWindowReqEncoding* >( data ) };
+    bytes_parsed += sizeof( SimpleWindowReqEncoding );
+    static const std::unordered_set<uint8_t> supported_opcodes {
+        protocol::requests::opcodes::GETWINDOWATTRIBUTES,
+        protocol::requests::opcodes::DESTROYWINDOW,
+        protocol::requests::opcodes::DESTROYSUBWINDOWS,
+        protocol::requests::opcodes::MAPWINDOW,
+        protocol::requests::opcodes::MAPSUBWINDOWS,
+        protocol::requests::opcodes::UNMAPWINDOW,
+        protocol::requests::opcodes::UNMAPSUBWINDOWS,
+        protocol::requests::opcodes::QUERYTREE,
+        protocol::requests::opcodes::LISTPROPERTIES,
+        protocol::requests::opcodes::QUERYPOINTER,
+        protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS
+    };
+    assert( supported_opcodes.count( encoding->opcode ) != 0 );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     static const uint32_t tab_ct { 0 };
@@ -244,64 +258,332 @@ size_t X11ProtocolParser::_logGetWindowAttributes(
     return bytes_parsed;
 }
 
-size_t X11ProtocolParser::_logDestroyWindow(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logDestroySubwindows(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logChangeSaveSet(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ChangeSaveSet;
+    const ChangeSaveSet::Encoding* encoding {
+        reinterpret_cast< const ChangeSaveSet::Encoding* >( data ) };
+    bytes_parsed += sizeof( ChangeSaveSet::Encoding );
+    assert( encoding->opcode == 6 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "mode", name_width, _equals,
+        _formatInteger( encoding->mode, ChangeSaveSet::mode_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logReparentWindow(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
 
-size_t X11ProtocolParser::_logMapWindow(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
+    size_t bytes_parsed {};
+    using protocol::requests::ReparentWindow;
+    const ReparentWindow::Encoding* encoding {
+        reinterpret_cast< const ReparentWindow::Encoding* >( data ) };
+    bytes_parsed += sizeof( ReparentWindow::Encoding );
+    assert( encoding->opcode == 7 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-size_t X11ProtocolParser::_logMapSubwindows(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logUnmapWindow(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logUnmapSubwindows(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        memb_indent, "parent", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logConfigureWindow(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ConfigureWindow;
+    const ConfigureWindow::Encoding* encoding {
+        reinterpret_cast< const ConfigureWindow::Encoding* >( data ) };
+    bytes_parsed += sizeof( ConfigureWindow::Encoding );
+    assert( encoding->opcode == 12 );
+
+    static const uint32_t tab_ct { 0 };
+    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
+    //   nested in value_list_inputs initializer
+    // VALUE list encoding same as CreateWindow
+    const std::vector< _EnumTraits > value_traits {
+        /* x            */ {},
+        /* y            */ {},
+        /* width        */ {},
+        /* height       */ {},
+        /* border-width */ {},
+        /* sibling      */ {},
+        /* stack-mode   */ { ConfigureWindow::stack_mode_names },
+    };
+    const _LISTofVALUEParsingInputs value_list_inputs {
+        ConfigureWindow::value_types,
+        ConfigureWindow::value_names,
+        value_traits,
+        tab_ct + 2
+    };
+    _LISTParsingOutputs value_list_outputs;
+    _parseLISTofVALUE(
+        encoding->value_mask, value_list_inputs,
+        data + bytes_parsed, &value_list_outputs );
+    bytes_parsed += value_list_outputs.bytes_parsed;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        memb_indent, "value-mask", name_width, _equals,
+        _formatBitmask( encoding->value_mask ), _separator,
+        memb_indent, "value-list", name_width, _equals,
+        value_list_outputs.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logCirculateWindow(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CirculateWindow;
+    const CirculateWindow::Encoding* encoding {
+        reinterpret_cast< const CirculateWindow::Encoding* >( data ) };
+    bytes_parsed += sizeof( CirculateWindow::Encoding );
+    assert( encoding->opcode == 13 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "direction", name_width, _equals,
+        _formatInteger( encoding->direction, CirculateWindow::direction_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGetGeometry(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GetGeometry;
+    const GetGeometry::Encoding* encoding {
+        reinterpret_cast< const GetGeometry::Encoding* >( data ) };
+    bytes_parsed += sizeof( GetGeometry::Encoding );
+    assert( encoding->opcode == 14 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
-size_t X11ProtocolParser::_logQueryTree(
+size_t X11ProtocolParser::_logSimpleRequest(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::impl::SimpleReqEncoding;
+    const SimpleReqEncoding* encoding {
+        reinterpret_cast< const SimpleReqEncoding* >( data ) };
+    bytes_parsed += sizeof( SimpleReqEncoding );
+    static const std::unordered_set<uint8_t> supported_opcodes {
+        protocol::requests::opcodes::GRABSERVER,
+        protocol::requests::opcodes::UNGRABSERVER,
+        protocol::requests::opcodes::GETINPUTFOCUS,
+        protocol::requests::opcodes::QUERYKEYMAP,
+        protocol::requests::opcodes::GETFONTPATH,
+        protocol::requests::opcodes::LISTEXTENSIONS,
+        protocol::requests::opcodes::GETKEYBOARDCONTROL,
+        protocol::requests::opcodes::GETPOINTERCONTROL,
+        protocol::requests::opcodes::GETSCREENSAVER,
+        protocol::requests::opcodes::LISTHOSTS
+    };
+    assert( supported_opcodes.count( encoding->opcode ) != 0 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logInternAtom(
@@ -325,11 +607,6 @@ size_t X11ProtocolParser::_logDeleteProperty(
 }
 
 size_t X11ProtocolParser::_logGetProperty(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logListProperties(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
 }
@@ -404,21 +681,6 @@ size_t X11ProtocolParser::_logAllowEvents(
     return {};
 }
 
-size_t X11ProtocolParser::_logGrabServer(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logUngrabServer(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logQueryPointer(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logGetMotionEvents(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
@@ -435,16 +697,6 @@ size_t X11ProtocolParser::_logWarpPointer(
 }
 
 size_t X11ProtocolParser::_logSetInputFocus(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logGetInputFocus(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logQueryKeymap(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
 }
@@ -480,11 +732,6 @@ size_t X11ProtocolParser::_logListFontsWithInfo(
 }
 
 size_t X11ProtocolParser::_logSetFontPath(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logGetFontPath(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
 }
@@ -639,11 +886,6 @@ size_t X11ProtocolParser::_logUninstallColormap(
     return {};
 }
 
-size_t X11ProtocolParser::_logListInstalledColormaps(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logAllocColor(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
@@ -719,11 +961,6 @@ size_t X11ProtocolParser::_logQueryExtension(
     return {};
 }
 
-size_t X11ProtocolParser::_logListExtensions(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logChangeKeyboardMapping(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
@@ -739,11 +976,6 @@ size_t X11ProtocolParser::_logChangeKeyboardControl(
     return {};
 }
 
-size_t X11ProtocolParser::_logGetKeyboardControl(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logBell(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
@@ -754,27 +986,12 @@ size_t X11ProtocolParser::_logChangePointerControl(
     return {};
 }
 
-size_t X11ProtocolParser::_logGetPointerControl(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logSetScreenSaver(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
 }
 
-size_t X11ProtocolParser::_logGetScreenSaver(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logChangeHosts(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logListHosts(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
 }
@@ -809,22 +1026,7 @@ size_t X11ProtocolParser::_logSetPointerMapping(
     return {};
 }
 
-size_t X11ProtocolParser::_logGetPointerMapping(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
 size_t X11ProtocolParser::_logSetModifierMapping(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logGetModifierMapping(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
-}
-
-size_t X11ProtocolParser::_logNoOperation(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     return {};
 }

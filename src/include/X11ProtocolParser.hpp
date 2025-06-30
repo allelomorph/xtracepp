@@ -113,8 +113,8 @@ private:
         const MaskT mask,
         const std::vector< std::string_view >& flag_names = {},
         uint32_t max_flag_i = _UNINITIALIZED ) ->
-        std::enable_if_t< std::is_integral_v< MaskT > && !std::is_signed_v< MaskT >,
-                          std::string > {
+        std::enable_if_t< std::is_integral_v< MaskT >, std::string > {
+        assert( !std::is_signed_v< MaskT > );
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( mask ) * 2 ) + 2 };
         std::string hex_str { fmt::format( "{:#0{}x}", mask, hex_width ) };
@@ -168,7 +168,12 @@ private:
     _formatCommonType( const protocol::PIXMAP pixmap,
                        const std::vector< std::string_view >& enum_names = {} );
 
-    // TBD DRAWABLE?
+    // TBD seemingly never used with enum names in protocol?
+    inline std::string
+    _formatCommonType( const protocol::DRAWABLE drawable,
+                       const std::vector< std::string_view >& enum_names = {} ) {
+        return _formatInteger( drawable.window.data, enum_names );
+    }
 
     inline std::string
     _formatCommonType( const protocol::FONT font ) {
@@ -248,13 +253,17 @@ private:
     };
 
     struct _EnumTraits {
-        const std::vector< std::string_view >& names;
-        const uint32_t min;
-        const uint32_t max;
+    private:
+        inline static const std::vector< std::string_view > _EMPTY_NAMESET;
+    public:
+        const std::vector< std::string_view >& names { _EMPTY_NAMESET };
+        const uint32_t min { _UNINITIALIZED };
+        const uint32_t max { _UNINITIALIZED };
         const bool is_mask {};
 
+        _EnumTraits() {}
         _EnumTraits(
-            const std::vector<std::string_view>& names_ = {},
+            const std::vector<std::string_view>& names_,
             const bool is_mask_ = false,
             const uint32_t max_ = _UNINITIALIZED,
             const uint32_t min_ = _UNINITIALIZED ) :
@@ -326,16 +335,14 @@ private:
     // TBD recommended tuple iteration pattern using recursive templating
     template< size_t I = 0, typename... Args >
     auto _parseLISTofVALUE(
-        const uint32_t /*value_mask*/,
+        const uint32_t value_mask,
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         const uint8_t* /*data*/, _LISTParsingOutputs* outputs ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
-        if ( _multiline ) {
-            outputs->str += fmt::format(
-                "{}]", _tabIndent( inputs.tab_ct - 1 ) );
-        } else {
-            outputs->str += " ]";
+        if ( value_mask != 0 ) {
+            outputs->str += _multiline ? _tabIndent( inputs.tab_ct - 1 ) : " ";
         }
+        outputs->str += ']';
     }
 
     // TBD recommended tuple iteration pattern using recursive templating
@@ -345,10 +352,11 @@ private:
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         const uint8_t* data, _LISTParsingOutputs* outputs ) ->
         std::enable_if_t< I < sizeof...( Args ), void > {
-        if ( outputs->str.empty() ) {
+        if ( I == 0 ) {
             outputs->str += '[';
-            outputs->str +=
-                _multiline ? '\n' : ' ';
+            if ( value_mask != 0 ) {
+                outputs->str += _multiline ? '\n' : ' ';
+            }
         }
         using ValueT = std::remove_reference_t<
             decltype( std::get< I >( inputs.types ) ) >;
@@ -412,32 +420,52 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logChangeWindowAttributes(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetWindowAttributes(
+    size_t _logSimpleWindowRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logDestroyWindow(
+    size_t _logSimpleRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logDestroySubwindows(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetWindowAttributes(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
+    inline size_t _logDestroyWindow(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
+    inline size_t _logDestroySubwindows(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
     size_t _logChangeSaveSet(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logReparentWindow(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logMapWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logMapSubwindows(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUnmapWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUnmapSubwindows(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logMapWindow(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
+    inline size_t _logMapSubwindows(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
+    inline size_t _logUnmapWindow(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
+    inline size_t _logUnmapSubwindows(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
     size_t _logConfigureWindow(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logCirculateWindow(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logGetGeometry(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryTree(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logQueryTree(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
     size_t _logInternAtom(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logGetAtomName(
@@ -448,8 +476,10 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logGetProperty(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logListProperties(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logListProperties(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
     size_t _logSetSelectionOwner(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logGetSelectionOwner(
@@ -478,12 +508,18 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logAllowEvents(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGrabServer(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUngrabServer(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryPointer(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGrabServer(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
+    inline size_t _logUngrabServer(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
+    inline size_t _logQueryPointer(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
     size_t _logGetMotionEvents(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logTranslateCoordinates(
@@ -492,10 +528,14 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logSetInputFocus(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetInputFocus(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryKeymap(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetInputFocus(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+         return _logSimpleRequest( conn, data, sz );
+    }
+    inline size_t _logQueryKeymap(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+         return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logOpenFont(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logCloseFont(
@@ -510,8 +550,10 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logSetFontPath(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetFontPath(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetFontPath(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+         return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logCreatePixmap(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logFreePixmap(
@@ -572,8 +614,10 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logUninstallColormap(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logListInstalledColormaps(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logListInstalledColormaps(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
     size_t _logAllocColor(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logAllocNamedColor(
@@ -604,30 +648,40 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logQueryExtension(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logListExtensions(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logListExtensions(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logChangeKeyboardMapping(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logGetKeyboardMapping(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logChangeKeyboardControl(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetKeyboardControl(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetKeyboardControl(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logBell(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logChangePointerControl(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetPointerControl(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetPointerControl(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logSetScreenSaver(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetScreenSaver(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetScreenSaver(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logChangeHosts(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logListHosts(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logListHosts(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logSetAccessControl(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logSetCloseDownMode(
@@ -640,14 +694,20 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logSetPointerMapping(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetPointerMapping(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetPointerMapping(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
     size_t _logSetModifierMapping(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetModifierMapping(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logNoOperation(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    inline size_t _logGetModifierMapping(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
+    inline size_t _logNoOperation(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
 
 public:
     X11ProtocolParser() {}

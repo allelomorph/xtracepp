@@ -29,6 +29,13 @@ int main(const int argc, const char* const* argv) {
     case CREATEWINDOW:             {  //   1
         // Create the window
         const xcb_window_t window { /*xcb_generate_id ( connection )*/ };
+        const uint32_t          value_mask {
+            XCB_CW_BACK_PIXMAP | XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXMAP |
+            XCB_CW_BORDER_PIXEL | XCB_CW_BIT_GRAVITY | XCB_CW_WIN_GRAVITY |
+            XCB_CW_BACKING_STORE | XCB_CW_BACKING_PLANES | XCB_CW_BACKING_PIXEL |
+            XCB_CW_OVERRIDE_REDIRECT | XCB_CW_SAVE_UNDER | XCB_CW_EVENT_MASK |
+            XCB_CW_DONT_PROPAGATE | XCB_CW_COLORMAP | XCB_CW_CURSOR
+        };
         const uint32_t value_list[15] {};
         xcb_create_window(
             connection,                    // Connection
@@ -40,28 +47,20 @@ int main(const int argc, const char* const* argv) {
             10,                            // border_width
             XCB_WINDOW_CLASS_INPUT_OUTPUT, // class
             screen->root_visual,           // visual
-            XCB_CW_BACK_PIXMAP | XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXMAP |
-            XCB_CW_BORDER_PIXEL | XCB_CW_BIT_GRAVITY | XCB_CW_WIN_GRAVITY |
-            XCB_CW_BACKING_STORE | XCB_CW_BACKING_PLANES | XCB_CW_BACKING_PIXEL |
-            XCB_CW_OVERRIDE_REDIRECT | XCB_CW_SAVE_UNDER | XCB_CW_EVENT_MASK |
-            XCB_CW_DONT_PROPAGATE | XCB_CW_COLORMAP | XCB_CW_CURSOR,
-            // value-mask
-            value_list );                 // value-list
+            value_mask, value_list );
     }   break;
     case CHANGEWINDOWATTRIBUTES:   {  //   2
         const xcb_window_t      window {};
-        const uint32_t          value_mask {};
-        const uint32_t          value_list[15] {};
-        xcb_change_window_attributes(
-            connection,
-            window,
+        const uint32_t          value_mask {
             XCB_CW_BACK_PIXMAP | XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXMAP |
             XCB_CW_BORDER_PIXEL | XCB_CW_BIT_GRAVITY | XCB_CW_WIN_GRAVITY |
             XCB_CW_BACKING_STORE | XCB_CW_BACKING_PLANES | XCB_CW_BACKING_PIXEL |
             XCB_CW_OVERRIDE_REDIRECT | XCB_CW_SAVE_UNDER | XCB_CW_EVENT_MASK |
-            XCB_CW_DONT_PROPAGATE | XCB_CW_COLORMAP | XCB_CW_CURSOR,
-            // value-mask
-            value_list );                 // value-list
+            XCB_CW_DONT_PROPAGATE | XCB_CW_COLORMAP | XCB_CW_CURSOR
+        };
+        const uint32_t          value_list[15] {};
+        xcb_change_window_attributes(
+            connection, window, value_mask, value_list );
     }   break;
     case GETWINDOWATTRIBUTES:      {  //   3
         const xcb_window_t      window {};
@@ -115,8 +114,13 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case CONFIGUREWINDOW:          {  //  12
         const xcb_window_t      window {};
-        const uint16_t          value_mask {};
-        const void*             value_list {};
+        const uint16_t          value_mask {
+            XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
+            XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT |
+            XCB_CONFIG_WINDOW_BORDER_WIDTH | XCB_CONFIG_WINDOW_SIBLING |
+            XCB_CONFIG_WINDOW_STACK_MODE
+        };
+        const uint32_t          value_list[7] {};
         xcb_configure_window(
             connection, window, value_mask, value_list);
     }   break;

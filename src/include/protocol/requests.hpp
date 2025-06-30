@@ -439,15 +439,23 @@ struct ChangeWindowAttributes {
         protocol::enum_names::zero_none };
 };
 
+namespace impl {
+
+struct [[gnu::packed]] SimpleWindowReqEncoding {
+    uint8_t    opcode;
+private:
+    uint8_t    _unused;
+public:
+    uint16_t   request_length;
+    WINDOW     window;
+};
+
+}  // namespace impl
+
 struct GetWindowAttributes {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 3
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+n request length
-        WINDOW     window;
-    };
+    using Encoding = impl::SimpleWindowReqEncoding;
+    // Encoding::opcode == 3
+    // Encoding::request_length == 3+n
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -482,26 +490,13 @@ struct GetWindowAttributes {
         protocol::enum_names::window_attribute_map_state };
 };
 
-namespace impl {
-
-struct [[gnu::packed]] _SimpleWindowReqEncoding {
-    uint8_t    opcode;
-private:
-    uint8_t    _unused;
-public:
-    uint16_t   request_length;
-    WINDOW     window;
-};
-
-}  // namespace impl
-
 struct DestroyWindow {
-    using Encoding = impl::_SimpleWindowReqEncoding;
+    using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 4
 };
 
 struct DestroySubwindows {
-    using Encoding = impl::_SimpleWindowReqEncoding;
+    using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 5
 };
 
@@ -520,11 +515,11 @@ struct ChangeSaveSet {
 
 struct ReparentWindow {
     struct [[gnu::packed]] Encoding {
+        uint8_t   opcode;  // 7
     private:
-        uint8_t _prefix;  // 7
         uint8_t   _unused;
     public:
-        uint16_t  request_length;  // "4", really 4B? request length
+        uint16_t  request_length;  // request length 4
         WINDOW    window;
         WINDOW    parent;
         INT16     x;
@@ -533,22 +528,22 @@ struct ReparentWindow {
 };
 
 struct MapWindow {
-    using Encoding = impl::_SimpleWindowReqEncoding;
+    using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 8
 };
 
 struct MapSubwindows {
-    using Encoding = impl::_SimpleWindowReqEncoding;
+    using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 9
 };
 
 struct UnmapWindow {
-    using Encoding = impl::_SimpleWindowReqEncoding;
+    using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 10
 };
 
 struct UnmapSubwindows {
-    using Encoding = impl::_SimpleWindowReqEncoding;
+    using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 11
 };
 
@@ -635,14 +630,8 @@ struct GetGeometry {
 };
 
 struct QueryTree {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 15
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2
-        WINDOW     window;
-    };
+    using Encoding = impl::SimpleWindowReqEncoding;
+    // Encoding::opcode == 15
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -666,25 +655,25 @@ struct QueryTree {
 
 struct InternAtom {
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 16
+        uint8_t   opcode;  // 16
         BOOL      only_if_exists;  // only-if-exists
         uint16_t  request_length;  // 2+(n+p)/4 request length
         uint16_t  n;  // length of name
     private:
-        uint8_t  _unused[2];
+        uint8_t   _unused[2];
     };
     // followed by pad(n) STRING8 name
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
-        uint8_t    _prefix;  // 1 Reply
+        uint8_t   _prefix;  // 1 Reply
         uint8_t   _unused1;
     public:
         CARD16    sequence_number;  // sequence number
         uint32_t  reply_length;  // 0 reply length
         ATOM      atom; // 0 None
     private:
-        uint8_t  _unused2[20];
+        uint8_t   _unused2[20];
     };
 
     inline static const
@@ -694,7 +683,7 @@ struct InternAtom {
 
 struct GetAtomName {
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 17
+        uint8_t   opcode;  // 17
     private:
         uint8_t   _unused1;
     public:
@@ -804,14 +793,8 @@ struct GetProperty {
 };
 
 struct ListProperties {
-    struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 21
-    private:
-        uint8_t   _unused;
-    public:
-        uint16_t  request_length;  // 2 request length
-        WINDOW    window;
-    };
+    using Encoding = impl::SimpleWindowReqEncoding;
+    // Encoding::opcode == 21
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -965,7 +948,7 @@ struct UngrabPointer {
     struct [[gnu::packed]] Encoding {
         uint8_t           opcode;  // 27
     private:
-        uint8_t           unused;
+        uint8_t           _unused;
     public:
         uint16_t          request_length;  // 2 request length
         TIMESTAMP         time;
@@ -1165,35 +1148,34 @@ struct AllowEvents {
         protocol::enum_names::time };
 };
 
+namespace impl {
+
+struct [[gnu::packed]] SimpleReqEncoding {
+    uint8_t    opcode;
+private:
+    uint8_t    _unused;
+public:
+    uint16_t   request_length;
+};
+
+}  // namespace impl
+
+
 struct GrabServer {
-    struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 36
-    private:
-        uint8_t           _unused;
-    public:
-        uint16_t          request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 36
+    // Encoding::request_length == 1
 };
 
 struct UngrabServer {
-    struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 37
-    private:
-        uint8_t           _unused;
-    public:
-        uint16_t          request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 37
+    // Encoding::request_length == 1
 };
 
 struct QueryPointer {
-    struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 38
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 2 request length
-        WINDOW           window;
-    };
+    using Encoding = impl::SimpleWindowReqEncoding;
+    // Encoding::opcode == 38
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -1335,13 +1317,9 @@ struct SetInputFocus {
 };
 
 struct GetInputFocus {
-    struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 43
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 43
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -1364,13 +1342,9 @@ struct GetInputFocus {
 };
 
 struct QueryKeymap {
-    struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 44
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 44
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -1615,13 +1589,9 @@ struct SetFontPath {
 };
 
 struct GetFontPath {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 52
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_list;  // 1 request list TBD why not typical request length?
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 52
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -2235,14 +2205,9 @@ struct UninstallColormap {
 };
 
 struct ListInstalledColormaps {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 83
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length
-        WINDOW     window;
-    };
+    using Encoding = impl::SimpleWindowReqEncoding;
+    // Encoding::opcode == 83
+    // Encoding::request_length == 2
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -2641,13 +2606,9 @@ struct QueryExtension {
 };
 
 struct ListExtensions {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 99
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 99
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -2735,13 +2696,9 @@ struct ChangeKeyboardControl {
 };
 
 struct GetKeyboardControl {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 103
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 103
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -2789,13 +2746,9 @@ struct ChangePointerControl {
 };
 
 struct GetPointerControl {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 106
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 106
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -2836,13 +2789,9 @@ struct SetScreenSaver {
 };
 
 struct GetScreenSaver {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 108
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 108
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -2889,13 +2838,9 @@ struct ChangeHosts {
 };
 
 struct ListHosts {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 110
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 110
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -3005,13 +2950,9 @@ struct SetPointerMapping {
 };
 
 struct GetPointerMapping {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 117
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 117
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -3051,13 +2992,9 @@ struct SetModifierMapping {
 };
 
 struct GetModifierMapping {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 119
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 1 request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 119
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
     private:
@@ -3073,13 +3010,9 @@ struct GetModifierMapping {
 };
 
 struct NoOperation {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 127
-    private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 1+n request length
-    };
+    using Encoding = impl::SimpleReqEncoding;
+    // Encoding::opcode == 127
+    // Encoding::request_length == 1+n
     // followed by uint8_t unused[4n]
 };
 
