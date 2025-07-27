@@ -142,39 +142,39 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case INTERNATOM:               {  //  16
         const uint8_t           only_if_exists {};
-        const uint16_t          name_len {};
-        const char*             name {};
+        const uint16_t          name_len       { 10 };
+        const char*             name           { "TEST_ATOM" };
         xcb_intern_atom(
             connection, only_if_exists, name_len, name);
     }   break;
     case GETATOMNAME:              {  //  17
-        const xcb_atom_t        atom {};
+        const xcb_atom_t        atom { 1 };
         xcb_get_atom_name(
             connection, atom);
     }   break;
     case CHANGEPROPERTY:           {  //  18
-        const uint8_t           mode {};
-        const xcb_window_t      window {};
-        const xcb_atom_t        property {};
-        const xcb_atom_t        type {};
-        const uint8_t           format {};
-        const uint32_t          data_len {};
-        const void*             data {};
+        const uint8_t           mode     {};
+        const xcb_window_t      window   {};
+        const xcb_atom_t        property { 1 };
+        const xcb_atom_t        type     { 2 };
+        const uint8_t           format   { 8 };  // 8 / 16 / 32
+        const uint32_t          data_len { 4 };
+        const uint8_t           data[4]  { 1, 2, 3, 4 };
         xcb_change_property(
             connection, mode, window, property,
             type, format, data_len, data);
     }   break;
     case DELETEPROPERTY:           {  //  19
-        const xcb_window_t      window {};
-        const xcb_atom_t        property {};
+        const xcb_window_t      window   {};
+        const xcb_atom_t        property { 1 };
         xcb_delete_property_checked(
             connection, window, property);
     }   break;
     case GETPROPERTY:              {  //  20
-        const uint8_t           _delete {};
-        const xcb_window_t      window {};
-        const xcb_atom_t        property {};
-        const xcb_atom_t        type {};
+        const uint8_t           _delete     {};
+        const xcb_window_t      window      {};
+        const xcb_atom_t        property    { 1 };
+        const xcb_atom_t        type        { 2 };
         const uint32_t          long_offset {};
         const uint32_t          long_length {};
         xcb_get_property(
