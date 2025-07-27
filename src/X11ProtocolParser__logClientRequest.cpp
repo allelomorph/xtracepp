@@ -552,7 +552,9 @@ size_t X11ProtocolParser::_logSimpleRequest(
         protocol::requests::opcodes::GETKEYBOARDCONTROL,
         protocol::requests::opcodes::GETPOINTERCONTROL,
         protocol::requests::opcodes::GETSCREENSAVER,
-        protocol::requests::opcodes::LISTHOSTS
+        protocol::requests::opcodes::LISTHOSTS,
+        protocol::requests::opcodes::GETPOINTERMAPPING,
+        protocol::requests::opcodes::GETMODIFIERMAPPING
     };
     assert( supported_opcodes.count( encoding->opcode ) != 0 );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
