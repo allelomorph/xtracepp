@@ -72,7 +72,7 @@ private:
     inline auto _top_three_bits_zero( const T value ) ->
         std::enable_if_t< std::is_integral_v< T > && sizeof( T ) == 4,
             bool > {
-        return ( value & _TOP_3_OF_32_BITS == 0 );
+        return ( ( value & _TOP_3_OF_32_BITS ) == 0 );
     }
 
     // TBD sentinel necessary?
@@ -150,8 +150,10 @@ private:
     _formatCommonType( const protocol::COLORMAP colormap,
                        const std::vector< std::string_view >& enum_names = {} );
 
+    // ATOM could use zero_none or property_atom
     std::string
-    _formatCommonType( const protocol::ATOM atom );
+    _formatCommonType( const protocol::ATOM atom,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     // VISUALID could use zero_none or zero_copy_from_parent
     std::string

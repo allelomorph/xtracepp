@@ -49,8 +49,14 @@ X11ProtocolParser::_formatCommonType( const protocol::COLORMAP colormap,
 }
 
 std::string
-X11ProtocolParser::_formatCommonType( const protocol::ATOM atom ) {
+X11ProtocolParser::_formatCommonType(
+    const protocol::ATOM atom,
+    const std::vector< std::string_view >& enum_names /* ={}*/) {
     assert( _top_three_bits_zero( atom.data ) );
+    // TBD solve GetProperty
+    if ( atom.data < enum_names.size() ) {
+        return _formatInteger( atom.data, enum_names );
+    }
     // TBD need to handle interned atoms
     assert( atom.data <= protocol::atoms::PREDEFINED_MAX );
     const std::string_view& atom_strv {
