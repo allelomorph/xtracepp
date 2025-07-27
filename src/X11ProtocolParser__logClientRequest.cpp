@@ -12,6 +12,122 @@
 #include "protocol/requests.hpp"
 
 
+size_t X11ProtocolParser::_logSimpleRequest(
+    Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::impl::SimpleReqEncoding;
+    const SimpleReqEncoding* encoding {
+        reinterpret_cast< const SimpleReqEncoding* >( data ) };
+    bytes_parsed += sizeof( SimpleReqEncoding );
+    static const std::unordered_set<uint8_t> supported_opcodes {
+        protocol::requests::opcodes::GRABSERVER,
+        protocol::requests::opcodes::UNGRABSERVER,
+        protocol::requests::opcodes::GETINPUTFOCUS,
+        protocol::requests::opcodes::QUERYKEYMAP,
+        protocol::requests::opcodes::GETFONTPATH,
+        protocol::requests::opcodes::LISTEXTENSIONS,
+        protocol::requests::opcodes::GETKEYBOARDCONTROL,
+        protocol::requests::opcodes::GETPOINTERCONTROL,
+        protocol::requests::opcodes::GETSCREENSAVER,
+        protocol::requests::opcodes::LISTHOSTS,
+        protocol::requests::opcodes::GETPOINTERMAPPING,
+        protocol::requests::opcodes::GETMODIFIERMAPPING
+    };
+    assert( supported_opcodes.count( encoding->opcode ) != 0 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
+}
+
+size_t X11ProtocolParser::_logSimpleWindowRequest(
+    Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::impl::SimpleWindowReqEncoding;
+    const SimpleWindowReqEncoding* encoding {
+        reinterpret_cast< const SimpleWindowReqEncoding* >( data ) };
+    bytes_parsed += sizeof( SimpleWindowReqEncoding );
+    static const std::unordered_set<uint8_t> supported_opcodes {
+        protocol::requests::opcodes::GETWINDOWATTRIBUTES,
+        protocol::requests::opcodes::DESTROYWINDOW,
+        protocol::requests::opcodes::DESTROYSUBWINDOWS,
+        protocol::requests::opcodes::MAPWINDOW,
+        protocol::requests::opcodes::MAPSUBWINDOWS,
+        protocol::requests::opcodes::UNMAPWINDOW,
+        protocol::requests::opcodes::UNMAPSUBWINDOWS,
+        protocol::requests::opcodes::QUERYTREE,
+        protocol::requests::opcodes::LISTPROPERTIES,
+        protocol::requests::opcodes::QUERYPOINTER,
+        protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS
+    };
+    assert( supported_opcodes.count( encoding->opcode ) != 0 );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
+}
+
 size_t X11ProtocolParser::_logCreateWindow(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -193,65 +309,6 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
         _formatBitmask( encoding->value_mask ), _separator,
         memb_indent, "value-list", name_width, _equals,
         value_list_outputs.str, _separator,
-        struct_indent
-        );
-    assert( bytes_parsed == sz );
-    return bytes_parsed;
-}
-
-size_t X11ProtocolParser::_logSimpleWindowRequest(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    size_t bytes_parsed {};
-    using protocol::requests::impl::SimpleWindowReqEncoding;
-    const SimpleWindowReqEncoding* encoding {
-        reinterpret_cast< const SimpleWindowReqEncoding* >( data ) };
-    bytes_parsed += sizeof( SimpleWindowReqEncoding );
-    static const std::unordered_set<uint8_t> supported_opcodes {
-        protocol::requests::opcodes::GETWINDOWATTRIBUTES,
-        protocol::requests::opcodes::DESTROYWINDOW,
-        protocol::requests::opcodes::DESTROYSUBWINDOWS,
-        protocol::requests::opcodes::MAPWINDOW,
-        protocol::requests::opcodes::MAPSUBWINDOWS,
-        protocol::requests::opcodes::UNMAPWINDOW,
-        protocol::requests::opcodes::UNMAPSUBWINDOWS,
-        protocol::requests::opcodes::QUERYTREE,
-        protocol::requests::opcodes::LISTPROPERTIES,
-        protocol::requests::opcodes::QUERYPOINTER,
-        protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS
-    };
-    assert( supported_opcodes.count( encoding->opcode ) != 0 );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
-
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
-    const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
-    fmt::println(
-        _log_fs,
-        "{{{}"
-        "{}{}"
-        "{}{: <{}}{}{}{}"
-        "{}}}",
-        _separator,
-        _verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _equals,
-            _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _equals,
-            _formatInteger( encoding->request_length ), _separator ) : "",
-        memb_indent, "window", name_width, _equals,
-        _formatCommonType( encoding->window ), _separator,
         struct_indent
         );
     assert( bytes_parsed == sz );
@@ -525,63 +582,6 @@ size_t X11ProtocolParser::_logGetGeometry(
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "drawable", name_width, _equals,
         _formatCommonType( encoding->drawable ), _separator,
-        struct_indent
-        );
-    assert( bytes_parsed == sz );
-    return bytes_parsed;
-}
-
-size_t X11ProtocolParser::_logSimpleRequest(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    size_t bytes_parsed {};
-    using protocol::requests::impl::SimpleReqEncoding;
-    const SimpleReqEncoding* encoding {
-        reinterpret_cast< const SimpleReqEncoding* >( data ) };
-    bytes_parsed += sizeof( SimpleReqEncoding );
-    static const std::unordered_set<uint8_t> supported_opcodes {
-        protocol::requests::opcodes::GRABSERVER,
-        protocol::requests::opcodes::UNGRABSERVER,
-        protocol::requests::opcodes::GETINPUTFOCUS,
-        protocol::requests::opcodes::QUERYKEYMAP,
-        protocol::requests::opcodes::GETFONTPATH,
-        protocol::requests::opcodes::LISTEXTENSIONS,
-        protocol::requests::opcodes::GETKEYBOARDCONTROL,
-        protocol::requests::opcodes::GETPOINTERCONTROL,
-        protocol::requests::opcodes::GETSCREENSAVER,
-        protocol::requests::opcodes::LISTHOSTS,
-        protocol::requests::opcodes::GETPOINTERMAPPING,
-        protocol::requests::opcodes::GETMODIFIERMAPPING
-    };
-    assert( supported_opcodes.count( encoding->opcode ) != 0 );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
-
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
-    const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
-    fmt::println(
-        _log_fs,
-        "{{{}"
-        "{}{}"
-        "{}}}",
-        _separator,
-        _verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _equals,
-            _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _equals,
-            _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
     assert( bytes_parsed == sz );
@@ -1299,6 +1299,53 @@ size_t X11ProtocolParser::_logSetModifierMapping(
     return {};
 }
 
+// TBD not using _logSimpleRequest due to potential unused suffix data
+size_t X11ProtocolParser::_logNoOperation(
+    Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::impl::SimpleReqEncoding;
+    const SimpleReqEncoding* encoding {
+        reinterpret_cast< const SimpleReqEncoding* >( data ) };
+    bytes_parsed += sizeof( SimpleReqEncoding );
+    assert( encoding->opcode == protocol::requests::opcodes::NOOPERATION );
+    // protocol specifies that no-op may be followed by variable length dummy data
+    bytes_parsed += ( encoding->request_length - 1 ) * _ALIGN;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
+}
+
+
 size_t X11ProtocolParser::_logClientRequest(
     Connection* conn, const uint8_t* data, const size_t sz,
     const uint8_t opcode ) {
@@ -1321,13 +1368,13 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logChangeWindowAttributes( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETWINDOWATTRIBUTES:
-        bytes_parsed = _logGetWindowAttributes( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::DESTROYWINDOW:
-        bytes_parsed = _logDestroyWindow( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::DESTROYSUBWINDOWS:
-        bytes_parsed = _logDestroySubwindows( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGESAVESET:
         bytes_parsed = _logChangeSaveSet( conn, data, sz );
@@ -1336,16 +1383,16 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logReparentWindow( conn, data, sz );
         break;
     case protocol::requests::opcodes::MAPWINDOW:
-        bytes_parsed = _logMapWindow( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::MAPSUBWINDOWS:
-        bytes_parsed = _logMapSubwindows( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNMAPWINDOW:
-        bytes_parsed = _logUnmapWindow( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNMAPSUBWINDOWS:
-        bytes_parsed = _logUnmapSubwindows( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::CONFIGUREWINDOW:
         bytes_parsed = _logConfigureWindow( conn, data, sz );
@@ -1357,7 +1404,7 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logGetGeometry( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYTREE:
-        bytes_parsed = _logQueryTree( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::INTERNATOM:
         bytes_parsed = _logInternAtom( conn, data, sz );
@@ -1375,7 +1422,7 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logGetProperty( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTPROPERTIES:
-        bytes_parsed = _logListProperties( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETSELECTIONOWNER:
         bytes_parsed = _logSetSelectionOwner( conn, data, sz );
@@ -1420,13 +1467,13 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logAllowEvents( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABSERVER:
-        bytes_parsed = _logGrabServer( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNGRABSERVER:
-        bytes_parsed = _logUngrabServer( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYPOINTER:
-        bytes_parsed = _logQueryPointer( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETMOTIONEVENTS:
         bytes_parsed = _logGetMotionEvents( conn, data, sz );
@@ -1441,10 +1488,10 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logSetInputFocus( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETINPUTFOCUS:
-        bytes_parsed = _logGetInputFocus( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYKEYMAP:
-        bytes_parsed = _logQueryKeymap( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::OPENFONT:
         bytes_parsed = _logOpenFont( conn, data, sz );
@@ -1468,7 +1515,7 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logSetFontPath( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETFONTPATH:
-        bytes_parsed = _logGetFontPath( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::CREATEPIXMAP:
         bytes_parsed = _logCreatePixmap( conn, data, sz );
@@ -1561,7 +1608,7 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logUninstallColormap( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS:
-        bytes_parsed = _logListInstalledColormaps( conn, data, sz );
+        bytes_parsed = _logSimpleWindowRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLOR:
         bytes_parsed = _logAllocColor( conn, data, sz );
@@ -1609,7 +1656,7 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logQueryExtension( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTEXTENSIONS:
-        bytes_parsed = _logListExtensions( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEKEYBOARDMAPPING:
         bytes_parsed = _logChangeKeyboardMapping( conn, data, sz );
@@ -1621,7 +1668,7 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logChangeKeyboardControl( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETKEYBOARDCONTROL:
-        bytes_parsed = _logGetKeyboardControl( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::BELL:
         bytes_parsed = _logBell( conn, data, sz );
@@ -1630,19 +1677,19 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logChangePointerControl( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPOINTERCONTROL:
-        bytes_parsed = _logGetPointerControl( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETSCREENSAVER:
         bytes_parsed = _logSetScreenSaver( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETSCREENSAVER:
-        bytes_parsed = _logGetScreenSaver( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEHOSTS:
         bytes_parsed = _logChangeHosts( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTHOSTS:
-        bytes_parsed = _logListHosts( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETACCESSCONTROL:
         bytes_parsed = _logSetAccessControl( conn, data, sz );
@@ -1663,13 +1710,13 @@ size_t X11ProtocolParser::_logClientRequest(
         bytes_parsed = _logSetPointerMapping( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPOINTERMAPPING:
-        bytes_parsed = _logGetPointerMapping( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETMODIFIERMAPPING:
         bytes_parsed = _logSetModifierMapping( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETMODIFIERMAPPING:
-        bytes_parsed = _logGetModifierMapping( conn, data, sz );
+        bytes_parsed = _logSimpleRequest( conn, data, sz );
         break;
     case protocol::requests::opcodes::NOOPERATION:
         bytes_parsed = _logNoOperation( conn, data, sz );
