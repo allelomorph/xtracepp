@@ -718,7 +718,7 @@ struct ChangeProperty {
     private:
         uint8_t   _unused[3];
     public:
-        CARD32    fmt_unit_ct;  // unnnamed in protocol // length of data in format units
+        CARD32    fmt_unit_ct;  // unnamed in protocol // length of data in format units
     };
     // format unit sz == pad(n) / fmt_unit_ct
     /*
