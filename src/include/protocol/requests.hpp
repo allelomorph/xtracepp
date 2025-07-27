@@ -1160,7 +1160,6 @@ public:
 
 }  // namespace impl
 
-
 struct GrabServer {
     using Encoding = impl::SimpleReqEncoding;
     // Encoding::opcode == 36
@@ -1834,6 +1833,7 @@ struct FreeGC {
 struct ClearArea {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 61
+        BOOL       exposures;
         uint16_t   request_length;  // 4 request length
         WINDOW     window;
         INT16      x;
