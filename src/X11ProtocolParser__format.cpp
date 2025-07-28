@@ -17,8 +17,6 @@ std::string
 X11ProtocolParser::_formatCommonType( const protocol::TIMESTAMP time ) {
     static const std::vector<std::string_view>& enum_names {
         protocol::enum_names::time };
-    static const size_t max_enum {
-        protocol::enum_names::time.size() - 1 };
     // RFC 3339 UTC format:
     // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
     char time_str [ sizeof( "yyyy-mm-ddThh:mm:ssZ" ) ] {};
@@ -27,7 +25,7 @@ X11ProtocolParser::_formatCommonType( const protocol::TIMESTAMP time ) {
     strftime( time_str, sizeof( time_str ), "%FT%TZ",
               gmtime( &_time ) );
     const std::string name_str {
-        ( time.data <= max_enum ) ? enum_names[ time.data ] : "" };
+        ( time.data < enum_names.size() ) ? enum_names[ time.data ] : "" };
     if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( time.data ) * 2 ) + 2 };
