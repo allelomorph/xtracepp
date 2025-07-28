@@ -57,14 +57,16 @@ X11ProtocolParser::_formatCommonType(
     }
     // TBD need to handle interned atoms
     assert( atom.data <= protocol::atoms::PREDEFINED_MAX );
-    const std::string_view& atom_strv {
-        protocol::atoms::predefined[ atom.data ] };
+    const std::string atom_string {
+        atom.data == 0 ? "unrecognized atom" :
+        fmt::format("\"{}\"", protocol::atoms::predefined[ atom.data ] )
+    };
     if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( atom.data ) * 2 ) + 2 };
-        return fmt::format( "{:#0{}x}(\"{}\")", atom.data, hex_width, atom_strv );
+        return fmt::format( "{:#0{}x}({})", atom.data, hex_width, atom_string );
     }
-    return fmt::format( "\"{}\"", atom_strv );
+    return fmt::format( "({})", atom_string );
 }
 
 // VISUALID could use zero_none or zero_copy_from_parent
