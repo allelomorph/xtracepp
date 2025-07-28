@@ -103,7 +103,7 @@ private:
             static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
             const std::string hex_str { fmt::format( "{:#0{}x}", value, hex_width ) };
             return name_str.empty() ? hex_str :
-                fmt::format( "{} ({})", hex_str, name_str );
+                fmt::format( "{}({})", hex_str, name_str );
         }
         return name_str.empty() ? fmt::format( "{:d}", value ) : name_str;
     }
@@ -131,7 +131,7 @@ private:
         }
         if ( _verbose ) {
             return flag_str.empty() ? hex_str :
-                fmt::format( "{} ({})", hex_str, flag_str );
+                fmt::format( "{}({})", hex_str, flag_str );
         }
         return flag_str.empty() ? hex_str : flag_str;
     }

@@ -31,7 +31,7 @@ X11ProtocolParser::_formatCommonType( const protocol::TIMESTAMP time ) {
     if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( time.data ) * 2 ) + 2 };
-        return fmt::format( "{:#0{}x} ({})", time.data, hex_width,
+        return fmt::format( "{:#0{}x}({})", time.data, hex_width,
                             name_str.empty() ? time_str : name_str );
     }
     return name_str.empty() ? time_str : name_str;
@@ -64,7 +64,7 @@ X11ProtocolParser::_formatCommonType(
     if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( atom.data ) * 2 ) + 2 };
-        return fmt::format( "{:#0{}x} (\"{}\")", atom.data, hex_width, atom_strv );
+        return fmt::format( "{:#0{}x}(\"{}\")", atom.data, hex_width, atom_strv );
     }
     return fmt::format( "\"{}\"", atom_strv );
 }
