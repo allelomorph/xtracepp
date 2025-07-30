@@ -106,10 +106,23 @@ X11ProtocolParser::_formatCommonType( const protocol::PIXMAP pixmap,
 
 std::string
 X11ProtocolParser::_formatCommonType(
+    const protocol::SETofEVENT setofevent ) {
+    // SETofEVENT
+    //     #xFE000000     unused but must be zero
+    static constexpr uint32_t UNUSED_BITS { 0xfe000000 };
+    assert( ( setofevent.data & UNUSED_BITS ) == 0 );
+    return _formatBitmask( setofevent.data,
+                           protocol::enum_names::set_of_event );
+}
+
+std::string
+X11ProtocolParser::_formatCommonType(
     const protocol::SETofPOINTEREVENT setofpointerevent ) {
     // SETofPOINTEREVENT
     //      encodings are the same as for SETofEVENT, except with
     //      #xFFFF8003     unused but must be zero
+    static constexpr uint32_t UNUSED_BITS { 0xffff8003 };
+    assert( ( setofpointerevent.data & UNUSED_BITS ) == 0 );
     static constexpr size_t MAX_FLAG_I { 14 };
     return _formatBitmask( setofpointerevent.data,
                            protocol::enum_names::set_of_event, MAX_FLAG_I );
@@ -121,6 +134,8 @@ X11ProtocolParser::_formatCommonType(
     // SETofDEVICEEVENT
     //      encodings are the same as for SETofEVENT, except with
     //      #xFFFFC0B0     unused but must be zero
+    static constexpr uint32_t UNUSED_BITS { 0xffffc0b0 };
+    assert( ( setofdeviceevent.data & UNUSED_BITS ) == 0 );
     static constexpr size_t MAX_FLAG_I { 13 };
     return _formatBitmask( setofdeviceevent.data,
                            protocol::enum_names::set_of_event, MAX_FLAG_I );
@@ -132,9 +147,22 @@ X11ProtocolParser::_formatCommonType(
     // SETofKEYMASK
     //      encodings are the same as for SETofKEYBUTMASK, except with
     //      #xFF00          unused but must be zero
+    static constexpr uint16_t UNUSED_BITS { 0xff00 };
+    assert( ( setofkeymask.data & UNUSED_BITS ) == 0 );
     static constexpr size_t MAX_FLAG_I { 7 };
     return _formatBitmask( setofkeymask.data,
                            protocol::enum_names::set_of_keybutmask, MAX_FLAG_I );
+}
+
+std::string
+X11ProtocolParser::_formatCommonType(
+    const protocol::SETofKEYBUTMASK setofkeybutmask ) {
+    // SETofKEYBUTMASK
+    //   #xE000     unused but must be zero
+    static constexpr uint16_t UNUSED_BITS { 0xe000 };
+    assert( ( setofkeybutmask.data & UNUSED_BITS ) == 0 );
+    return _formatBitmask( setofkeybutmask.data,
+                           protocol::enum_names::set_of_keybutmask );
 }
 
 // TBD STR parsed differently

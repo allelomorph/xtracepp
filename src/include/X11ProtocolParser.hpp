@@ -204,14 +204,8 @@ private:
                                protocol::enum_names::bool_ );
     }
 
-    inline std::string
-    _formatCommonType( const protocol::SETofEVENT setofevent ) {
-        // SETofEVENT
-        //     #xFE000000     unused but must be zero
-        return _formatBitmask( setofevent.data,
-                               protocol::enum_names::set_of_event );
-    }
-
+    std::string
+    _formatCommonType( const protocol::SETofEVENT setofevent );
     std::string
     _formatCommonType( const protocol::SETofPOINTEREVENT setofpointerevent );
     std::string
@@ -231,14 +225,8 @@ private:
 
     std::string
     _formatCommonType( const protocol::SETofKEYMASK setofkeymask );
-
-    inline std::string
-    _formatCommonType( const protocol::SETofKEYBUTMASK setofkeybutmask ) {
-        // SETofKEYBUTMASK
-        //   #xE000     unused but must be zero
-        return _formatBitmask( setofkeybutmask.data,
-                               protocol::enum_names::set_of_keybutmask );
-    }
+    std::string
+    _formatCommonType( const protocol::SETofKEYBUTMASK setofkeybutmask );
 
     std::string
     _formatCommonType( const protocol::POINT point );
