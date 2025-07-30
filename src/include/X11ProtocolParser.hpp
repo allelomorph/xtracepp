@@ -140,11 +140,9 @@ private:
     _formatCommonType( const protocol::TIMESTAMP time,
                        const std::vector< std::string_view >& enum_names = {} );
 
-    inline std::string
-    _formatCommonType( const protocol::CURSOR cursor ) {
-        return _formatInteger( cursor.data,
-                               protocol::enum_names::zero_none );
-    }
+    std::string
+    _formatCommonType( const protocol::CURSOR cursor,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     // COLORMAP could use zero_none or zero_copy_from_parent
     std::string

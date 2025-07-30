@@ -17,6 +17,9 @@ std::string
 X11ProtocolParser::_formatCommonType(
     const protocol::TIMESTAMP time,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::time );
+    }
     // RFC 3339 UTC format:
     // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
     char time_str [ sizeof( "yyyy-mm-ddThh:mm:ssZ" ) ] {};
@@ -33,6 +36,16 @@ X11ProtocolParser::_formatCommonType(
     }
     return time.data < enum_names.size() ?
         enum_names[ time.data ].data() : time_str;
+}
+
+std::string
+X11ProtocolParser::_formatCommonType(
+    const protocol::CURSOR cursor,
+    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::zero_none );
+    }
+    return _formatInteger( cursor.data, enum_names );
 }
 
 // COLORMAP could use zero_none or zero_copy_from_parent
