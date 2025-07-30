@@ -137,7 +137,8 @@ private:
     }
 
     std::string
-    _formatCommonType( const protocol::TIMESTAMP time );
+    _formatCommonType( const protocol::TIMESTAMP time,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     inline std::string
     _formatCommonType( const protocol::CURSOR cursor ) {

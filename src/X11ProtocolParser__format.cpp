@@ -14,25 +14,25 @@
 // TBD assert( _top_three_bits_zero() ) should maybe happen instead at parse time
 
 std::string
-X11ProtocolParser::_formatCommonType( const protocol::TIMESTAMP time ) {
-    static const std::vector<std::string_view>& enum_names {
-        protocol::enum_names::time };
+X11ProtocolParser::_formatCommonType(
+    const protocol::TIMESTAMP time,
+    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
     // RFC 3339 UTC format:
     // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
     char time_str [ sizeof( "yyyy-mm-ddThh:mm:ssZ" ) ] {};
     // TBD check return val? should == sizeof( time_str )
-    const std::time_t _time ( time.data );
+    const std::time_t time_ ( time.data );
     strftime( time_str, sizeof( time_str ), "%FT%TZ",
-              gmtime( &_time ) );
-    const std::string name_str {
-        ( time.data < enum_names.size() ) ? enum_names[ time.data ] : "" };
+              gmtime( &time_ ) );
     if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( time.data ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x}({})", time.data, hex_width,
-                            name_str.empty() ? time_str : name_str );
+                            time.data < enum_names.size() ?
+                            enum_names[ time.data ].data() : time_str );
     }
-    return name_str.empty() ? time_str : name_str;
+    return time.data < enum_names.size() ?
+        enum_names[ time.data ].data() : time_str;
 }
 
 // COLORMAP could use zero_none or zero_copy_from_parent
