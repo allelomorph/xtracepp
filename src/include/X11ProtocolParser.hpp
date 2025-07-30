@@ -216,12 +216,9 @@ private:
                                protocol::enum_names::key );
     }
 
-    inline std::string
-    _formatCommonType( const protocol::BUTTON button ) {
-        return _formatInteger( button.data,
-                               protocol::enum_names::button );
-    }
-
+    std::string
+    _formatCommonType( const protocol::BUTTON button,
+                       const std::vector< std::string_view >& enum_names = {} );
     std::string
     _formatCommonType( const protocol::SETofKEYMASK setofkeymask );
     std::string
