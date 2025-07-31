@@ -229,12 +229,15 @@ private:
     std::string
     _formatCommonType( const protocol::ARC arc );
 
-    // TBD HOST?
-
     struct _LISTParsingOutputs {
         std::string str       {};
         uint32_t bytes_parsed {};
     };
+
+    _LISTParsingOutputs
+    _parseLISTofSTR( const uint8_t* data, const uint16_t str_ct );
+
+    // TBD HOST?
 
     struct _EnumTraits {
     private:
@@ -409,6 +412,10 @@ private:
     // QueryPointer ListInstalledColormaps
     size_t _logSimpleWindowRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
+    // ListFonts ListFontsWithInfo
+    size_t _logListFontsRequest(
+        Connection* conn, const uint8_t* data, const size_t sz );
+
     size_t _logCreateWindow(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logChangeWindowAttributes(
@@ -476,10 +483,6 @@ private:
     size_t _logQueryFont(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logQueryTextExtents(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logListFonts(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logListFontsWithInfo(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logSetFontPath(
         Connection* conn, const uint8_t* data, const size_t sz );

@@ -522,6 +522,23 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
     return outputs;
 }
 
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofSTR( const uint8_t* data, const uint16_t str_ct ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < str_ct; ++i ) {
+        const uint8_t n { *( data + outputs.bytes_parsed ) };
+        outputs.bytes_parsed++;
+        outputs.str += fmt::format(
+            "{}\"{}\"", outputs.str.size() > 1 ? " " : "",
+            std::string_view(
+                reinterpret_cast< const char* >( data + outputs.bytes_parsed ), n ) );
+        outputs.bytes_parsed += n;
+    }
+    outputs.str += ']';
+    return outputs;
+}
 
 size_t X11ProtocolParser::_logServerAcceptance(
     Connection* conn, const uint8_t* data ) {

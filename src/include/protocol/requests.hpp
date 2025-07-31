@@ -1140,6 +1140,9 @@ struct AllowEvents {
     };
 
     inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::events_mode };
+    inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
 };
@@ -1607,7 +1610,7 @@ struct CreatePixmap {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 53
         CARD8      depth;
-        uint16_t   request_legnth;  // 4 request length?
+        uint16_t   request_length;  // 4 request length?
         PIXMAP     pid;
         DRAWABLE   drawable;
         CARD16     width;
@@ -1621,7 +1624,7 @@ struct FreePixmap {
     private:
         uint8_t    _unused;
     public:
-        uint16_t   request_legnth;  // 2 request length?
+        uint16_t   request_length;  // 2 request length?
         PIXMAP     pixmap;
     };
 };
