@@ -691,10 +691,7 @@ size_t X11ProtocolParser::_logClientPacket(
         break;
     case Connection::OPEN:
         assert( sz >= 4 );  // TBD min size for Reuqests (1B opcode, 1B unused, 2B request length (with no extensions))
-        assert( *data != 0 );
-//        const uint8_t first_byte { *data };
-        // TBD use enum instead of magic values
-        bytes_parsed = _logClientRequest( conn, data, sz, *data );
+        bytes_parsed = _logClientRequest( conn, data, sz );
         //assert( bytes_parsed == 32 );
         break;
     default:

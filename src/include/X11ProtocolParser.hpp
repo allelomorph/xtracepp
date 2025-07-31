@@ -210,11 +210,9 @@ private:
     std::string
     _formatCommonType( const protocol::SETofDEVICEEVENT setofdeviceevent );
 
-    inline std::string
-    _formatCommonType( const protocol::KEYCODE keycode ) {
-        return _formatInteger( keycode.data,
-                               protocol::enum_names::key );
-    }
+    std::string
+    _formatCommonType( const protocol::KEYCODE keycode,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     std::string
     _formatCommonType( const protocol::BUTTON button,
@@ -400,8 +398,7 @@ private:
         const uint8_t code );
 
     size_t _logClientRequest(
-        Connection* conn, const uint8_t* data, const size_t sz,
-        const uint8_t opcode );
+        Connection* conn, const uint8_t* data, const size_t sz );
     // GrabServer UngrabServer GetInputFocus QueryKeymap GetFontPath
     // ListExtensions GetKeyboardControl GetPointerControl GetScreenSaver
     // ListHosts GetPointerMapping GetModifierMapping

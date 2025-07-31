@@ -10,6 +10,7 @@
 //#include "Settings.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
+#include "protocol/events.hpp"
 
 
 size_t X11ProtocolParser::_logSimpleRequest(
@@ -881,67 +882,703 @@ size_t X11ProtocolParser::_logGetProperty(
 
 size_t X11ProtocolParser::_logSetSelectionOwner(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::SetSelectionOwner;
+    const SetSelectionOwner::Encoding* encoding {
+        reinterpret_cast< const SetSelectionOwner::Encoding* >( data ) };
+    bytes_parsed += sizeof( SetSelectionOwner::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::SETSELECTIONOWNER );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "owner", name_width, _equals,
+        _formatCommonType( encoding->owner, SetSelectionOwner::owner_names ), _separator,
+        memb_indent, "selection", name_width, _equals,
+        _formatCommonType( encoding->selection ), _separator,
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, SetSelectionOwner::time_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGetSelectionOwner(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GetSelectionOwner;
+    const GetSelectionOwner::Encoding* encoding {
+        reinterpret_cast< const GetSelectionOwner::Encoding* >( data ) };
+    bytes_parsed += sizeof( GetSelectionOwner::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::GETSELECTIONOWNER );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "selection", name_width, _equals,
+        _formatCommonType( encoding->selection ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logConvertSelection(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ConvertSelection;
+    const ConvertSelection::Encoding* encoding {
+        reinterpret_cast< const ConvertSelection::Encoding* >( data ) };
+    bytes_parsed += sizeof( ConvertSelection::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::CONVERTSELECTION );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "requestor", name_width, _equals,
+        _formatCommonType( encoding->requestor ), _separator,
+        memb_indent, "selection", name_width, _equals,
+        _formatCommonType( encoding->selection ), _separator,
+        memb_indent, "target", name_width, _equals,
+        _formatCommonType( encoding->target ), _separator,
+        memb_indent, "property", name_width, _equals,
+        _formatCommonType( encoding->property, ConvertSelection::property_names ), _separator,
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, ConvertSelection::time_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logSendEvent(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::SendEvent;
+    const SendEvent::Encoding* encoding {
+        reinterpret_cast< const SendEvent::Encoding* >( data ) };
+    bytes_parsed += sizeof( SendEvent::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::SENDEVENT );
+    // TBD parse event ahead of time, can get struct type from first byte
+    // maybe events will be unlike reuests, errors, etc in that there is
+    //   both a log func and a format func?
+    // size_t _logServerEvent()
+    bytes_parsed += protocol::events::ENCODING_SZ;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    /*
+      000:<:0001: 44: Request(25): SendEvent propagate=false(0x00) destination=PointerWindow(0x00000000) event-mask=StructureNotify ConfigureNotify(22) event=0x00000000 window=0x00000000 above-sibling=None(0x00000000) x=0 y=0 width=0 height=0 border-width=0 override-redirect=false(0x00)
+     */
+    // TBD parse event ahead of time
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "propagate", name_width, _equals,
+        _formatCommonType( encoding->propagate ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "destination", name_width, _equals,
+        _formatCommonType( encoding->destination, SendEvent::destination_names ), _separator,
+        memb_indent, "event-mask", name_width, _equals,
+        _formatCommonType( encoding->event_mask ), _separator,
+        // TBD update after event formatting is complete
+        memb_indent, "event", name_width, _equals,
+        "(formatted event TBD)", _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGrabPointer(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GrabPointer;
+    const GrabPointer::Encoding* encoding {
+        reinterpret_cast< const GrabPointer::Encoding* >( data ) };
+    bytes_parsed += sizeof( GrabPointer::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::GRABPOINTER );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "owner-events", name_width, _equals,
+        _formatCommonType( encoding->owner_events ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "grab-window", name_width, _equals,
+        _formatCommonType( encoding->grab_window ), _separator,
+        memb_indent, "event-mask", name_width, _equals,
+        _formatCommonType( encoding->event_mask ), _separator,
+        memb_indent, "pointer-mode", name_width, _equals,
+        _formatInteger( encoding->pointer_mode, GrabPointer::pointer_mode_names ), _separator,
+        memb_indent, "keyboard-mode", name_width, _equals,
+        _formatInteger( encoding->keyboard_mode, GrabPointer::keyboard_mode_names ), _separator,
+        memb_indent, "confine-to", name_width, _equals,
+        _formatCommonType( encoding->confine_to, GrabPointer::confine_to_names ), _separator,
+        memb_indent, "cursor", name_width, _equals,
+        _formatCommonType( encoding->cursor, GrabPointer::cursor_names ), _separator,
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, GrabPointer::time_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logUngrabPointer(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::UngrabPointer;
+    const UngrabPointer::Encoding* encoding {
+        reinterpret_cast< const UngrabPointer::Encoding* >( data ) };
+    bytes_parsed += sizeof( UngrabPointer::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::UNGRABPOINTER );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, UngrabPointer::time_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGrabButton(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GrabButton;
+    const GrabButton::Encoding* encoding {
+        reinterpret_cast< const GrabButton::Encoding* >( data ) };
+    bytes_parsed += sizeof( GrabButton::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::GRABBUTTON );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "owner-events", name_width, _equals,
+        _formatCommonType( encoding->owner_events ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "grab-window", name_width, _equals,
+        _formatCommonType( encoding->grab_window ), _separator,
+        memb_indent, "event-mask", name_width, _equals,
+        _formatCommonType( encoding->event_mask ), _separator,
+        memb_indent, "pointer-mode", name_width, _equals,
+        _formatInteger( encoding->pointer_mode, GrabButton::pointer_mode_names ), _separator,
+        memb_indent, "keyboard-mode", name_width, _equals,
+        _formatInteger( encoding->keyboard_mode, GrabButton::keyboard_mode_names ), _separator,
+        memb_indent, "confine-to", name_width, _equals,
+        _formatCommonType( encoding->confine_to, GrabButton::confine_to_names ), _separator,
+        memb_indent, "cursor", name_width, _equals,
+        _formatCommonType( encoding->cursor, GrabButton::cursor_names ), _separator,
+        memb_indent, "button", name_width, _equals,
+        _formatCommonType( encoding->button, GrabButton::button_names ), _separator,
+        memb_indent, "modifiers", name_width, _equals,
+        _formatCommonType( encoding->modifiers ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logUngrabButton(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::UngrabButton;
+    const UngrabButton::Encoding* encoding {
+        reinterpret_cast< const UngrabButton::Encoding* >( data ) };
+    bytes_parsed += sizeof( UngrabButton::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::UNGRABBUTTON );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "button", name_width, _equals,
+        _formatCommonType( encoding->button, UngrabButton::button_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "grab-window", name_width, _equals,
+        _formatCommonType( encoding->grab_window ), _separator,
+        memb_indent, "modifiers", name_width, _equals,
+        _formatCommonType( encoding->modifiers ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logChangeActivePointerGrab(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ChangeActivePointerGrab;
+    const ChangeActivePointerGrab::Encoding* encoding {
+        reinterpret_cast< const ChangeActivePointerGrab::Encoding* >( data ) };
+    bytes_parsed += sizeof( ChangeActivePointerGrab::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cursor", name_width, _equals,
+        _formatCommonType( encoding->cursor, ChangeActivePointerGrab::cursor_names ), _separator,
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, ChangeActivePointerGrab::time_names ), _separator,
+        memb_indent, "event-mask", name_width, _equals,
+        _formatCommonType( encoding->event_mask ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGrabKeyboard(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GrabKeyboard;
+    const GrabKeyboard::Encoding* encoding {
+        reinterpret_cast< const GrabKeyboard::Encoding* >( data ) };
+    bytes_parsed += sizeof( GrabKeyboard::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::GRABKEYBOARD );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "owner-events", name_width, _equals,
+        _formatCommonType( encoding->owner_events ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "grab-window", name_width, _equals,
+        _formatCommonType( encoding->grab_window ), _separator,
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, GrabKeyboard::time_names ), _separator,
+        memb_indent, "pointer-mode", name_width, _equals,
+        _formatInteger( encoding->pointer_mode, GrabKeyboard::pointer_mode_names ), _separator,
+        memb_indent, "keyboard-mode", name_width, _equals,
+        _formatInteger( encoding->keyboard_mode, GrabKeyboard::keyboard_mode_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logUngrabKeyboard(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::UngrabKeyboard;
+    const UngrabKeyboard::Encoding* encoding {
+        reinterpret_cast< const UngrabKeyboard::Encoding* >( data ) };
+    bytes_parsed += sizeof( UngrabKeyboard::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEYBOARD );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "time", name_width, _equals,
+        _formatCommonType( encoding->time, UngrabKeyboard::time_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGrabKey(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GrabKey;
+    const GrabKey::Encoding* encoding {
+        reinterpret_cast< const GrabKey::Encoding* >( data ) };
+    bytes_parsed += sizeof( GrabKey::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::GRABKEY );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "owner-events", name_width, _equals,
+        _formatCommonType( encoding->owner_events ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "modifiers", name_width, _equals,
+        _formatCommonType( encoding->modifiers ), _separator,
+        memb_indent, "key", name_width, _equals,
+        _formatCommonType( encoding->key, GrabKey::key_names ), _separator,
+        memb_indent, "pointer-mode", name_width, _equals,
+        _formatInteger( encoding->pointer_mode, GrabKey::pointer_mode_names ), _separator,
+        memb_indent, "keyboard-mode", name_width, _equals,
+        _formatInteger( encoding->keyboard_mode, GrabKey::keyboard_mode_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logUngrabKey(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::UngrabKey;
+    const UngrabKey::Encoding* encoding {
+        reinterpret_cast< const UngrabKey::Encoding* >( data ) };
+    bytes_parsed += sizeof( UngrabKey::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEY );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "key", name_width, _equals,
+        _formatCommonType( encoding->key, UngrabKey::key_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "grab-window", name_width, _equals,
+        _formatCommonType( encoding->grab_window ), _separator,
+        memb_indent, "modifiers", name_width, _equals,
+        _formatCommonType( encoding->modifiers ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logAllowEvents(
@@ -1347,11 +1984,12 @@ size_t X11ProtocolParser::_logNoOperation(
 
 
 size_t X11ProtocolParser::_logClientRequest(
-    Connection* conn, const uint8_t* data, const size_t sz,
-    const uint8_t opcode ) {
+    Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= 4 ); // TBD
+
+    const uint8_t opcode { *data };
     assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );  // TBD core opcodes only to start
 
     // map opcode to sequence number to aid in parsing request errors and replies

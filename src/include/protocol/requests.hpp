@@ -886,16 +886,12 @@ struct SendEvent {
         uint16_t   request_length;  // 11 request length
         WINDOW     destination;  // 0 PointerWindow 1 InputFocus
         SETofEVENT event_mask;  // event-mask
-        // 32  event
-        // TBD presumably events are parsed like a LISTofVALUE with value-mask
     };
+    // followed by 32B event
 
     inline static const
-    std::vector< std::string_view >& property_names {
-        protocol::enum_names::zero_none };
-    inline static const
-    std::vector< std::string_view >& time_names {
-        protocol::enum_names::time };
+    std::vector< std::string_view >& destination_names {
+        protocol::enum_names::event_destination };
 };
 
 struct GrabPointer {

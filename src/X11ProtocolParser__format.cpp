@@ -156,6 +156,16 @@ X11ProtocolParser::_formatCommonType(
 
 std::string
 X11ProtocolParser::_formatCommonType(
+    const protocol::KEYCODE keycode,
+    const std::vector< std::string_view >& enum_names /*= {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::key );
+    }
+    return _formatInteger( keycode.data, enum_names );
+}
+
+std::string
+X11ProtocolParser::_formatCommonType(
     const protocol::BUTTON button,
     const std::vector< std::string_view >& enum_names /*= {}*/ ) {
     if ( !enum_names.empty() ) {
@@ -163,7 +173,6 @@ X11ProtocolParser::_formatCommonType(
     }
     return _formatInteger( button.data, enum_names );
 }
-
 
 std::string
 X11ProtocolParser::_formatCommonType(
