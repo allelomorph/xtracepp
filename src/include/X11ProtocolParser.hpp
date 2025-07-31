@@ -178,11 +178,9 @@ private:
         return _formatInteger( drawable.window.data, enum_names );
     }
 
-    inline std::string
-    _formatCommonType( const protocol::FONT font ) {
-        return _formatInteger( font.data,
-                               protocol::enum_names::zero_none );
-    }
+    std::string
+    _formatCommonType( const protocol::FONT font,
+                       const std::vector< std::string_view >& enum_names = {} );
 
     // TBD GCONTEXT?
     // TBD FONTABLE?

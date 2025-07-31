@@ -119,6 +119,16 @@ X11ProtocolParser::_formatCommonType( const protocol::PIXMAP pixmap,
 
 std::string
 X11ProtocolParser::_formatCommonType(
+    const protocol::FONT font,
+    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    if ( !enum_names.empty() ) {
+        assert( enum_names == protocol::enum_names::zero_none );
+    }
+    return _formatInteger( font.data, enum_names );
+}
+
+std::string
+X11ProtocolParser::_formatCommonType(
     const protocol::SETofEVENT setofevent ) {
     // SETofEVENT
     //     #xFE000000     unused but must be zero
