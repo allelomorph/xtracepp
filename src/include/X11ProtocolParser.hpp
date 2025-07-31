@@ -89,6 +89,7 @@ private:
         std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
 
         std::string name_str {};
+        // TBD how much do we need min and max params?
         if ( !enum_names.empty() ) {
             assert( value != _UNINITIALIZED );
             if ( max_enum == _UNINITIALIZED )
@@ -101,7 +102,8 @@ private:
         if ( _verbose ) {
             // fmt counts "0x" as part of width when using '#'
             static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
-            const std::string hex_str { fmt::format( "{:#0{}x}", value, hex_width ) };
+            const std::string hex_str {
+                fmt::format( "{:#0{}x}", std::make_unsigned_t< ValueT >( value ), hex_width ) };
             return name_str.empty() ? hex_str :
                 fmt::format( "{}({})", hex_str, name_str );
         }
