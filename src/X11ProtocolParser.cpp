@@ -14,6 +14,7 @@
 #include "Settings.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/connection_setup.hpp"
+#include "protocol/requests.hpp"  // PolySegment::SEGMENT
 
 
 std::string_view
@@ -537,6 +538,106 @@ X11ProtocolParser::_parseLISTofSTR( const uint8_t* data, const uint16_t str_ct )
         outputs.bytes_parsed += n;
     }
     outputs.str += ']';
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofCARD8( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            "{}{}", outputs.str.size() > 1 ? " " : "",
+            _formatInteger( *( data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed++;
+    }
+    outputs.str += ']';
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        const protocol::RECTANGLE* rectangle {
+            reinterpret_cast< const protocol::RECTANGLE* >( data + outputs.bytes_parsed )
+        };
+        outputs.bytes_parsed += sizeof( protocol::RECTANGLE );
+        outputs.str += fmt::format(
+            " {{ x={} y={} width={} height={} }}",
+            _formatInteger( rectangle->x ),
+            _formatInteger( rectangle->y ),
+            _formatInteger( rectangle->width ),
+            _formatInteger( rectangle->height ) );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofPOINT( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        const protocol::POINT* point {
+            reinterpret_cast< const protocol::POINT* >( data + outputs.bytes_parsed )
+        };
+        outputs.bytes_parsed += sizeof( protocol::POINT );
+        outputs.str += fmt::format(
+            " {{ x={} y={} }}",
+            _formatInteger( point->x ),
+            _formatInteger( point->y ) );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofSEGMENT( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    using protocol::requests::PolySegment;
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        const PolySegment::SEGMENT* segment {
+            reinterpret_cast< const PolySegment::SEGMENT* >( data + outputs.bytes_parsed )
+        };
+        outputs.bytes_parsed += sizeof( PolySegment::SEGMENT );
+        outputs.str += fmt::format(
+            " {{ x1={} y1={} x2={} y2={} }}",
+            _formatInteger( segment->x1 ),
+            _formatInteger( segment->y1 ),
+            _formatInteger( segment->x2 ),
+            _formatInteger( segment->y2 ) );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofARC( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        const protocol::ARC* arc {
+            reinterpret_cast< const protocol::ARC* >( data + outputs.bytes_parsed )
+        };
+        outputs.bytes_parsed += sizeof( protocol::ARC );
+        outputs.str += fmt::format(
+            " {{ x={} y={} width={} height={} angle1={} angle2={} }}",
+            _formatInteger( arc->x ),
+            _formatInteger( arc->y ),
+            _formatInteger( arc->width ),
+            _formatInteger( arc->height ),
+            _formatInteger( arc->angle1 ),
+            _formatInteger( arc->angle2 ) );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
     return outputs;
 }
 

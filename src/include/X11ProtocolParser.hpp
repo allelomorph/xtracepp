@@ -182,7 +182,12 @@ private:
     _formatCommonType( const protocol::FONT font,
                        const std::vector< std::string_view >& enum_names = {} );
 
-    // TBD GCONTEXT?
+    // TBD inlining due to no examples found in standard of named enum
+    inline std::string
+    _formatCommonType( const protocol::GCONTEXT gcontext ) {
+        return _formatInteger( gcontext.data );
+    }
+
     // TBD FONTABLE?
 
     inline std::string
@@ -234,8 +239,20 @@ private:
         uint32_t bytes_parsed {};
     };
 
+    // TBD can we generalize these into _parseLISTof<T>?
     _LISTParsingOutputs
-    _parseLISTofSTR( const uint8_t* data, const uint16_t str_ct );
+    _parseLISTofSTR( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofCARD8( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofPOINT( const uint8_t* data, const uint16_t n );
+    // TBD should this be encapsulated elsewhere? SEGMENT is not common type, but part of PolySegment request
+    _LISTParsingOutputs
+    _parseLISTofSEGMENT( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofARC( const uint8_t* data, const uint16_t n );
 
     // TBD HOST?
 

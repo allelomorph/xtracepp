@@ -2298,87 +2298,1065 @@ size_t X11ProtocolParser::_logFreePixmap(
 
 size_t X11ProtocolParser::_logCreateGC(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CreateGC;
+    const CreateGC::Encoding* encoding {
+        reinterpret_cast< const CreateGC::Encoding* >( data ) };
+    bytes_parsed += sizeof( CreateGC::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::CREATEGC );
+
+    static const uint32_t tab_ct { 0 };
+    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
+    //   nested in value_list_inputs initializer
+    const std::vector< _EnumTraits > value_traits {
+        /* function              */ { CreateGC::function_names },
+        /* plane-mask            */ {},
+        /* foreground            */ {},
+        /* background            */ {},
+        /* line-width            */ {},
+        /* line-style            */ { CreateGC::line_style_names },
+        /* cap-style             */ { CreateGC::cap_style_names },
+        /* join-style            */ { CreateGC::join_style_names },
+        /* fill-style            */ { CreateGC::fill_style_names },
+        /* fill-rule             */ { CreateGC::fill_rule_names },
+        /* tile                  */ {},
+        /* stipple               */ {},
+        /* tile-stipple-x-origin */ {},
+        /* tile-stipple-y-origin */ {},
+        /* font                  */ {},
+        /* subwindow-mode        */ { CreateGC::subwindow_mode_names },
+        /* graphics-exposures    */ {},
+        /* clip-x-origin         */ {},
+        /* clip-y-origin         */ {},
+        /* clip-mask             */ { CreateGC::clip_mask_names },
+        /* dash-offset           */ {},
+        /* dashes                */ {},
+        /* arc-mode              */ { CreateGC::arc_mode_names }
+    };
+    const _LISTofVALUEParsingInputs value_list_inputs {
+        CreateGC::value_types,
+        CreateGC::value_names,
+        value_traits,
+        tab_ct + 2
+    };
+    _LISTParsingOutputs value_list_outputs;
+    _parseLISTofVALUE(
+        encoding->value_mask, value_list_inputs,
+        data + bytes_parsed, &value_list_outputs );
+    bytes_parsed += value_list_outputs.bytes_parsed;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cid", name_width, _equals,
+        _formatCommonType( encoding->cid ), _separator,
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        // TBD only print value-mask in verbose mode? print all flags even with value-list?
+        memb_indent, "value-mask", name_width, _equals,
+        _formatBitmask( encoding->value_mask ), _separator,
+        memb_indent, "value-list", name_width, _equals,
+        value_list_outputs.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logChangeGC(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ChangeGC;
+    const ChangeGC::Encoding* encoding {
+        reinterpret_cast< const ChangeGC::Encoding* >( data ) };
+    bytes_parsed += sizeof( ChangeGC::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::CHANGEGC );
+
+    static const uint32_t tab_ct { 0 };
+    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
+    //   nested in value_list_inputs initializer
+    const std::vector< _EnumTraits > value_traits {
+        /* function              */ { ChangeGC::function_names },
+        /* plane-mask            */ {},
+        /* foreground            */ {},
+        /* background            */ {},
+        /* line-width            */ {},
+        /* line-style            */ { ChangeGC::line_style_names },
+        /* cap-style             */ { ChangeGC::cap_style_names },
+        /* join-style            */ { ChangeGC::join_style_names },
+        /* fill-style            */ { ChangeGC::fill_style_names },
+        /* fill-rule             */ { ChangeGC::fill_rule_names },
+        /* tile                  */ {},
+        /* stipple               */ {},
+        /* tile-stipple-x-origin */ {},
+        /* tile-stipple-y-origin */ {},
+        /* font                  */ {},
+        /* subwindow-mode        */ { ChangeGC::subwindow_mode_names },
+        /* graphics-exposures    */ {},
+        /* clip-x-origin         */ {},
+        /* clip-y-origin         */ {},
+        /* clip-mask             */ { ChangeGC::clip_mask_names },
+        /* dash-offset           */ {},
+        /* dashes                */ {},
+        /* arc-mode              */ { ChangeGC::arc_mode_names }
+    };
+    const _LISTofVALUEParsingInputs value_list_inputs {
+        ChangeGC::value_types,
+        ChangeGC::value_names,
+        value_traits,
+        tab_ct + 2
+    };
+    _LISTParsingOutputs value_list_outputs;
+    _parseLISTofVALUE(
+        encoding->value_mask, value_list_inputs,
+        data + bytes_parsed, &value_list_outputs );
+    bytes_parsed += value_list_outputs.bytes_parsed;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        // TBD only print value-mask in verbose mode? print all flags even with value-list?
+        memb_indent, "value-mask", name_width, _equals,
+        _formatBitmask( encoding->value_mask ), _separator,
+        memb_indent, "value-list", name_width, _equals,
+        value_list_outputs.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logCopyGC(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CopyGC;
+    const CopyGC::Encoding* encoding {
+        reinterpret_cast< const CopyGC::Encoding* >( data ) };
+    bytes_parsed += sizeof( CopyGC::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::COPYGC );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "src-gc", name_width, _equals,
+        _formatCommonType( encoding->src_gc ), _separator,
+        memb_indent, "dst-gc", name_width, _equals,
+        _formatCommonType( encoding->dst_gc ), _separator,
+        memb_indent, "value-mask", name_width, _equals,
+        _formatBitmask( encoding->value_mask, CopyGC::value_names ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logSetDashes(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::SetDashes;
+    const SetDashes::Encoding* encoding {
+        reinterpret_cast< const SetDashes::Encoding* >( data ) };
+    bytes_parsed += sizeof( SetDashes::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::SETDASHES );
+
+    _LISTParsingOutputs dashes {
+        _parseLISTofCARD8( data + bytes_parsed, encoding->n ) };
+    bytes_parsed += _pad( dashes.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "dash-offset", name_width, _equals,
+        _formatInteger( encoding->dash_offset ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ) : "",
+        memb_indent, "dashes", name_width, _equals,
+        dashes.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logSetClipRectangles(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::SetClipRectangles;
+    const SetClipRectangles::Encoding* encoding {
+        reinterpret_cast< const SetClipRectangles::Encoding* >( data ) };
+    bytes_parsed += sizeof( SetClipRectangles::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::SETCLIPRECTANGLES );
+
+    const size_t n_rectangles {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( SetClipRectangles::Encoding ) ) /
+        sizeof( protocol::RECTANGLE ) };
+    _LISTParsingOutputs rectangles {
+        _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
+    bytes_parsed += _pad( rectangles.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "ordering", name_width, _equals,
+        _formatInteger( encoding->ordering, SetClipRectangles::ordering_names  ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "clip-x-origin", name_width, _equals,
+        _formatInteger( encoding->clip_x_origin ), _separator,
+        memb_indent, "clip-y-origin", name_width, _equals,
+        _formatInteger( encoding->clip_y_origin ), _separator,
+        memb_indent, "rectangles", name_width, _equals,
+        rectangles.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logFreeGC(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::FreeGC;
+    const FreeGC::Encoding* encoding {
+        reinterpret_cast< const FreeGC::Encoding* >( data ) };
+    bytes_parsed += sizeof( FreeGC::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::FREEGC );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logClearArea(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ClearArea;
+    const ClearArea::Encoding* encoding {
+        reinterpret_cast< const ClearArea::Encoding* >( data ) };
+    bytes_parsed += sizeof( ClearArea::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::CLEARAREA );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "exposures", name_width, _equals,
+        _formatCommonType( encoding->exposures ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "width", name_width, _equals,
+        _formatInteger( encoding->width ), _separator,
+        memb_indent, "height", name_width, _equals,
+        _formatInteger( encoding->height ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logCopyArea(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CopyArea;
+    const CopyArea::Encoding* encoding {
+        reinterpret_cast< const CopyArea::Encoding* >( data ) };
+    bytes_parsed += sizeof( CopyArea::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::COPYAREA );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "src-drawable", name_width, _equals,
+        _formatCommonType( encoding->src_drawable ), _separator,
+        memb_indent, "dst-drawable", name_width, _equals,
+        _formatCommonType( encoding->dst_drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "src-x", name_width, _equals,
+        _formatInteger( encoding->src_x ), _separator,
+        memb_indent, "src-y", name_width, _equals,
+        _formatInteger( encoding->src_y ), _separator,
+        memb_indent, "dst-x", name_width, _equals,
+        _formatInteger( encoding->dst_x ), _separator,
+        memb_indent, "dst-y", name_width, _equals,
+        _formatInteger( encoding->dst_y ), _separator,
+        memb_indent, "width", name_width, _equals,
+        _formatInteger( encoding->width ), _separator,
+        memb_indent, "height", name_width, _equals,
+        _formatInteger( encoding->height ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logCopyPlane(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CopyPlane;
+    const CopyPlane::Encoding* encoding {
+        reinterpret_cast< const CopyPlane::Encoding* >( data ) };
+    bytes_parsed += sizeof( CopyPlane::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::COPYPLANE );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "src-drawable", name_width, _equals,
+        _formatCommonType( encoding->src_drawable ), _separator,
+        memb_indent, "dst-drawable", name_width, _equals,
+        _formatCommonType( encoding->dst_drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "src-x", name_width, _equals,
+        _formatInteger( encoding->src_x ), _separator,
+        memb_indent, "src-y", name_width, _equals,
+        _formatInteger( encoding->src_y ), _separator,
+        memb_indent, "dst-x", name_width, _equals,
+        _formatInteger( encoding->dst_x ), _separator,
+        memb_indent, "dst-y", name_width, _equals,
+        _formatInteger( encoding->dst_y ), _separator,
+        memb_indent, "width", name_width, _equals,
+        _formatInteger( encoding->width ), _separator,
+        memb_indent, "height", name_width, _equals,
+        _formatInteger( encoding->height ), _separator,
+        memb_indent, "bit-plane", name_width, _equals,
+        _formatInteger( encoding->bit_plane ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyPoint(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyPoint;
+    const PolyPoint::Encoding* encoding {
+        reinterpret_cast< const PolyPoint::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyPoint::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYPOINT );
+
+    const size_t n_points {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolyPoint::Encoding ) ) / sizeof( protocol::POINT ) };
+    _LISTParsingOutputs points {
+        _parseLISTofPOINT( data + bytes_parsed, n_points ) };
+    bytes_parsed += _pad( points.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "coordinate-mode", name_width, _equals,
+        _formatInteger( encoding->coordinate_mode, PolyPoint::coordinate_mode_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "points", name_width, _equals,
+        points.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
+// TBD same encoding as PolyPoint; generalize?
 size_t X11ProtocolParser::_logPolyLine(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyLine;
+    const PolyLine::Encoding* encoding {
+        reinterpret_cast< const PolyLine::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyLine::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYLINE );
+
+    const size_t n_points {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolyLine::Encoding ) ) / sizeof( protocol::POINT ) };
+    _LISTParsingOutputs points {
+        _parseLISTofPOINT( data + bytes_parsed, n_points ) };
+    bytes_parsed += _pad( points.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "coordinate-mode", name_width, _equals,
+        _formatInteger( encoding->coordinate_mode, PolyLine::coordinate_mode_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "points", name_width, _equals,
+        points.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolySegment(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolySegment;
+    const PolySegment::Encoding* encoding {
+        reinterpret_cast< const PolySegment::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolySegment::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYSEGMENT );
+
+    const size_t n_segments {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolySegment::Encoding ) ) / sizeof( PolySegment::SEGMENT ) };
+    _LISTParsingOutputs segments {
+        _parseLISTofSEGMENT( data + bytes_parsed, n_segments ) };
+    bytes_parsed += _pad( segments.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "segments", name_width, _equals,
+        segments.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyRectangle(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyRectangle;
+    const PolyRectangle::Encoding* encoding {
+        reinterpret_cast< const PolyRectangle::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyRectangle::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYRECTANGLE );
+
+    const size_t n_rectangles {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolyRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
+    _LISTParsingOutputs rectangles {
+        _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
+    bytes_parsed += _pad( rectangles.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "rectangles", name_width, _equals,
+        rectangles.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyArc(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyArc;
+    const PolyArc::Encoding* encoding {
+        reinterpret_cast< const PolyArc::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyArc::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYARC );
+
+    const size_t n_arcs {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolyArc::Encoding ) ) / sizeof( protocol::ARC ) };
+    _LISTParsingOutputs arcs {
+        _parseLISTofARC( data + bytes_parsed, n_arcs ) };
+    bytes_parsed += _pad( arcs.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "arcs", name_width, _equals,
+        arcs.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logFillPoly(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::FillPoly;
+    const FillPoly::Encoding* encoding {
+        reinterpret_cast< const FillPoly::Encoding* >( data ) };
+    bytes_parsed += sizeof( FillPoly::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::FILLPOLY );
+
+    const size_t n_points {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( FillPoly::Encoding ) ) / sizeof( protocol::POINT ) };
+    _LISTParsingOutputs points {
+        _parseLISTofPOINT( data + bytes_parsed, n_points ) };
+    bytes_parsed += _pad( points.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "shape", name_width, _equals,
+        _formatInteger( encoding->shape, FillPoly::shape_names ), _separator,
+        memb_indent, "coordinate-mode", name_width, _equals,
+        _formatInteger( encoding->coordinate_mode, FillPoly::coordinate_mode_names ), _separator,
+        memb_indent, "points", name_width, _equals,
+        points.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyFillRectangle(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyFillRectangle;
+    const PolyFillRectangle::Encoding* encoding {
+        reinterpret_cast< const PolyFillRectangle::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyFillRectangle::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYFILLRECTANGLE );
+
+    const size_t n_rectangles {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolyFillRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
+    _LISTParsingOutputs rectangles {
+        _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
+    bytes_parsed += _pad( rectangles.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "rectangles", name_width, _equals,
+        rectangles.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyFillArc(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyFillArc;
+    const PolyFillArc::Encoding* encoding {
+        reinterpret_cast< const PolyFillArc::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyFillArc::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYFILLARC );
+
+    const size_t n_arcs {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( PolyFillArc::Encoding ) ) / sizeof( protocol::ARC ) };
+    _LISTParsingOutputs arcs {
+        _parseLISTofARC( data + bytes_parsed, n_arcs ) };
+    bytes_parsed += _pad( arcs.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "arcs", name_width, _equals,
+        arcs.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPutImage(

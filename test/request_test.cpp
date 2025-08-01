@@ -6,7 +6,7 @@
 
 #include <xcb/xcb.h>
 #include <protocol/requests.hpp>
-
+#include <iostream>
 
 int main(const int argc, const char* const* argv) {
     assert( argc > 1 );
@@ -188,8 +188,8 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case SETSELECTIONOWNER:        {  //  22
         const xcb_window_t      owner {};
-        const xcb_atom_t        selection {};
-        const xcb_timestamp_t   time {};
+        const xcb_atom_t        selection { 1 };
+        const xcb_timestamp_t   time { 61 };
         xcb_set_selection_owner(
             connection, owner, selection, time);
     }   break;
@@ -208,12 +208,15 @@ int main(const int argc, const char* const* argv) {
             connection, requestor, selection, target, property, time);
     }   break;
     case SENDEVENT:                {  //  25
+        // TBD adapted from example at https://www.x.org/releases/X11R7.7/doc/man/man3/xcb_send_event.3.xhtml
+        //   (minimum parameter population for xcb to send request)
         const uint8_t           propagate {};
         const xcb_window_t      destination {};
-        const uint32_t          event_mask {};
-        const char*             event {};
+        const uint32_t          event_mask { XCB_EVENT_MASK_STRUCTURE_NOTIFY };
+        xcb_configure_notify_event_t event {};
+        event.response_type = XCB_CONFIGURE_NOTIFY;
         xcb_send_event(
-            connection, propagate, destination, event_mask, event);
+            connection, propagate, destination, event_mask, (const char*)&event);
     }   break;
     case GRABPOINTER:              {  //  26
         const uint8_t           owner_events {};
@@ -242,7 +245,8 @@ int main(const int argc, const char* const* argv) {
         const xcb_window_t      confine_to {};
         const xcb_cursor_t      cursor {};
         const uint8_t           button {};
-        const uint16_t          modifiers {};
+        // TBD test AnyModifier with 0x8000
+        const uint16_t          modifiers { 0x8000 };
         xcb_grab_button(
             connection, owner_events, grab_window, event_mask,
             pointer_mode, keyboard_mode, confine_to, cursor, button, modifiers);
@@ -250,14 +254,15 @@ int main(const int argc, const char* const* argv) {
     case UNGRABBUTTON:             {  //  29
         const uint8_t           button {};
         const xcb_window_t      grab_window {};
-        const uint16_t          modifiers {};
+        // TBD test AnyModifier with 0x8000
+        const uint16_t          modifiers { 0x8000 };
         xcb_ungrab_button(
             connection, button, grab_window, modifiers);
     }   break;
     case CHANGEACTIVEPOINTERGRAB:  {  //  30
         const xcb_cursor_t      cursor {};
         const xcb_timestamp_t   time {};
-        const uint16_t          event_mask {};
+        const uint16_t          event_mask { 0x0c };
         xcb_change_active_pointer_grab(
             connection, cursor, time, event_mask);
     }   break;
@@ -290,7 +295,7 @@ int main(const int argc, const char* const* argv) {
     case UNGRABKEY:                {  //  34
         const xcb_keycode_t     key {};
         const xcb_window_t      grab_window {};
-        const uint16_t          modifiers {};
+        const uint16_t          modifiers { 0x03 };
         xcb_ungrab_key(
             connection, key, grab_window, modifiers);
     }   break;
@@ -323,8 +328,8 @@ int main(const int argc, const char* const* argv) {
     case TRANSLATECOORDINATES:     {  //  40
         const xcb_window_t      src_window {};
         const xcb_window_t      dst_window {};
-        const int16_t           src_x {};
-        const int16_t           src_y {};
+        const int16_t           src_x {  1 };
+        const int16_t           src_y { -1 };
         xcb_translate_coordinates(
             connection, src_window, dst_window, src_x, src_y);
     }   break;
@@ -358,8 +363,8 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case OPENFONT:                 {  //  45
         const xcb_font_t        fid {};
-        const uint16_t          name_len {};
-        const char*             name {};
+        const uint16_t          name_len { 11 };
+        const char*             name { "ExampleFont" };
         xcb_open_font(
             connection, fid, name_len, name);
     }   break;
@@ -375,30 +380,39 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case QUERYTEXTEXTENTS:         {  //  48
         const xcb_fontable_t    font {};
-        const uint32_t          string_len {};
-        const xcb_char2b_t*     string {};
+        const uint32_t          string_len { 3 };
+        // const xcb_char2b_t*     string {
+        //     reinterpret_cast<const xcb_char2b_t*>( u"¼½¾" ) };
+        // const xcb_char2b_t*     string {
+        //     reinterpret_cast<const xcb_char2b_t*>( u"ĀāĂ" ) };
+        const xcb_char2b_t*     string {
+            reinterpret_cast<const xcb_char2b_t*>( u"zß水" ) };
         xcb_query_text_extents(
             connection, font, string_len, string);
     }   break;
     case LISTFONTS:                {  //  49
         const uint16_t          max_names {};
-        const uint16_t          pattern_len {};
-        const char*             pattern {};
+        const uint16_t          pattern_len { 7 };
+        const char*             pattern { "example" };
         xcb_list_fonts(
             connection, max_names, pattern_len, pattern);
     }   break;
     case LISTFONTSWITHINFO:        {  //  50
         const uint16_t          max_names {};
-        const uint16_t          pattern_len {};
-        const char*             pattern {};
+        const uint16_t          pattern_len { 7 };
+        const char*             pattern { "example" };
         xcb_list_fonts_with_info(
             connection, max_names, pattern_len, pattern);
     }   break;
     case SETFONTPATH:              {  //  51
-        const uint16_t          font_qty {};
-        const xcb_str_t*        font {};
+        constexpr uint16_t      font_qty { 3 };
+        const char* data {
+            "\x05" "first"
+            "\x06" "second"
+            "\x05" "third"
+        };
         xcb_set_font_path(
-            connection, font_qty, font);
+            connection, font_qty, (const xcb_str_t*)data);
     }   break;
     case GETFONTPATH:              {  //  52
         xcb_get_font_path(
@@ -421,30 +435,54 @@ int main(const int argc, const char* const* argv) {
     case CREATEGC:                 {  //  55
         const xcb_gcontext_t    cid {};
         const xcb_drawable_t    drawable {};
-        const uint32_t          value_mask {};
-        const void*             value_list {};
+        const uint32_t          value_mask {
+            XCB_GC_FUNCTION | XCB_GC_PLANE_MASK | XCB_GC_FOREGROUND | XCB_GC_BACKGROUND |
+            XCB_GC_LINE_WIDTH | XCB_GC_LINE_STYLE | XCB_GC_CAP_STYLE | XCB_GC_JOIN_STYLE |
+            XCB_GC_FILL_STYLE | XCB_GC_FILL_RULE | XCB_GC_TILE | XCB_GC_STIPPLE |
+            XCB_GC_TILE_STIPPLE_ORIGIN_X | XCB_GC_TILE_STIPPLE_ORIGIN_Y | XCB_GC_FONT |
+            XCB_GC_SUBWINDOW_MODE | XCB_GC_GRAPHICS_EXPOSURES | XCB_GC_CLIP_ORIGIN_X |
+            XCB_GC_CLIP_ORIGIN_Y | XCB_GC_CLIP_MASK | XCB_GC_DASH_OFFSET |
+            XCB_GC_DASH_LIST | XCB_GC_ARC_MODE
+        };
+        const uint32_t value_list[23] {};
         xcb_create_gc(
-            connection, cid, drawable, value_mask, value_list);
+            connection, cid, drawable, value_mask, (const void*)value_list);
     }   break;
     case CHANGEGC:                 {  //  56
         const xcb_gcontext_t    gc {};
-        const uint32_t          value_mask {};
-        const void*             value_list {};
+        const uint32_t          value_mask {
+            XCB_GC_FUNCTION | XCB_GC_PLANE_MASK | XCB_GC_FOREGROUND | XCB_GC_BACKGROUND |
+            XCB_GC_LINE_WIDTH | XCB_GC_LINE_STYLE | XCB_GC_CAP_STYLE | XCB_GC_JOIN_STYLE |
+            XCB_GC_FILL_STYLE | XCB_GC_FILL_RULE | XCB_GC_TILE | XCB_GC_STIPPLE |
+            XCB_GC_TILE_STIPPLE_ORIGIN_X | XCB_GC_TILE_STIPPLE_ORIGIN_Y | XCB_GC_FONT |
+            XCB_GC_SUBWINDOW_MODE | XCB_GC_GRAPHICS_EXPOSURES | XCB_GC_CLIP_ORIGIN_X |
+            XCB_GC_CLIP_ORIGIN_Y | XCB_GC_CLIP_MASK | XCB_GC_DASH_OFFSET |
+            XCB_GC_DASH_LIST | XCB_GC_ARC_MODE
+        };
+        const uint32_t value_list[23] {};
         xcb_change_gc(
-            connection, gc, value_mask, value_list);
+            connection, gc, value_mask, (const void*)value_list);
     }   break;
     case COPYGC:                   {  //  57
         const xcb_gcontext_t    src_gc {};
         const xcb_gcontext_t    dst_gc {};
-        const uint32_t          value_mask {};
+        const uint32_t          value_mask {
+            XCB_GC_FUNCTION | XCB_GC_PLANE_MASK | XCB_GC_FOREGROUND | XCB_GC_BACKGROUND |
+            XCB_GC_LINE_WIDTH | XCB_GC_LINE_STYLE | XCB_GC_CAP_STYLE | XCB_GC_JOIN_STYLE |
+            XCB_GC_FILL_STYLE | XCB_GC_FILL_RULE | XCB_GC_TILE | XCB_GC_STIPPLE |
+            XCB_GC_TILE_STIPPLE_ORIGIN_X | XCB_GC_TILE_STIPPLE_ORIGIN_Y | XCB_GC_FONT |
+            XCB_GC_SUBWINDOW_MODE | XCB_GC_GRAPHICS_EXPOSURES | XCB_GC_CLIP_ORIGIN_X |
+            XCB_GC_CLIP_ORIGIN_Y | XCB_GC_CLIP_MASK | XCB_GC_DASH_OFFSET |
+            XCB_GC_DASH_LIST | XCB_GC_ARC_MODE
+        };
         xcb_copy_gc(
             connection, src_gc, dst_gc, value_mask);
     }   break;
     case SETDASHES:                {  //  58
         xcb_gcontext_t          gc {};
         const uint16_t          dash_offset {};
-        const uint16_t          dashes_len {};
-        const uint8_t*          dashes {};
+        const uint16_t          dashes_len { 4 };
+        const uint8_t           dashes[4] { 0x01, 0x02, 0x03, 0x04 };
         xcb_set_dashes(
             connection, gc, dash_offset, dashes_len, dashes);
     }   break;
@@ -453,8 +491,11 @@ int main(const int argc, const char* const* argv) {
         const xcb_gcontext_t    gc {};
         const int16_t           clip_x_origin {};
         const int16_t           clip_y_origin {};
-        const uint32_t          rectangles_len {};
-        const xcb_rectangle_t*  rectangles {};
+        const uint32_t          rectangles_len { 2 };
+        const xcb_rectangle_t   rectangles[2] {
+            { 1, -1, 10, 10 },
+            { 2, -2, 20, 20 }
+        };
         xcb_set_clip_rectangles(
             connection, ordering, gc, clip_x_origin, clip_y_origin,
             rectangles_len, rectangles);
@@ -510,8 +551,11 @@ int main(const int argc, const char* const* argv) {
         const uint8_t           coordinate_mode {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          points_len {};
-        const xcb_point_t*      points {};
+        const uint32_t          points_len { 2 };
+        const xcb_point_t       points[2] {
+            { 1, -1 },
+            { 2, -2 }
+        };
         xcb_poly_point(
             connection, coordinate_mode, drawable, gc, points_len, points);
     }   break;
@@ -519,32 +563,44 @@ int main(const int argc, const char* const* argv) {
         const uint8_t           coordinate_mode {};
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          points_len {};
-        const xcb_point_t*      points {};
+        const uint32_t          points_len { 2 };
+        const xcb_point_t       points[2] {
+            { 1, -1 },
+            { 2, -2 }
+        };
         xcb_poly_line(
             connection, coordinate_mode, drawable, gc, points_len, points);
     }   break;
     case POLYSEGMENT:              {  //  66
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          segments_len {};
-        const xcb_segment_t*    segments {};
+        const uint32_t          segments_len { 2 };
+        const xcb_segment_t     segments[2] {
+            { 1, -1, 2, -2 },
+            { 3, -3, 4, -4 }
+        };
         xcb_poly_segment(
             connection, drawable, gc, segments_len, segments);
     }   break;
     case POLYRECTANGLE:            {  //  67
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          rectangles_len {};
-        const xcb_rectangle_t*  rectangles {};
+        const uint32_t          rectangles_len { 2 };
+        const xcb_rectangle_t   rectangles[2] {
+            { 1, -1, 10, 10 },
+            { 2, -2, 20, 20 }
+        };
         xcb_poly_rectangle(
             connection, drawable, gc, rectangles_len, rectangles);
     }   break;
     case POLYARC:                  {  //  68
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          arcs_len {};
-        const xcb_arc_t*        arcs {};
+        const uint32_t          arcs_len { 2 };
+        const xcb_arc_t         arcs[2] {
+            { 1, -1, 10, 11, 100, 101 },
+            { 2, -2, 20, 21, 200, 201 }
+        };
         xcb_poly_arc(
             connection, drawable, gc, arcs_len, arcs);
     }   break;
@@ -553,24 +609,33 @@ int main(const int argc, const char* const* argv) {
         const xcb_gcontext_t    gc {};
         const uint8_t           shape {};
         const uint8_t           coordinate_mode {};
-        const uint32_t          points_len {};
-        const xcb_point_t*      points {};
+        const uint32_t          points_len { 2 };
+        const xcb_point_t       points[2] {
+            { 1, -1 },
+            { 2, -2 }
+        };
         xcb_fill_poly(
             connection, drawable, gc, shape, coordinate_mode, points_len, points);
     }   break;
     case POLYFILLRECTANGLE:        {  //  70
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          rectangles_len {};
-        const xcb_rectangle_t*  rectangles {};
+        const uint32_t          rectangles_len { 2 };
+        const xcb_rectangle_t   rectangles[2] {
+            { 1, -1, 10, 10 },
+            { 2, -2, 20, 20 }
+        };
         xcb_poly_fill_rectangle(
             connection, drawable, gc, rectangles_len, rectangles);
     }   break;
     case POLYFILLARC:              {  //  71
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
-        const uint32_t          arcs_len {};
-        const xcb_arc_t*        arcs {};
+        const uint32_t          arcs_len { 2 };
+        const xcb_arc_t         arcs[2] {
+            { 1, -1, 10, 11, 100, 101 },
+            { 2, -2, 20, 21, 200, 201 }
+        };
         xcb_poly_fill_arc(
             connection, drawable, gc, arcs_len, arcs);
     }   break;

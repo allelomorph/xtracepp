@@ -1664,7 +1664,7 @@ struct CreateGC {
         INT16,    // clip-y-origin
         PIXMAP,   // clip-mask 0 None
         CARD16,   // dash-offset
-        CARD8,    // dashes  // dashes
+        CARD8,    // dashes
         uint8_t   // arc-mode 0 Chord 1 PieSlice
         > value_types {};
 
@@ -1971,6 +1971,13 @@ struct FillPoly {
         uint8_t    _unused2[2];
     };
     // followed by 4nB LISTofPOINT points n POINT
+
+    inline static const
+    std::vector< std::string_view >& shape_names {
+        protocol::enum_names::poly_shape };
+    inline static const
+    std::vector< std::string_view >& coordinate_mode_names {
+        protocol::enum_names::poly_coordinate_mode };
 };
 
 struct PolyFillRectangle {
