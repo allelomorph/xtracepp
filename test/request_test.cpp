@@ -649,8 +649,10 @@ int main(const int argc, const char* const* argv) {
         const int16_t           dst_y {};
         const uint8_t           left_pad {};
         const uint8_t           depth {};
-        const uint32_t          data_len {};
-        const uint8_t*          data {};
+        const uint32_t          data_len { 4 };
+        const uint8_t           data[4] {
+            0x01, 0x02, 0x03, 0x04
+        };
         xcb_put_image(
             connection, format, drawable, gc, width, height,
             dst_x, dst_y, left_pad, depth, data_len, data);
@@ -671,8 +673,11 @@ int main(const int argc, const char* const* argv) {
         const xcb_gcontext_t    gc {};
         const int16_t           x {};
         const int16_t           y {};
-        const uint32_t          items_len {};
-        const uint8_t*          items {};
+        const uint32_t          items_len { 11 };
+        const uint8_t           items[11] {
+            0x04, 0x00, 't', 'e', 's', 't',
+            0xff, 0x01, 0x02, 0x03, 0x04
+        };
         xcb_poly_text_8(
             connection, drawable, gc, x, y, items_len, items);
     }
@@ -682,28 +687,35 @@ int main(const int argc, const char* const* argv) {
         const xcb_gcontext_t    gc {};
         const int16_t           x {};
         const int16_t           y {};
-        const uint32_t          items_len {};
-        const uint8_t*          items {};
+        const uint32_t          items_len { 13 };
+        // u"zß水"
+        const uint8_t           items[13] {
+            // TBD xtrace seems to handle STRING16 as uint16_t in system byte order
+            //   (LSB first here)
+            0x03, 0x00, /*u'z'*/0x7a, 0x00, /*u'ß'*/0xdf, 0x00, /*u'水'*/0x34, 0x6c,
+            0xff, 0x01, 0x02, 0x03, 0x04
+        };
         xcb_poly_text_16(
             connection, drawable, gc, x, y, items_len, items);
     }   break;
     case IMAGETEXT8:               {  //  76
-        const uint8_t           string_len {};
+        const uint8_t           string_len { 4 };
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const int16_t           x {};
         const int16_t           y {};
-        const char*             string {};
+        const char*             string { "test" };
         xcb_image_text_8(
             connection, string_len, drawable, gc, x, y, string);
     }   break;
     case IMAGETEXT16:              {  //  77
-        const uint8_t           string_len {};
+        const uint8_t           string_len { 3 };
         const xcb_drawable_t    drawable {};
         const xcb_gcontext_t    gc {};
         const int16_t           x {};
         const int16_t           y {};
-        const xcb_char2b_t*     string {};
+        const xcb_char2b_t*     string {
+            reinterpret_cast<const xcb_char2b_t*>( u"zß水" ) };
         xcb_image_text_16(
             connection, string_len, drawable, gc, x, y, string);
     }   break;
@@ -751,8 +763,8 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case ALLOCNAMEDCOLOR:          {  //  85
         const xcb_colormap_t    cmap {};
-        const uint16_t          name_len {};
-        const char*             name {};
+        const uint16_t          name_len { 4 };
+        const char*             name { "test" };
         xcb_alloc_named_color(
             connection, cmap, name_len, name);
     }   break;
@@ -778,15 +790,20 @@ int main(const int argc, const char* const* argv) {
     case FREECOLORS:               {  //  88
         const xcb_colormap_t    cmap {};
         const uint32_t          plane_mask {};
-        const uint32_t          pixels_len {};
-        const uint32_t*         pixels {};
+        const uint32_t          pixels_len { 3 };
+        const uint32_t          pixels[3] {
+            0x11111111, 0x22222222, 0x33333333
+        };
         xcb_free_colors(
             connection, cmap, plane_mask, pixels_len, pixels);
     }   break;
     case STORECOLORS:              {  //  89
         const xcb_colormap_t    cmap {};
-        const uint32_t          items_len {};
-        const xcb_coloritem_t*  items {};
+        const uint32_t          items_len { 2 };
+        const xcb_coloritem_t  items[2] {
+            { 1, 2, 3, 4, XCB_COLOR_FLAG_GREEN },
+            { 5, 6, 7, 8, XCB_COLOR_FLAG_RED | XCB_COLOR_FLAG_BLUE },
+        };
         xcb_store_colors(
             connection, cmap, items_len, items);
     }   break;

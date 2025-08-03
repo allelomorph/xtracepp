@@ -245,6 +245,8 @@ private:
     _LISTParsingOutputs
     _parseLISTofCARD8( const uint8_t* data, const uint16_t n );
     _LISTParsingOutputs
+    _parseLISTofCARD32( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
     _parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n );
     _LISTParsingOutputs
     _parseLISTofPOINT( const uint8_t* data, const uint16_t n );
@@ -253,6 +255,13 @@ private:
     _parseLISTofSEGMENT( const uint8_t* data, const uint16_t n );
     _LISTParsingOutputs
     _parseLISTofARC( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n );
+
+    _LISTParsingOutputs
+    _parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz );
+    _LISTParsingOutputs
+    _parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz );
 
     // TBD HOST?
 

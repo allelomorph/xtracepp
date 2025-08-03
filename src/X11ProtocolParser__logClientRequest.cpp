@@ -3272,7 +3272,7 @@ size_t X11ProtocolParser::_logPolyFillRectangle(
     const std::string_view memb_indent {
         _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
         _log_fs,
         "{{{}"
@@ -3329,7 +3329,7 @@ size_t X11ProtocolParser::_logPolyFillArc(
     const std::string_view memb_indent {
         _multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
         _log_fs,
         "{{{}"
@@ -3361,87 +3361,976 @@ size_t X11ProtocolParser::_logPolyFillArc(
 
 size_t X11ProtocolParser::_logPutImage(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PutImage;
+    const PutImage::Encoding* encoding {
+        reinterpret_cast< const PutImage::Encoding* >( data ) };
+    bytes_parsed += sizeof( PutImage::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::PUTIMAGE );
+
+    const size_t image_data_sz {
+        ( encoding->request_length * _ALIGN ) - sizeof( PutImage::Encoding ) };
+    // TBD not parsing iamge data as it is not done in xtrace
+    bytes_parsed += image_data_sz;
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}({} bytes){}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "format", name_width, _equals,
+        _formatInteger( encoding->format, PutImage::format_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "width", name_width, _equals,
+        _formatInteger( encoding->width ), _separator,
+        memb_indent, "height", name_width, _equals,
+        _formatInteger( encoding->height ), _separator,
+        memb_indent, "dst-x", name_width, _equals,
+        _formatInteger( encoding->dst_x ), _separator,
+        memb_indent, "dst-y", name_width, _equals,
+        _formatInteger( encoding->dst_y ), _separator,
+        memb_indent, "left-pad", name_width, _equals,
+        _formatInteger( encoding->left_pad ), _separator,
+        memb_indent, "depth", name_width, _equals,
+        _formatInteger( encoding->depth ), _separator,
+        memb_indent, "data", name_width, _equals,
+        image_data_sz, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logGetImage(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::GetImage;
+    const GetImage::Encoding* encoding {
+        reinterpret_cast< const GetImage::Encoding* >( data ) };
+    bytes_parsed += sizeof( GetImage::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::GETIMAGE );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "format", name_width, _equals,
+        // TBD how can we avoid magic numbers here (or anywhere) for max and min enum?
+        _formatInteger( encoding->format, GetImage::format_names, 2, 1 ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "width", name_width, _equals,
+        _formatInteger( encoding->width ), _separator,
+        memb_indent, "height", name_width, _equals,
+        _formatInteger( encoding->height ), _separator,
+        memb_indent, "plane-mask", name_width, _equals,
+        _formatInteger( encoding->plane_mask ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyText8(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyText8;
+    const PolyText8::Encoding* encoding {
+        reinterpret_cast< const PolyText8::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyText8::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYTEXT8 );
+
+    const size_t text_item_list_sz {
+        ( encoding->request_length * _ALIGN ) - sizeof( PolyText8::Encoding ) };
+    _LISTParsingOutputs text_items {
+        _parseLISTofTEXTITEM8( data + bytes_parsed, text_item_list_sz ) };
+    bytes_parsed += _pad( text_items.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "items", name_width, _equals,
+        text_items.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logPolyText16(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::PolyText16;
+    const PolyText16::Encoding* encoding {
+        reinterpret_cast< const PolyText16::Encoding* >( data ) };
+    bytes_parsed += sizeof( PolyText16::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::POLYTEXT16 );
+
+    const size_t text_item_list_sz {
+        ( encoding->request_length * _ALIGN ) - sizeof( PolyText16::Encoding ) };
+    _LISTParsingOutputs text_items {
+        _parseLISTofTEXTITEM16( data + bytes_parsed, text_item_list_sz ) };
+    bytes_parsed += _pad( text_items.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "items", name_width, _equals,
+        text_items.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logImageText8(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ImageText8;
+    const ImageText8::Encoding* encoding {
+        reinterpret_cast< const ImageText8::Encoding* >( data ) };
+    bytes_parsed += sizeof( ImageText8::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::IMAGETEXT8 );
+
+    std::string_view string {
+        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+    bytes_parsed += _pad( encoding->n );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}\"{}\"{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "string", name_width, _equals,
+        string, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logImageText16(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::ImageText16;
+    const ImageText16::Encoding* encoding {
+        reinterpret_cast< const ImageText16::Encoding* >( data ) };
+    bytes_parsed += sizeof( ImageText16::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::IMAGETEXT16 );
+
+    std::u16string_view u16string {
+        reinterpret_cast<const char16_t*>( data + bytes_parsed ), encoding->n };
+    // printing char16_t vals as hex, same as xtrace
+    // TBD "This means that clients should always transmit such 16-bit character values most
+    // significant byte first, as the server will never byte-swap CHAR2B quantities."
+    std::string string_as_hex;
+    // fmt counts "0x" as part of width when using '#'
+    const size_t c16_hex_width { ( sizeof( char16_t ) * 2 ) + 2 };
+    for ( const char16_t c16 : u16string ) {
+        string_as_hex += fmt::format(
+            "{}{:#0{}x}", string_as_hex.empty() ? "" : " ",
+            uint16_t( c16 ), c16_hex_width );
+    }
+    bytes_parsed += _pad( encoding->n * sizeof( protocol::CHAR2B ) );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}[{}]{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "drawable", name_width, _equals,
+        _formatCommonType( encoding->drawable ), _separator,
+        memb_indent, "gc", name_width, _equals,
+        _formatCommonType( encoding->gc ), _separator,
+        memb_indent, "x", name_width, _equals,
+        _formatInteger( encoding->x ), _separator,
+        memb_indent, "y", name_width, _equals,
+        _formatInteger( encoding->y ), _separator,
+        memb_indent, "string", name_width, _equals,
+        string_as_hex, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logCreateColormap(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CreateColormap;
+    const CreateColormap::Encoding* encoding {
+        reinterpret_cast< const CreateColormap::Encoding* >( data ) };
+    bytes_parsed += sizeof( CreateColormap::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::CREATECOLORMAP );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "alloc", name_width, _equals,
+        _formatInteger( encoding->alloc, CreateColormap::alloc_names ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "mid", name_width, _equals,
+        _formatCommonType( encoding->mid ), _separator,
+        memb_indent, "window", name_width, _equals,
+        _formatCommonType( encoding->window ), _separator,
+        memb_indent, "visual", name_width, _equals,
+        _formatCommonType( encoding->visual ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logFreeColormap(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::FreeColormap;
+    const FreeColormap::Encoding* encoding {
+        reinterpret_cast< const FreeColormap::Encoding* >( data ) };
+    bytes_parsed += sizeof( FreeColormap::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::FREECOLORMAP );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logCopyColormapAndFree(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::CopyColormapAndFree;
+    const CopyColormapAndFree::Encoding* encoding {
+        reinterpret_cast< const CopyColormapAndFree::Encoding* >( data ) };
+    bytes_parsed += sizeof( CopyColormapAndFree::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::COPYCOLORMAPANDFREE );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "mid", name_width, _equals,
+        _formatCommonType( encoding->mid ), _separator,
+        memb_indent, "src-cmap", name_width, _equals,
+        _formatCommonType( encoding->src_cmap ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
+// TBD generalize shared encoding for InstallColomap/UninstallColomap
 size_t X11ProtocolParser::_logInstallColormap(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::InstallColormap;
+    const InstallColormap::Encoding* encoding {
+        reinterpret_cast< const InstallColormap::Encoding* >( data ) };
+    bytes_parsed += sizeof( InstallColormap::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::INSTALLCOLORMAP );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logUninstallColormap(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::UninstallColormap;
+    const UninstallColormap::Encoding* encoding {
+        reinterpret_cast< const UninstallColormap::Encoding* >( data ) };
+    bytes_parsed += sizeof( UninstallColormap::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::UNINSTALLCOLORMAP );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logAllocColor(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::AllocColor;
+    const AllocColor::Encoding* encoding {
+        reinterpret_cast< const AllocColor::Encoding* >( data ) };
+    bytes_parsed += sizeof( AllocColor::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLOR );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        memb_indent, "red", name_width, _equals,
+        _formatInteger( encoding->red ), _separator,
+        memb_indent, "green", name_width, _equals,
+        _formatInteger( encoding->green ), _separator,
+        memb_indent, "blue", name_width, _equals,
+        _formatInteger( encoding->blue ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logAllocNamedColor(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::AllocNamedColor;
+    const AllocNamedColor::Encoding* encoding {
+        reinterpret_cast< const AllocNamedColor::Encoding* >( data ) };
+    bytes_parsed += sizeof( AllocNamedColor::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::ALLOCNAMEDCOLOR );
+
+    std::string_view name {
+        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+    bytes_parsed += _pad( encoding->n );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}\"{}\"{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ) : "",
+        memb_indent, "name", name_width, _equals,
+        name, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logAllocColorCells(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::AllocColorCells;
+    const AllocColorCells::Encoding* encoding {
+        reinterpret_cast< const AllocColorCells::Encoding* >( data ) };
+    bytes_parsed += sizeof( AllocColorCells::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORCELLS );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "contiguous", name_width, _equals,
+        _formatCommonType( encoding->contiguous ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        memb_indent, "colors", name_width, _equals,
+        _formatInteger( encoding->colors ), _separator,
+        memb_indent, "planes", name_width, _equals,
+        _formatInteger( encoding->planes ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logAllocColorPlanes(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::AllocColorPlanes;
+    const AllocColorPlanes::Encoding* encoding {
+        reinterpret_cast< const AllocColorPlanes::Encoding* >( data ) };
+    bytes_parsed += sizeof( AllocColorPlanes::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORPLANES );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        memb_indent, "contiguous", name_width, _equals,
+        _formatCommonType( encoding->contiguous ), _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        memb_indent, "colors", name_width, _equals,
+        _formatInteger( encoding->colors ), _separator,
+        memb_indent, "reds", name_width, _equals,
+        _formatInteger( encoding->reds ), _separator,
+        memb_indent, "greens", name_width, _equals,
+        _formatInteger( encoding->greens ), _separator,
+        memb_indent, "blues", name_width, _equals,
+        _formatInteger( encoding->blues ), _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logFreeColors(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::FreeColors;
+    const FreeColors::Encoding* encoding {
+        reinterpret_cast< const FreeColors::Encoding* >( data ) };
+    bytes_parsed += sizeof( FreeColors::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::FREECOLORS );
+
+    const size_t n_pixels {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( FreeColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
+    _LISTParsingOutputs pixels {
+        _parseLISTofCARD32( data + bytes_parsed, n_pixels ) };
+    bytes_parsed += _pad( pixels.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        memb_indent, "plane-mask", name_width, _equals,
+        _formatBitmask( encoding->plane_mask ), _separator,
+        memb_indent, "pixels", name_width, _equals,
+        pixels.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logStoreColors(
     Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz > 0 );  // TBD check min size
+
+    size_t bytes_parsed {};
+    using protocol::requests::StoreColors;
+    const StoreColors::Encoding* encoding {
+        reinterpret_cast< const StoreColors::Encoding* >( data ) };
+    bytes_parsed += sizeof( StoreColors::Encoding );
+    assert( encoding->opcode == protocol::requests::opcodes::STORECOLORS );
+
+    const size_t n_items {
+        ( ( encoding->request_length * _ALIGN ) -
+          sizeof( StoreColors::Encoding ) ) / sizeof( StoreColors::COLORITEM ) };
+    _LISTParsingOutputs items {
+        _parseLISTofCOLORITEM( data + bytes_parsed, n_items ) };
+    bytes_parsed += _pad( items.bytes_parsed );
+    assert( encoding->request_length == bytes_parsed / _ALIGN );
+
+    static const uint32_t tab_ct { 0 };
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( tab_ct ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "request length" ) - 1 : 0 );
+    fmt::println(
+        _log_fs,
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "opcode", name_width, _equals,
+            _formatInteger( encoding->opcode ), _separator ) : "",
+        _verbose ?
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "request length", name_width, _equals,
+            _formatInteger( encoding->request_length ), _separator ) : "",
+        memb_indent, "cmap", name_width, _equals,
+        _formatCommonType( encoding->cmap ), _separator,
+        memb_indent, "items", name_width, _equals,
+        items.str, _separator,
+        struct_indent
+        );
+    assert( bytes_parsed == sz );
+    return bytes_parsed;
 }
 
 size_t X11ProtocolParser::_logStoreNamedColor(

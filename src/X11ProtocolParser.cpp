@@ -557,6 +557,22 @@ X11ProtocolParser::_parseLISTofCARD8( const uint8_t* data, const uint16_t n ) {
 }
 
 X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofCARD32( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            "{}{}", outputs.str.size() > 1 ? " " : "",
+            _formatInteger( *reinterpret_cast< const protocol::CARD32* >(
+                                data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( protocol::CARD32 );
+    }
+    outputs.str += ']';
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
 X11ProtocolParser::_parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
     _LISTParsingOutputs outputs {};
@@ -638,6 +654,129 @@ X11ProtocolParser::_parseLISTofARC( const uint8_t* data, const uint16_t n ) {
             _formatInteger( arc->angle2 ) );
     }
     outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    using protocol::requests::StoreColors;
+    for ( uint16_t i {}; i < n; ++i ) {
+        const StoreColors::COLORITEM* item {
+            reinterpret_cast< const StoreColors::COLORITEM* >( data + outputs.bytes_parsed )
+        };
+        outputs.bytes_parsed += sizeof( StoreColors::COLORITEM );
+        outputs.str += fmt::format(
+            " {{ pixel={} red={} green={} blue={} do rgb={} }}",
+            _formatInteger( item->pixel ),
+            _formatInteger( item->red ),
+            _formatInteger( item->green ),
+            _formatInteger( item->blue ),
+            _formatBitmask( item->do_rgb_mask, StoreColors::do_rgb_names ) );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    using protocol::requests::PolyText8;
+    while ( _pad( outputs.bytes_parsed ) < sz ) {
+        const PolyText8::TEXTITEM8* item {
+            reinterpret_cast< const PolyText8::TEXTITEM8* >( data + outputs.bytes_parsed )
+        };
+        const uint8_t first_byte { *( data + outputs.bytes_parsed ) };
+        if ( first_byte == PolyText8::FONT_SHIFT ) {
+            outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::FONT );
+            // font bytes in array from MSB to LSB
+            const protocol::FONT font {
+                uint32_t( item->font.font_bytes[0] ) << 24 |
+                ( item->font.font_bytes[1] << 16  ) |
+                ( item->font.font_bytes[2] << 8  ) |
+                item->font.font_bytes[3]
+            };
+            // TBD font_shift only if verbose
+            outputs.str += fmt::format(
+                " {{ font_shift={} font={} }}",
+                _formatInteger( item->font.font_shift ),
+                _formatCommonType( font ) );
+        } else if ( first_byte == 0 ) {
+            // padding byte
+            // TBD is this case not needed?
+            break;
+        } else {
+            outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::TEXTELT8 );
+            std::string_view string {
+                reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
+                item->text_element.m };
+            outputs.bytes_parsed += item->text_element.m;
+            // TBD m only if verbose
+            outputs.str += fmt::format(
+                " {{ m={} delta={} string=\"{}\" }}",
+                _formatInteger( item->text_element.m ),
+                _formatInteger( item->text_element.delta ),
+                string );
+        }
+    }
+    outputs.str += outputs.bytes_parsed > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    using protocol::requests::PolyText16;
+    while ( _pad( outputs.bytes_parsed ) < sz ) {
+        const PolyText16::TEXTITEM16* item {
+            reinterpret_cast< const PolyText16::TEXTITEM16* >( data + outputs.bytes_parsed )
+        };
+        const uint16_t first_byte { *( data + outputs.bytes_parsed ) };
+        if ( first_byte == PolyText16::FONT_SHIFT ) {
+            outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::FONT );
+            // font bytes in array from MSB to LSB
+            const protocol::FONT font {
+                uint32_t( item->font.font_bytes[0] ) << 24 |
+                ( item->font.font_bytes[1] << 16  ) |
+                ( item->font.font_bytes[2] << 8  ) |
+                item->font.font_bytes[3]
+            };
+            // TBD font_shift only if verbose
+            outputs.str += fmt::format(
+                " {{ font_shift={} font={} }}",
+                _formatInteger( item->font.font_shift ),
+                _formatCommonType( font ) );
+        } else if ( first_byte == 0 ) {
+            // padding byte
+            // TBD is this case not needed?
+            break;
+        } else {
+            outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::TEXTELT16 );
+            std::string hex_str {};
+            // TBD treating CHAR2B as CARD16, but encoding may be more complicated in standard
+            const uint32_t hex_width { ( sizeof( protocol::CHAR2B ) * 2 ) + 2 };
+            for ( uint8_t i {}, m { item->text_element.m }; i < m; ++i ) {
+                hex_str += fmt::format(
+                    "{}{:#0{}x}", hex_str.empty() ? "" : " ",
+                    *reinterpret_cast< const uint16_t* >(
+                        data + outputs.bytes_parsed ), hex_width );
+                outputs.bytes_parsed += sizeof( protocol::CHAR2B );
+            }
+            // TBD m only if verbose
+            outputs.str += fmt::format(
+                " {{ m={} delta={} string=[{}] }}",
+                _formatInteger( item->text_element.m ),
+                _formatInteger( item->text_element.delta ),
+                hex_str );
+        }
+    }
+    outputs.str += outputs.bytes_parsed > 0 ? " ]" : "]";
     return outputs;
 }
 

@@ -2081,13 +2081,14 @@ struct PolyText8 {
     // TBD TEXTELT8 needs special parsing
     // core X11 font storage: https://www.x.org/wiki/guide/fonts/
     // xcb_poly_text_8() not fully documented: https://x.org/releases/current/doc/man/man3/xcb_poly_text_8.3.xhtml
+    static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM8 {
         struct [[gnu::packed]] TEXTELT8 {
             uint8_t   m;  // length of string (cannot be 255)
             INT8      delta;
             // followed by STRING8 CARD8[m]
         } text_element;
-        struct [[gnu::packed]] Font {  // protocol describes as FONT
+        struct [[gnu::packed]] FONT {
             uint8_t   font_shift;     // 255 font-shift indicator
             uint8_t   font_bytes[4];  // font byte 3 (most-significant) to font byte 0 (least-significant) TBD this should convert to FONT
         } font;
@@ -2111,13 +2112,14 @@ struct PolyText16 {
     // TBD TEXTELT8 needs special parsing
     // core X11 font storage: https://www.x.org/wiki/guide/fonts/
     // xcb_poly_text_8() not fully documented: https://x.org/releases/current/doc/man/man3/xcb_poly_text_8.3.xhtml
+    static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM16 {
         struct [[gnu::packed]] TEXTELT16 {
             uint8_t   m;  // count of CHAR2B in string (cannot be 255)
             INT8      delta;
             // followed by 2m STRING16 CHAR2B[m]
         } text_element;
-        struct [[gnu::packed]] Font {  // protocol describes as FONT
+        struct [[gnu::packed]] FONT {
             uint8_t   font_shift;     // 255 font-shift indicator
             uint8_t   font_bytes[4];  // font byte 3 (most-significant) to font byte 0 (least-significant) TBD this should convert to FONT
         } font;
@@ -2172,7 +2174,7 @@ struct FreeColormap {
         uint8_t    _unused;
     public:
         uint16_t   request_length;  // 2 request length
-        COLORMAP   mid;
+        COLORMAP   cmap;
     };
 };
 
