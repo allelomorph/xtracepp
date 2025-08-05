@@ -15,6 +15,7 @@
 #include "protocol/common_types.hpp"
 #include "protocol/connection_setup.hpp"
 #include "protocol/requests.hpp"  // PolySegment::SEGMENT
+#include "protocol/events.hpp"  // codes::MAX
 
 
 std::string_view
@@ -1038,8 +1039,7 @@ size_t X11ProtocolParser::_logServerPacket(
         //   - replies: 1
         //   - events: 2-34
         const uint8_t first_byte { *data };
-        // TBD use enum instead of magic values
-        assert( first_byte <= 35 );
+        assert( first_byte <= protocol::events::codes::MAX );
         switch ( first_byte ) {
         case 0:   // Error
             return sz;  // TBD deactivated for testing
@@ -1056,9 +1056,8 @@ size_t X11ProtocolParser::_logServerPacket(
             // assert( bytes_parsed >= 32 );
             break;
         default:  // Event (2-35)
-            return sz;  // TBD deactivated for testing
-            //bytes_parsed = _logServerEvent( conn, data, sz, first_byte );
-            // assert( bytes_parsed == 32 );
+            bytes_parsed = _logServerEvent( conn, data, sz );
+            //assert( bytes_parsed == protcol::events::ENCODING_SZ );
             break;
         }
     }
@@ -1087,16 +1086,6 @@ size_t X11ProtocolParser::_logServerReply(
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= 32 ); // TBD some extension replies may be smaller, eg BigReqEnable
-
-    return sz;
-}
-
-size_t X11ProtocolParser::_logServerEvent(
-    Connection* conn, uint8_t* data, const size_t sz,
-    const uint8_t code ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz >= 32 ); // TBD
 
     return sz;
 }
