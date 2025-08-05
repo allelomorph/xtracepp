@@ -228,7 +228,7 @@ size_t X11ProtocolParser::_logCreateWindow(
         value_traits,
         tab_ct + 2
     };
-    _LISTParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         data + bytes_parsed, &value_list_outputs );
@@ -334,7 +334,7 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
         value_traits,
         tab_ct + 2
     };
-    _LISTParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         data + bytes_parsed, &value_list_outputs );
@@ -510,7 +510,7 @@ size_t X11ProtocolParser::_logConfigureWindow(
         value_traits,
         tab_ct + 2
     };
-    _LISTParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         data + bytes_parsed, &value_list_outputs );
@@ -2152,7 +2152,7 @@ size_t X11ProtocolParser::_logSetFontPath(
     bytes_parsed += sizeof( SetFontPath::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETFONTPATH );
 
-    _LISTParsingOutputs path {
+    _ParsingOutputs path {
         _parseLISTofSTR( data + bytes_parsed, encoding->str_ct ) };
     bytes_parsed += _pad( path.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -2343,7 +2343,7 @@ size_t X11ProtocolParser::_logCreateGC(
         value_traits,
         tab_ct + 2
     };
-    _LISTParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         data + bytes_parsed, &value_list_outputs );
@@ -2435,7 +2435,7 @@ size_t X11ProtocolParser::_logChangeGC(
         value_traits,
         tab_ct + 2
     };
-    _LISTParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         data + bytes_parsed, &value_list_outputs );
@@ -2541,7 +2541,7 @@ size_t X11ProtocolParser::_logSetDashes(
     bytes_parsed += sizeof( SetDashes::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETDASHES );
 
-    _LISTParsingOutputs dashes {
+    _ParsingOutputs dashes {
         _parseLISTofCARD8( data + bytes_parsed, encoding->n ) };
     bytes_parsed += _pad( dashes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -2606,7 +2606,7 @@ size_t X11ProtocolParser::_logSetClipRectangles(
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( SetClipRectangles::Encoding ) ) /
         sizeof( protocol::RECTANGLE ) };
-    _LISTParsingOutputs rectangles {
+    _ParsingOutputs rectangles {
         _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -2905,7 +2905,7 @@ size_t X11ProtocolParser::_logPolyPoint(
     const size_t n_points {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyPoint::Encoding ) ) / sizeof( protocol::POINT ) };
-    _LISTParsingOutputs points {
+    _ParsingOutputs points {
         _parseLISTofPOINT( data + bytes_parsed, n_points ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -2967,7 +2967,7 @@ size_t X11ProtocolParser::_logPolyLine(
     const size_t n_points {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyLine::Encoding ) ) / sizeof( protocol::POINT ) };
-    _LISTParsingOutputs points {
+    _ParsingOutputs points {
         _parseLISTofPOINT( data + bytes_parsed, n_points ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3028,7 +3028,7 @@ size_t X11ProtocolParser::_logPolySegment(
     const size_t n_segments {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolySegment::Encoding ) ) / sizeof( PolySegment::SEGMENT ) };
-    _LISTParsingOutputs segments {
+    _ParsingOutputs segments {
         _parseLISTofSEGMENT( data + bytes_parsed, n_segments ) };
     bytes_parsed += _pad( segments.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3085,7 +3085,7 @@ size_t X11ProtocolParser::_logPolyRectangle(
     const size_t n_rectangles {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
-    _LISTParsingOutputs rectangles {
+    _ParsingOutputs rectangles {
         _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3142,7 +3142,7 @@ size_t X11ProtocolParser::_logPolyArc(
     const size_t n_arcs {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyArc::Encoding ) ) / sizeof( protocol::ARC ) };
-    _LISTParsingOutputs arcs {
+    _ParsingOutputs arcs {
         _parseLISTofARC( data + bytes_parsed, n_arcs ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3199,7 +3199,7 @@ size_t X11ProtocolParser::_logFillPoly(
     const size_t n_points {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( FillPoly::Encoding ) ) / sizeof( protocol::POINT ) };
-    _LISTParsingOutputs points {
+    _ParsingOutputs points {
         _parseLISTofPOINT( data + bytes_parsed, n_points ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3261,7 +3261,7 @@ size_t X11ProtocolParser::_logPolyFillRectangle(
     const size_t n_rectangles {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyFillRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
-    _LISTParsingOutputs rectangles {
+    _ParsingOutputs rectangles {
         _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3318,7 +3318,7 @@ size_t X11ProtocolParser::_logPolyFillArc(
     const size_t n_arcs {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyFillArc::Encoding ) ) / sizeof( protocol::ARC ) };
-    _LISTParsingOutputs arcs {
+    _ParsingOutputs arcs {
         _parseLISTofARC( data + bytes_parsed, n_arcs ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3509,7 +3509,7 @@ size_t X11ProtocolParser::_logPolyText8(
 
     const size_t text_item_list_sz {
         ( encoding->request_length * _ALIGN ) - sizeof( PolyText8::Encoding ) };
-    _LISTParsingOutputs text_items {
+    _ParsingOutputs text_items {
         _parseLISTofTEXTITEM8( data + bytes_parsed, text_item_list_sz ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -3570,7 +3570,7 @@ size_t X11ProtocolParser::_logPolyText16(
 
     const size_t text_item_list_sz {
         ( encoding->request_length * _ALIGN ) - sizeof( PolyText16::Encoding ) };
-    _LISTParsingOutputs text_items {
+    _ParsingOutputs text_items {
         _parseLISTofTEXTITEM16( data + bytes_parsed, text_item_list_sz ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -4236,7 +4236,7 @@ size_t X11ProtocolParser::_logFreeColors(
     const size_t n_pixels {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( FreeColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
-    _LISTParsingOutputs pixels {
+    _ParsingOutputs pixels {
         _parseLISTofCARD32( data + bytes_parsed, n_pixels ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -4294,7 +4294,7 @@ size_t X11ProtocolParser::_logStoreColors(
     const size_t n_items {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( StoreColors::Encoding ) ) / sizeof( StoreColors::COLORITEM ) };
-    _LISTParsingOutputs items {
+    _ParsingOutputs items {
         _parseLISTofCOLORITEM( data + bytes_parsed, n_items ) };
     bytes_parsed += _pad( items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -4414,7 +4414,7 @@ size_t X11ProtocolParser::_logQueryColors(
     const size_t n_pixels {
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( QueryColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
-    _LISTParsingOutputs pixels {
+    _ParsingOutputs pixels {
         _parseLISTofCARD32( data + bytes_parsed, n_pixels ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -4871,7 +4871,7 @@ size_t X11ProtocolParser::_logChangeKeyboardMapping(
     bytes_parsed += sizeof( ChangeKeyboardMapping::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEKEYBOARDMAPPING );
 
-    _LISTParsingOutputs keysyms {
+    _ParsingOutputs keysyms {
         _parseLISTofKEYSYM( data + bytes_parsed,
                             encoding->keycode_count * encoding->keysyms_per_keycode ) };
     bytes_parsed += _pad( keysyms.bytes_parsed );
@@ -4998,7 +4998,7 @@ size_t X11ProtocolParser::_logChangeKeyboardControl(
         value_traits,
         tab_ct + 2
     };
-    _LISTParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
         encoding->value_mask, value_list_inputs,
         data + bytes_parsed, &value_list_outputs );
@@ -5210,7 +5210,7 @@ size_t X11ProtocolParser::_logChangeHosts(
     // TBD in the standard, the full description of ChangeHosts anticipates up
     //   to 5 family values, but in the encoding section, family is limited to
     //   Internet, DECnet, or Chaos
-    _LISTParsingOutputs address {
+    _ParsingOutputs address {
         _parseLISTofCARD8( data + bytes_parsed, encoding->length_of_address ) };
     bytes_parsed += _pad( address.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -5416,7 +5416,7 @@ size_t X11ProtocolParser::_logRotateProperties(
     bytes_parsed += sizeof( RotateProperties::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::ROTATEPROPERTIES );
 
-    _LISTParsingOutputs properties {
+    _ParsingOutputs properties {
         _parseLISTofATOM( data + bytes_parsed, encoding->number_of_properties ) };
     bytes_parsed += _pad( properties.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -5524,7 +5524,7 @@ size_t X11ProtocolParser::_logSetPointerMapping(
     bytes_parsed += sizeof( SetPointerMapping::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETPOINTERMAPPING );
 
-    _LISTParsingOutputs map {
+    _ParsingOutputs map {
         _parseLISTofCARD8( data + bytes_parsed, encoding->length_of_map ) };
     bytes_parsed += _pad( map.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
@@ -5581,7 +5581,7 @@ size_t X11ProtocolParser::_logSetModifierMapping(
     // TBD "The number of keycodes in the list must be 8*keycodes-per-modifier
     //   (or a Length error results)."
     // TBD may need constant to avoid magic value 8
-    _LISTParsingOutputs keycodes {
+    _ParsingOutputs keycodes {
         _parseLISTofKEYCODE( data + bytes_parsed, 8 * encoding->keycodes_per_modifier ) };
     bytes_parsed += _pad( keycodes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );

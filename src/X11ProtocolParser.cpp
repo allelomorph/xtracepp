@@ -275,13 +275,13 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
     return bytes_parsed;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofFORMAT(
     const uint8_t* data, const uint32_t format_ct, const uint32_t tab_ct ) {
     assert( data != nullptr );
     assert( tab_ct > 0 );
 
-    X11ProtocolParser::_LISTParsingOutputs outputs;
+    X11ProtocolParser::_ParsingOutputs outputs;
     using namespace protocol::connection_setup;
     const ServerAcceptance::Format* pixmap_formats {
         reinterpret_cast< const ServerAcceptance::Format* >( data ) };
@@ -314,13 +314,13 @@ X11ProtocolParser::_parseLISTofFORMAT(
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofSCREEN(
     const uint8_t* data, const uint32_t screen_ct, const uint32_t tab_ct ) {
     assert( data != nullptr );
     assert( tab_ct > 0 );
 
-    X11ProtocolParser::_LISTParsingOutputs outputs;
+    X11ProtocolParser::_ParsingOutputs outputs;
     const std::string_view list_indent {
         _multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
@@ -339,7 +339,7 @@ X11ProtocolParser::_parseLISTofSCREEN(
         outputs.bytes_parsed += sizeof( ServerAcceptance::Screen::Header );
 
         // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4)
-        _LISTParsingOutputs allowed_depths_outputs {
+        _ParsingOutputs allowed_depths_outputs {
             _parseLISTofDEPTH( data + outputs.bytes_parsed, header->d, tab_ct + 2 ) };
         outputs.bytes_parsed += allowed_depths_outputs.bytes_parsed;
 
@@ -394,13 +394,13 @@ X11ProtocolParser::_parseLISTofSCREEN(
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofDEPTH(
     const uint8_t* data, const uint32_t depth_ct, const uint32_t tab_ct ) {
     assert( data != nullptr );
     assert( tab_ct > 0 );
 
-    X11ProtocolParser::_LISTParsingOutputs outputs;
+    X11ProtocolParser::_ParsingOutputs outputs;
     const std::string_view list_indent {
         _multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
@@ -419,7 +419,7 @@ X11ProtocolParser::_parseLISTofDEPTH(
         outputs.bytes_parsed += sizeof( ServerAcceptance::Screen::Depth::Header );
 
         // followed by LISTofVISUALTYPE visuals of n * sizeof(VISUALTYPE) bytes
-        _LISTParsingOutputs visuals_outputs {
+        _ParsingOutputs visuals_outputs {
             _parseLISTofVISUALTYPE( data + outputs.bytes_parsed, header->n, tab_ct + 2 ) };
         outputs.bytes_parsed += visuals_outputs.bytes_parsed;
 
@@ -448,13 +448,13 @@ X11ProtocolParser::_parseLISTofDEPTH(
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofVISUALTYPE(
     const uint8_t* data, const uint32_t vt_ct, const uint32_t tab_ct ) {
     assert( data != nullptr );
     assert( tab_ct > 0 );
 
-    X11ProtocolParser::_LISTParsingOutputs outputs;
+    X11ProtocolParser::_ParsingOutputs outputs;
     const std::string_view list_indent {
         _multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
@@ -524,10 +524,10 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofSTR( const uint8_t* data, const uint16_t str_ct ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < str_ct; ++i ) {
         const uint8_t n { *( data + outputs.bytes_parsed ) };
@@ -542,10 +542,10 @@ X11ProtocolParser::_parseLISTofSTR( const uint8_t* data, const uint16_t str_ct )
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofCARD8( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
@@ -557,10 +557,10 @@ X11ProtocolParser::_parseLISTofCARD8( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofCARD32( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
@@ -573,10 +573,10 @@ X11ProtocolParser::_parseLISTofCARD32( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         const protocol::RECTANGLE* rectangle {
@@ -594,10 +594,10 @@ X11ProtocolParser::_parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n 
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofPOINT( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         const protocol::POINT* point {
@@ -613,10 +613,10 @@ X11ProtocolParser::_parseLISTofPOINT( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofSEGMENT( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     using protocol::requests::PolySegment;
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
@@ -635,10 +635,10 @@ X11ProtocolParser::_parseLISTofSEGMENT( const uint8_t* data, const uint16_t n ) 
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofARC( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         const protocol::ARC* arc {
@@ -658,10 +658,10 @@ X11ProtocolParser::_parseLISTofARC( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     using protocol::requests::StoreColors;
     for ( uint16_t i {}; i < n; ++i ) {
@@ -681,10 +681,10 @@ X11ProtocolParser::_parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n 
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofKEYSYM( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
@@ -698,10 +698,10 @@ X11ProtocolParser::_parseLISTofKEYSYM( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
@@ -715,10 +715,10 @@ X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofKEYCODE( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
@@ -732,10 +732,10 @@ X11ProtocolParser::_parseLISTofKEYCODE( const uint8_t* data, const uint16_t n ) 
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     using protocol::requests::PolyText8;
     while ( _pad( outputs.bytes_parsed ) < sz ) {
@@ -779,10 +779,10 @@ X11ProtocolParser::_parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz )
     return outputs;
 }
 
-X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz ) {
     assert( data != nullptr );
-    _LISTParsingOutputs outputs {};
+    _ParsingOutputs outputs {};
     outputs.str += '[';
     using protocol::requests::PolyText16;
     while ( _pad( outputs.bytes_parsed ) < sz ) {
@@ -849,12 +849,12 @@ size_t X11ProtocolParser::_logServerAcceptance(
 
     const uint32_t tab_ct { 0 };
     // followed by LISTofFORMAT pixmap-formats of n * sizeof(FORMAT) bytes
-    _LISTParsingOutputs pixmap_formats_outputs {
+    _ParsingOutputs pixmap_formats_outputs {
         _parseLISTofFORMAT( data + bytes_parsed, header->n, tab_ct + 2 ) };
     bytes_parsed += pixmap_formats_outputs.bytes_parsed;
 
     // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
-    _LISTParsingOutputs roots_outputs {
+    _ParsingOutputs roots_outputs {
         _parseLISTofSCREEN( data + bytes_parsed, header->r, tab_ct + 2 ) };
     bytes_parsed += roots_outputs.bytes_parsed;
 

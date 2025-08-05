@@ -234,39 +234,39 @@ private:
     std::string
     _formatCommonType( const protocol::ARC arc );
 
-    struct _LISTParsingOutputs {
+    struct _ParsingOutputs {
         std::string str       {};
         uint32_t bytes_parsed {};
     };
 
     // TBD can we generalize these into _parseLISTof<T>?
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofSTR( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofCARD8( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofCARD32( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofPOINT( const uint8_t* data, const uint16_t n );
     // TBD should this be encapsulated elsewhere? SEGMENT is not common type, but part of PolySegment request
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofSEGMENT( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofARC( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofKEYSYM( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofATOM( const uint8_t* data, const uint16_t n );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofKEYCODE( const uint8_t* data, const uint16_t n );
 
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz );
-    _LISTParsingOutputs
+    _ParsingOutputs
     _parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz );
 
     // TBD HOST?
@@ -356,7 +356,7 @@ private:
     auto _parseLISTofVALUE(
         const uint32_t value_mask,
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-        const uint8_t* /*data*/, _LISTParsingOutputs* outputs ) ->
+        const uint8_t* /*data*/, _ParsingOutputs* outputs ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
         if ( value_mask != 0 ) {
             outputs->str += _multiline ? _tabIndent( inputs.tab_ct - 1 ) : " ";
@@ -369,7 +369,7 @@ private:
     auto _parseLISTofVALUE(
         const uint32_t value_mask,
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-        const uint8_t* data, _LISTParsingOutputs* outputs ) ->
+        const uint8_t* data, _ParsingOutputs* outputs ) ->
         std::enable_if_t< I < sizeof...( Args ), void > {
         if ( I == 0 ) {
             outputs->str += '[';
@@ -406,13 +406,13 @@ private:
         Connection* conn, const uint8_t* data );
     size_t _logServerRequireFurtherAuthentication(
         Connection* conn, const uint8_t* data );
-    _LISTParsingOutputs _parseLISTofFORMAT(
+    _ParsingOutputs _parseLISTofFORMAT(
         const uint8_t* data, const uint32_t format_ct, const uint32_t tab_ct );
-    _LISTParsingOutputs _parseLISTofSCREEN(
+    _ParsingOutputs _parseLISTofSCREEN(
         const uint8_t* data, const uint32_t screen_ct, const uint32_t tab_ct );
-    _LISTParsingOutputs _parseLISTofDEPTH(
+    _ParsingOutputs _parseLISTofDEPTH(
         const uint8_t* data, const uint32_t depth_ct, const uint32_t tab_ct );
-    _LISTParsingOutputs _parseLISTofVISUALTYPE(
+    _ParsingOutputs _parseLISTofVISUALTYPE(
         const uint8_t* data, const uint32_t vt_ct, const uint32_t tab_ct );
     size_t _logServerAcceptance(
         Connection* conn, const uint8_t* data );
