@@ -681,6 +681,57 @@ X11ProtocolParser::_parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n 
 }
 
 X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofKEYSYM( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            "{}{}", outputs.str.size() > 1 ? " " : "",
+            _formatInteger(
+                reinterpret_cast< const protocol::KEYSYM* >(
+                    data + outputs.bytes_parsed )->data ) );
+        outputs.bytes_parsed += sizeof( protocol::KEYSYM );
+    }
+    outputs.str += ']';
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            "{}{}", outputs.str.size() > 1 ? " " : "",
+            _formatCommonType(
+                *reinterpret_cast< const protocol::ATOM* >(
+                    data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( protocol::ATOM );
+    }
+    outputs.str += ']';
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
+X11ProtocolParser::_parseLISTofKEYCODE( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _LISTParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            "{}{}", outputs.str.size() > 1 ? " " : "",
+            _formatCommonType(
+                *reinterpret_cast< const protocol::KEYCODE* >(
+                    data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( protocol::KEYCODE );
+    }
+    outputs.str += ']';
+    return outputs;
+}
+
+X11ProtocolParser::_LISTParsingOutputs
 X11ProtocolParser::_parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz ) {
     assert( data != nullptr );
     _LISTParsingOutputs outputs {};

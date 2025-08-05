@@ -79,7 +79,7 @@ X11ProtocolParser::_formatCommonType(
         static constexpr size_t hex_width { ( sizeof( atom.data ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x}({})", atom.data, hex_width, atom_string );
     }
-    return fmt::format( "({})", atom_string );
+    return atom_string;
 }
 
 // VISUALID could use zero_none or zero_copy_from_parent

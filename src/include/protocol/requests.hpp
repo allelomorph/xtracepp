@@ -2652,7 +2652,7 @@ struct GetKeyboardMapping {
     public:
         uint16_t   request_length;  // 2 request length
         KEYCODE    first_keycode;  // first-keycode
-        uint8_t    m;  // count
+        uint8_t    count;  // m count
     private:
         uint8_t    _unused2[2];
     };
@@ -2833,7 +2833,7 @@ struct ChangeHosts {
     private:
         uint8_t    _unused;
     public:
-        uint16_t   n;  // length of address
+        uint16_t   length_of_address;  // n length of address
     };
     // pad(n)B LISTofCARD8 address
 
@@ -2915,7 +2915,7 @@ struct RotateProperties {
     public:
         uint16_t   request_length;  // 3+n request length
         WINDOW     window;
-        uint16_t   n;  // number of properties
+        uint16_t   number_of_properties;  // n number of properties
         INT16      delta;
     };
     // 4nB LISTofATOM properties 4 ATOMs
@@ -2936,7 +2936,7 @@ struct ForceScreenSaver {
 struct SetPointerMapping {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 116
-        uint8_t    n;  // length of map
+        uint8_t    length_of_map;  // n length of map
         uint16_t   request_length;  // 1+(n+p)/4 request length
     };
     // followed by pad(n)B LISTofCARD8 map

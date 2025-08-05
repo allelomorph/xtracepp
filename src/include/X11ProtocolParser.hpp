@@ -257,6 +257,12 @@ private:
     _parseLISTofARC( const uint8_t* data, const uint16_t n );
     _LISTParsingOutputs
     _parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofKEYSYM( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofATOM( const uint8_t* data, const uint16_t n );
+    _LISTParsingOutputs
+    _parseLISTofKEYCODE( const uint8_t* data, const uint16_t n );
 
     _LISTParsingOutputs
     _parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz );

@@ -811,22 +811,24 @@ int main(const int argc, const char* const* argv) {
         const uint8_t           flags {};
         const xcb_colormap_t    cmap {};
         const uint32_t          pixel {};
-        const uint16_t          name_len {};
-        const char*             name {};
+        const uint16_t          name_len { 4 };
+        const char*             name { "test" };
         xcb_store_named_color(
             connection, flags, cmap, pixel, name_len, name);
     }   break;
     case QUERYCOLORS:              {  //  91
         const xcb_colormap_t    cmap {};
-        const uint32_t          pixels_len {};
-        const uint32_t*         pixels {};
+        const uint32_t          pixels_len { 3 };
+        const uint32_t          pixels[3] {
+            0x11111111, 0x22222222, 0x33333333
+        };
         xcb_query_colors(
             connection, cmap, pixels_len, pixels);
     }   break;
     case LOOKUPCOLOR:              {  //  92
         const xcb_colormap_t    cmap {};
-        const uint16_t          name_len {};
-        const char*             name {};
+        const uint16_t          name_len { 4 };
+        const char*             name { "test" };
         xcb_lookup_color(
             connection, cmap, name_len, name);
     }   break;
@@ -891,8 +893,8 @@ int main(const int argc, const char* const* argv) {
             connection, _class, drawable, width, height);
     }   break;
     case QUERYEXTENSION:           {  //  98
-        const uint16_t          name_len {};
-        const char*             name {};
+        const uint16_t          name_len { 4 };
+        const char*             name { "test" };
         xcb_query_extension(
             connection, name_len, name);
     }   break;
@@ -901,10 +903,13 @@ int main(const int argc, const char* const* argv) {
             connection);
     }   break;
     case CHANGEKEYBOARDMAPPING:    {  // 100
-        const uint8_t           keycode_count {};
+        // TBD request keycode-count will be ( kc * kc:ky ) + 2, even though only (kc * kc:ky) KEYCODEs in LIST
+        const uint8_t           keycode_count { 2 };
         const xcb_keycode_t     first_keycode {};
-        const uint8_t           keysyms_per_keycode {};
-        const xcb_keysym_t*     keysyms {};
+        const uint8_t           keysyms_per_keycode { 3 };
+        const xcb_keysym_t      keysyms[6] {
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06
+        };
         xcb_change_keyboard_mapping (
             connection, keycode_count, first_keycode,
             keysyms_per_keycode, keysyms);
@@ -917,10 +922,14 @@ int main(const int argc, const char* const* argv) {
             connection, first_keycode, count);
     }   break;
     case CHANGEKEYBOARDCONTROL:    {  // 102
-        const uint32_t          value_mask {};
-        const void*             value_list {};
+        const uint32_t          value_mask {
+            XCB_KB_KEY_CLICK_PERCENT | XCB_KB_BELL_PERCENT | XCB_KB_BELL_PITCH |
+            XCB_KB_BELL_DURATION | XCB_KB_LED | XCB_KB_LED_MODE | XCB_KB_KEY |
+            XCB_KB_AUTO_REPEAT_MODE
+        };
+        const uint32_t          value_list[8] {};
         xcb_change_keyboard_control(
-            connection, value_mask, value_list);
+            connection, value_mask, (const void*)value_list);
     }   break;
     case GETKEYBOARDCONTROL:       {  // 103
         xcb_get_keyboard_control(
@@ -959,8 +968,10 @@ int main(const int argc, const char* const* argv) {
     case CHANGEHOSTS:              {  // 109
         const uint8_t           mode {};
         const uint8_t           family {};
-        const uint16_t          address_len {};
-        const uint8_t*          address {};
+        const uint16_t          address_len { 4 };
+        const uint8_t           address[4] {
+            0x01, 0x02, 0x03, 0x04
+        };
         xcb_change_hosts(
             connection, mode, family, address_len, address);
     }   break;
@@ -985,9 +996,11 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case ROTATEPROPERTIES:         {  // 114
         const xcb_window_t      window {};
-        const uint16_t          atoms_len {};
+        const uint16_t          atoms_len { 3 };
         const int16_t           delta {};
-        const xcb_atom_t*       atoms {};
+        const xcb_atom_t        atoms[3] {
+            0x01, 0x02, 0x03
+        };
         xcb_rotate_properties(
             connection, window, atoms_len, delta, atoms);
     }   break;
@@ -998,8 +1011,10 @@ int main(const int argc, const char* const* argv) {
 
     }   break;
     case SETPOINTERMAPPING:        {  // 116
-        const uint8_t           map_len {};
-        const uint8_t*          map     {};
+        const uint8_t           map_len { 4 };
+        const uint8_t           map[4]  {
+            0x01, 0x02, 0x03, 0x04
+        };
         xcb_set_pointer_mapping(
             connection, map_len, map);
     }   break;
@@ -1008,8 +1023,13 @@ int main(const int argc, const char* const* argv) {
             connection);
     }   break;
     case SETMODIFIERMAPPING:       {  // 118
-        const uint8_t           keycodes_per_modifier {};
-        const xcb_keycode_t*    keycodes {};
+        // TBD "The number of keycodes in the list must be 8*keycodes-per-modifier
+        //   (or a Length error results). "
+        const uint8_t           keycodes_per_modifier { 2 };
+        const xcb_keycode_t     keycodes[16] {
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+            0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18
+        };
         xcb_set_modifier_mapping(
             connection, keycodes_per_modifier, keycodes);
     }   break;
