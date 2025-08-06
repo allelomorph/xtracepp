@@ -1106,14 +1106,12 @@ size_t X11ProtocolParser::_logSendEvent(
     // TBD parse event ahead of time, can get struct type from first byte
     // maybe events will be unlike reuests, errors, etc in that there is
     //   both a log func and a format func?
-    // size_t _logServerEvent()
-    bytes_parsed += protocol::events::ENCODING_SZ;
+    _ParsingOutputs event { _parseEvent(
+            conn, data + bytes_parsed, protocol::events::ENCODING_SZ,
+            _EventFormat::SEND_EVENT ) };
+    bytes_parsed += event.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    /*
-      000:<:0001: 44: Request(25): SendEvent propagate=false(0x00) destination=PointerWindow(0x00000000) event-mask=StructureNotify ConfigureNotify(22) event=0x00000000 window=0x00000000 above-sibling=None(0x00000000) x=0 y=0 width=0 height=0 border-width=0 override-redirect=false(0x00)
-     */
-    // TBD parse event ahead of time
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
         _multiline ? _tabIndent( tab_ct ) : "" };
@@ -1146,9 +1144,8 @@ size_t X11ProtocolParser::_logSendEvent(
         _formatCommonType( encoding->destination, SendEvent::destination_names ), _separator,
         memb_indent, "event-mask", name_width, _equals,
         _formatCommonType( encoding->event_mask ), _separator,
-        // TBD update after event formatting is complete
         memb_indent, "event", name_width, _equals,
-        "(formatted event TBD)", _separator,
+        event.str, _separator,
         struct_indent
         );
     assert( bytes_parsed == sz );

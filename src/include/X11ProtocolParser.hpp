@@ -432,72 +432,16 @@ private:
 
     size_t _logServerEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logKeyPress(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logKeyRelease(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logButtonPress(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logButtonRelease(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logMotionNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logEnterNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logLeaveNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFocusIn(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFocusOut(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logKeymapNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logExpose(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGraphicsExposure(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logNoExposure(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logVisibilityNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCreateNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logDestroyNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUnmapNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logMapNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logMapRequest(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logReparentNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConfigureNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConfigureRequest(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGravityNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logResizeRequest(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCirculateNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCirculateRequest(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPropertyNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSelectionClear(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSelectionRequest(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSelectionNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logColormapNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logClientMessage(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logMappingNotify(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    enum class _EventFormat {
+        NORMAL, SEND_EVENT
+    };
+    _ParsingOutputs _parseEvent(
+        Connection* conn, const uint8_t* data, const size_t sz,
+        const _EventFormat format = _EventFormat::NORMAL );
+    template < typename EventT >
+    _ParsingOutputs _parseEvent(
+        Connection* conn, const uint8_t* data,
+        const _EventFormat format = _EventFormat::NORMAL );
 
     size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
