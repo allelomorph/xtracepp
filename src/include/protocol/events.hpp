@@ -248,8 +248,7 @@ struct EnterNotify {
         INT16           event_y;  // event-y
         SETofKEYBUTMASK state;
         uint8_t         mode;  // 0 Normal 1 Grab 2 Ungrab
-        // TBD make this a union? not clear on how it is used
-        uint8_t         focus; // same-screen, focus
+        uint8_t         focus_same_screen; // same-screen, focus
         // #x01     focus (1 is True, 0 is False)
         // #x02     same-screen (1 is True, 0 is False)
         // #xFC     unused
@@ -265,7 +264,7 @@ struct EnterNotify {
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::focus_mode };  // TBD up to 2
     inline static const
-    std::vector< std::string_view >& focus_mask_names {
+    std::vector< std::string_view >& focus_same_screen_names {
         protocol::enum_names::focus_same_screen_mask };
 };
 
@@ -285,7 +284,7 @@ struct LeaveNotify {
         SETofKEYBUTMASK state;
         uint8_t         mode;  // 0 Normal 1 Grab 2 Ungrab
         // TBD make this a union? not clear on how it is used
-        uint8_t         focus; // same-screen, focus
+        uint8_t         focus_same_screen; // same-screen, focus
         // #x01     focus (1 is True, 0 is False)
         // #x02     same-screen (1 is True, 0 is False)
         // #xFC     unused
@@ -301,7 +300,7 @@ struct LeaveNotify {
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::focus_mode };  // TBD up to 2
     inline static const
-    std::vector< std::string_view >& focus_mask_names {
+    std::vector< std::string_view >& focus_same_screen_names {
         protocol::enum_names::focus_same_screen_mask };
 };
 
@@ -418,6 +417,10 @@ struct VisibilityNotify {
     private:
         uint8_t    _unused2[23];
     };
+
+    inline static const
+    std::vector< std::string_view >& state_names {
+        protocol::enum_names::visibility_state };
 };
 
 struct CreateNotify {
@@ -642,7 +645,7 @@ struct CirculateRequest {
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
-        WINDOW     event;
+        WINDOW     parent;
         WINDOW     window;
     private:
         uint32_t   _unused2;
@@ -736,6 +739,9 @@ struct SelectionNotify {
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+    inline static const
+    std::vector< std::string_view >& property_names {
+        protocol::enum_names::zero_none };
 };
 
 struct ColormapNotify {

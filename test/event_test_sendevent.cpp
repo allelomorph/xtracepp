@@ -129,12 +129,16 @@ int main(const int argc, const char* const* argv) {
         // } xcb_enter_notify_event_t;
         xcb_enter_notify_event_t event {};
         event.response_type = XCB_ENTER_NOTIFY;
+        // TBD can't find XCB constants for same_screen_focus flags
+        event.same_screen_focus = 0x01 | 0x02;
         event_p = (const char*)&event;
     }   break;
     case LEAVENOTIFY:      {  //  8
         // typedef xcb_enter_notify_event_t xcb_leave_notify_event_t;
         xcb_leave_notify_event_t event {};
         event.response_type = XCB_LEAVE_NOTIFY;
+        // TBD can't find XCB constants for same_screen_focus flags
+        event.same_screen_focus = 0x01 | 0x02;
         event_p = (const char*)&event;
     }   break;
     case FOCUSIN:          {  //  9
@@ -353,6 +357,11 @@ int main(const int argc, const char* const* argv) {
         // } xcb_configure_request_event_t;
         xcb_configure_request_event_t event {};
         event.response_type = XCB_CONFIGURE_REQUEST;
+        event.value_mask =
+            XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
+            XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT |
+            XCB_CONFIG_WINDOW_BORDER_WIDTH | XCB_CONFIG_WINDOW_SIBLING |
+            XCB_CONFIG_WINDOW_STACK_MODE;
         event_p = (const char*)&event;
     }   break;
     case GRAVITYNOTIFY:    {  // 24
