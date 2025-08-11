@@ -126,7 +126,7 @@ private:
                 max_flag_i = flag_names.size() - 1;
             for ( uint32_t i {}; i <= max_flag_i; ++i ) {
                 if ( mask & ( 1 << i ) ) {
-                    flag_str.append( flag_str.empty() ? "" : " & " );
+                    flag_str.append( flag_str.empty() ? "" : "," );
                     flag_str.append( flag_names[i] );
                 }
             }
