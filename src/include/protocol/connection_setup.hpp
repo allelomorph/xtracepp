@@ -78,8 +78,8 @@ struct ServerAcceptance {
         CARD16   protocol_minor_version;  // protocol-minor-version
         uint16_t ad;  // 8+2n+(v+p+m)/4 length in 4-byte units of "additional data" // unnamed in protocol
         CARD32   release_number;   // release-number
-        CARD32   release_id_base;  // release-id-base
-        CARD32   release_id_mask;  // release-id-mask
+        CARD32   resource_id_base;  // resource-id-base
+        CARD32   resource_id_mask;  // resource-id-mask
         CARD32   motion_buffer_size;  // motion-buffer-size
         uint16_t v;   // length of vendor
         CARD16   maximum_request_length;  // maximum-request-length
