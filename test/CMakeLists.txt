@@ -41,6 +41,17 @@ target_link_libraries(event_test_sendevent PUBLIC
   ${X11_xcb_LIB}
 )
 
+add_executable(error_test
+  error_test.cpp
+)
+target_include_directories(error_test PRIVATE
+  ${X11_xcb_INCLUDE_PATH}
+  ${PROJECT_SOURCE_DIR}/src/include
+)
+target_link_libraries(error_test PUBLIC
+  ${X11_xcb_LIB}
+)
+
 add_executable(ServerRefusal_test
   ServerRefusal_test.cpp
 )
