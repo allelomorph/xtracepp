@@ -1,6 +1,5 @@
-// https://xcb.freedesktop.org/tutorial/basicwindowsanddrawing/
-
 #include <string>  // atoi
+#include <string_view>
 
 #include <cassert>
 #include <cstdlib>  // free
@@ -11,14 +10,11 @@
 #include <protocol/errors.hpp>
 #include <protocol/requests.hpp>
 
-#include <iostream>
+#include <fmt/format.h>
 
 
 int main(const int argc, const char* const* argv) {
-    assert( argc > 1 );
-    const int code { std::stoi(argv[1]) };
-    assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+
     // Open the connection to the X server
     xcb_connection_t* connection  {
         xcb_connect( nullptr, nullptr ) };
@@ -31,6 +27,10 @@ int main(const int argc, const char* const* argv) {
     assert( setup  != nullptr );
     assert( screen != nullptr );
 
+    assert( argc > 1 );
+    const int code { std::stoi(argv[1]) };
+    assert( code >= protocol::errors::codes::MIN &&
+            code <= protocol::errors::codes::MAX );
     xcb_generic_error_t* error {};
     uint32_t bad_resource {};
     uint16_t request_opcode {};
@@ -38,20 +38,20 @@ int main(const int argc, const char* const* argv) {
     case protocol::errors::codes::REQUEST:         {  //  1
         // TBD since normal intended use of xcb contains all core requests in
         //   wrapper functions, we need a lower-level way to send a request
-        //   with bad opcode, here using calls meant for extensions
-        int flags {};
-        // TBD xcb implementation cannot accept nullptr vector, or iov_lens that
-        //   are not multiples of 4
-        // TBD xtrace implements unparsed-data field, testing here with vector_[1]
+        //   with bad opcode, here using xcb_send_request
+        //   - https://xcb.freedesktop.org/ProtocolExtensionApi/
+        //   - https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/master/src/xcbext.h?ref_type=heads#L47-L83
+        int flags { XCB_REQUEST_CHECKED };
+        // TBD xtrace implements unparsed-data field:
         //   `000:<:0001:  8: Request(128): UNKNOWN opcode=0x80 opcode2=0x00 unparsed-data=0x01,0x02,0x03,0x04;`
         //    is xtrace vetting the opcodes before sending to the server?
         uint32_t iov0_data {};
-        uint32_t iov1_data { 0x04030201 };  // TBD test unparsed-data
+        uint32_t iov1_data { 0x04030201 };  // test for unparsed-data
         iovec vector_[2] {
             { &iov0_data, sizeof(iov0_data) },
             { &iov1_data, sizeof(iov1_data) }
         };
-        xcb_protocol_request_t request {
+        const xcb_protocol_request_t request {
             sizeof( vector_ ) / sizeof( iovec ),
                        // count (of elements in iovec array)
             nullptr,   // ext (nullptr for core protocol)
@@ -59,126 +59,232 @@ int main(const int argc, const char* const* argv) {
                        // opcode (core protocol major opcode deliberately out of range)
             int(true)  // isvoid (no reply expected)
         };
-        unsigned int retval {
+        const uint32_t retval {
             xcb_send_request(connection, flags, vector_, &request) };
         assert( retval != 0 );
-        // expects xcb_flush(connection) to ensure request is sent
+        xcb_flush( connection );
     }   break;
     case protocol::errors::codes::VALUE:           {  //  2
         // mode deliberately outside enum range
-        uint8_t         mode { XCB_ALLOW_SYNC_BOTH + 1 };
-        xcb_timestamp_t time {};
-        xcb_void_cookie_t cookie {
+        const uint8_t         mode { XCB_ALLOW_SYNC_BOTH + 1 };
+        const xcb_timestamp_t time {};
+        const xcb_void_cookie_t cookie {
             xcb_allow_events_checked(connection, mode, time) };
         error = xcb_request_check(connection, cookie);
         bad_resource = mode;
         request_opcode = protocol::requests::opcodes::ALLOWEVENTS;
     }   break;
     case protocol::errors::codes::WINDOW:          {  //  3
-        // TBD generate arbitrary id?
-        xcb_window_t window {};
-        xcb_void_cookie_t cookie {
+        const xcb_window_t window {};
+        const xcb_void_cookie_t cookie {
             xcb_destroy_window_checked(connection, window) };
         error = xcb_request_check(connection, cookie);
         bad_resource = window;
         request_opcode = protocol::requests::opcodes::DESTROYWINDOW;
     }   break;
     case protocol::errors::codes::PIXMAP:          {  //  4
-        xcb_pixmap_t pixmap {};
-        xcb_void_cookie_t cookie {
+        const xcb_pixmap_t pixmap {};
+        const xcb_void_cookie_t cookie {
             xcb_free_pixmap_checked(connection, pixmap) };
         error = xcb_request_check(connection, cookie);
         bad_resource = pixmap;
         request_opcode = protocol::requests::opcodes::FREEPIXMAP;
     }   break;
     case protocol::errors::codes::ATOM:            {  //  5
-        xcb_atom_t selection { XCB_ATOM_NONE };
-        xcb_get_selection_owner_cookie_t cookie {
+        const xcb_atom_t selection { XCB_ATOM_NONE };
+        const xcb_get_selection_owner_cookie_t cookie {
             xcb_get_selection_owner(connection, selection) };
-        xcb_get_selection_owner_reply_t* reply {
+        const xcb_get_selection_owner_reply_t* reply {
             xcb_get_selection_owner_reply(connection, cookie, &error) };
         assert( reply == nullptr );
         bad_resource = selection;
         request_opcode = protocol::requests::opcodes::GETSELECTIONOWNER;
     }   break;
     case protocol::errors::codes::CURSOR:          {  //  6
+        const xcb_cursor_t cursor {};
+        const xcb_void_cookie_t cookie {
+            xcb_free_cursor_checked(connection, cursor) };
+        error = xcb_request_check(connection, cookie);
+        bad_resource = cursor;
+        request_opcode = protocol::requests::opcodes::FREECURSOR;
     }   break;
     case protocol::errors::codes::FONT:            {  //  7
+        const xcb_font_t font {};
+        const xcb_void_cookie_t cookie {
+            xcb_close_font_checked(connection, font) };
+        error = xcb_request_check(connection, cookie);
+        bad_resource = font;
+        request_opcode = protocol::requests::opcodes::CLOSEFONT;
     }   break;
     case protocol::errors::codes::MATCH:           {  //  8
+        // issue Match error by specifying non-zero depth on InputOnly window
+        const xcb_void_cookie_t cookie {
+            xcb_create_window_checked(
+                connection,
+                1,                               // depth (must be 0/XCB_COPY_FROM_PARENT for InputOnly)
+                xcb_generate_id ( connection ),  // wid
+                screen->root,                    // parent window
+                0, 0,                            // x, y
+                150, 150,                        // width, height
+                10,                              // border_width
+                XCB_WINDOW_CLASS_INPUT_ONLY,     // class
+                screen->root_visual,             // visual
+                0,                               // value_mask
+                nullptr )                        // value_list
+        };
+        error = xcb_request_check(connection, cookie);
+        request_opcode = protocol::requests::opcodes::CREATEWINDOW;
     }   break;
     case protocol::errors::codes::DRAWABLE:        {  //  9
+        const xcb_drawable_t drawable {};
+        const xcb_get_geometry_cookie_t cookie {
+            xcb_get_geometry(connection, drawable) };
+        const xcb_get_geometry_reply_t* reply {
+            xcb_get_geometry_reply(connection, cookie, &error) };
+        assert( reply == nullptr );
+        bad_resource = drawable;
+        request_opcode = protocol::requests::opcodes::GETGEOMETRY;
     }   break;
     case protocol::errors::codes::ACCESS:          {  // 10
+        // TBD how to issue this error without creating colormap?
+        const uint8_t alloc { XCB_COLORMAP_ALLOC_NONE };
+        const xcb_colormap_t cmap { xcb_generate_id( connection ) };
+        xcb_void_cookie_t cookie {
+            xcb_create_colormap_checked(
+                connection, alloc, cmap, screen->root, screen->root_visual) };
+        error = xcb_request_check(connection, cookie);
+        assert( error == nullptr );
+        const     uint32_t plane_mask         {};
+        constexpr uint32_t pixels_len         { 1 };
+        const     uint32_t pixels[pixels_len] {};
+        cookie =
+            xcb_free_colors_checked(connection, cmap, plane_mask, pixels_len, pixels);
+        error = xcb_request_check(connection, cookie);
+        request_opcode = protocol::requests::opcodes::FREECOLORS;
+        xcb_free_colormap(connection, cmap);
     }   break;
     case protocol::errors::codes::ALLOC:           {  // 11
+        // TBD not sure how to force allocation failure in server
+        fmt::println("No test yet for Alloc error parsing!");
     }   break;
     case protocol::errors::codes::COLORMAP:        {  // 12
+        const xcb_colormap_t colormap {};
+        const xcb_void_cookie_t cookie {
+            xcb_free_colormap_checked(connection, colormap) };
+        error = xcb_request_check(connection, cookie);
+        bad_resource = colormap;
+        request_opcode = protocol::requests::opcodes::FREECOLORMAP;
     }   break;
     case protocol::errors::codes::GCONTEXT:        {  // 13
+        const xcb_gcontext_t gcontext {};
+        const xcb_void_cookie_t cookie {
+            xcb_free_gc_checked(connection, gcontext) };
+        error = xcb_request_check(connection, cookie);
+        bad_resource = gcontext;
+        request_opcode = protocol::requests::opcodes::FREEGC;
     }   break;
     case protocol::errors::codes::IDCHOICE:        {  // 14
+        // wid guaranteed to be out of range (see connection resource-id-base/
+        //   resource-id-mask)
+        const xcb_window_t window { 0xffffffff };
+        const xcb_void_cookie_t cookie {
+            xcb_create_window_checked(
+                connection,
+                XCB_COPY_FROM_PARENT,          // depth (same as root)
+                window,                        // wid
+                screen->root,                  // parent wid
+                0, 0,                          // x, y
+                150, 150,                      // width, height
+                10,                            // border_width
+                XCB_WINDOW_CLASS_INPUT_OUTPUT, // class
+                screen->root_visual,           // visual
+                0,                             // value_mask
+                nullptr )                      // value_list
+        };
+        error = xcb_request_check(connection, cookie);
+        bad_resource = window;
+        request_opcode = protocol::requests::opcodes::CREATEWINDOW;
     }   break;
     case protocol::errors::codes::NAME:            {  // 15
+        const xcb_font_t fid { xcb_generate_id( connection ) };
+        const std::string_view name { "" };
+        const xcb_void_cookie_t cookie {
+            xcb_open_font_checked(connection, fid, name.size(), name.data()) };
+        error = xcb_request_check(connection, cookie);
+        request_opcode = protocol::requests::opcodes::OPENFONT;
     }   break;
     case protocol::errors::codes::LENGTH:          {  // 16
+        // Length error from LISTofKEYCODE of length != 8 * keycodes-per-modifier
+        // xcb_set_modifier_mapping does not seem able to send LISTofKEYCODE
+        //   with incorrect length, so we go lower into xcb_send_request
+        const int flags { XCB_REQUEST_CHECKED };
+        // opcode, keycodes-per-modifier, request length
+        uint8_t  iov0_data[4] { 0x00, 0x01, 0x00, 0x00 };
+        // LISTofKEYCODE length 4
+        uint32_t iov1_data    { 0x50515253 };
+        iovec vector_[2] {
+            { iov0_data, sizeof(iov0_data) },
+            { &iov1_data, sizeof(iov1_data) }
+        };
+        const xcb_protocol_request_t request {
+            sizeof( vector_ ) / sizeof( iovec ),
+                       // count (of elements in iovec array)
+            nullptr,   // ext (nullptr for core protocol)
+            protocol::requests::opcodes::SETMODIFIERMAPPING,
+                       // opcode
+            int(false) // isvoid (reply expected)
+        };
+        // xcb_send_request returns unsigned int
+        const xcb_set_modifier_mapping_cookie_t cookie {
+            xcb_send_request(connection, flags, vector_, &request) };
+        assert( cookie.sequence != 0 );
+        xcb_flush( connection );
+        const xcb_set_modifier_mapping_reply_t* reply {
+            xcb_set_modifier_mapping_reply(connection, cookie, &error) };
+        assert( reply == nullptr );
+        request_opcode = protocol::requests::opcodes::SETMODIFIERMAPPING;
     }   break;
     case protocol::errors::codes::IMPLEMENTATION:  {  // 17
+        // TBD not sure how to issue this error, as all core requests should
+        //   be supported by a proper X11 server
+        fmt::println("No test yet for Implementation error parsing!");
     }   break;
     default:
         break;
     }
 
-    if ( code != protocol::errors::codes::REQUEST ) {
+    if ( code != protocol::errors::codes::REQUEST &&
+         code != protocol::errors::codes::ALLOC   &&          // TBD
+         code != protocol::errors::codes::IMPLEMENTATION ) {  // TBD
         assert( error != nullptr );
-        assert( error->response_type == 0 );
-        assert( error->error_code == code );
-        assert( error->major_code == request_opcode );
-        assert( error->resource_id == bad_resource );
+        switch ( code ) {
+        case protocol::errors::codes::VALUE:     //  2
+        case protocol::errors::codes::WINDOW:    //  3
+        case protocol::errors::codes::PIXMAP:    //  4
+        case protocol::errors::codes::ATOM:      //  5
+        case protocol::errors::codes::CURSOR:    //  6
+        case protocol::errors::codes::FONT:      //  7
+        case protocol::errors::codes::DRAWABLE:  //  9
+        case protocol::errors::codes::COLORMAP:  // 12
+        case protocol::errors::codes::GCONTEXT:  // 13
+        case protocol::errors::codes::IDCHOICE:  // 14
+            assert( error->resource_id == bad_resource );
+            [[fallthrough]];
+        case protocol::errors::codes::MATCH:           //  8
+        case protocol::errors::codes::ACCESS:          // 10
+        // case protocol::errors::codes::ALLOC:           // 11
+        case protocol::errors::codes::NAME:            // 15
+        case protocol::errors::codes::LENGTH:          // 16
+        // case protocol::errors::codes::IMPLEMENTATION:  // 17
+            assert( error->response_type == 0 );
+            assert( error->error_code == code );
+            assert( error->major_code == request_opcode );
+            break;
+        default:
+            break;
+        }
         free( error );
     }
-    // // prompt server to send error on request with no reply
-    // xcb_void_cookie_t cookie {
-    //     xcb_map_window_checked(connection, 0) };
-    // xcb_generic_error_t* error {
-    //     xcb_request_check(connection, cookie) };
-    // assert( error != nullptr );
-    // assert( error->response_type == 0 );
-    // // std::cout <<
-    // //     "response_type: " << int(error->response_type) << '\n' <<
-    // //     "error_code: " << int(error->error_code) << '\n' <<
-    // //     "sequence: " << int(error->sequence) << '\n' <<
-    // //     "resouce_id: " << int(error->resource_id) << '\n' <<
-    // //     "minor_code: " << int(error->minor_code) << '\n' <<
-    // //     "major_code: " << int(error->major_code) << '\n' <<
-    // //     "full_sequence: " << int(error->full_sequence) << '\n' <<
-    // //     std::endl;
-    // free( error );
-
-    // // prompt server to send error on request with reply
-    // xcb_get_geometry_cookie_t cookie2 {
-    //     xcb_get_geometry(connection, window) };
-    // xcb_generic_error_t* error2 {};
-    // xcb_get_geometry_reply_t* reply {
-    //     xcb_get_geometry_reply(connection, cookie2, &error2) };
-    // if ( !reply ) {
-    //     assert( error2 != nullptr );
-    //     assert( error2->response_type == 0 );
-    //     // std::cout <<
-    //     //     "response_type: " << int(error2->response_type) << '\n' <<
-    //     //     "error_code: " << int(error2->error_code) << '\n' <<
-    //     //     "sequence: " << int(error2->sequence) << '\n' <<
-    //     //     "resouce_id: " << int(error2->resource_id) << '\n' <<
-    //     //     "minor_code: " << int(error2->minor_code) << '\n' <<
-    //     //     "major_code: " << int(error2->major_code) << '\n' <<
-    //     //     "full_sequence: " << int(error2->full_sequence) << '\n' <<
-    //     //     std::endl;
-    //     free( error2 );
-    // } else {
-    //     free( reply );
-    // }
-    // xcb_destroy_window(
-    //     connection, window);
 
     xcb_flush( connection );
     xcb_disconnect( connection );

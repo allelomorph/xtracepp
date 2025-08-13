@@ -50,6 +50,7 @@ target_include_directories(error_test PRIVATE
 )
 target_link_libraries(error_test PUBLIC
   ${X11_xcb_LIB}
+  fmt
 )
 
 add_executable(ServerRefusal_test
