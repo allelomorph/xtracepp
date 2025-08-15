@@ -425,7 +425,7 @@ private:
         Connection* conn, uint8_t* data, const size_t sz );
 
     size_t _logServerError(
-        Connection* conn, uint8_t* data, const size_t sz );
+        Connection* conn, const uint8_t* data, const size_t sz );
 
     size_t _logServerReply(
         Connection* conn, uint8_t* data, const size_t sz );

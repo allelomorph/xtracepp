@@ -15,7 +15,8 @@
 #include "protocol/common_types.hpp"
 #include "protocol/connection_setup.hpp"
 #include "protocol/requests.hpp"  // PolySegment::SEGMENT
-#include "protocol/events.hpp"  // codes::MAX
+#include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
+#include "protocol/errors.hpp"  // errors::ENCODING_SZ
 
 
 std::string_view
@@ -1042,13 +1043,12 @@ size_t X11ProtocolParser::_logServerPacket(
         assert( first_byte <= protocol::events::codes::MAX );
         switch ( first_byte ) {
         case 0:   // Error
-            return sz;  // TBD deactivated for testing
-            // log error func distinguishing by `code` byte
-            //bytes_parsed = _logServerError( conn, data, sz );
-            // assert( bytes_parsed == 32 );
+            bytes_parsed = _logServerError( conn, data, sz );
+            assert( bytes_parsed == protocol::errors::ENCODING_SZ );
             break;
         case 1:   // Reply
-            return sz;  // TBD deactivated for testing
+            bytes_parsed = 32;  // TBD
+            fmt::println("reply of 32B");
             // log reply func distingusishing by using provided sequence number to look up request opcode,
             //   then call func based on opcode
             // TBD modification of QueryExtension replies should happen here to filter extensions
@@ -1057,7 +1057,7 @@ size_t X11ProtocolParser::_logServerPacket(
             break;
         default:  // Event (2-35)
             bytes_parsed = _logServerEvent( conn, data, sz );
-            //assert( bytes_parsed == protcol::events::ENCODING_SZ );
+            assert( bytes_parsed == protocol::events::ENCODING_SZ );
             break;
         }
     }
@@ -1067,18 +1067,6 @@ size_t X11ProtocolParser::_logServerPacket(
     }
     assert( bytes_parsed <= sz );
     return bytes_parsed;
-}
-
-size_t X11ProtocolParser::_logServerError(
-    Connection* conn, uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz >= 32 );  // TBD
-
-    // using namespace protocol::errors;
-    // const Error* error {
-    //     reinterpret_cast< Error* >( data ) };
-    return sz;
 }
 
 size_t X11ProtocolParser::_logServerReply(

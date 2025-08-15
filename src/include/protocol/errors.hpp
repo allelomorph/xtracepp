@@ -137,9 +137,9 @@ constexpr std::array<std::string_view, ERROR_CT + 1> names {
     "Implementation"   // 17
 };
 
-struct __attribute__((packed)) Error {
+struct __attribute__((packed)) Encoding {
 public:
-    uint8_t prefix;  // always 0
+    uint8_t error;  // always 0
     uint8_t code;
     CARD16  sequence_number;
     union {
@@ -153,6 +153,8 @@ public:
 private:
     uint8_t _unused2[21];
 };
+
+static constexpr uint32_t ENCODING_SZ { sizeof(Encoding) };
 
 // // by Error::code
 // constexpr std::array<std::string_view, ERROR_CT + 1> causes {
