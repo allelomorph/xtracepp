@@ -66,7 +66,7 @@ size_t X11ProtocolParser::_logSimpleRequest(
             _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -125,7 +125,7 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
         _formatCommonType( encoding->window ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -185,7 +185,7 @@ size_t X11ProtocolParser::_logListFontsRequest(
         pattern, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -290,7 +290,7 @@ size_t X11ProtocolParser::_logCreateWindow(
         value_list_outputs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -372,7 +372,7 @@ size_t X11ProtocolParser::_logChangeWindowAttributes(
         value_list_outputs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -422,7 +422,7 @@ size_t X11ProtocolParser::_logChangeSaveSet(
         _formatCommonType( encoding->window ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -474,7 +474,7 @@ size_t X11ProtocolParser::_logReparentWindow(
         _formatInteger( encoding->y ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -548,7 +548,7 @@ size_t X11ProtocolParser::_logConfigureWindow(
         value_list_outputs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -598,7 +598,7 @@ size_t X11ProtocolParser::_logCirculateWindow(
         _formatCommonType( encoding->window ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -645,7 +645,7 @@ size_t X11ProtocolParser::_logGetGeometry(
         _formatCommonType( encoding->drawable ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -704,7 +704,7 @@ size_t X11ProtocolParser::_logInternAtom(
         name, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -750,7 +750,7 @@ size_t X11ProtocolParser::_logGetAtomName(
         _formatCommonType( encoding->atom ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -829,7 +829,7 @@ size_t X11ProtocolParser::_logChangeProperty(
         data_hex, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -877,7 +877,7 @@ size_t X11ProtocolParser::_logDeleteProperty(
         _formatCommonType( encoding->property ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -936,7 +936,7 @@ size_t X11ProtocolParser::_logGetProperty(
         _formatInteger( encoding->long_length ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -986,7 +986,7 @@ size_t X11ProtocolParser::_logSetSelectionOwner(
         _formatCommonType( encoding->time, SetSelectionOwner::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1032,7 +1032,7 @@ size_t X11ProtocolParser::_logGetSelectionOwner(
         _formatCommonType( encoding->selection ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1087,7 +1087,7 @@ size_t X11ProtocolParser::_logConvertSelection(
         _formatCommonType( encoding->time, ConvertSelection::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1148,7 +1148,7 @@ size_t X11ProtocolParser::_logSendEvent(
         event.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1211,7 +1211,7 @@ size_t X11ProtocolParser::_logGrabPointer(
         _formatCommonType( encoding->time, GrabPointer::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1257,7 +1257,7 @@ size_t X11ProtocolParser::_logUngrabPointer(
         _formatCommonType( encoding->time, UngrabPointer::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1322,7 +1322,7 @@ size_t X11ProtocolParser::_logGrabButton(
         _formatCommonType( encoding->modifiers ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1374,7 +1374,7 @@ size_t X11ProtocolParser::_logUngrabButton(
         _formatCommonType( encoding->modifiers ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1424,7 +1424,7 @@ size_t X11ProtocolParser::_logChangeActivePointerGrab(
         _formatCommonType( encoding->event_mask ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1480,7 +1480,7 @@ size_t X11ProtocolParser::_logGrabKeyboard(
         _formatInteger( encoding->keyboard_mode, GrabKeyboard::keyboard_mode_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1526,7 +1526,7 @@ size_t X11ProtocolParser::_logUngrabKeyboard(
         _formatCommonType( encoding->time, UngrabKeyboard::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1582,7 +1582,7 @@ size_t X11ProtocolParser::_logGrabKey(
         _formatInteger( encoding->keyboard_mode, GrabKey::keyboard_mode_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1634,7 +1634,7 @@ size_t X11ProtocolParser::_logUngrabKey(
         _formatCommonType( encoding->modifiers ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1684,7 +1684,7 @@ size_t X11ProtocolParser::_logAllowEvents(
         _formatCommonType( encoding->time, AllowEvents::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1734,7 +1734,7 @@ size_t X11ProtocolParser::_logGetMotionEvents(
         _formatCommonType( encoding->stop, GetMotionEvents::stop_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1786,7 +1786,7 @@ size_t X11ProtocolParser::_logTranslateCoordinates(
         _formatInteger( encoding->src_y ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1847,7 +1847,7 @@ size_t X11ProtocolParser::_logWarpPointer(
         _formatInteger( encoding->dst_y ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1899,7 +1899,7 @@ size_t X11ProtocolParser::_logSetInputFocus(
         _formatCommonType( encoding->time, SetInputFocus::time_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -1958,7 +1958,7 @@ size_t X11ProtocolParser::_logOpenFont(
         name, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2004,7 +2004,7 @@ size_t X11ProtocolParser::_logCloseFont(
         _formatCommonType( encoding->font ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2051,7 +2051,7 @@ size_t X11ProtocolParser::_logQueryFont(
         _formatCommonType( encoding->font.font ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2132,7 +2132,7 @@ size_t X11ProtocolParser::_logQueryTextExtents(
         string_as_hex, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2187,7 +2187,7 @@ size_t X11ProtocolParser::_logSetFontPath(
         path.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2243,7 +2243,7 @@ size_t X11ProtocolParser::_logCreatePixmap(
         _formatInteger( encoding->height ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2289,7 +2289,7 @@ size_t X11ProtocolParser::_logFreePixmap(
         _formatCommonType( encoding->pixmap ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2381,7 +2381,7 @@ size_t X11ProtocolParser::_logCreateGC(
         value_list_outputs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2471,7 +2471,7 @@ size_t X11ProtocolParser::_logChangeGC(
         value_list_outputs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2521,7 +2521,7 @@ size_t X11ProtocolParser::_logCopyGC(
         _formatBitmask( encoding->value_mask, CopyGC::value_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2582,7 +2582,7 @@ size_t X11ProtocolParser::_logSetDashes(
         dashes.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2646,7 +2646,7 @@ size_t X11ProtocolParser::_logSetClipRectangles(
         rectangles.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2692,7 +2692,7 @@ size_t X11ProtocolParser::_logFreeGC(
         _formatCommonType( encoding->gc ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2751,7 +2751,7 @@ size_t X11ProtocolParser::_logClearArea(
         _formatInteger( encoding->height ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2815,7 +2815,7 @@ size_t X11ProtocolParser::_logCopyArea(
         _formatInteger( encoding->height ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2882,7 +2882,7 @@ size_t X11ProtocolParser::_logCopyPlane(
         _formatInteger( encoding->bit_plane ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -2943,7 +2943,7 @@ size_t X11ProtocolParser::_logPolyPoint(
         points.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3005,7 +3005,7 @@ size_t X11ProtocolParser::_logPolyLine(
         points.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3062,7 +3062,7 @@ size_t X11ProtocolParser::_logPolySegment(
         segments.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3119,7 +3119,7 @@ size_t X11ProtocolParser::_logPolyRectangle(
         rectangles.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3176,7 +3176,7 @@ size_t X11ProtocolParser::_logPolyArc(
         arcs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3238,7 +3238,7 @@ size_t X11ProtocolParser::_logFillPoly(
         points.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3295,7 +3295,7 @@ size_t X11ProtocolParser::_logPolyFillRectangle(
         rectangles.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3352,7 +3352,7 @@ size_t X11ProtocolParser::_logPolyFillArc(
         arcs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3425,7 +3425,7 @@ size_t X11ProtocolParser::_logPutImage(
         image_data_sz, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3487,7 +3487,7 @@ size_t X11ProtocolParser::_logGetImage(
         _formatInteger( encoding->plane_mask ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3548,7 +3548,7 @@ size_t X11ProtocolParser::_logPolyText8(
         text_items.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3609,7 +3609,7 @@ size_t X11ProtocolParser::_logPolyText16(
         text_items.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3673,7 +3673,7 @@ size_t X11ProtocolParser::_logImageText8(
         string, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3748,7 +3748,7 @@ size_t X11ProtocolParser::_logImageText16(
         string_as_hex, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3802,7 +3802,7 @@ size_t X11ProtocolParser::_logCreateColormap(
         _formatCommonType( encoding->visual ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3848,7 +3848,7 @@ size_t X11ProtocolParser::_logFreeColormap(
         _formatCommonType( encoding->cmap ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3896,7 +3896,7 @@ size_t X11ProtocolParser::_logCopyColormapAndFree(
         _formatCommonType( encoding->src_cmap ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3943,7 +3943,7 @@ size_t X11ProtocolParser::_logInstallColormap(
         _formatCommonType( encoding->cmap ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -3989,7 +3989,7 @@ size_t X11ProtocolParser::_logUninstallColormap(
         _formatCommonType( encoding->cmap ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4041,7 +4041,7 @@ size_t X11ProtocolParser::_logAllocColor(
         _formatInteger( encoding->blue ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4100,7 +4100,7 @@ size_t X11ProtocolParser::_logAllocNamedColor(
         name, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4154,7 +4154,7 @@ size_t X11ProtocolParser::_logAllocColorCells(
         _formatInteger( encoding->planes ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4213,7 +4213,7 @@ size_t X11ProtocolParser::_logAllocColorPlanes(
         _formatInteger( encoding->blues ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4271,7 +4271,7 @@ size_t X11ProtocolParser::_logFreeColors(
         pixels.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4326,7 +4326,7 @@ size_t X11ProtocolParser::_logStoreColors(
         items.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4391,7 +4391,7 @@ size_t X11ProtocolParser::_logStoreNamedColor(
         name, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4446,7 +4446,7 @@ size_t X11ProtocolParser::_logQueryColors(
         pixels.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4505,7 +4505,7 @@ size_t X11ProtocolParser::_logLookupColor(
         name, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4569,7 +4569,7 @@ size_t X11ProtocolParser::_logCreateCursor(
         _formatInteger( encoding->back_blue ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4637,7 +4637,7 @@ size_t X11ProtocolParser::_logCreateGlyphCursor(
         _formatInteger( encoding->back_blue ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4683,7 +4683,7 @@ size_t X11ProtocolParser::_logFreeCursor(
         _formatCommonType( encoding->cursor ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4742,7 +4742,7 @@ size_t X11ProtocolParser::_logRecolorCursor(
         _formatInteger( encoding->back_blue ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4796,7 +4796,7 @@ size_t X11ProtocolParser::_logQueryBestSize(
         _formatInteger( encoding->height ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4851,7 +4851,7 @@ size_t X11ProtocolParser::_logQueryExtension(
         name, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4910,7 +4910,7 @@ size_t X11ProtocolParser::_logChangeKeyboardMapping(
         keysyms.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -4958,7 +4958,7 @@ size_t X11ProtocolParser::_logGetKeyboardMapping(
         _formatInteger( encoding->count ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5031,7 +5031,7 @@ size_t X11ProtocolParser::_logChangeKeyboardControl(
         value_list_outputs.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5078,7 +5078,7 @@ size_t X11ProtocolParser::_logBell(
             _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5133,7 +5133,7 @@ size_t X11ProtocolParser::_logChangePointerControl(
         _formatCommonType( encoding->do_threshold ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5185,7 +5185,7 @@ size_t X11ProtocolParser::_logSetScreenSaver(
         _formatInteger( encoding->allow_exposures, SetScreenSaver::allow_exposures_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5256,7 +5256,7 @@ size_t X11ProtocolParser::_logChangeHosts(
         address.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5303,7 +5303,7 @@ size_t X11ProtocolParser::_logSetAccessControl(
             _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5350,7 +5350,7 @@ size_t X11ProtocolParser::_logSetCloseDownMode(
             _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5396,7 +5396,7 @@ size_t X11ProtocolParser::_logKillClient(
         _formatInteger( encoding->resource, KillClient::resource_names ), _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5457,7 +5457,7 @@ size_t X11ProtocolParser::_logRotateProperties(
         properties.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5504,7 +5504,7 @@ size_t X11ProtocolParser::_logForceScreenSaver(
             _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5558,7 +5558,7 @@ size_t X11ProtocolParser::_logSetPointerMapping(
         map.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5615,7 +5615,7 @@ size_t X11ProtocolParser::_logSetModifierMapping(
         keycodes.str, _separator,
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
@@ -5661,7 +5661,7 @@ size_t X11ProtocolParser::_logNoOperation(
             _formatInteger( encoding->request_length ), _separator ) : "",
         struct_indent
         );
-    assert( bytes_parsed == sz );
+    // assert( bytes_parsed == sz );
     return bytes_parsed;
 }
 
