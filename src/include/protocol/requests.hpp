@@ -319,6 +319,34 @@ std::array< std::string_view, opcodes::MAX + 1 > names {
 
 // TBD request "header" in protocol refers to 4B { opcode, depth, request_length }
 
+// TBD make this member of each ReplyEncoding or leave more specialized structs intact?
+// TBD note that reply_length is (total length of reply - 32 ) / 4
+struct [[gnu::packed]] ReplyHeader {
+    uint8_t  reply; // always 1
+    // union names are by request opcode
+    union {
+        uint8_t _unused;  // 14-17 21 23 39 44 47 49 52 83 85-87 92 97-98 106 108
+        uint8_t backing_store;  // 3
+        CARD8   format; // 20
+        uint8_t status; // 26 31 116 118
+        BOOL    same_screen; // 38 40
+        uint8_t revert_to; // 43
+        uint8_t draw_direction; // 48
+        uint8_t name_len; // 50 (_verbose only)
+        CARD8   depth; // 73
+        CARD8   names_len; // 99 (_verbose only)
+        uint8_t keysyms_per_keycode; // 101
+        uint8_t global_auto_repeat; // 103
+        uint8_t mode; // 110
+        uint8_t map_len; // 117 (_verbose only)
+        uint8_t keycodes_per_modifier; // 119
+    };
+    uint16_t seq_num;
+    uint32_t reply_length;
+};
+
+static constexpr uint32_t DEFAULT_REPLY_ENCODING_SZ { 32 };
+
 struct CreateWindow {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 1
@@ -446,7 +474,7 @@ struct [[gnu::packed]] SimpleWindowReqEncoding {
 private:
     uint8_t    _unused;
 public:
-    uint16_t   request_length;
+    uint16_t   request_length;  // 2
     WINDOW     window;
 };
 
@@ -458,12 +486,10 @@ struct GetWindowAttributes {
     // Encoding::request_length == 3+n
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t          _prefix;   // 1 Reply
-    public:
+        uint8_t          reply;   // 1
         uint8_t          backing_store;  // backing-store  // 0 NotUseful 1 WhenMapped 2 Always
         CARD16           sequence_number;  // sequence number  (request seq num & 0x0000ffff)
-        uint32_t         reply_length;  // "3"? really 3B? reply length
+        uint32_t         reply_length;  // 3
         VISUALID         visual;
         uint16_t         class_;  // class, 1 InputOutput 2 InputOnly
         BITGRAVITY       bit_gravity;  // bit-gravity
@@ -481,6 +507,8 @@ struct GetWindowAttributes {
     private:
         uint8_t          _unused[2];
     };
+    static_assert( sizeof(ReplyEncoding) ==
+                   DEFAULT_REPLY_ENCODING_SZ + (3 * 4) );
 
     inline static const
     std::vector< std::string_view >& backing_store_names {
@@ -493,18 +521,20 @@ struct GetWindowAttributes {
 struct DestroyWindow {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 4
+    // Encoding::request_length == 2
 };
 
 struct DestroySubwindows {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 5
+    // Encoding::request_length == 2
 };
 
 struct ChangeSaveSet {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;   // 6
         uint8_t    mode;     // 0 Insert 1 Delete
-        uint16_t   request_length;
+        uint16_t   request_length;  // 2
         WINDOW     window;
     };
 
@@ -530,21 +560,25 @@ struct ReparentWindow {
 struct MapWindow {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 8
+    // Encoding::request_length == 2
 };
 
 struct MapSubwindows {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 9
+    // Encoding::request_length == 2
 };
 
 struct UnmapWindow {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 10
+    // Encoding::request_length == 2
 };
 
 struct UnmapSubwindows {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 11
+    // Encoding::request_length == 2
 };
 
 struct ConfigureWindow {
@@ -612,9 +646,7 @@ struct GetGeometry {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t _prefix;  // 1 Reply
-    public:
+        uint8_t  reply;  // 1
         CARD8    depth;
         CARD16   sequence_number;  // sequence number
         uint32_t reply_length;  // 0 reply length
@@ -627,6 +659,7 @@ struct GetGeometry {
     private:
         uint8_t  _unused[10];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct QueryTree {
@@ -634,8 +667,8 @@ struct QueryTree {
     // Encoding::opcode == 15
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -647,6 +680,7 @@ struct QueryTree {
         uint8_t    _unused2[14];
     };
     // followed by 4n LISTofWINDOW  children
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& parent_names {
@@ -665,8 +699,8 @@ struct InternAtom {
     // followed by pad(n) STRING8 name
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t   reply;  // 1
     private:
-        uint8_t   _prefix;  // 1 Reply
         uint8_t   _unused1;
     public:
         CARD16    sequence_number;  // sequence number
@@ -675,6 +709,7 @@ struct InternAtom {
     private:
         uint8_t   _unused2[20];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& atom_names {
@@ -692,8 +727,8 @@ struct GetAtomName {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t   reply;  // 1
     private:
-        uint8_t   _prefix;  // 1 Reply
         uint8_t   _unused1;
     public:
         CARD16    sequence_number;  // sequence number
@@ -703,6 +738,7 @@ struct GetAtomName {
         uint8_t  _unused2[22];
     };
     // followed by STRING8 name of pad(n) bytes
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct ChangeProperty {
@@ -760,9 +796,7 @@ struct GetProperty {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t  _prefix;  // 1 Reply
-    public:
+        uint8_t  reply;  // 1
         CARD8    format;
         CARD16   sequence_number;  // sequence number
         uint32_t reply_length;  // (n+p)/4 reply length
@@ -782,6 +816,7 @@ struct GetProperty {
       (n is a multiple of 2 for format = 16)
       (n is a multiple of 4 for format = 32)
     */
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& request_type_names {
@@ -797,8 +832,8 @@ struct ListProperties {
     // Encoding::opcode == 21
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t  reply;  // 1
     private:
-        uint8_t  _prefix;  // 1 Reply
         uint8_t  _unused1;
     public:
         CARD16   sequence_number;  // sequence number
@@ -808,6 +843,7 @@ struct ListProperties {
         uint8_t  _unused2[22];
     };
     // followed by 4nB LISTofATOM atoms
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct SetSelectionOwner {
@@ -841,8 +877,8 @@ struct GetSelectionOwner {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t  reply;  // 1
     private:
-        uint8_t  _prefix;  // 1 Reply
         uint8_t  _unused1;
     public:
         CARD16   sequence_number;  // sequence number
@@ -851,6 +887,7 @@ struct GetSelectionOwner {
     private:
         uint8_t  _unused2[20];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& owner_names {
@@ -925,15 +962,14 @@ struct GrabPointer {
         protocol::enum_names::time };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t  _prefix;  // 1 Reply
-    public:
+        uint8_t  reply;  // 1
         uint8_t  status;  // 0 Success 1 AlreadyGrabbed 2 InvalidTime 3 NotViewable 4 Frozen
         CARD16   sequence_number;  // sequence number
         uint32_t reply_length;  // 0 reply length
     private:
         uint8_t  _unused[24];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& status_names {
@@ -1052,9 +1088,7 @@ struct GrabKeyboard {
         protocol::enum_names::input_mode };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t  _prefix;  // 1 Reply
-    public:
+        uint8_t  reply;  // 1
         uint8_t  status;  // 0 Success 1 AlreadyGrabbed 2 InvalidTime 3 NotViewable 4 Frozen
         CARD16   sequence_number;  // sequence number
         uint32_t reply_length;  // 0 reply length
@@ -1150,11 +1184,11 @@ struct AllowEvents {
 namespace impl {
 
 struct [[gnu::packed]] SimpleReqEncoding {
-    uint8_t    opcode;
+    uint8_t  opcode;
 private:
-    uint8_t    _unused;
+    uint8_t  _unused;
 public:
-    uint16_t   request_length;
+    uint16_t request_length;  // 1
 };
 
 }  // namespace impl
@@ -1174,11 +1208,10 @@ struct UngrabServer {
 struct QueryPointer {
     using Encoding = impl::SimpleWindowReqEncoding;
     // Encoding::opcode == 38
+    // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t          _prefix;  // 1 Reply
-    public:
+        uint8_t          reply;  // 1
         BOOL             same_screen;  // same-screen
         CARD16           sequence_number;  // sequence number
         uint32_t         reply_length;  // 0 reply length
@@ -1192,6 +1225,7 @@ struct QueryPointer {
     private:
         uint8_t          _unused[6];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& child_names {
@@ -1218,8 +1252,8 @@ struct GetMotionEvents {
         protocol::enum_names::time };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t          reply;  // 1
     private:
-        uint8_t          _prefix;  // 1 Reply
         uint8_t          _unused1;
     public:
         CARD16           sequence_number;  // sequence number
@@ -1229,6 +1263,7 @@ struct GetMotionEvents {
         uint8_t          _unused[20];
     };
     // followed by 8nB LISTofTIMECOORD events
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     struct [[gnu::packed]] TIMECOORD {
         TIMESTAMP  time;
@@ -1251,9 +1286,7 @@ struct TranslateCoordinates {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t          _prefix;  // 1 Reply
-    public:
+        uint8_t          reply;  // 1
         BOOL             same_screen;  // same-screen
         CARD16           sequence_number;  // sequence number
         uint32_t         reply_length;  // 0 reply length
@@ -1263,6 +1296,7 @@ struct TranslateCoordinates {
     private:
         uint8_t          _unused[16];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& child_names {
@@ -1320,9 +1354,7 @@ struct GetInputFocus {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t          _prefix;  // 1 Reply
-    public:
+        uint8_t          reply;  // 1
         uint8_t          revert_to;  // revert-to 0 None 1 PointerRoot 2 Parent
         CARD16           sequence_number;  // sequence number
         uint32_t         reply_length;  // 0 reply length
@@ -1330,6 +1362,7 @@ struct GetInputFocus {
     private:
         uint8_t          _unused[20];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& revert_to_names {
@@ -1345,14 +1378,16 @@ struct QueryKeymap {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t          reply;  // 1
     private:
-        uint8_t          _prefix;  // 1 Reply
         uint8_t          _unused;
     public:
         CARD16           sequence_number;  // sequence number
         uint32_t         reply_length;  // 2 reply length
         CARD8            keys[32];  // LISTofCARD8 32B bit-vector
     };
+    static_assert( sizeof(ReplyEncoding) ==
+                   DEFAULT_REPLY_ENCODING_SZ + (2 * 4) );
 };
 
 struct OpenFont {
@@ -1413,8 +1448,8 @@ struct QueryFont {
     using CHARINFO = impl::CHARINFO;
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t          reply;  // 1
     private:
-        uint8_t          _prefix;  // 1 Reply
         uint8_t          _unused1;
     public:
         CARD16           sequence_number;  // sequence number
@@ -1457,9 +1492,7 @@ struct QueryTextExtents {
     // followed by pad(2n)B STRING16 string
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    draw_direction;  // draw-direction 0 LeftToRight 1 RightToLeft
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 0 reply length
@@ -1473,8 +1506,7 @@ struct QueryTextExtents {
     private:
         uint8_t    _unused[4];
     };
-    // followed by 8nB LISTofFONTPROP properties n FONTPROP
-    // followed by 12mB LISTofCHARINFO char-infos m CHARINFO
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& draw_direction_names {
@@ -1494,8 +1526,8 @@ struct ListFonts {
     // followed by pad(n)B STRING8 pattern
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -1506,6 +1538,7 @@ struct ListFonts {
     };
     // followed by pad(n)B LISTofSTR names
     // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct ListFontsWithInfo {
@@ -1524,9 +1557,7 @@ struct ListFontsWithInfo {
     using CHARINFO = impl::CHARINFO;
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    n;  // length of name in bytes
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 7+2m+(n+p)/4 reply length
@@ -1552,6 +1583,8 @@ struct ListFontsWithInfo {
     };
     // followed by 8mB LISTofFONTPROP properties m FONTPROP
     // followed by pad(n)B STRING8 name
+    static_assert( sizeof(ReplyEncoding) ==
+                   DEFAULT_REPLY_ENCODING_SZ + (7 * 4) );
 
     inline static const
     std::vector< std::string_view >& draw_direction_names {
@@ -1560,15 +1593,14 @@ struct ListFontsWithInfo {
     // TBD may not need second struct, can differentiate by testing
     //   ReplyEncoding.n == 0
     struct [[gnu::packed]] FinalReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    last_reply;  // 0 last-reply indicator
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 7 reply length
     private:
         uint8_t    _unused[52];
     };
+    static_assert( sizeof(FinalReplyEncoding) == sizeof(ReplyEncoding) );
 };
 
 struct SetFontPath {
@@ -1592,8 +1624,8 @@ struct GetFontPath {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -1604,6 +1636,7 @@ struct GetFontPath {
     };
     // followed by pad(n)B LISTofSTR path
     // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct CreatePixmap {
@@ -2047,9 +2080,7 @@ struct GetImage {
         protocol::enum_names::image_format };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         CARD8      depth;
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // (n+p)/4 reply length
@@ -2058,6 +2089,7 @@ struct GetImage {
         uint8_t    _unused[20];
     };
     // followed by pad(n)B LISTofBYTE data
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& visual_names {
@@ -2218,9 +2250,7 @@ struct ListInstalledColormaps {
     // Encoding::request_length == 2
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         CARD8      depth;
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // n reply length
@@ -2247,12 +2277,12 @@ struct AllocColor {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
-        uint32_t   reply_length;  // 0 reply length TBD why 0?
+        uint32_t   reply_length;  // 0 reply length
         CARD16     red;
         CARD16     green;
         CARD16     blue;
@@ -2263,6 +2293,7 @@ struct AllocColor {
     private:
         uint8_t    _unused3[12];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct AllocNamedColor {
@@ -2280,8 +2311,8 @@ struct AllocNamedColor {
     // followed by STRING8 pad(n)B
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2296,6 +2327,7 @@ struct AllocNamedColor {
     private:
         uint8_t    _unused2[8];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct AllocColorCells {
@@ -2309,8 +2341,8 @@ struct AllocColorCells {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2322,6 +2354,7 @@ struct AllocColorCells {
     };
     // followed by 4n LISTofCARD32 pixels
     // followed by 4m LISTofCARD32 masks
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct AllocColorPlanes {
@@ -2337,8 +2370,8 @@ struct AllocColorPlanes {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2354,6 +2387,7 @@ struct AllocColorPlanes {
         uint8_t    _unused3[8];
     };
     // followed by 4n LISTofCARD32 pixels
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct FreeColors {
@@ -2425,8 +2459,8 @@ struct QueryColors {
     // followed by 4nB LISTofCARD32 pixels
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2436,6 +2470,7 @@ struct QueryColors {
         uint8_t    _unused2[22];
     };
     // followed by 8nB LISTofRGB colors
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     struct [[gnu::packed]] RGB {
         CARD16     red;
@@ -2461,8 +2496,8 @@ struct LookupColor {
     // followed by pad(n) STRING8 name
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2476,6 +2511,7 @@ struct LookupColor {
     private:
         uint8_t    _unused2[12];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct CreateCursor {
@@ -2567,8 +2603,8 @@ struct QueryBestSize {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2578,6 +2614,7 @@ struct QueryBestSize {
     private:
         uint8_t    _unused2[20];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& class_names {
@@ -2598,8 +2635,8 @@ struct QueryExtension {
     // followed by pad()n)B STRING8 name
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2611,6 +2648,7 @@ struct QueryExtension {
     private:
         uint8_t    _unused2[20];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct ListExtensions {
@@ -2619,9 +2657,7 @@ struct ListExtensions {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         CARD8      n;  // unnamed, number of STRs in names
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // (n+p)/4 reply length
@@ -2629,6 +2665,7 @@ struct ListExtensions {
         uint8_t    _unused[24];
     };
     // followed by pad(n) LISTofSTR names
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct ChangeKeyboardMapping {
@@ -2658,9 +2695,7 @@ struct GetKeyboardMapping {
     };
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    keysyms_per_keycode;  // n keysyms-per-keycode
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // nm reply length (m = count field from the request)
@@ -2668,6 +2703,7 @@ struct GetKeyboardMapping {
         uint8_t    _unused2[24];
     };
     // followed by 4nmB LISTofKEYSYM keysyms
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct ChangeKeyboardControl {
@@ -2709,9 +2745,7 @@ struct GetKeyboardControl {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    global_auto_repeat;  // global-auto-repeat 0 Off 1 On
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 5 reply length
@@ -2722,8 +2756,11 @@ struct GetKeyboardControl {
         CARD16     bell_duration;  // bell-duration
     private:
         uint8_t    _unused[2];
+    public:
+        CARD8      auto_repeats[32];  // LISTofCARD8 auto-repeats (LIST included due to fixed size)
     };
-    // followed by 32B LISTofCARD8 auto-repeats
+    static_assert( sizeof(ReplyEncoding) ==
+                   DEFAULT_REPLY_ENCODING_SZ + (5 * 4) );
 
     inline static const
     std::vector< std::string_view >& global_auto_repeat_names {
@@ -2802,8 +2839,8 @@ struct GetScreenSaver {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -2815,6 +2852,7 @@ struct GetScreenSaver {
     private:
         uint8_t    _unused2[18];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& prefer_blanking_names {
@@ -2851,9 +2889,7 @@ struct ListHosts {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    mode;  // 0 Disabled 1 Enabled
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // n/4 reply length
@@ -2862,6 +2898,7 @@ struct ListHosts {
         uint8_t    _unused[22];
     };
     // followed by n4B LISTofHOST hosts n HOSTs
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& mode_names {
@@ -2942,15 +2979,14 @@ struct SetPointerMapping {
     // followed by pad(n)B LISTofCARD8 map
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    status;  // 0 Success 1 Busy
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 0 reply length TBD why 0?
     private:
         uint8_t    _unused[24];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& status_names {
@@ -2963,9 +2999,7 @@ struct GetPointerMapping {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    n;  // length of map
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // (n+p)/4 reply length
@@ -2973,6 +3007,7 @@ struct GetPointerMapping {
         uint8_t    _unused[24];
     };
     // followed by pad(n)B LISTofCARD8 map
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct SetModifierMapping {
@@ -2984,15 +3019,14 @@ struct SetModifierMapping {
     // followed by 8nB LISTofKEYCODE keycodes n KEYCODEs
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    status;  // 0 Success 1 Busy 2 Failed
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 0 reply length TBD why 0?
     private:
         uint8_t    _unused[24];
     };
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& status_names {
@@ -3005,9 +3039,7 @@ struct GetModifierMapping {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
-    private:
-        uint8_t    _prefix;  // 1 Reply
-    public:
+        uint8_t    reply;  // 1
         uint8_t    keycodes_per_modifier;  // n keycodes-per-modifier
         CARD16     sequence_number;  // sequence number
         uint32_t   reply_length;  // 2n reply length
@@ -3015,6 +3047,7 @@ struct GetModifierMapping {
         uint8_t    _unused[24];
     };
     // followed by 8n LISTofKEYCODE keycodes n KEYCODEs
+    static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
 struct NoOperation {
