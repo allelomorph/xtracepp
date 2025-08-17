@@ -53,6 +53,18 @@ target_link_libraries(error_test PUBLIC
   fmt
 )
 
+add_executable(reply_test
+  reply_test.cpp
+)
+target_include_directories(reply_test PRIVATE
+  ${X11_xcb_INCLUDE_PATH}
+  ${PROJECT_SOURCE_DIR}/src/include
+)
+target_link_libraries(reply_test PUBLIC
+  ${X11_xcb_LIB}
+  fmt
+)
+
 add_executable(ServerRefusal_test
   ServerRefusal_test.cpp
 )
