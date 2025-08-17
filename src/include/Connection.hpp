@@ -112,6 +112,7 @@ public:
     }
 
     void registerRequest( const uint8_t opcode );
+    uint8_t lookupRequest( const uint16_t seq_num );
 };
 
 

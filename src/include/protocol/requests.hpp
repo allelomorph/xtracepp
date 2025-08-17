@@ -176,8 +176,8 @@ enum Opcodes {
     NOOPERATION               =  127
 };
 
-inline constexpr
-int MAX { NOOPERATION };
+inline constexpr int MIN { CREATEWINDOW };
+inline constexpr int MAX { NOOPERATION };
 
 }  // namespace opcodes
 
@@ -341,11 +341,12 @@ struct [[gnu::packed]] ReplyHeader {
         uint8_t map_len; // 117 (_verbose only)
         uint8_t keycodes_per_modifier; // 119
     };
-    uint16_t seq_num;
+    uint16_t sequence_number;
     uint32_t reply_length;
 };
 
 static constexpr uint32_t DEFAULT_REPLY_ENCODING_SZ { 32 };
+static constexpr uint8_t  REPLY_PREFIX { 1 };
 
 struct CreateWindow {
     struct [[gnu::packed]] Encoding {
@@ -514,8 +515,14 @@ struct GetWindowAttributes {
     std::vector< std::string_view >& backing_store_names {
         protocol::enum_names::window_attribute_backing_store };
     inline static const
+    std::vector< std::string_view >& class_names {
+        protocol::enum_names::window_class };
+    inline static const
     std::vector< std::string_view >& map_state_names {
         protocol::enum_names::window_attribute_map_state };
+    inline static const
+    std::vector< std::string_view >& colormap_names {
+        protocol::enum_names::zero_none };
 };
 
 struct DestroyWindow {

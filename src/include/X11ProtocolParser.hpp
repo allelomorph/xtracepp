@@ -79,6 +79,7 @@ private:
     static constexpr uint32_t _UNINITIALIZED {
         std::numeric_limits< uint32_t >::max() };
 
+    // TBD maybe for readability pass in _EnumRange{ min, max } instead
     // TBD [u]intXX_t CARDXX INTXX
     template < typename ValueT >
     auto _formatInteger(
@@ -427,8 +428,17 @@ private:
     size_t _logServerError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
+    // TBD need data to be mutable for reply spoofing, eg QueryExtension
+    size_t _logServerReply(
+        Connection* conn, const uint8_t* data, const size_t sz );
+    // TBD replies with modified contents
+    template < typename RequestT >
     size_t _logServerReply(
         Connection* conn, uint8_t* data, const size_t sz );
+    // TBD normal unmodified data
+    template < typename RequestT >
+    size_t _logServerReply(
+        Connection* conn, const uint8_t* data, const size_t sz );
 
     size_t _logServerEvent(
         Connection* conn, const uint8_t* data, const size_t sz );

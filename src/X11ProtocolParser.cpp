@@ -1047,13 +1047,9 @@ size_t X11ProtocolParser::_logServerPacket(
             assert( bytes_parsed == protocol::errors::ENCODING_SZ );
             break;
         case 1:   // Reply
-            bytes_parsed = 32;  // TBD
-            fmt::println("reply of 32B");
-            // log reply func distingusishing by using provided sequence number to look up request opcode,
-            //   then call func based on opcode
             // TBD modification of QueryExtension replies should happen here to filter extensions
-            //bytes_parsed = _logServerReply( conn, data, sz );
-            // assert( bytes_parsed >= 32 );
+            bytes_parsed = _logServerReply( conn, data, sz );
+            assert( bytes_parsed >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
             break;
         default:  // Event (2-35)
             bytes_parsed = _logServerEvent( conn, data, sz );
@@ -1067,15 +1063,6 @@ size_t X11ProtocolParser::_logServerPacket(
     }
     assert( bytes_parsed <= sz );
     return bytes_parsed;
-}
-
-size_t X11ProtocolParser::_logServerReply(
-    Connection* conn, uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz >= 32 ); // TBD some extension replies may be smaller, eg BigReqEnable
-
-    return sz;
 }
 
 void X11ProtocolParser::importSettings(
