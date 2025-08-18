@@ -4,6 +4,7 @@
 
 #include "Connection.hpp"
 #include "errors.hpp"
+#include "protocol/predefined_atoms.hpp"
 
 
 Connection::Connection() :
@@ -60,4 +61,27 @@ Connection::lookupRequest( const uint16_t seq_num ) {
    // TBD temp assert here to see if replies ever sent out of sequence
     assert( seq_num == _request_opcodes_by_seq_num.size() - 1 );
     return _request_opcodes_by_seq_num[ seq_num ];
+}
+
+void
+Connection::stashAtom( const std::string_view atom_str ) {
+    assert( _stashed_atom_str == "" );
+    _stashed_atom_str = atom_str;
+}
+
+void
+Connection::internStashedAtom( const protocol::ATOM atom ) {
+    assert( atom.data > protocol::atoms::PREDEFINED_MAX );
+    assert( _stashed_atom_str != "" );
+    _interned_atoms.emplace(atom.data, _stashed_atom_str);
+    _stashed_atom_str = std::string_view{};
+}
+
+std::optional<std::string_view>
+Connection::getInternedAtom(
+    const protocol::ATOM atom) {
+    auto it { _interned_atoms.find( atom.data ) };
+    if ( it == _interned_atoms.end() )
+        return std::nullopt;
+    return it->second;
 }

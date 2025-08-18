@@ -661,11 +661,13 @@ size_t X11ProtocolParser::_logInternAtom(
         reinterpret_cast< const InternAtom::Encoding* >( data ) };
     bytes_parsed += sizeof( InternAtom::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::INTERNATOM );
+    assert( encoding->n > 0 );
     // followed by pad(n) STRING8 name
     std::string_view name {
         reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
+    conn->stashAtom( name );
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
@@ -747,7 +749,7 @@ size_t X11ProtocolParser::_logGetAtomName(
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "atom", name_width, _equals,
-        _formatCommonType( encoding->atom ), _separator,
+        _formatCommonType( conn, encoding->atom ), _separator,
         struct_indent
         );
     // assert( bytes_parsed == sz );
@@ -815,9 +817,9 @@ size_t X11ProtocolParser::_logChangeProperty(
         memb_indent, "window", name_width, _equals,
         _formatCommonType( encoding->window ), _separator,
         memb_indent, "property", name_width, _equals,
-        _formatCommonType( encoding->property ), _separator,
+        _formatCommonType( conn, encoding->property ), _separator,
         memb_indent, "type", name_width, _equals,
-        _formatCommonType( encoding->type ), _separator,
+        _formatCommonType( conn, encoding->type ), _separator,
         memb_indent, "format", name_width, _equals,
         _formatInteger( encoding->format ), _separator,
         _verbose ?
@@ -874,7 +876,7 @@ size_t X11ProtocolParser::_logDeleteProperty(
         memb_indent, "window", name_width, _equals,
         _formatCommonType( encoding->window ), _separator,
         memb_indent, "property", name_width, _equals,
-        _formatCommonType( encoding->property ), _separator,
+        _formatCommonType( conn, encoding->property ), _separator,
         struct_indent
         );
     // assert( bytes_parsed == sz );
@@ -927,9 +929,9 @@ size_t X11ProtocolParser::_logGetProperty(
         memb_indent, "window", name_width, _equals,
         _formatCommonType( encoding->window ), _separator,
         memb_indent, "property", name_width, _equals,
-        _formatCommonType( encoding->property ), _separator,
+        _formatCommonType( conn, encoding->property ), _separator,
         memb_indent, "type", name_width, _equals,
-        _formatCommonType( encoding->type, GetProperty::request_type_names ), _separator,
+        _formatCommonType( conn, encoding->type, GetProperty::request_type_names ), _separator,
         memb_indent, "long-offset", name_width, _equals,
         _formatInteger( encoding->long_offset ), _separator,
         memb_indent, "long-length", name_width, _equals,
@@ -981,7 +983,7 @@ size_t X11ProtocolParser::_logSetSelectionOwner(
         memb_indent, "owner", name_width, _equals,
         _formatCommonType( encoding->owner, SetSelectionOwner::owner_names ), _separator,
         memb_indent, "selection", name_width, _equals,
-        _formatCommonType( encoding->selection ), _separator,
+        _formatCommonType( conn, encoding->selection ), _separator,
         memb_indent, "time", name_width, _equals,
         _formatCommonType( encoding->time, SetSelectionOwner::time_names ), _separator,
         struct_indent
@@ -1029,7 +1031,7 @@ size_t X11ProtocolParser::_logGetSelectionOwner(
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "selection", name_width, _equals,
-        _formatCommonType( encoding->selection ), _separator,
+        _formatCommonType( conn, encoding->selection ), _separator,
         struct_indent
         );
     // assert( bytes_parsed == sz );
@@ -1078,11 +1080,11 @@ size_t X11ProtocolParser::_logConvertSelection(
         memb_indent, "requestor", name_width, _equals,
         _formatCommonType( encoding->requestor ), _separator,
         memb_indent, "selection", name_width, _equals,
-        _formatCommonType( encoding->selection ), _separator,
+        _formatCommonType( conn, encoding->selection ), _separator,
         memb_indent, "target", name_width, _equals,
-        _formatCommonType( encoding->target ), _separator,
+        _formatCommonType( conn, encoding->target ), _separator,
         memb_indent, "property", name_width, _equals,
-        _formatCommonType( encoding->property, ConvertSelection::property_names ), _separator,
+        _formatCommonType( conn, encoding->property, ConvertSelection::property_names ), _separator,
         memb_indent, "time", name_width, _equals,
         _formatCommonType( encoding->time, ConvertSelection::time_names ), _separator,
         struct_indent
@@ -5414,7 +5416,7 @@ size_t X11ProtocolParser::_logRotateProperties(
     assert( encoding->opcode == protocol::requests::opcodes::ROTATEPROPERTIES );
 
     _ParsingOutputs properties {
-        _parseLISTofATOM( data + bytes_parsed, encoding->number_of_properties ) };
+        _parseLISTofATOM( conn, data + bytes_parsed, encoding->number_of_properties ) };
     bytes_parsed += _pad( properties.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 

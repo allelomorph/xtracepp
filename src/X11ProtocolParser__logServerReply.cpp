@@ -227,14 +227,119 @@ template <>
 size_t X11ProtocolParser::_logServerReply<
     protocol::requests::QueryTree >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= sizeof(
+                protocol::requests::QueryTree::ReplyEncoding ) ); // TBD
+
+    size_t bytes_parsed {};
+    using protocol::requests::QueryTree;
+    const QueryTree::ReplyEncoding* encoding {
+        reinterpret_cast< const QueryTree::ReplyEncoding* >( data ) };
+    bytes_parsed += sizeof( QueryTree::ReplyEncoding );
+    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    assert( encoding->reply_length == encoding->n );
+
+    const _ParsingOutputs children {
+        _parseLISTofWINDOW( data + bytes_parsed, encoding->n ) };
+    assert( encoding->reply_length == children.bytes_parsed / _ALIGN );
+    bytes_parsed += children.bytes_parsed;
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( 0 ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+    fmt::println(
+        "{{{}"
+        "{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply", name_width, _equals,
+            _formatInteger( encoding->reply ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "sequence number", name_width, _equals,
+            _formatInteger( encoding->sequence_number ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply length", name_width, _equals,
+            _formatInteger( encoding->reply_length ), _separator ),
+        memb_indent, "root", name_width, _equals,
+        _formatCommonType( encoding->root ), _separator,
+        memb_indent, "parent", name_width, _equals,
+        _formatCommonType( encoding->parent, QueryTree::parent_names ), _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n children", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ),
+        memb_indent, "children", name_width, _equals,
+        children.str, _separator,
+        struct_indent
+        );
+    return bytes_parsed;
 }
 
 template <>
 size_t X11ProtocolParser::_logServerReply<
     protocol::requests::InternAtom >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= sizeof(
+                protocol::requests::InternAtom::ReplyEncoding ) ); // TBD
+
+    size_t bytes_parsed {};
+    using protocol::requests::InternAtom;
+    const InternAtom::ReplyEncoding* encoding {
+        reinterpret_cast< const InternAtom::ReplyEncoding* >( data ) };
+    bytes_parsed += sizeof( InternAtom::ReplyEncoding );
+    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    assert( encoding->reply_length == 0 );
+    conn->internStashedAtom( encoding->atom );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( 0 ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+    fmt::println(
+        "{{{}"
+        "{}{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply", name_width, _equals,
+            _formatInteger( encoding->reply ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "sequence number", name_width, _equals,
+            _formatInteger( encoding->sequence_number ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply length", name_width, _equals,
+            _formatInteger( encoding->reply_length ), _separator ),
+        memb_indent, "atom", name_width, _equals,
+        _formatCommonType( conn, encoding->atom, InternAtom::atom_names ), _separator,
+        struct_indent
+        );
+    return bytes_parsed;
 }
 
 template <>

@@ -700,7 +700,8 @@ X11ProtocolParser::_parseLISTofKEYSYM( const uint8_t* data, const uint16_t n ) {
 }
 
 X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
+X11ProtocolParser::_parseLISTofATOM(
+    Connection* conn, const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
     _ParsingOutputs outputs {};
     outputs.str += '[';
@@ -708,6 +709,7 @@ X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
         outputs.str += fmt::format(
             "{}{}", outputs.str.size() > 1 ? " " : "",
             _formatCommonType(
+                conn,
                 *reinterpret_cast< const protocol::ATOM* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( protocol::ATOM );
@@ -830,6 +832,23 @@ X11ProtocolParser::_parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz 
         }
     }
     outputs.str += outputs.bytes_parsed > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofWINDOW( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            "{}{}", outputs.str.size() > 1 ? " " : "",
+            _formatCommonType(
+                *reinterpret_cast< const protocol::WINDOW* >(
+                    data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( protocol::WINDOW );
+    }
+    outputs.str += ']';
     return outputs;
 }
 

@@ -61,6 +61,7 @@ X11ProtocolParser::_formatCommonType( const protocol::COLORMAP colormap,
 
 std::string
 X11ProtocolParser::_formatCommonType(
+    Connection* conn,
     const protocol::ATOM atom,
     const std::vector< std::string_view >& enum_names /* ={}*/) {
     assert( _top_three_bits_zero( atom.data ) );
@@ -68,12 +69,17 @@ X11ProtocolParser::_formatCommonType(
     if ( atom.data < enum_names.size() ) {
         return _formatInteger( atom.data, enum_names );
     }
-    // TBD need to handle interned atoms
-    assert( atom.data <= protocol::atoms::PREDEFINED_MAX );
-    const std::string atom_string {
-        atom.data == 0 ? "unrecognized atom" :
-        fmt::format("\"{}\"", protocol::atoms::predefined[ atom.data ] )
-    };
+    std::string atom_string {};
+    if ( atom.data <= protocol::atoms::PREDEFINED_MAX ) {
+        atom_string = ( atom.data == 0 ) ?
+            "unrecognized atom" :
+            fmt::format( "\"{}\"", protocol::atoms::predefined[ atom.data ] );
+    } else {
+        auto interned_atom { conn->getInternedAtom(atom) };
+        atom_string = ( interned_atom == std::nullopt ) ?
+            "unrecognized atom" :
+            fmt::format( "\"{}\"", *interned_atom );
+    }
     if ( _verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( atom.data ) * 2 ) + 2 };

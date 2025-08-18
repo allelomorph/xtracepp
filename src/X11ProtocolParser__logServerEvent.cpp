@@ -1630,7 +1630,7 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
         memb_indent, "window", name_width, _equals,
         _formatCommonType( encoding->window ), _separator,
         memb_indent, "atom", name_width, _equals,
-        _formatCommonType( encoding->atom ), _separator,
+        _formatCommonType( conn, encoding->atom ), _separator,
         memb_indent, "time", name_width, _equals,
         _formatCommonType( encoding->time ), _separator,
         memb_indent, "state", name_width, _equals,
@@ -1686,7 +1686,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
         memb_indent, "owner", name_width, _equals,
         _formatCommonType( encoding->owner ), _separator,
         memb_indent, "selection", name_width, _equals,
-        _formatCommonType( encoding->selection ), _separator,
+        _formatCommonType( conn, encoding->selection ), _separator,
         struct_indent
         );
     return outputs;
@@ -1741,11 +1741,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
         memb_indent, "requestor", name_width, _equals,
         _formatCommonType( encoding->requestor ), _separator,
         memb_indent, "selection", name_width, _equals,
-        _formatCommonType( encoding->selection ), _separator,
+        _formatCommonType( conn, encoding->selection ), _separator,
         memb_indent, "target", name_width, _equals,
-        _formatCommonType( encoding->target ), _separator,
+        _formatCommonType( conn, encoding->target ), _separator,
         memb_indent, "property", name_width, _equals,
-        _formatCommonType( encoding->property, SelectionRequest::property_names ), _separator,
+        _formatCommonType( conn, encoding->property, SelectionRequest::property_names ), _separator,
         struct_indent
         );
     return outputs;
@@ -1798,11 +1798,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
         memb_indent, "requestor", name_width, _equals,
         _formatCommonType( encoding->requestor ), _separator,
         memb_indent, "selection", name_width, _equals,
-        _formatCommonType( encoding->selection ), _separator,
+        _formatCommonType( conn, encoding->selection ), _separator,
         memb_indent, "target", name_width, _equals,
-        _formatCommonType( encoding->target ), _separator,
+        _formatCommonType( conn, encoding->target ), _separator,
         memb_indent, "property", name_width, _equals,
-        _formatCommonType( encoding->property, SelectionNotify::property_names ), _separator,
+        _formatCommonType( conn, encoding->property, SelectionNotify::property_names ), _separator,
         struct_indent
         );
     return outputs;
@@ -1910,7 +1910,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
         memb_indent, "window", name_width, _equals,
         _formatCommonType( encoding->window ), _separator,
         memb_indent, "type", name_width, _equals,
-        _formatCommonType( encoding->type ), _separator,
+        _formatCommonType( conn, encoding->type ), _separator,
         struct_indent
         );
     return outputs;

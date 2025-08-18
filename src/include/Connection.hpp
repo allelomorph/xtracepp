@@ -3,7 +3,9 @@
 
 
 #include <string>
-//#include <string_view>
+#include <string_view>
+#include <unordered_map>
+#include <optional>
 #include <system_error>  // generic_category
 #include <vector>
 
@@ -13,6 +15,7 @@
 #include <errno.h>
 
 #include "SocketBuffer.hpp"
+#include "protocol/common_types.hpp"
 
 
 class Connection {
@@ -23,6 +26,11 @@ private:
     // 1-indexed so begin with one dummy member
     // TBD this allows for lookup of request traits when parsing Error/Reply
     std::vector< uint8_t > _request_opcodes_by_seq_num { 1 };
+
+    std::unordered_map<uint32_t, std::string_view> _interned_atoms;
+    // TBD used to store atom string between InternAtom request and its ATOM
+    //   assignment in the reply
+    std::string_view _stashed_atom_str;
 
 public:
     const uint32_t id;             // unique serial number
@@ -113,6 +121,15 @@ public:
 
     void registerRequest( const uint8_t opcode );
     uint8_t lookupRequest( const uint16_t seq_num );
+
+    // only atom string known at InternAtom request parsing
+    void
+    stashAtom( const std::string_view atom_str );
+    // when parsing InternAtom reply, then string and ATOM can be joined
+    void
+    internStashedAtom( const protocol::ATOM atom );
+    std::optional<std::string_view>
+    getInternedAtom(const protocol::ATOM);
 };
 
 

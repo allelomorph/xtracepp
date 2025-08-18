@@ -154,7 +154,8 @@ private:
 
     // ATOM could use zero_none or property_atom
     std::string
-    _formatCommonType( const protocol::ATOM atom,
+    _formatCommonType( Connection* conn,
+                       const protocol::ATOM atom,
                        const std::vector< std::string_view >& enum_names = {} );
 
     // VISUALID could use zero_none or zero_copy_from_parent
@@ -261,7 +262,7 @@ private:
     _ParsingOutputs
     _parseLISTofKEYSYM( const uint8_t* data, const uint16_t n );
     _ParsingOutputs
-    _parseLISTofATOM( const uint8_t* data, const uint16_t n );
+    _parseLISTofATOM( Connection* conn, const uint8_t* data, const uint16_t n );
     _ParsingOutputs
     _parseLISTofKEYCODE( const uint8_t* data, const uint16_t n );
 
@@ -269,6 +270,9 @@ private:
     _parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz );
     _ParsingOutputs
     _parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz );
+
+    _ParsingOutputs
+    _parseLISTofWINDOW( const uint8_t* data, const uint16_t n );
 
     // TBD HOST?
 
