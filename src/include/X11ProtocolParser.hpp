@@ -246,6 +246,10 @@ private:
     _parseLISTofSTR( const uint8_t* data, const uint16_t n );
     _ParsingOutputs
     _parseLISTofCARD8( const uint8_t* data, const uint16_t n );
+    inline _ParsingOutputs
+    _parseLISTofBYTE( const uint8_t* data, const uint16_t n ) {
+        return _parseLISTofCARD8( data, n );
+    }
     _ParsingOutputs
     _parseLISTofCARD32( const uint8_t* data, const uint16_t n );
     _ParsingOutputs

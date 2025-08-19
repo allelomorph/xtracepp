@@ -9,6 +9,7 @@
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
 #include "protocol/requests.hpp"
+#include "protocol/predefined_atoms.hpp"
 
 
 // template <>
@@ -306,7 +307,9 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += sizeof( InternAtom::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length == 0 );
-    conn->internStashedAtom( encoding->atom );
+
+    if ( encoding->atom.data != protocol::atoms::NONE )
+        conn->internStashedAtom( encoding->atom );
 
     const std::string_view struct_indent {
         _multiline ? _tabIndent( 0 ) : "" };
@@ -346,21 +349,201 @@ template <>
 size_t X11ProtocolParser::_logServerReply<
     protocol::requests::GetAtomName >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= sizeof(
+                protocol::requests::GetAtomName::ReplyEncoding ) ); // TBD
+
+    size_t bytes_parsed {};
+    using protocol::requests::GetAtomName;
+    const GetAtomName::ReplyEncoding* encoding {
+        reinterpret_cast< const GetAtomName::ReplyEncoding* >( data ) };
+    bytes_parsed += sizeof( GetAtomName::ReplyEncoding );
+    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    assert( encoding->reply_length == _pad(encoding->n) / _ALIGN );
+
+    const std::string_view name {
+        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+    bytes_parsed += _pad(encoding->n);
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( 0 ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+    fmt::println(
+        "{{{}"
+        "{}{}{}{}"
+        "{}{: <{}}{}\"{}\"{}"
+        "{}}}",
+        _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply", name_width, _equals,
+            _formatInteger( encoding->reply ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "sequence number", name_width, _equals,
+            _formatInteger( encoding->sequence_number ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply length", name_width, _equals,
+            _formatInteger( encoding->reply_length ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "name length", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ),
+        memb_indent, "name", name_width, _equals,
+        name, _separator,
+        struct_indent
+        );
+    return bytes_parsed;
 }
 
 template <>
 size_t X11ProtocolParser::_logServerReply<
     protocol::requests::GetProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= sizeof(
+                protocol::requests::GetProperty::ReplyEncoding ) ); // TBD
+
+    size_t bytes_parsed {};
+    using protocol::requests::GetProperty;
+    const GetProperty::ReplyEncoding* encoding {
+        reinterpret_cast< const GetProperty::ReplyEncoding* >( data ) };
+    bytes_parsed += sizeof( GetProperty::ReplyEncoding );
+    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const uint32_t value_sz { [&encoding](){
+        uint32_t bytes { encoding->fmt_unit_ct };
+        switch ( encoding->format ) {
+        case 0:  bytes *= 0; break;
+        case 8:  bytes *= 1; break;
+        case 16: bytes *= 2; break;
+        case 32: bytes *= 4; break;
+        default: break;
+        }
+        return bytes;
+    }() };
+    assert( encoding->reply_length == _pad( value_sz ) / _ALIGN );
+
+    const _ParsingOutputs value {
+        _parseLISTofBYTE( data + bytes_parsed, value_sz ) };
+    bytes_parsed += _pad( value.bytes_parsed );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( 0 ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+    fmt::println(
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply", name_width, _equals,
+            _formatInteger( encoding->reply ), _separator ),
+        memb_indent, "format", name_width, _equals,
+        _formatInteger( encoding->format ), _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "sequence number", name_width, _equals,
+            _formatInteger( encoding->sequence_number ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply length", name_width, _equals,
+            _formatInteger( encoding->reply_length ), _separator ),
+        memb_indent, "type", name_width, _equals,
+        _formatCommonType( conn, encoding->type, GetProperty::reply_type_names ), _separator,
+        memb_indent, "bytes-after", name_width, _equals,
+        _formatInteger( encoding->bytes_after ), _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n format units", name_width, _equals,
+            _formatInteger( encoding->fmt_unit_ct ), _separator ),
+        memb_indent, "value", name_width, _equals,
+        value.str, _separator,
+        struct_indent
+        );
+    return bytes_parsed;
 }
 
 template <>
 size_t X11ProtocolParser::_logServerReply<
     protocol::requests::ListProperties >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return {};
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= sizeof(
+                protocol::requests::ListProperties::ReplyEncoding ) ); // TBD
+
+    size_t bytes_parsed {};
+    using protocol::requests::ListProperties;
+    const ListProperties::ReplyEncoding* encoding {
+        reinterpret_cast< const ListProperties::ReplyEncoding* >( data ) };
+    bytes_parsed += sizeof( ListProperties::ReplyEncoding );
+    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    assert( encoding->reply_length == encoding->n );
+
+    const _ParsingOutputs atoms {
+        _parseLISTofATOM( conn, data + bytes_parsed, encoding->n ) };
+    bytes_parsed += _pad( atoms.bytes_parsed );
+
+    const std::string_view struct_indent {
+        _multiline ? _tabIndent( 0 ) : "" };
+    const std::string_view memb_indent {
+        _multiline ? _tabIndent( 1 ) : "" };
+    const uint32_t name_width (
+        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+    fmt::println(
+        "{{{}"
+        "{}{}{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        _separator,
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply", name_width, _equals,
+            _formatInteger( encoding->reply ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "sequence number", name_width, _equals,
+            _formatInteger( encoding->sequence_number ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "reply length", name_width, _equals,
+            _formatInteger( encoding->reply_length ), _separator ),
+        !_verbose ? "" :
+        fmt::format(
+            "{}{: <{}}{}{}{}",
+            memb_indent, "n atoms", name_width, _equals,
+            _formatInteger( encoding->n ), _separator ),
+        memb_indent, "atoms", name_width, _equals,
+        atoms.str, _separator,
+        struct_indent
+        );
+    return bytes_parsed;
 }
 
 template <>

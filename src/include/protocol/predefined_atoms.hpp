@@ -19,6 +19,9 @@ inline constexpr
 uint32_t PREDEFINED_MAX { 68 };
 
 inline constexpr
+uint32_t NONE {};
+
+inline constexpr
 std::array<std::string_view, PREDEFINED_MAX + 1> predefined {
     "",
     "PRIMARY",              //  1

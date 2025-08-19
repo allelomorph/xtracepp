@@ -65,7 +65,6 @@ X11ProtocolParser::_formatCommonType(
     const protocol::ATOM atom,
     const std::vector< std::string_view >& enum_names /* ={}*/) {
     assert( _top_three_bits_zero( atom.data ) );
-    // TBD solve GetProperty
     if ( atom.data < enum_names.size() ) {
         return _formatInteger( atom.data, enum_names );
     }
@@ -80,12 +79,8 @@ X11ProtocolParser::_formatCommonType(
             "unrecognized atom" :
             fmt::format( "\"{}\"", *interned_atom );
     }
-    if ( _verbose ) {
-        // fmt counts "0x" as part of width when using '#'
-        static constexpr size_t hex_width { ( sizeof( atom.data ) * 2 ) + 2 };
-        return fmt::format( "{:#0{}x}({})", atom.data, hex_width, atom_string );
-    }
-    return atom_string;
+    return fmt::format( "{}({})", _formatInteger( atom.data ), atom_string );
+
 }
 
 // VISUALID could use zero_none or zero_copy_from_parent
