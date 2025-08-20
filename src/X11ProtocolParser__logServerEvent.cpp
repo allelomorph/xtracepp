@@ -2130,8 +2130,8 @@ size_t X11ProtocolParser::_logServerEvent(
 
     _ParsingOutputs event {
         _parseEvent( conn, data, sz ) };
-    fmt::print( _log_fs, "{:03d}:<:server event {}",
-                conn->id, event.str );
+    fmt::println( _log_fs, "{:03d}:<:server event {}",
+                  conn->id, event.str );
     assert( event.bytes_parsed == protocol::events::ENCODING_SZ );
     return event.bytes_parsed;
 }
