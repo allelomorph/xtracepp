@@ -252,9 +252,10 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply_length ==
             ( sizeof(InternAtom::ReplyEncoding) -
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
-
+    // TBD make this assert for every Reply
+    assert( conn->sequence == encoding->sequence_number );
     if ( encoding->atom.data != protocol::atoms::NONE )
-        _internStashedAtom( encoding->atom );
+        _internStashedAtom( { conn->id, conn->sequence }, encoding->atom );
 
     const std::string_view struct_indent {
         _multiline ? _tabIndent( 0 ) : "" };

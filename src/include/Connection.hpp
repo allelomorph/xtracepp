@@ -26,7 +26,7 @@ private:
     std::vector< uint8_t > _request_opcodes_by_seq_num { 1 };
 
 public:
-    const uint32_t id;             // unique serial number
+    const uint32_t id {};          // unique serial number
     const uint64_t start_time;     // timestamp of connection creation (seconds since Unix Epoch)
     // TBD from, client_fd, server_fd const and set in ctor?
     std::string    client_desc;    // (from) allocated string describing client address (x.x.x.x:port) for AF_INET or socket file path/"unknown(local)" for AF_UNIX
@@ -34,6 +34,9 @@ public:
     SocketBuffer   client_buffer;
     int            server_fd { _FD_CLOSED };      // socket connect(2)ed to x server
     SocketBuffer   server_buffer;
+
+    uint16_t       sequence {}; // Request sequence number, should match real server
+                                // starts at 1 after first call to registerRequest
 
 // TBD connection states are: uncontacted > open > closed
 //                                        > closed ( general fail )

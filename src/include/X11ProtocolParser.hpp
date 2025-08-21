@@ -42,10 +42,36 @@ private:
     char             _separator { ' ' };  // '\n'  for multiline
     std::string_view _equals    { "=" };  // " = " for multiline
 
+    struct _StashedAtomID {
+        uint32_t conn_id {};
+        uint16_t seq_num {};
+
+        bool operator==( const _StashedAtomID& other ) const {
+            return this->conn_id == other.conn_id &&
+                this->seq_num == other.seq_num;
+        }
+    };
+    struct _StashedAtomIDHash {
+        size_t operator()(const _StashedAtomID& sa_id) const noexcept {
+            const size_t h1 { std::hash<uint32_t>{}( sa_id.conn_id ) };
+            const size_t h2 { std::hash<uint16_t>{}( sa_id.seq_num ) };
+            return h1 ^ (h2 << 1); // or use boost::hash_combine
+        }
+    };
+    // TBD index atoms by conn id and seq num between InternAtom request and reply
+    std::unordered_map<_StashedAtomID, std::string_view, _StashedAtomIDHash>
+    _stashed_atoms;
+    // TBD once InternAtom replies with server ATOM, properly map to ATOM
     std::unordered_map<uint32_t, std::string_view> _interned_atoms;
-    // TBD used to store atom string between InternAtom request and its ATOM
-    //   assignment in the reply
-    std::string_view _stashed_atom_str;
+
+    // only atom string known at InternAtom request parsing
+    void
+    _stashAtom( const _StashedAtomID sa_id, const std::string_view atom_str );
+    // when parsing InternAtom reply, then string and ATOM can be joined
+    void
+    _internStashedAtom( const _StashedAtomID sa_id, const protocol::ATOM atom );
+    std::optional<std::string_view>
+    _getInternedAtom(const protocol::ATOM);
 
     std::string
     _bufferHexDump( const uint8_t* data, const size_t sz );
@@ -698,15 +724,6 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logNoOperation(
         Connection* conn, const uint8_t* data, const size_t sz );
-
-    // only atom string known at InternAtom request parsing
-    void
-    _stashAtom( const std::string_view atom_str );
-    // when parsing InternAtom reply, then string and ATOM can be joined
-    void
-    _internStashedAtom( const protocol::ATOM atom );
-    std::optional<std::string_view>
-    _getInternedAtom(const protocol::ATOM);
 
 public:
     X11ProtocolParser() {}

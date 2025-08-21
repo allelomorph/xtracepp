@@ -667,7 +667,7 @@ size_t X11ProtocolParser::_logInternAtom(
         reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
-    _stashAtom( name );
+    _stashAtom( { conn->id, conn->sequence }, name );
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
@@ -5682,11 +5682,10 @@ size_t X11ProtocolParser::_logClientRequest(
 
     const uint8_t opcode { *data };
     assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );  // TBD core opcodes only to start
-
     // map opcode to sequence number to aid in parsing request errors and replies
     conn->registerRequest( opcode );
-    size_t bytes_parsed {};
 
+    size_t bytes_parsed {};
     fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
                 conn->id, opcode, protocol::requests::names[ opcode ] );
     switch ( opcode ) {

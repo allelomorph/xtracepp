@@ -6,6 +6,9 @@
 #include "errors.hpp"
 #include "protocol/predefined_atoms.hpp"
 
+// TBD dubugging
+//#include <fmt/format.h>
+
 
 Connection::Connection() :
     id ( _next_id++ ),
@@ -52,13 +55,17 @@ Connection::closeServerSocket() {
 //   most recent value.
 void
 Connection::registerRequest( const uint8_t opcode ) {
+    // TBD sequence should index into last member of _request_opcodes_by_seq_num
+    assert( sequence == _request_opcodes_by_seq_num.size() - 1 );
     _request_opcodes_by_seq_num.emplace_back( opcode );
+    ++sequence;
 }
 
 uint8_t
 Connection::lookupRequest( const uint16_t seq_num ) {
     assert( seq_num < _request_opcodes_by_seq_num.size() );
-   // TBD temp assert here to see if replies ever sent out of sequence
+    // TBD temp asserts here to see if replies ever sent out of sequence
     assert( seq_num == _request_opcodes_by_seq_num.size() - 1 );
+    assert( seq_num == sequence );
     return _request_opcodes_by_seq_num[ seq_num ];
 }
