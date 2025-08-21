@@ -51,7 +51,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_geometry_reply_t*>( reply ) );
     }   break;
     case QUERYTREE:                {  //  15
-        const xcb_window_t      window {};
+        const xcb_window_t      window { screen->root };
         const xcb_query_tree_cookie_t cookie {
             xcb_query_tree(connection, window) };
         const xcb_query_tree_reply_t* reply {
@@ -62,8 +62,10 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case INTERNATOM:               {  //  16
         const uint8_t           only_if_exists {};
-        const uint16_t          name_len       { 10 };
-        const char*             name           { "TEST_ATOM" };
+        // name_len does not include \0
+        // TBD is that true of other *_len vars?
+        const uint16_t          name_len       { sizeof("PRIMARY") - 1 };
+        const char*             name           { "PRIMARY" };
         const xcb_intern_atom_cookie_t cookie {
             xcb_intern_atom(connection, only_if_exists, name_len, name) };
         const xcb_intern_atom_reply_t* reply {
@@ -73,7 +75,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_intern_atom_reply_t*>( reply ) );
     }   break;
     case GETATOMNAME:              {  //  17
-        const xcb_atom_t        atom { 1 };
+        const xcb_atom_t        atom { XCB_ATOM_PRIMARY };
         const xcb_get_atom_name_cookie_t cookie {
             xcb_get_atom_name(connection, atom) };
         const xcb_get_atom_name_reply_t* reply {
@@ -83,12 +85,13 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_atom_name_reply_t*>( reply ) );
     }   break;
     case GETPROPERTY:              {  //  20
+        const xcb_window_t      window      { screen->root };
         const uint8_t           _delete     {};
-        const xcb_window_t      window      {};
-        const xcb_atom_t        property    { 1 };
-        const xcb_atom_t        type        { 2 };
+        const xcb_atom_t        property    { XCB_ATOM_WM_NAME };
+        const xcb_atom_t        type        { XCB_ATOM_STRING };
         const uint32_t          long_offset {};
-        const uint32_t          long_length {};
+        // should be >= size of property value in bytes / 4 to get all of value
+        const uint32_t          long_length { 10 };
         const xcb_get_property_cookie_t cookie {
             xcb_get_property(
                 connection, _delete, window, property,
@@ -100,7 +103,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_property_reply_t*>( reply ) );
     }   break;
     case LISTPROPERTIES:           {  //  21
-        const xcb_window_t      window {};
+        const xcb_window_t                 window { screen->root };
         const xcb_list_properties_cookie_t cookie {
             xcb_list_properties(connection, window) };
         const xcb_list_properties_reply_t* reply {
@@ -110,7 +113,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_list_properties_reply_t*>( reply ) );
     }   break;
     case GETSELECTIONOWNER:        {  //  23
-        const xcb_atom_t        selection {};
+        const xcb_atom_t                       selection { XCB_ATOM_PRIMARY };
         const xcb_get_selection_owner_cookie_t cookie {
             xcb_get_selection_owner(connection, selection) };
         const xcb_get_selection_owner_reply_t* reply {
@@ -121,7 +124,7 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case GRABPOINTER:              {  //  26
         const uint8_t           owner_events {};
-        const xcb_window_t      grab_window {};
+        const xcb_window_t      grab_window { screen->root };
         const uint16_t          event_mask {};
         const uint8_t           pointer_mode {};
         const uint8_t           keyboard_mode {};
@@ -140,7 +143,7 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case GRABKEYBOARD:             {  //  31
         const uint8_t           owner_events {};
-        const xcb_window_t      grab_window {};
+        const xcb_window_t      grab_window { screen->root };
         const xcb_timestamp_t   time {};
         const uint8_t           pointer_mode {};
         const uint8_t           keyboard_mode {};
@@ -155,7 +158,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_grab_keyboard_reply_t*>( reply ) );
     }   break;
     case QUERYPOINTER:             {  //  38
-        const xcb_window_t      window {};
+        const xcb_window_t               window { screen->root };
         const xcb_query_pointer_cookie_t cookie {
             xcb_query_pointer(connection, window) };
         const xcb_query_pointer_reply_t* reply {
@@ -165,8 +168,10 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_query_pointer_reply_t*>( reply ) );
     }   break;
     case GETMOTIONEVENTS:          {  //  39
-        const xcb_window_t      window {};
-        const xcb_timestamp_t   start {};
+        const xcb_window_t      window { screen->root };
+        // start of 0 CurrentTime returns no events
+        const xcb_timestamp_t   start { 1 };
+        // 0 CurrentTime
         const xcb_timestamp_t   stop {};
         const xcb_get_motion_events_cookie_t cookie {
             xcb_get_motion_events(
@@ -178,10 +183,10 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_motion_events_reply_t*>( reply ) );
     }   break;
     case TRANSLATECOORDINATES:     {  //  40
-        const xcb_window_t      src_window {};
-        const xcb_window_t      dst_window {};
-        const int16_t           src_x {  1 };
-        const int16_t           src_y { -1 };
+        const xcb_window_t      src_window { screen->root };
+        const xcb_window_t      dst_window { screen->root };
+        const int16_t           src_x {};
+        const int16_t           src_y {};
         const xcb_translate_coordinates_cookie_t cookie {
             xcb_translate_coordinates(
                 connection, src_window, dst_window, src_x, src_y) };
@@ -210,7 +215,13 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_query_keymap_reply_t*>( reply ) );
     }   break;
     case QUERYFONT:                {  //  47
-        const xcb_fontable_t    font {};
+        // use of core fonts is deprecated, here only to test without extensions
+        // font name taken from reply of ListFonts
+        xcb_font_t        fid { xcb_generate_id ( connection ) };
+        xcb_open_font(connection, fid,
+                      sizeof("-misc-fixed-medium-r-normal--18-120-100-100-c-90-iso8859-10") - 1,
+                      "-misc-fixed-medium-r-normal--18-120-100-100-c-90-iso8859-10");
+        const xcb_fontable_t          font { fid };
         const xcb_query_font_cookie_t cookie {
             xcb_query_font(connection, font) };
         const xcb_query_font_reply_t* reply {
@@ -218,9 +229,16 @@ int main(const int argc, const char* const* argv) {
         assert( error == nullptr );
         assert( reply != nullptr );
         free( const_cast<xcb_query_font_reply_t*>( reply ) );
+        xcb_close_font(connection, fid);
     }   break;
     case QUERYTEXTEXTENTS:         {  //  48
-        const xcb_fontable_t    font {};
+        // use of core fonts is deprecated, here only to test without extensions
+        // font name taken from reply of ListFonts
+        xcb_font_t              fid { xcb_generate_id ( connection ) };
+        xcb_open_font(connection, fid,
+                      sizeof("-misc-fixed-medium-r-normal--18-120-100-100-c-90-iso8859-10") - 1,
+                      "-misc-fixed-medium-r-normal--18-120-100-100-c-90-iso8859-10");
+        const xcb_fontable_t    font { fid };
         const uint32_t          string_len { 3 };
         // const xcb_char2b_t*     string {
         //     reinterpret_cast<const xcb_char2b_t*>( u"¼½¾" ) };
@@ -236,11 +254,12 @@ int main(const int argc, const char* const* argv) {
         assert( error == nullptr );
         assert( reply != nullptr );
         free( const_cast<xcb_query_text_extents_reply_t*>( reply ) );
+        xcb_close_font(connection, fid);
     }   break;
     case LISTFONTS:                {  //  49
-        const uint16_t          max_names {};
-        const uint16_t          pattern_len { 7 };
-        const char*             pattern { "example" };
+        const uint16_t          max_names { 10 };
+        const uint16_t          pattern_len { sizeof("*") - 1 };
+        const char*             pattern { "*" };
         const xcb_list_fonts_cookie_t cookie {
             xcb_list_fonts(
                 connection, max_names, pattern_len, pattern) };
@@ -251,9 +270,9 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_list_fonts_reply_t*>( reply ) );
     }   break;
     case LISTFONTSWITHINFO:        {  //  50
-        const uint16_t          max_names {};
-        const uint16_t          pattern_len { 7 };
-        const char*             pattern { "example" };
+        const uint16_t          max_names { 10 };
+        const uint16_t          pattern_len { sizeof("*") - 1 };
+        const char*             pattern { "*" };
         const xcb_list_fonts_with_info_cookie_t cookie {
             xcb_list_fonts_with_info(
                 connection, max_names, pattern_len, pattern) };
@@ -272,14 +291,18 @@ int main(const int argc, const char* const* argv) {
         assert( reply != nullptr );
         free( const_cast<xcb_get_font_path_reply_t*>( reply ) );
     }   break;
-   case GETIMAGE:                 {  //  73
-        const uint8_t           format {};
-        const xcb_drawable_t    drawable {};
+    case GETIMAGE:                 {  //  73
+        // TBD root returns reply with data of 0 bytes when width and height are 0,
+        //   and Match error if any of x,y,width,height are non-zero; maybe make window or pixmap?
+        // TBD Xlib equivalent here: https://www.apriorit.com/dev-blog/672-lin-how-to-take-multi-monitor-screenshots-on-linux
+        //   why can't we reproduce?
+        const uint8_t           format { XCB_IMAGE_FORMAT_XY_PIXMAP };
+        const xcb_drawable_t    drawable { screen->root };
         const int16_t           x {};
         const int16_t           y {};
-        const uint16_t          width {};
-        const uint16_t          height {};
-        const uint32_t          plane_mask {};
+        const uint16_t          width { /*screen->width_in_pixels*/ };
+        const uint16_t          height { /*screen->height_in_pixels*/ };
+        const uint32_t          plane_mask {};  // Xlib AllPlanes == 0, no xcb constant
         const xcb_get_image_cookie_t cookie {
             xcb_get_image(
                 connection, format, drawable, x, y, width, height, plane_mask) };
@@ -290,7 +313,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_image_reply_t*>( reply ) );
     }   break;
     case LISTINSTALLEDCOLORMAPS:   {  //  83
-        const xcb_window_t      window {};
+        const xcb_window_t      window { screen->root };
         const xcb_list_installed_colormaps_cookie_t cookie {
             xcb_list_installed_colormaps(connection, window) };
         const xcb_list_installed_colormaps_reply_t* reply {
@@ -300,7 +323,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_list_installed_colormaps_reply_t*>( reply ) );
     }   break;
     case ALLOCCOLOR:               {  //  84
-        const xcb_colormap_t    cmap {};
+        const xcb_colormap_t    cmap { screen->default_colormap };
         const uint16_t          red {};
         const uint16_t          green {};
         const uint16_t          blue {};
@@ -312,11 +335,13 @@ int main(const int argc, const char* const* argv) {
         assert( error == nullptr );
         assert( reply != nullptr );
         free( const_cast<xcb_alloc_color_reply_t*>( reply ) );
+        // TBD do we need to call xcb_free_colors for cleanup?
     }   break;
     case ALLOCNAMEDCOLOR:          {  //  85
-        const xcb_colormap_t    cmap {};
-        const uint16_t          name_len { 4 };
-        const char*             name { "test" };
+        // https://en.wikipedia.org/wiki/X11_color_names
+        const xcb_colormap_t    cmap { screen->default_colormap };
+        const uint16_t          name_len { sizeof("Red") - 1 };
+        const char*             name { "Red" };
         const xcb_alloc_named_color_cookie_t cookie {
             xcb_alloc_named_color(
                 connection, cmap, name_len, name) };
@@ -327,10 +352,17 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_alloc_named_color_reply_t*>( reply ) );
     }   break;
     case ALLOCCOLORCELLS:          {  //  86
+        const xcb_colormap_t mid { xcb_generate_id(connection) };
+        const uint8_t alloc { XCB_COLORMAP_ALLOC_NONE };
+        xcb_create_colormap(connection, alloc, mid, screen->root, screen->root_visual);
+        // https://man.archlinux.org/man/extra/libx11/XAllocNamedColor.3.en
         const uint8_t           contiguous {};
-        const xcb_colormap_t    cmap {};
-        const uint16_t          colors {};
-        const uint16_t          planes {};
+        // TBD after struggling to produce Alloc errors in testing, here we can do
+        //   so by using screen->default_colormap, colors=1, planes=1
+        // TBD same Alloc error even when using created colormap
+        const xcb_colormap_t    cmap { mid };
+        const uint16_t          colors { 1 };
+        const uint16_t          planes { 1 };
         const xcb_alloc_color_cells_cookie_t cookie {
             xcb_alloc_color_cells(
                 connection, contiguous, cmap, colors, planes) };
@@ -339,6 +371,7 @@ int main(const int argc, const char* const* argv) {
         assert( error == nullptr );
         assert( reply != nullptr );
         free( const_cast<xcb_alloc_color_cells_reply_t*>( reply ) );
+        xcb_free_colormap(connection, mid);
     }   break;
     case ALLOCCOLORPLANES:         {  //  87
         const uint8_t           contiguous {};
@@ -357,11 +390,10 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_alloc_color_planes_reply_t*>( reply ) );
     }   break;
     case QUERYCOLORS:              {  //  91
-        const xcb_colormap_t    cmap {};
+        const xcb_colormap_t    cmap { screen->default_colormap };
         const uint32_t          pixels_len { 3 };
         const uint32_t          pixels[3] {
-            0x11111111, 0x22222222, 0x33333333
-        };
+            1, 2, 3 };
         const xcb_query_colors_cookie_t cookie {
             xcb_query_colors(
                 connection, cmap, pixels_len, pixels) };
@@ -372,9 +404,10 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_query_colors_reply_t*>( reply ) );
     }   break;
     case LOOKUPCOLOR:              {  //  92
-        const xcb_colormap_t    cmap {};
-        const uint16_t          name_len { 4 };
-        const char*             name { "test" };
+        // https://en.wikipedia.org/wiki/X11_color_names
+        const xcb_colormap_t    cmap { screen->default_colormap };
+        const uint16_t          name_len { sizeof("Red") - 1 };
+        const char*             name { "Red" };
         const xcb_lookup_color_cookie_t cookie {
             xcb_lookup_color(
                 connection, cmap, name_len, name) };
@@ -386,7 +419,7 @@ int main(const int argc, const char* const* argv) {
     }   break;
     case QUERYBESTSIZE:            {  //  97
         const uint8_t           _class {};
-        const xcb_drawable_t    drawable {};
+        const xcb_drawable_t    drawable { screen->root };
         const uint16_t          width {};
         const uint16_t          height {};
         const xcb_query_best_size_cookie_t cookie {
@@ -399,8 +432,8 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_query_best_size_reply_t*>( reply ) );
     }   break;
     case QUERYEXTENSION:           {  //  98
-        const uint16_t          name_len { 4 };
-        const char*             name { "test" };
+        const uint16_t          name_len { sizeof("MIT-SHM") - 1 };
+        const char*             name { "MIT-SHM" };
         const xcb_query_extension_cookie_t cookie {
             xcb_query_extension(
                 connection, name_len, name) };
@@ -420,8 +453,8 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_list_extensions_reply_t*>( reply ) );
     }   break;
     case GETKEYBOARDMAPPING:       {  // 101
-        const xcb_keycode_t     first_keycode {};
-        const uint8_t           count {};
+        const xcb_keycode_t     first_keycode { 0x10 };
+        const uint8_t           count { 3 };
         const xcb_get_keyboard_mapping_cookie_t cookie {
             xcb_get_keyboard_mapping(
                 connection, first_keycode, count) };
@@ -459,6 +492,7 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_screen_saver_reply_t*>( reply ) );
     }   break;
     case LISTHOSTS:                {  // 110
+        // TBD in local testing the reply has a hosts of 0 length
         const xcb_list_hosts_cookie_t cookie {
             xcb_list_hosts(connection) };
         const xcb_list_hosts_reply_t* reply {
@@ -468,10 +502,15 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_list_hosts_reply_t*>( reply ) );
     }   break;
     case SETPOINTERMAPPING:        {  // 116
-        const uint8_t           map_len { 4 };
-        const uint8_t           map[4]  {
-            0x01, 0x02, 0x03, 0x04
-        };
+        // SetPointerMapping map length must match that returned by GetPointerMapping
+        const xcb_get_pointer_mapping_cookie_t gpm_cookie {
+            xcb_get_pointer_mapping(connection) };
+        const xcb_get_pointer_mapping_reply_t* gpm_reply {
+            xcb_get_pointer_mapping_reply(connection, gpm_cookie, &error) };
+        assert( error == nullptr );
+        assert( gpm_reply != nullptr );
+        const uint8_t           map_len { gpm_reply->map_len };
+        const uint8_t*          map     { xcb_get_pointer_mapping_map(gpm_reply) };
         const xcb_set_pointer_mapping_cookie_t cookie {
             xcb_set_pointer_mapping(
                 connection, map_len, map) };
@@ -479,6 +518,7 @@ int main(const int argc, const char* const* argv) {
             xcb_set_pointer_mapping_reply(connection, cookie, &error) };
         assert( error == nullptr );
         assert( reply != nullptr );
+        free( const_cast<xcb_get_pointer_mapping_reply_t*>( gpm_reply ) );
         free( const_cast<xcb_set_pointer_mapping_reply_t*>( reply ) );
     }   break;
     case GETPOINTERMAPPING:        {  // 117
@@ -491,13 +531,16 @@ int main(const int argc, const char* const* argv) {
         free( const_cast<xcb_get_pointer_mapping_reply_t*>( reply ) );
     }   break;
     case SETMODIFIERMAPPING:       {  // 118
+        const xcb_get_modifier_mapping_cookie_t gmm_cookie {
+            xcb_get_modifier_mapping(connection) };
+        const xcb_get_modifier_mapping_reply_t* gmm_reply {
+            xcb_get_modifier_mapping_reply(connection, gmm_cookie, &error) };
+        assert( error == nullptr );
+        assert( gmm_reply != nullptr );
         // TBD "The number of keycodes in the list must be 8*keycodes-per-modifier
         //   (or a Length error results). "
-        const uint8_t           keycodes_per_modifier { 2 };
-        const xcb_keycode_t     keycodes[16] {
-            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-            0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18
-        };
+        const uint8_t           keycodes_per_modifier { gmm_reply->keycodes_per_modifier };
+        const xcb_keycode_t*    keycodes { xcb_get_modifier_mapping_keycodes(gmm_reply) };
         const xcb_set_modifier_mapping_cookie_t cookie {
             xcb_set_modifier_mapping(
                 connection, keycodes_per_modifier, keycodes) };
@@ -506,6 +549,7 @@ int main(const int argc, const char* const* argv) {
         assert( error == nullptr );
         assert( reply != nullptr );
         free( const_cast<xcb_set_modifier_mapping_reply_t*>( reply ) );
+        free( const_cast<xcb_get_modifier_mapping_reply_t*>( gmm_reply ) );
     }   break;
     case GETMODIFIERMAPPING:       {  // 119
         const xcb_get_modifier_mapping_cookie_t cookie {
