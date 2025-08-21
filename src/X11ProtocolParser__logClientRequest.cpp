@@ -770,17 +770,23 @@ size_t X11ProtocolParser::_logChangeProperty(
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEPROPERTY );
     assert( encoding->format == 8 || encoding->format == 16 ||
         encoding->format == 32 );
-    std::string data_hex;
-    const uint32_t data_sz {
-        encoding->format == 32 ? encoding->fmt_unit_ct / 4 :
-        encoding->format == 16 ? encoding->fmt_unit_ct / 2 :
-        /* encoding->format == 8 */ encoding->fmt_unit_ct };
-    for ( uint32_t i {}; i < data_sz; ++i ) {
-        data_hex += fmt::format(
-            "{}{:02X}", data_hex.empty() ? "" : " ",
-            *(data + bytes_parsed + i) );
-    }
-    bytes_parsed += data_sz;
+    // TBD more readable as a switch, more compact as:
+    // const uint32_t data_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
+    const uint32_t data_sz { [&encoding](){
+        uint32_t bytes { encoding->fmt_unit_ct };
+        switch ( encoding->format ) {
+        case 0:  bytes *= 0; break;
+        case 8:  bytes *= 1; break;
+        case 16: bytes *= 2; break;
+        case 32: bytes *= 4; break;
+        default: break;
+        }
+        return bytes;
+    }() };
+    // TBD can we modify printing based on type, or at least print as string when "STRING"?
+    const _ParsingOutputs data_ {
+        _parseLISTofBYTE( data + bytes_parsed, data_sz ) };
+    bytes_parsed += _pad(data_.bytes_parsed);
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     static const uint32_t tab_ct { 0 };
@@ -799,7 +805,7 @@ size_t X11ProtocolParser::_logChangeProperty(
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}[{}]{}"
+        "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
         _verbose ?
@@ -828,7 +834,7 @@ size_t X11ProtocolParser::_logChangeProperty(
             memb_indent, "format units", name_width, _equals,
             _formatInteger( encoding->fmt_unit_ct ), _separator ) : "",
         memb_indent, "data", name_width, _equals,
-        data_hex, _separator,
+        data_.str, _separator,
         struct_indent
         );
     // assert( bytes_parsed == sz );
