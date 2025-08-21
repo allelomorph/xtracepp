@@ -518,212 +518,98 @@ private:
         Connection* conn, const uint8_t* data,
         const _EventFormat format = _EventFormat::NORMAL );
 
+
     size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
+    // TBD these could be cleaner if Request classes inherit from
+    //   protocol::requests::impl:: parents with shared Encoding
+    template < typename RequestT >
+    struct _is_header_only_request_type : public std::integral_constant<
+        bool,
+        std::is_same_v< RequestT, protocol::requests::GrabServer > ||
+        std::is_same_v< RequestT, protocol::requests::UngrabServer > ||
+        std::is_same_v< RequestT, protocol::requests::GetInputFocus > ||
+        std::is_same_v< RequestT, protocol::requests::QueryKeymap > ||
+        std::is_same_v< RequestT, protocol::requests::GetFontPath > ||
+        std::is_same_v< RequestT, protocol::requests::ListExtensions > ||
+        std::is_same_v< RequestT, protocol::requests::GetKeyboardControl > ||
+        std::is_same_v< RequestT, protocol::requests::GetPointerControl > ||
+        std::is_same_v< RequestT, protocol::requests::GetScreenSaver > ||
+        std::is_same_v< RequestT, protocol::requests::ListHosts > ||
+        std::is_same_v< RequestT, protocol::requests::GetPointerMapping > ||
+        std::is_same_v< RequestT, protocol::requests::GetModifierMapping >
+        > {};
+    template < typename RequestT >
+    struct _is_header_plus_window_request_type : public std::integral_constant<
+        bool,
+        std::is_same_v< RequestT, protocol::requests::GetWindowAttributes > ||
+        std::is_same_v< RequestT, protocol::requests::DestroyWindow > ||
+        std::is_same_v< RequestT, protocol::requests::DestroySubwindows > ||
+        std::is_same_v< RequestT, protocol::requests::MapWindow > ||
+        std::is_same_v< RequestT, protocol::requests::MapSubwindows > ||
+        std::is_same_v< RequestT, protocol::requests::UnmapWindow > ||
+        std::is_same_v< RequestT, protocol::requests::UnmapSubwindows > ||
+        std::is_same_v< RequestT, protocol::requests::QueryTree > ||
+        std::is_same_v< RequestT, protocol::requests::ListProperties > ||
+        std::is_same_v< RequestT, protocol::requests::QueryPointer > ||
+        std::is_same_v< RequestT, protocol::requests::ListInstalledColormaps >
+        > {};
+    template < typename RequestT >
+    struct _is_list_fonts_request_type : public std::integral_constant<
+        bool,
+        std::is_same_v< RequestT, protocol::requests::ListFonts > ||
+        std::is_same_v< RequestT, protocol::requests::ListFontsWithInfo >
+        > {};
+    // TBD explicit template specializations need to be outside class declaration
+
+    template < typename RequestT,
+               std::enable_if_t<
+                   !( _is_header_only_request_type<RequestT>::value ||
+                     _is_header_plus_window_request_type<RequestT>::value ||
+                     _is_list_fonts_request_type<RequestT>::value ),
+                   bool> = true >
+    size_t _logClientRequest(
+        Connection* conn, const uint8_t* data, const size_t sz );
+
     // GrabServer UngrabServer GetInputFocus QueryKeymap GetFontPath
     // ListExtensions GetKeyboardControl GetPointerControl GetScreenSaver
     // ListHosts GetPointerMapping GetModifierMapping
     size_t _logSimpleRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
+    template < typename RequestT,
+               std::enable_if_t<
+                   _is_header_only_request_type<RequestT>::value,
+                   bool> = true >
+    inline size_t _logClientRequest(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleRequest( conn, data, sz );
+    }
+
     // GetWindowAttributes DestroyWindow DestroySubwindows MapWindow
     // MapSubwindows UnmapWindow UnmapSubwindows QueryTree ListProperties
     // QueryPointer ListInstalledColormaps
     size_t _logSimpleWindowRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
+    template < typename RequestT,
+               std::enable_if_t<
+                   _is_header_plus_window_request_type<RequestT>::value,
+                   bool> = true >
+    inline size_t _logClientRequest(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logSimpleWindowRequest( conn, data, sz );
+    }
+
     // ListFonts ListFontsWithInfo
     size_t _logListFontsRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-    // all others have individual funcs
-    size_t _logCreateWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeWindowAttributes(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeSaveSet(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logReparentWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConfigureWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCirculateWindow(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetGeometry(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logInternAtom(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetAtomName(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeProperty(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logDeleteProperty(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetProperty(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetSelectionOwner(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetSelectionOwner(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConvertSelection(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSendEvent(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGrabPointer(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUngrabPointer(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGrabButton(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUngrabButton(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeActivePointerGrab(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGrabKeyboard(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUngrabKeyboard(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGrabKey(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUngrabKey(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logAllowEvents(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetMotionEvents(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logTranslateCoordinates(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logWarpPointer(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetInputFocus(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logOpenFont(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCloseFont(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryFont(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryTextExtents(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetFontPath(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCreatePixmap(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFreePixmap(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCreateGC(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeGC(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCopyGC(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetDashes(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetClipRectangles(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFreeGC(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logClearArea(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCopyArea(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCopyPlane(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyPoint(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyLine(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolySegment(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyRectangle(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyArc(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFillPoly(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyFillRectangle(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyFillArc(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPutImage(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetImage(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyText8(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logPolyText16(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logImageText8(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logImageText16(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCreateColormap(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFreeColormap(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCopyColormapAndFree(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logInstallColormap(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logUninstallColormap(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logAllocColor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logAllocNamedColor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logAllocColorCells(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logAllocColorPlanes(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFreeColors(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logStoreColors(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logStoreNamedColor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryColors(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logLookupColor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCreateCursor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logCreateGlyphCursor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logFreeCursor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logRecolorCursor(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryBestSize(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logQueryExtension(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeKeyboardMapping(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logGetKeyboardMapping(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeKeyboardControl(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logBell(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangePointerControl(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetScreenSaver(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logChangeHosts(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetAccessControl(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetCloseDownMode(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logKillClient(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logRotateProperties(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logForceScreenSaver(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetPointerMapping(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logSetModifierMapping(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logNoOperation(
-        Connection* conn, const uint8_t* data, const size_t sz );
+    template < typename RequestT,
+               std::enable_if_t<
+                   _is_list_fonts_request_type<RequestT>::value,
+                   bool> = true >
+    inline size_t _logClientRequest(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+        return _logListFontsRequest( conn, data, sz );
+    }
 
 public:
     X11ProtocolParser() {}
