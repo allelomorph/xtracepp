@@ -753,7 +753,8 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
     _parseDisplayNames();
     parser.importSettings(
         settings.log_fs,  settings.multiline,
-        settings.verbose, settings.readwritedebug );
+        settings.verbose, settings.readwritedebug,
+        settings.denyallextensions );
 }
 
 int ProxyX11Server::run() {

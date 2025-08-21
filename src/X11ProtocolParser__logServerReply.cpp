@@ -1997,13 +1997,16 @@ size_t X11ProtocolParser::_logServerReply<
 
     size_t bytes_parsed {};
     using protocol::requests::QueryExtension;
-    const QueryExtension::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryExtension::ReplyEncoding* >( data ) };
+    // not const to allow for .present spoofing
+    QueryExtension::ReplyEncoding* encoding {
+        reinterpret_cast< QueryExtension::ReplyEncoding* >( data ) };
     bytes_parsed += sizeof( QueryExtension::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             ( sizeof(QueryExtension::ReplyEncoding) -
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+    if ( _denyallextensions )
+        encoding->present.data = int(false);
 
     const std::string_view struct_indent {
         _multiline ? _tabIndent( 0 ) : "" };

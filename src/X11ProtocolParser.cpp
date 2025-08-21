@@ -1210,7 +1210,8 @@ size_t X11ProtocolParser::_logServerPacket(
 
 void X11ProtocolParser::importSettings(
     FILE* log_fs, const bool multiline,
-    const bool verbose, const bool readwritedebug ) {
+    const bool verbose, const bool readwritedebug,
+    const bool denyallextensions ) {
     assert( log_fs != nullptr );
     assert( !feof( log_fs ) && !ferror( log_fs ) );
 
@@ -1218,6 +1219,7 @@ void X11ProtocolParser::importSettings(
     _multiline = multiline;
     _verbose = verbose;
     _readwritedebug = readwritedebug;
+    _denyallextensions = denyallextensions;
 
     if ( _multiline ) {
         _separator = '\n';

@@ -31,10 +31,11 @@ private:
     static constexpr size_t _ALIGN { 4 };
 
     // TBD settings imported from server class
-    FILE* _log_fs         { stdout };
-    bool  _multiline      {};
-    bool  _verbose        {};
-    bool  _readwritedebug {};
+    FILE* _log_fs            { stdout };
+    bool  _multiline         {};
+    bool  _verbose           {};
+    bool  _readwritedebug    {};
+    bool  _denyallextensions {};
 
     // TBD formatting
     char             _separator { ' ' };  // '\n'  for multiline
@@ -694,7 +695,8 @@ public:
 
     void importSettings(
         FILE* log_fs, const bool multiline,
-        const bool verbose, const bool readwritedebug );
+        const bool verbose, const bool readwritedebug,
+        const bool denyallextensions );
     size_t logClientPackets( Connection* conn );
     size_t logServerPackets( Connection* conn );
 };
