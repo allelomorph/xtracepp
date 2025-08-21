@@ -254,7 +254,7 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     if ( encoding->atom.data != protocol::atoms::NONE )
-        conn->internStashedAtom( encoding->atom );
+        _internStashedAtom( encoding->atom );
 
     const std::string_view struct_indent {
         _multiline ? _tabIndent( 0 ) : "" };

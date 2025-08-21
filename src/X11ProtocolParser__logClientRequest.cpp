@@ -667,7 +667,7 @@ size_t X11ProtocolParser::_logInternAtom(
         reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
-    conn->stashAtom( name );
+    _stashAtom( name );
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {

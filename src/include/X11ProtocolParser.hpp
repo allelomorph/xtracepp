@@ -2,8 +2,6 @@
 #define X11PROTOCOLPARSER_HPP
 
 
-//#include <ostream>
-//#include <iostream>  // cout
 #include <tuple>  // tuple_sz
 #include <string>
 #include <string_view>
@@ -11,6 +9,8 @@
 #include <vector>
 #include <algorithm>  // max
 #include <limits>
+#include <optional>
+#include <unordered_map>
 
 #include <cassert>
 
@@ -23,6 +23,7 @@
 #include "protocol/enum_names.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
+#include "protocol/predefined_atoms.hpp"
 
 
 class X11ProtocolParser {
@@ -40,6 +41,11 @@ private:
     // TBD formatting
     char             _separator { ' ' };  // '\n'  for multiline
     std::string_view _equals    { "=" };  // " = " for multiline
+
+    std::unordered_map<uint32_t, std::string_view> _interned_atoms;
+    // TBD used to store atom string between InternAtom request and its ATOM
+    //   assignment in the reply
+    std::string_view _stashed_atom_str;
 
     std::string
     _bufferHexDump( const uint8_t* data, const size_t sz );
@@ -692,6 +698,15 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logNoOperation(
         Connection* conn, const uint8_t* data, const size_t sz );
+
+    // only atom string known at InternAtom request parsing
+    void
+    _stashAtom( const std::string_view atom_str );
+    // when parsing InternAtom reply, then string and ATOM can be joined
+    void
+    _internStashedAtom( const protocol::ATOM atom );
+    std::optional<std::string_view>
+    _getInternedAtom(const protocol::ATOM);
 
 public:
     X11ProtocolParser() {}

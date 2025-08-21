@@ -76,7 +76,7 @@ X11ProtocolParser::_formatCommonType(
             "unrecognized atom" :
             fmt::format( "\"{}\"", protocol::atoms::predefined[ atom.data ] );
     } else {
-        auto interned_atom { conn->getInternedAtom(atom) };
+        auto interned_atom { _getInternedAtom(atom) };
         atom_string = ( interned_atom == std::nullopt ) ?
             "unrecognized atom" :
             fmt::format( "\"{}\"", *interned_atom );

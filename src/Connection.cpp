@@ -62,39 +62,3 @@ Connection::lookupRequest( const uint16_t seq_num ) {
     assert( seq_num == _request_opcodes_by_seq_num.size() - 1 );
     return _request_opcodes_by_seq_num[ seq_num ];
 }
-
-void
-Connection::stashAtom( const std::string_view atom_str ) {
-    assert( _stashed_atom_str == "" );
-    _stashed_atom_str = atom_str;
-}
-
-void
-Connection::internStashedAtom( const protocol::ATOM atom ) {
-    assert( atom.data != protocol::atoms::NONE );
-    assert( _stashed_atom_str != "" );
-    bool intern { true };
-    if ( atom.data <= protocol::atoms::PREDEFINED_MAX ) {
-        for ( const std::string_view& pd_atom_str : protocol::atoms::predefined ) {
-            if ( _stashed_atom_str == pd_atom_str ) {
-                intern = false;
-                break;
-            }
-        }
-    }
-    if ( intern ) {
-        // operator[] is preferable to .emplace() here in case of server
-        //   reusing ATOMs
-        _interned_atoms[ atom.data ] = _stashed_atom_str;
-    }
-    _stashed_atom_str = std::string_view{};
-}
-
-std::optional<std::string_view>
-Connection::getInternedAtom(
-    const protocol::ATOM atom) {
-    auto it { _interned_atoms.find( atom.data ) };
-    if ( it == _interned_atoms.end() )
-        return std::nullopt;
-    return it->second;
-}
