@@ -6,9 +6,11 @@
 
 #include "X11ProtocolParser.hpp"
 //#include "Settings.hpp"
+#include "Connection.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
 #include "protocol/predefined_atoms.hpp"
+#include "protocol/requests.hpp"
 
 
 // TBD assert( _top_three_bits_zero() ) should maybe happen instead at parse time
@@ -257,4 +259,29 @@ X11ProtocolParser::_formatCommonType( const protocol::ARC arc ) {
         _formatInteger( arc.height ),
         _formatInteger( arc.angle1 ),
         _formatInteger( arc.angle2 ) );
+}
+
+// TBD indent
+std::string
+X11ProtocolParser::_formatCommonType(
+    const protocol::requests::QueryFont::CHARINFO charinfo ) {
+    return fmt::format(
+        "{{ left-side-bearing: {}, right-side-bearing: {}, character-width: {}, ascent: {} descent: {} attributes: {} }}",
+        _formatInteger( charinfo.left_side_bearing ),
+        _formatInteger( charinfo.right_side_bearing ),
+        _formatInteger( charinfo.character_width ),
+        _formatInteger( charinfo.ascent ),
+        _formatInteger( charinfo.descent ),
+        _formatInteger( charinfo.attributes ) );
+}
+
+// TBD indent
+std::string
+X11ProtocolParser::_formatCommonType(
+    Connection* conn,
+    const protocol::requests::QueryFont::FONTPROP fontprop ) {
+    return fmt::format(
+        "{{ name: {}, value: {} }}",
+        _formatCommonType( conn, fontprop.name ),
+        _formatInteger( fontprop.value ) );
 }

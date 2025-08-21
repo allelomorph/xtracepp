@@ -1608,6 +1608,8 @@ struct ListFontsWithInfo {
         uint8_t    _unused[52];
     };
     static_assert( sizeof(FinalReplyEncoding) == sizeof(ReplyEncoding) );
+
+    inline static constexpr uint8_t LAST_REPLY {};
 };
 
 struct SetFontPath {
@@ -2803,8 +2805,8 @@ struct GetPointerControl {
     // Encoding::request_length == 1
 
     struct [[gnu::packed]] ReplyEncoding {
+        uint8_t    reply;  // 1
     private:
-        uint8_t    _prefix;  // 1 Reply
         uint8_t    _unused1;
     public:
         CARD16     sequence_number;  // sequence number
@@ -3055,6 +3057,8 @@ struct GetModifierMapping {
     };
     // followed by 8n LISTofKEYCODE keycodes n KEYCODEs
     static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
+
+    inline static constexpr uint32_t MODIFIER_CT { 8 };
 };
 
 struct NoOperation {

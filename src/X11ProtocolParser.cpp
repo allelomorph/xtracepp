@@ -852,6 +852,130 @@ X11ProtocolParser::_parseLISTofWINDOW( const uint8_t* data, const uint16_t n ) {
     return outputs;
 }
 
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofTIMECOORD( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    outputs.str += '[';
+    using protocol::requests::GetMotionEvents;
+    for ( uint16_t i {}; i < n; ++i ) {
+        const GetMotionEvents::TIMECOORD* timecoord {
+            reinterpret_cast< const GetMotionEvents::TIMECOORD* >(
+                data + outputs.bytes_parsed ) };
+        outputs.bytes_parsed += sizeof( GetMotionEvents::TIMECOORD );
+        outputs.str += fmt::format(
+            " {{ time={} x={} y={} }}",
+            _formatCommonType( timecoord->time ),
+            _formatInteger( timecoord->x ),
+            _formatInteger( timecoord->y ) );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+// TBD FONTPROP is a shared between two requests
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofFONTPROP( Connection* conn, const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    outputs.str += '[';
+    using protocol::requests::QueryFont;
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            " {}",
+            _formatCommonType(
+                conn, *reinterpret_cast< const QueryFont::FONTPROP* >(
+                    data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( QueryFont::FONTPROP );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+// TBD CHARINFO is a shared between two requests
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofCHARINFO( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    outputs.str += '[';
+    using protocol::requests::QueryFont;
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            " {}",
+            _formatCommonType(
+                *reinterpret_cast< const QueryFont::CHARINFO* >(
+                    data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( QueryFont::CHARINFO );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofCOLORMAP( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        outputs.str += fmt::format(
+            " {}",
+            _formatCommonType(
+                *reinterpret_cast< const protocol::COLORMAP* >(
+                    data + outputs.bytes_parsed ) ) );
+        outputs.bytes_parsed += sizeof( protocol::COLORMAP );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofRGB( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    using protocol::requests::QueryColors;
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        const QueryColors::RGB rgb {
+            *reinterpret_cast< const QueryColors::RGB* >(
+                data + outputs.bytes_parsed ) };
+        outputs.str += fmt::format(
+            " {{ red={} green={} blue={} }}",
+            _formatInteger( rgb.red ),
+            _formatInteger( rgb.green ),
+            _formatInteger( rgb.blue ) );
+        outputs.bytes_parsed += sizeof( QueryColors::RGB );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseLISTofHOST( const uint8_t* data, const uint16_t n ) {
+    assert( data != nullptr );
+    _ParsingOutputs outputs {};
+    outputs.str += '[';
+    for ( uint16_t i {}; i < n; ++i ) {
+        const protocol::HOST host {
+            *reinterpret_cast< const protocol::HOST* >(
+                data + outputs.bytes_parsed ) };
+        assert( host.family < protocol::enum_names::host_family.size() );
+        assert( host.family != 3 && host.family != 4 );
+        outputs.bytes_parsed += sizeof(protocol::HOST);
+        const _ParsingOutputs address {
+            _parseLISTofBYTE( data + outputs.bytes_parsed, host.n ) };
+        outputs.bytes_parsed += _pad(host.n);
+        outputs.str += fmt::format(
+            " {{ family={}{} address={} }}",
+            _formatInteger( host.family, protocol::enum_names::host_family ),
+            !_verbose ? "" :
+            fmt::format( " n address bytes={}",
+                         _formatInteger( host.n ) ),
+            address.str );
+    }
+    outputs.str += n > 0 ? " ]" : "]";
+    return outputs;
+}
+
 size_t X11ProtocolParser::_logServerAcceptance(
     Connection* conn, const uint8_t* data ) {
     assert( conn != nullptr );

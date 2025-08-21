@@ -22,6 +22,7 @@
 #include "Settings.hpp"
 #include "protocol/enum_names.hpp"
 #include "protocol/common_types.hpp"
+#include "protocol/requests.hpp"
 
 
 class X11ProtocolParser {
@@ -236,6 +237,14 @@ private:
     std::string
     _formatCommonType( const protocol::ARC arc );
 
+    std::string
+    _formatCommonType(
+        const protocol::requests::QueryFont::CHARINFO charinfo );
+    std::string
+    _formatCommonType(
+        Connection* conn,
+        const protocol::requests::QueryFont::FONTPROP fontprop );
+
     struct _ParsingOutputs {
         std::string str       {};
         uint32_t bytes_parsed {};
@@ -277,8 +286,20 @@ private:
 
     _ParsingOutputs
     _parseLISTofWINDOW( const uint8_t* data, const uint16_t n );
-
-    // TBD HOST?
+    _ParsingOutputs
+    _parseLISTofTIMECOORD( const uint8_t* data, const uint16_t n );
+    // TBD FONTPROP is a shared between two requests
+    _ParsingOutputs
+    _parseLISTofFONTPROP( Connection* conn, const uint8_t* data, const uint16_t n );
+    // TBD CHARINFO is a shared between two requests
+    _ParsingOutputs
+    _parseLISTofCHARINFO( const uint8_t* data, const uint16_t n );
+    _ParsingOutputs
+    _parseLISTofCOLORMAP( const uint8_t* data, const uint16_t n );
+    _ParsingOutputs
+    _parseLISTofRGB( const uint8_t* data, const uint16_t n );
+    _ParsingOutputs
+    _parseLISTofHOST( const uint8_t* data, const uint16_t n );
 
     struct _EnumTraits {
     private:
