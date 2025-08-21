@@ -426,9 +426,12 @@ private:
                                              inputs.names[I], value_str );
             }
             outputs->bytes_parsed += _VALUE_ENCODING_SZ;
+            _parseLISTofVALUE< I + 1, Args... >(
+                value_mask, inputs, data + _VALUE_ENCODING_SZ, outputs );
+        } else {
+            _parseLISTofVALUE< I + 1, Args... >(
+                value_mask, inputs, data, outputs );
         }
-        _parseLISTofVALUE< I + 1, Args... >(
-            value_mask, inputs, data + _VALUE_ENCODING_SZ, outputs );
     }
 
     size_t _logClientInitiation(
