@@ -38,10 +38,3 @@ target_include_directories(_xtrace PRIVATE
 target_compile_definitions(_xtrace PUBLIC
   PKGDATADIR="${PROJECT_SOURCE_DIR}"
 )
-
-#set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-include(Getfmt)
-add_subdirectory(src)
-
-add_subdirectory(test)
