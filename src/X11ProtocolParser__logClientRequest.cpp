@@ -21,10 +21,10 @@ size_t X11ProtocolParser::_logSimpleRequest(
     assert( sz > 0 );  // TBD check min size
 
     size_t bytes_parsed {};
-    using protocol::requests::impl::SimpleReqEncoding;
-    const SimpleReqEncoding* encoding {
-        reinterpret_cast< const SimpleReqEncoding* >( data ) };
-    bytes_parsed += sizeof( SimpleReqEncoding );
+    using protocol::requests::impl::SimpleRequest;
+    const SimpleRequest::Encoding* encoding {
+        reinterpret_cast< const SimpleRequest::Encoding* >( data ) };
+    bytes_parsed += sizeof( SimpleRequest::Encoding );
     static const std::unordered_set<uint8_t> supported_opcodes {
         protocol::requests::opcodes::GRABSERVER,
         protocol::requests::opcodes::UNGRABSERVER,
@@ -78,10 +78,10 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
     assert( sz > 0 );  // TBD check min size
 
     size_t bytes_parsed {};
-    using protocol::requests::impl::SimpleWindowReqEncoding;
-    const SimpleWindowReqEncoding* encoding {
-        reinterpret_cast< const SimpleWindowReqEncoding* >( data ) };
-    bytes_parsed += sizeof( SimpleWindowReqEncoding );
+    using protocol::requests::impl::SimpleWindowRequest;
+    const SimpleWindowRequest::Encoding* encoding {
+        reinterpret_cast< const SimpleWindowRequest::Encoding* >( data ) };
+    bytes_parsed += sizeof( SimpleWindowRequest::Encoding );
     static const std::unordered_set<uint8_t> supported_opcodes {
         protocol::requests::opcodes::GETWINDOWATTRIBUTES,
         protocol::requests::opcodes::DESTROYWINDOW,
@@ -5825,11 +5825,10 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( sz > 0 );  // TBD check min size
 
     size_t bytes_parsed {};
-    // TBD switch to protocol::requests::NoOperation::Encoding
-    using protocol::requests::impl::SimpleReqEncoding;
-    const SimpleReqEncoding* encoding {
-        reinterpret_cast< const SimpleReqEncoding* >( data ) };
-    bytes_parsed += sizeof( SimpleReqEncoding );
+    using protocol::requests::NoOperation;
+    const NoOperation::Encoding* encoding {
+        reinterpret_cast< const NoOperation::Encoding* >( data ) };
+    bytes_parsed += sizeof( NoOperation::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::NOOPERATION );
     // protocol specifies that no-op may be followed by variable length dummy data
     bytes_parsed += ( encoding->request_length - 1 ) * _ALIGN;

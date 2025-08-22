@@ -521,64 +521,24 @@ private:
 
     size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-    // TBD these could be cleaner if Request classes inherit from
-    //   protocol::requests::impl:: parents with shared Encoding
-    template < typename RequestT >
-    struct _is_header_only_request_type : public std::integral_constant<
-        bool,
-        std::is_same_v< RequestT, protocol::requests::GrabServer > ||
-        std::is_same_v< RequestT, protocol::requests::UngrabServer > ||
-        std::is_same_v< RequestT, protocol::requests::GetInputFocus > ||
-        std::is_same_v< RequestT, protocol::requests::QueryKeymap > ||
-        std::is_same_v< RequestT, protocol::requests::GetFontPath > ||
-        std::is_same_v< RequestT, protocol::requests::ListExtensions > ||
-        std::is_same_v< RequestT, protocol::requests::GetKeyboardControl > ||
-        std::is_same_v< RequestT, protocol::requests::GetPointerControl > ||
-        std::is_same_v< RequestT, protocol::requests::GetScreenSaver > ||
-        std::is_same_v< RequestT, protocol::requests::ListHosts > ||
-        std::is_same_v< RequestT, protocol::requests::GetPointerMapping > ||
-        std::is_same_v< RequestT, protocol::requests::GetModifierMapping >
-        > {};
-    template < typename RequestT >
-    struct _is_header_plus_window_request_type : public std::integral_constant<
-        bool,
-        std::is_same_v< RequestT, protocol::requests::GetWindowAttributes > ||
-        std::is_same_v< RequestT, protocol::requests::DestroyWindow > ||
-        std::is_same_v< RequestT, protocol::requests::DestroySubwindows > ||
-        std::is_same_v< RequestT, protocol::requests::MapWindow > ||
-        std::is_same_v< RequestT, protocol::requests::MapSubwindows > ||
-        std::is_same_v< RequestT, protocol::requests::UnmapWindow > ||
-        std::is_same_v< RequestT, protocol::requests::UnmapSubwindows > ||
-        std::is_same_v< RequestT, protocol::requests::QueryTree > ||
-        std::is_same_v< RequestT, protocol::requests::ListProperties > ||
-        std::is_same_v< RequestT, protocol::requests::QueryPointer > ||
-        std::is_same_v< RequestT, protocol::requests::ListInstalledColormaps >
-        > {};
-    template < typename RequestT >
-    struct _is_list_fonts_request_type : public std::integral_constant<
-        bool,
-        std::is_same_v< RequestT, protocol::requests::ListFonts > ||
-        std::is_same_v< RequestT, protocol::requests::ListFontsWithInfo >
-        > {};
-    // TBD explicit template specializations need to be outside class declaration
 
     template < typename RequestT,
                std::enable_if_t<
-                   !( _is_header_only_request_type<RequestT>::value ||
-                     _is_header_plus_window_request_type<RequestT>::value ||
-                     _is_list_fonts_request_type<RequestT>::value ),
+                   !( std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT> ||
+                      std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT> ||
+                      std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT> ),
                    bool> = true >
     size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-
     // GrabServer UngrabServer GetInputFocus QueryKeymap GetFontPath
     // ListExtensions GetKeyboardControl GetPointerControl GetScreenSaver
     // ListHosts GetPointerMapping GetModifierMapping
+
     size_t _logSimpleRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     template < typename RequestT,
                std::enable_if_t<
-                   _is_header_only_request_type<RequestT>::value,
+                   std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT>,
                    bool> = true >
     inline size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
@@ -592,7 +552,7 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     template < typename RequestT,
                std::enable_if_t<
-                   _is_header_plus_window_request_type<RequestT>::value,
+                   std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT>,
                    bool> = true >
     inline size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
@@ -604,7 +564,7 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     template < typename RequestT,
                std::enable_if_t<
-                   _is_list_fonts_request_type<RequestT>::value,
+                   std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT>,
                    bool> = true >
     inline size_t _logClientRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {

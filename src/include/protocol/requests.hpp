@@ -348,6 +348,50 @@ struct [[gnu::packed]] ReplyHeader {
 static constexpr uint32_t DEFAULT_REPLY_ENCODING_SZ { 32 };
 static constexpr uint8_t  REPLY_PREFIX { 1 };
 
+namespace impl {
+
+struct SimpleRequest {
+    struct [[gnu::packed]] Encoding {
+        uint8_t  opcode;
+    private:
+        uint8_t  _unused;
+    public:
+        uint16_t request_length;  // 1
+    };
+
+    virtual ~SimpleRequest() = 0;
+};
+
+struct SimpleWindowRequest {
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // 2
+        WINDOW     window;
+    };
+
+    virtual ~SimpleWindowRequest() = 0;
+};
+
+struct ListFontsRequest {
+    struct [[gnu::packed]] Encoding {
+        uint8_t    opcode;
+    private:
+        uint8_t    _unused;
+    public:
+        uint16_t   request_length;  // request length 2+(2n+p)/4
+        CARD16     max_names;  // max-names
+        uint16_t   n;  // length of pattern
+    };
+    // followed by pad(n)B STRING8 pattern
+
+    virtual ~ListFontsRequest() = 0;
+};
+
+}  // namespace impl
+
 struct CreateWindow {
     struct [[gnu::packed]] Encoding {
         uint8_t    opcode;  // 1
@@ -468,21 +512,7 @@ struct ChangeWindowAttributes {
         protocol::enum_names::zero_none };
 };
 
-namespace impl {
-
-struct [[gnu::packed]] SimpleWindowReqEncoding {
-    uint8_t    opcode;
-private:
-    uint8_t    _unused;
-public:
-    uint16_t   request_length;  // 2
-    WINDOW     window;
-};
-
-}  // namespace impl
-
-struct GetWindowAttributes {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct GetWindowAttributes : public impl::SimpleWindowRequest {
     // Encoding::opcode == 3
     // Encoding::request_length == 3+n
 
@@ -525,14 +555,12 @@ struct GetWindowAttributes {
         protocol::enum_names::zero_none };
 };
 
-struct DestroyWindow {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct DestroyWindow : public impl::SimpleWindowRequest {
     // Encoding::opcode == 4
     // Encoding::request_length == 2
 };
 
-struct DestroySubwindows {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct DestroySubwindows : public impl::SimpleWindowRequest {
     // Encoding::opcode == 5
     // Encoding::request_length == 2
 };
@@ -564,26 +592,22 @@ struct ReparentWindow {
     };
 };
 
-struct MapWindow {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct MapWindow : public impl::SimpleWindowRequest {
     // Encoding::opcode == 8
     // Encoding::request_length == 2
 };
 
-struct MapSubwindows {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct MapSubwindows : public impl::SimpleWindowRequest {
     // Encoding::opcode == 9
     // Encoding::request_length == 2
 };
 
-struct UnmapWindow {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct UnmapWindow : public impl::SimpleWindowRequest {
     // Encoding::opcode == 10
     // Encoding::request_length == 2
 };
 
-struct UnmapSubwindows {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct UnmapSubwindows : public impl::SimpleWindowRequest {
     // Encoding::opcode == 11
     // Encoding::request_length == 2
 };
@@ -669,8 +693,7 @@ struct GetGeometry {
     static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
-struct QueryTree {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct QueryTree : public impl::SimpleWindowRequest {
     // Encoding::opcode == 15
 
     struct [[gnu::packed]] ReplyEncoding {
@@ -831,11 +854,9 @@ struct GetProperty {
     inline static const
     std::vector< std::string_view >& reply_type_names {
         protocol::enum_names::zero_none };
-
 };
 
-struct ListProperties {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct ListProperties : public impl::SimpleWindowRequest {
     // Encoding::opcode == 21
 
     struct [[gnu::packed]] ReplyEncoding {
@@ -1188,32 +1209,17 @@ struct AllowEvents {
         protocol::enum_names::time };
 };
 
-namespace impl {
-
-struct [[gnu::packed]] SimpleReqEncoding {
-    uint8_t  opcode;
-private:
-    uint8_t  _unused;
-public:
-    uint16_t request_length;  // 1
-};
-
-}  // namespace impl
-
-struct GrabServer {
-    using Encoding = impl::SimpleReqEncoding;
+struct GrabServer : public impl::SimpleRequest {
     // Encoding::opcode == 36
     // Encoding::request_length == 1
 };
 
-struct UngrabServer {
-    using Encoding = impl::SimpleReqEncoding;
+struct UngrabServer : public impl::SimpleRequest {
     // Encoding::opcode == 37
     // Encoding::request_length == 1
 };
 
-struct QueryPointer {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct QueryPointer : public impl::SimpleWindowRequest {
     // Encoding::opcode == 38
     // Encoding::request_length == 1
 
@@ -1355,8 +1361,7 @@ struct SetInputFocus {
         protocol::enum_names::time };
 };
 
-struct GetInputFocus {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetInputFocus : public impl::SimpleRequest {
     // Encoding::opcode == 43
     // Encoding::request_length == 1
 
@@ -1379,8 +1384,7 @@ struct GetInputFocus {
         protocol::enum_names::input_focus };  // up to 1
 };
 
-struct QueryKeymap {
-    using Encoding = impl::SimpleReqEncoding;
+struct QueryKeymap : public impl::SimpleRequest {
     // Encoding::opcode == 44
     // Encoding::request_length == 1
 
@@ -1520,17 +1524,10 @@ struct QueryTextExtents {
         protocol::enum_names::draw_direction };
 };
 
-struct ListFonts {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 49
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // request length 2+(2n+p)/4
-        CARD16     max_names;  // max-names
-        uint16_t   n;  // length of pattern
-    };
-    // followed by pad(n)B STRING8 pattern
+struct ListFonts : public impl::ListFontsRequest {
+    // encoding.opcode == 49
+    // encoding.request_length == 2+(2n+p)/4
+    // encoding followed by pad(n)B STRING8 pattern
 
     struct [[gnu::packed]] ReplyEncoding {
         uint8_t    reply;  // 1
@@ -1548,17 +1545,10 @@ struct ListFonts {
     static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
-struct ListFontsWithInfo {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 50
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // request length 2+(n+p)/4
-        CARD16     max_names;  // max-names
-        uint16_t   n;  // length of pattern
-    };
-    // followed by pad(n)B STRING8 pattern
+struct ListFontsWithInfo : public impl::ListFontsRequest {
+    // encoding.opcode == 50
+    // encoding.request_length == 2+(2n+p)/4
+    // encoding followed by pad(n)B STRING8 pattern
 
     using FONTPROP = impl::FONTPROP;
     using CHARINFO = impl::CHARINFO;
@@ -1627,8 +1617,7 @@ struct SetFontPath {
     // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
 };
 
-struct GetFontPath {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetFontPath : public impl::SimpleRequest {
     // Encoding::opcode == 52
     // Encoding::request_length == 1
 
@@ -2253,8 +2242,7 @@ struct UninstallColormap {
     };
 };
 
-struct ListInstalledColormaps {
-    using Encoding = impl::SimpleWindowReqEncoding;
+struct ListInstalledColormaps : public impl::SimpleWindowRequest {
     // Encoding::opcode == 83
     // Encoding::request_length == 2
 
@@ -2660,8 +2648,7 @@ struct QueryExtension {
     static_assert( sizeof(ReplyEncoding) == DEFAULT_REPLY_ENCODING_SZ );
 };
 
-struct ListExtensions {
-    using Encoding = impl::SimpleReqEncoding;
+struct ListExtensions : public impl::SimpleRequest {
     // Encoding::opcode == 99
     // Encoding::request_length == 1
 
@@ -2748,8 +2735,7 @@ struct ChangeKeyboardControl {
         protocol::enum_names::off_on };
 };
 
-struct GetKeyboardControl {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetKeyboardControl : public impl::SimpleRequest {
     // Encoding::opcode == 103
     // Encoding::request_length == 1
 
@@ -2799,8 +2785,7 @@ struct ChangePointerControl {
     };
 };
 
-struct GetPointerControl {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetPointerControl : public impl::SimpleRequest {
     // Encoding::opcode == 106
     // Encoding::request_length == 1
 
@@ -2842,8 +2827,7 @@ struct SetScreenSaver {
         protocol::enum_names::no_yes };
 };
 
-struct GetScreenSaver {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetScreenSaver : public impl::SimpleRequest {
     // Encoding::opcode == 108
     // Encoding::request_length == 1
 
@@ -2892,8 +2876,7 @@ struct ChangeHosts {
         protocol::enum_names::host_family };  // up to 2
 };
 
-struct ListHosts {
-    using Encoding = impl::SimpleReqEncoding;
+struct ListHosts : public impl::SimpleRequest {
     // Encoding::opcode == 110
     // Encoding::request_length == 1
 
@@ -3002,8 +2985,7 @@ struct SetPointerMapping {
         protocol::enum_names::mapping_status };  // up to 1
 };
 
-struct GetPointerMapping {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetPointerMapping : public impl::SimpleRequest {
     // Encoding::opcode == 117
     // Encoding::request_length == 1
 
@@ -3042,8 +3024,7 @@ struct SetModifierMapping {
         protocol::enum_names::mapping_status };
 };
 
-struct GetModifierMapping {
-    using Encoding = impl::SimpleReqEncoding;
+struct GetModifierMapping : public impl::SimpleRequest {
     // Encoding::opcode == 119
     // Encoding::request_length == 1
 
@@ -3061,8 +3042,7 @@ struct GetModifierMapping {
     inline static constexpr uint32_t MODIFIER_CT { 8 };
 };
 
-struct NoOperation {
-    using Encoding = impl::SimpleReqEncoding;
+struct NoOperation : public impl::SimpleRequest {
     // Encoding::opcode == 127
     // Encoding::request_length == 1+n
     // followed by uint8_t unused[4n]
