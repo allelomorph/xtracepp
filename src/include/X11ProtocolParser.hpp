@@ -173,108 +173,32 @@ private:
         return flag_str.empty() ? hex_str : flag_str;
     }
 
-    std::string
-    _formatCommonType( const protocol::TIMESTAMP time,
-                       const std::vector< std::string_view >& enum_names = {} );
+    // TBD committing to _formatProtocolType always producing single-line output for
+    //   small(ish) structs would really simplify its implementation
+    // struct _FormattingInputs {
+    // private:
+    //     inline static const std::vector< std::string_view > _default_empty_vector {};
 
-    std::string
-    _formatCommonType( const protocol::CURSOR cursor,
-                       const std::vector< std::string_view >& enum_names = {} );
+    // public:
+    //     // TBD use enums for more expressive params on tabs and singleline?
+    //     std::vector< std::string_view >&
+    //             enum_names        { _default_empty_vector };
+    //     uint8_t base_tab_ct       {};
+    //     bool    always_singleline {};
 
-    // COLORMAP could use zero_none or zero_copy_from_parent
-    std::string
-    _formatCommonType( const protocol::COLORMAP colormap,
-                       const std::vector< std::string_view >& enum_names = {} );
+    //     _FormattingInputs(
+    //         const std::vector< std::string_view >& en,
+    //         const uint32_t btc = {}, const bool as = {} ) :
+    //         enum_names{ en }, base_tab_ct{ btc }, always_singleline{ as } {}
+    // };
 
-    // ATOM could use zero_none or property_atom
+    // TBD consider passing pointer instead of reference to allow for null
+    //   checks (use std::optional?) and have lighter weight default ctor
+    // TBD or could default point reference to private member dummy vector
+    template < typename ProtocolT >
     std::string
-    _formatCommonType( const protocol::ATOM atom,
-                       const std::vector< std::string_view >& enum_names = {} );
-
-    // VISUALID could use zero_none or zero_copy_from_parent
-    std::string
-    _formatCommonType( const protocol::VISUALID visualid,
-                       const std::vector< std::string_view >& enum_names = {} );
-
-    // WINDOW could use zero_none, event_destination, or input_focus
-    std::string
-    _formatCommonType( const protocol::WINDOW window,
-                       const std::vector< std::string_view >& enum_names = {} );
-
-    // PIXMAP could use zero_copy_from_parent, window_attribute_background_pixmap, or zero_none; just use _formatInteger
-    std::string
-    _formatCommonType( const protocol::PIXMAP pixmap,
-                       const std::vector< std::string_view >& enum_names = {} );
-
-    // TBD seemingly never used with enum names in protocol?
-    inline std::string
-    _formatCommonType( const protocol::DRAWABLE drawable,
-                       const std::vector< std::string_view >& enum_names = {} ) {
-        return _formatInteger( drawable.window.data, enum_names );
-    }
-
-    std::string
-    _formatCommonType( const protocol::FONT font,
-                       const std::vector< std::string_view >& enum_names = {} );
-
-    // TBD inlining due to no examples found in standard of named enum
-    inline std::string
-    _formatCommonType( const protocol::GCONTEXT gcontext ) {
-        return _formatInteger( gcontext.data );
-    }
-
-    // TBD FONTABLE?
-
-    inline std::string
-    _formatCommonType( const protocol::BITGRAVITY bitgravity ) {
-        return _formatInteger( bitgravity.data,
-                               protocol::enum_names::bitgravity );
-    }
-
-    inline std::string
-    _formatCommonType( const protocol::WINGRAVITY wingravity ) {
-        return _formatInteger( wingravity.data,
-                               protocol::enum_names::wingravity );
-    }
-
-    inline std::string
-    _formatCommonType( const protocol::BOOL bool_ ) {
-        return _formatInteger( bool_.data,
-                               protocol::enum_names::bool_ );
-    }
-
-    std::string
-    _formatCommonType( const protocol::SETofEVENT setofevent );
-    std::string
-    _formatCommonType( const protocol::SETofPOINTEREVENT setofpointerevent );
-    std::string
-    _formatCommonType( const protocol::SETofDEVICEEVENT setofdeviceevent );
-
-    std::string
-    _formatCommonType( const protocol::KEYCODE keycode,
-                       const std::vector< std::string_view >& enum_names = {} );
-
-    std::string
-    _formatCommonType( const protocol::BUTTON button,
-                       const std::vector< std::string_view >& enum_names = {} );
-    std::string
-    _formatCommonType( const protocol::SETofKEYMASK setofkeymask );
-    std::string
-    _formatCommonType( const protocol::SETofKEYBUTMASK setofkeybutmask );
-
-    std::string
-    _formatCommonType( const protocol::POINT point );
-    std::string
-    _formatCommonType( const protocol::RECTANGLE rectangle );
-    std::string
-    _formatCommonType( const protocol::ARC arc );
-
-    std::string
-    _formatCommonType(
-        const protocol::requests::QueryFont::CHARINFO charinfo );
-    std::string
-    _formatCommonType(
-        const protocol::requests::QueryFont::FONTPROP fontprop );
+    _formatProtocolType( const ProtocolT value,
+                         const std::vector<std::string_view>& = {} );
 
     struct _ParsingOutputs {
         std::string str       {};
@@ -394,7 +318,7 @@ private:
     inline auto _formatVALUE(
         const ValueT value, const _EnumTraits& traits ) ->
         std::enable_if_t< is_variable_enum_common_type< ValueT >::value, std::string > {
-        return _formatCommonType( value, traits.names );
+        return _formatProtocolType( value, traits.names );
     }
 
     // TBD one fmtCT arg
@@ -404,7 +328,7 @@ private:
         const ValueT value, const _EnumTraits& /*traits*/ ) ->
         std::enable_if_t< !std::is_integral_v< ValueT > &&
                           !is_variable_enum_common_type< ValueT >::value, std::string > {
-        return _formatCommonType( value );
+        return _formatProtocolType( value );
     }
 
     // TBD not efficient to have static vars in templated function...

@@ -66,31 +66,31 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "visual", name_width, _equals,
-        _formatCommonType( encoding->visual ), _separator,
+        _formatProtocolType( encoding->visual ), _separator,
         memb_indent, "class", name_width, _equals,
         _formatInteger( encoding->class_, GetWindowAttributes::class_names, 2, 1 ), _separator,
         memb_indent, "bit-gravity", name_width, _equals,
-        _formatCommonType( encoding->bit_gravity ), _separator,
+        _formatProtocolType( encoding->bit_gravity ), _separator,
         memb_indent, "win-gravity", name_width, _equals,
-        _formatCommonType( encoding->win_gravity ), _separator,
+        _formatProtocolType( encoding->win_gravity ), _separator,
         memb_indent, "backing-planes", name_width, _equals,
         _formatInteger( encoding->backing_planes ), _separator,
         memb_indent, "backing-pixel", name_width, _equals,
         _formatInteger( encoding->backing_pixel ), _separator,
         memb_indent, "save-under", name_width, _equals,
-        _formatCommonType( encoding->save_under ), _separator,
+        _formatProtocolType( encoding->save_under ), _separator,
         memb_indent, "map-is-installed", name_width, _equals,
-        _formatCommonType( encoding->map_is_installed ), _separator,
+        _formatProtocolType( encoding->map_is_installed ), _separator,
         memb_indent, "map-state", name_width, _equals,
         _formatInteger( encoding->map_state, GetWindowAttributes::map_state_names ), _separator,
         memb_indent, "override-redirect", name_width, _equals,
-        _formatCommonType( encoding->override_redirect ), _separator,
+        _formatProtocolType( encoding->override_redirect ), _separator,
         memb_indent, "all-event-masks", name_width, _equals,
-        _formatCommonType( encoding->all_event_masks ), _separator,
+        _formatProtocolType( encoding->all_event_masks ), _separator,
         memb_indent, "your-event-mask", name_width, _equals,
-        _formatCommonType( encoding->your_event_mask ), _separator,
+        _formatProtocolType( encoding->your_event_mask ), _separator,
         memb_indent, "do-not-propagate-mask", name_width, _equals,
-        _formatCommonType( encoding->do_not_propagate_mask ), _separator,
+        _formatProtocolType( encoding->do_not_propagate_mask ), _separator,
         struct_indent
         );
     return bytes_parsed;
@@ -148,7 +148,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "root", name_width, _equals,
-        _formatCommonType( encoding->root ), _separator,
+        _formatProtocolType( encoding->root ), _separator,
         memb_indent, "x", name_width, _equals,
         _formatInteger( encoding->x ), _separator,
         memb_indent, "y", name_width, _equals,
@@ -219,9 +219,9 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "root", name_width, _equals,
-        _formatCommonType( encoding->root ), _separator,
+        _formatProtocolType( encoding->root ), _separator,
         memb_indent, "parent", name_width, _equals,
-        _formatCommonType( encoding->parent, QueryTree::parent_names ), _separator,
+        _formatProtocolType( encoding->parent, QueryTree::parent_names ), _separator,
         !_verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
@@ -285,7 +285,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "atom", name_width, _equals,
-        _formatCommonType( encoding->atom, InternAtom::atom_names ), _separator,
+        _formatProtocolType( encoding->atom, InternAtom::atom_names ), _separator,
         struct_indent
         );
     return bytes_parsed;
@@ -422,7 +422,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "type", name_width, _equals,
-        _formatCommonType( encoding->type, GetProperty::reply_type_names ), _separator,
+        _formatProtocolType( encoding->type, GetProperty::reply_type_names ), _separator,
         memb_indent, "bytes-after", name_width, _equals,
         _formatInteger( encoding->bytes_after ), _separator,
         !_verbose ? "" :
@@ -548,7 +548,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "owner", name_width, _equals,
-        _formatCommonType( encoding->owner, GetSelectionOwner::owner_names ), _separator,
+        _formatProtocolType( encoding->owner, GetSelectionOwner::owner_names ), _separator,
         struct_indent
         );
     return bytes_parsed;
@@ -702,7 +702,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "same-screen", name_width, _equals,
-        _formatCommonType( encoding->same_screen ), _separator,
+        _formatProtocolType( encoding->same_screen ), _separator,
         !_verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
@@ -714,9 +714,9 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "root", name_width, _equals,
-        _formatCommonType( encoding->root ), _separator,
+        _formatProtocolType( encoding->root ), _separator,
         memb_indent, "child", name_width, _equals,
-        _formatCommonType( encoding->child, QueryPointer::child_names ), _separator,
+        _formatProtocolType( encoding->child, QueryPointer::child_names ), _separator,
         memb_indent, "root-x", name_width, _equals,
         _formatInteger( encoding->root_x ), _separator,
         memb_indent, "root-y", name_width, _equals,
@@ -726,7 +726,7 @@ size_t X11ProtocolParser::_logServerReply<
         memb_indent, "win-y", name_width, _equals,
         _formatInteger( encoding->win_y ), _separator,
         memb_indent, "mask", name_width, _equals,
-        _formatCommonType( encoding->mask ), _separator,
+        _formatProtocolType( encoding->mask ), _separator,
         struct_indent
         );
     return bytes_parsed;
@@ -835,7 +835,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "same-screen", name_width, _equals,
-        _formatCommonType( encoding->same_screen ), _separator,
+        _formatProtocolType( encoding->same_screen ), _separator,
         !_verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
@@ -847,7 +847,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "child", name_width, _equals,
-        _formatCommonType( encoding->child, TranslateCoordinates::child_names ), _separator,
+        _formatProtocolType( encoding->child, TranslateCoordinates::child_names ), _separator,
         memb_indent, "dst-x", name_width, _equals,
         _formatInteger( encoding->dst_x ), _separator,
         memb_indent, "dst-y", name_width, _equals,
@@ -908,7 +908,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "focus", name_width, _equals,
-        _formatCommonType( encoding->focus, GetInputFocus::focus_names ), _separator,
+        _formatProtocolType( encoding->focus, GetInputFocus::focus_names ), _separator,
         struct_indent
         );
     return bytes_parsed;
@@ -1033,9 +1033,9 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "min-bounds", name_width, _equals,
-        _formatCommonType( encoding->min_bounds ), _separator,
+        _formatProtocolType( encoding->min_bounds ), _separator,
         memb_indent, "max-bounds", name_width, _equals,
-        _formatCommonType( encoding->max_bounds ), _separator,
+        _formatProtocolType( encoding->max_bounds ), _separator,
         memb_indent, "min-char-or-byte2", name_width, _equals,
         _formatInteger( encoding->min_char_or_byte2 ), _separator,
         memb_indent, "max-char-or-byte2", name_width, _equals,
@@ -1054,7 +1054,7 @@ size_t X11ProtocolParser::_logServerReply<
         memb_indent, "max-byte1", name_width, _equals,
         _formatInteger( encoding->max_byte1 ), _separator,
         memb_indent, "all-chars-exist", name_width, _equals,
-        _formatCommonType( encoding->all_chars_exist ), _separator,
+        _formatProtocolType( encoding->all_chars_exist ), _separator,
         memb_indent, "font-ascent", name_width, _equals,
         _formatInteger( encoding->font_ascent ), _separator,
         memb_indent, "font-descent", name_width, _equals,
@@ -1309,9 +1309,9 @@ size_t X11ProtocolParser::_logServerReply<
                 memb_indent, "reply length", name_width, _equals,
                 _formatInteger( encoding->reply_length ), _separator ),
             memb_indent, "min-bounds", name_width, _equals,
-            _formatCommonType( encoding->min_bounds ), _separator,
+            _formatProtocolType( encoding->min_bounds ), _separator,
             memb_indent, "max-bounds", name_width, _equals,
-            _formatCommonType( encoding->max_bounds ), _separator,
+            _formatProtocolType( encoding->max_bounds ), _separator,
             memb_indent, "min-char-or-byte2", name_width, _equals,
             _formatInteger( encoding->min_char_or_byte2 ), _separator,
             memb_indent, "max-char-or-byte2", name_width, _equals,
@@ -1330,7 +1330,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "max-byte1", name_width, _equals,
             _formatInteger( encoding->max_byte1 ), _separator,
             memb_indent, "all-chars-exist", name_width, _equals,
-            _formatCommonType( encoding->all_chars_exist ), _separator,
+            _formatProtocolType( encoding->all_chars_exist ), _separator,
             memb_indent, "font-ascent", name_width, _equals,
             _formatInteger( encoding->font_ascent ), _separator,
             memb_indent, "font-descent", name_width, _equals,
@@ -1464,7 +1464,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "visual", name_width, _equals,
-        _formatCommonType( encoding->visual, GetImage::visual_names ), _separator,
+        _formatProtocolType( encoding->visual, GetImage::visual_names ), _separator,
         memb_indent, "data", name_width, _equals,
         data_.str, _separator,
         struct_indent
@@ -2037,7 +2037,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "present", name_width, _equals,
-        _formatCommonType( encoding->present ), _separator,
+        _formatProtocolType( encoding->present ), _separator,
         memb_indent, "major-opcode", name_width, _equals,
         _formatInteger( encoding->major_opcode ), _separator,
         memb_indent, "first-event", name_width, _equals,

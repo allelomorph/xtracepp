@@ -353,15 +353,15 @@ X11ProtocolParser::_parseLISTofSCREEN(
             "{}}}{}{}",
             list_indent, _separator,
             memb_indent, "root", name_width, _equals,
-            _formatCommonType( header->root ), _separator,
+            _formatProtocolType( header->root ), _separator,
             memb_indent, "default-colormap", name_width, _equals,
-            _formatCommonType( header->default_colormap ), _separator,
+            _formatProtocolType( header->default_colormap ), _separator,
             memb_indent, "white-pixel", name_width, _equals,
             _formatInteger( header->white_pixel ), _separator,
             memb_indent, "black-pixel", name_width, _equals,
             _formatInteger( header->black_pixel ), _separator,
             memb_indent, "current-input-masks", name_width, _equals,
-            _formatCommonType( header->current_input_masks ), _separator,
+            _formatProtocolType( header->current_input_masks ), _separator,
             memb_indent, "width-in-pixels", name_width, _equals,
             _formatInteger( header->width_in_pixels ), _separator,
             memb_indent, "height-in-pixels", name_width, _equals,
@@ -375,13 +375,13 @@ X11ProtocolParser::_parseLISTofSCREEN(
             memb_indent, "max-installed-maps", name_width, _equals,
             _formatInteger( header->max_installed_maps ), _separator,
             memb_indent, "root-visual", name_width, _equals,
-            _formatCommonType( header->root_visual ), _separator,
+            _formatProtocolType( header->root_visual ), _separator,
             memb_indent, "backing-stores", name_width, _equals,
             _formatInteger( header->backing_stores,
                             ServerAcceptance::Screen::backing_stores_names ),
             _separator,
             memb_indent, "save-unders", name_width, _equals,
-            _formatCommonType( header->save_unders ), _separator,
+            _formatProtocolType( header->save_unders ), _separator,
             memb_indent, "root-depth", name_width, _equals,
             _formatInteger( header->root_depth ), _separator,
             memb_indent, "allowed-depths", name_width, _equals,
@@ -478,7 +478,7 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
             "{}{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}{}{}",
             list_indent,
             "visual-id",
-            _formatCommonType( visualtype->visual_id ),
+            _formatProtocolType( visualtype->visual_id ),
             "class",
             _formatInteger( visualtype->class_,
                             ServerAcceptance::Screen::Depth::VisualType::class_names ),
@@ -501,7 +501,7 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
         //     "{}}}{}{}",
         //     list_indent, _separator,
         //     memb_indent, "visual-id", name_width, _equals,
-        //     _formatCommonType( visualtype->visual_id ), _separator,
+        //     _formatProtocolType( visualtype->visual_id ), _separator,
         //     memb_indent, "class", name_width, _equals,
         //     _formatInteger( visualtype->class_,
         //                     ServerAcceptance::Screen::Depth::VisualType::class_names ),
@@ -707,7 +707,7 @@ X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
             "{}{}", outputs.str.size() > 1 ? " " : "",
-            _formatCommonType(
+            _formatProtocolType(
                 *reinterpret_cast< const protocol::ATOM* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( protocol::ATOM );
@@ -724,7 +724,7 @@ X11ProtocolParser::_parseLISTofKEYCODE( const uint8_t* data, const uint16_t n ) 
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
             "{}{}", outputs.str.size() > 1 ? " " : "",
-            _formatCommonType(
+            _formatProtocolType(
                 *reinterpret_cast< const protocol::KEYCODE* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( protocol::KEYCODE );
@@ -757,7 +757,7 @@ X11ProtocolParser::_parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz )
             outputs.str += fmt::format(
                 " {{ font_shift={} font={} }}",
                 _formatInteger( item->font.font_shift ),
-                _formatCommonType( font ) );
+                _formatProtocolType( font ) );
         } else if ( first_byte == 0 ) {
             // padding byte
             // TBD is this case not needed?
@@ -804,7 +804,7 @@ X11ProtocolParser::_parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz 
             outputs.str += fmt::format(
                 " {{ font_shift={} font={} }}",
                 _formatInteger( item->font.font_shift ),
-                _formatCommonType( font ) );
+                _formatProtocolType( font ) );
         } else if ( first_byte == 0 ) {
             // padding byte
             // TBD is this case not needed?
@@ -841,7 +841,7 @@ X11ProtocolParser::_parseLISTofWINDOW( const uint8_t* data, const uint16_t n ) {
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
             "{}{}", outputs.str.size() > 1 ? " " : "",
-            _formatCommonType(
+            _formatProtocolType(
                 *reinterpret_cast< const protocol::WINDOW* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( protocol::WINDOW );
@@ -863,7 +863,7 @@ X11ProtocolParser::_parseLISTofTIMECOORD( const uint8_t* data, const uint16_t n 
         outputs.bytes_parsed += sizeof( GetMotionEvents::TIMECOORD );
         outputs.str += fmt::format(
             " {{ time={} x={} y={} }}",
-            _formatCommonType( timecoord->time ),
+            _formatProtocolType( timecoord->time ),
             _formatInteger( timecoord->x ),
             _formatInteger( timecoord->y ) );
     }
@@ -881,7 +881,7 @@ X11ProtocolParser::_parseLISTofFONTPROP( const uint8_t* data, const uint16_t n )
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
             " {}",
-            _formatCommonType(
+            _formatProtocolType(
                 *reinterpret_cast< const QueryFont::FONTPROP* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( QueryFont::FONTPROP );
@@ -900,7 +900,7 @@ X11ProtocolParser::_parseLISTofCHARINFO( const uint8_t* data, const uint16_t n )
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
             " {}",
-            _formatCommonType(
+            _formatProtocolType(
                 *reinterpret_cast< const QueryFont::CHARINFO* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( QueryFont::CHARINFO );
@@ -917,7 +917,7 @@ X11ProtocolParser::_parseLISTofCOLORMAP( const uint8_t* data, const uint16_t n )
     for ( uint16_t i {}; i < n; ++i ) {
         outputs.str += fmt::format(
             " {}",
-            _formatCommonType(
+            _formatProtocolType(
                 *reinterpret_cast< const protocol::COLORMAP* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( protocol::COLORMAP );
@@ -1081,9 +1081,9 @@ size_t X11ProtocolParser::_logServerAcceptance(
         memb_indent, "bitmap-format-scanline-pad", name_width, _equals,
         _formatInteger( header->bitmap_format_scanline_pad ), _separator,
         memb_indent, "min-keycode", name_width, _equals,
-        _formatCommonType( header->min_keycode ), _separator,
+        _formatProtocolType( header->min_keycode ), _separator,
         memb_indent, "max-keycode", name_width, _equals,
-        _formatCommonType( header->max_keycode ), _separator,
+        _formatProtocolType( header->max_keycode ), _separator,
         memb_indent, "vendor", name_width, _equals,
         vendor, _separator,
         memb_indent, "pixmap-formats", name_width, _equals,
