@@ -285,7 +285,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "atom", name_width, _equals,
-        _formatCommonType( conn, encoding->atom, InternAtom::atom_names ), _separator,
+        _formatCommonType( encoding->atom, InternAtom::atom_names ), _separator,
         struct_indent
         );
     return bytes_parsed;
@@ -422,7 +422,7 @@ size_t X11ProtocolParser::_logServerReply<
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
         memb_indent, "type", name_width, _equals,
-        _formatCommonType( conn, encoding->type, GetProperty::reply_type_names ), _separator,
+        _formatCommonType( encoding->type, GetProperty::reply_type_names ), _separator,
         memb_indent, "bytes-after", name_width, _equals,
         _formatInteger( encoding->bytes_after ), _separator,
         !_verbose ? "" :
@@ -459,7 +459,7 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs atoms {
-        _parseLISTofATOM( conn, data + bytes_parsed, encoding->n ) };
+        _parseLISTofATOM( data + bytes_parsed, encoding->n ) };
     bytes_parsed += _pad( atoms.bytes_parsed );
 
     const std::string_view struct_indent {
@@ -993,7 +993,7 @@ size_t X11ProtocolParser::_logServerReply<
               ( sizeof( QueryFont::CHARINFO ) * encoding->m ) ) / _ALIGN );
 
     const _ParsingOutputs properties {
-        _parseLISTofFONTPROP( conn, data + bytes_parsed, encoding->n ) };
+        _parseLISTofFONTPROP( data + bytes_parsed, encoding->n ) };
     bytes_parsed += properties.bytes_parsed;
     const _ParsingOutputs char_infos {
         _parseLISTofCHARINFO( data + bytes_parsed, encoding->m ) };
@@ -1264,7 +1264,7 @@ size_t X11ProtocolParser::_logServerReply<
         bytes_parsed += sizeof( ListFontsWithInfo::ReplyEncoding );
 
         const _ParsingOutputs properties {
-            _parseLISTofFONTPROP( conn, data + bytes_parsed, encoding->m ) };
+            _parseLISTofFONTPROP( data + bytes_parsed, encoding->m ) };
         bytes_parsed += properties.bytes_parsed;
         const std::string_view name {
             reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };

@@ -188,8 +188,7 @@ private:
 
     // ATOM could use zero_none or property_atom
     std::string
-    _formatCommonType( Connection* conn,
-                       const protocol::ATOM atom,
+    _formatCommonType( const protocol::ATOM atom,
                        const std::vector< std::string_view >& enum_names = {} );
 
     // VISUALID could use zero_none or zero_copy_from_parent
@@ -275,7 +274,6 @@ private:
         const protocol::requests::QueryFont::CHARINFO charinfo );
     std::string
     _formatCommonType(
-        Connection* conn,
         const protocol::requests::QueryFont::FONTPROP fontprop );
 
     struct _ParsingOutputs {
@@ -308,7 +306,7 @@ private:
     _ParsingOutputs
     _parseLISTofKEYSYM( const uint8_t* data, const uint16_t n );
     _ParsingOutputs
-    _parseLISTofATOM( Connection* conn, const uint8_t* data, const uint16_t n );
+    _parseLISTofATOM( const uint8_t* data, const uint16_t n );
     _ParsingOutputs
     _parseLISTofKEYCODE( const uint8_t* data, const uint16_t n );
 
@@ -323,7 +321,7 @@ private:
     _parseLISTofTIMECOORD( const uint8_t* data, const uint16_t n );
     // TBD FONTPROP is a shared between two requests
     _ParsingOutputs
-    _parseLISTofFONTPROP( Connection* conn, const uint8_t* data, const uint16_t n );
+    _parseLISTofFONTPROP( const uint8_t* data, const uint16_t n );
     // TBD CHARINFO is a shared between two requests
     _ParsingOutputs
     _parseLISTofCHARINFO( const uint8_t* data, const uint16_t n );

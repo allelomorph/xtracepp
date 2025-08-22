@@ -700,8 +700,7 @@ X11ProtocolParser::_parseLISTofKEYSYM( const uint8_t* data, const uint16_t n ) {
 }
 
 X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseLISTofATOM(
-    Connection* conn, const uint8_t* data, const uint16_t n ) {
+X11ProtocolParser::_parseLISTofATOM( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
     _ParsingOutputs outputs {};
     outputs.str += '[';
@@ -709,7 +708,6 @@ X11ProtocolParser::_parseLISTofATOM(
         outputs.str += fmt::format(
             "{}{}", outputs.str.size() > 1 ? " " : "",
             _formatCommonType(
-                conn,
                 *reinterpret_cast< const protocol::ATOM* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( protocol::ATOM );
@@ -875,7 +873,7 @@ X11ProtocolParser::_parseLISTofTIMECOORD( const uint8_t* data, const uint16_t n 
 
 // TBD FONTPROP is a shared between two requests
 X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseLISTofFONTPROP( Connection* conn, const uint8_t* data, const uint16_t n ) {
+X11ProtocolParser::_parseLISTofFONTPROP( const uint8_t* data, const uint16_t n ) {
     assert( data != nullptr );
     _ParsingOutputs outputs {};
     outputs.str += '[';
@@ -884,7 +882,7 @@ X11ProtocolParser::_parseLISTofFONTPROP( Connection* conn, const uint8_t* data, 
         outputs.str += fmt::format(
             " {}",
             _formatCommonType(
-                conn, *reinterpret_cast< const QueryFont::FONTPROP* >(
+                *reinterpret_cast< const QueryFont::FONTPROP* >(
                     data + outputs.bytes_parsed ) ) );
         outputs.bytes_parsed += sizeof( QueryFont::FONTPROP );
     }

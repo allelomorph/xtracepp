@@ -63,7 +63,6 @@ X11ProtocolParser::_formatCommonType( const protocol::COLORMAP colormap,
 
 std::string
 X11ProtocolParser::_formatCommonType(
-    Connection* conn,
     const protocol::ATOM atom,
     const std::vector< std::string_view >& enum_names /* ={}*/) {
     assert( _top_three_bits_zero( atom.data ) );
@@ -278,10 +277,9 @@ X11ProtocolParser::_formatCommonType(
 // TBD indent
 std::string
 X11ProtocolParser::_formatCommonType(
-    Connection* conn,
     const protocol::requests::QueryFont::FONTPROP fontprop ) {
     return fmt::format(
         "{{ name: {}, value: {} }}",
-        _formatCommonType( conn, fontprop.name ),
+        _formatCommonType( fontprop.name ),
         _formatInteger( fontprop.value ) );
 }
