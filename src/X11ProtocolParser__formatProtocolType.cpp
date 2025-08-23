@@ -13,7 +13,7 @@
 #include "protocol/requests.hpp"
 
 
-// TBD assert( _top_three_bits_zero() ) should maybe happen instead at parse time
+// TBD zero bit validation should maybe happen instead at parse time
 // TBD consider passing vector pointer instead of reference to allow for null
 //   checks (use std::optional?) and have lighter weight default ctor
 
@@ -199,7 +199,7 @@ X11ProtocolParser::_formatProtocolType(
     const protocol::BITGRAVITY bitgravity,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
     return _formatInteger( bitgravity.data,
-                           protocol::enum_names::bitgravity );
+                           protocol::BITGRAVITY::enum_names );
 }
 
 // TBD linker error if inline
@@ -210,7 +210,7 @@ X11ProtocolParser::_formatProtocolType(
     const protocol::WINGRAVITY wingravity,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
     return _formatInteger( wingravity.data,
-                           protocol::enum_names::wingravity );
+                           protocol::WINGRAVITY::enum_names );
 }
 
 // TBD linker error if inline
@@ -221,7 +221,7 @@ X11ProtocolParser::_formatProtocolType(
     const protocol::BOOL bool_,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
     return _formatInteger( bool_.data,
-                           protocol::enum_names::bool_ );
+                           protocol::BOOL::enum_names );
 }
 
 // EVENT
@@ -232,7 +232,7 @@ X11ProtocolParser::_formatProtocolType(
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
     assert( ( setofevent.data & protocol::SETofEVENT::ZERO_BITS ) == 0 );
     return _formatBitmask( setofevent.data,
-                           protocol::enum_names::set_of_event );
+                           protocol::SETofEVENT::flag_names );
 }
 
 // POINTEREVENT
@@ -244,7 +244,7 @@ X11ProtocolParser::_formatProtocolType(
     assert( ( setofpointerevent.data & protocol::SETofPOINTEREVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofpointerevent.data,
-                           protocol::enum_names::set_of_event );
+                           protocol::SETofPOINTEREVENT::flag_names );
 }
 
 // DEVICEEVENT
@@ -256,7 +256,7 @@ X11ProtocolParser::_formatProtocolType(
     assert( ( setofdeviceevent.data & protocol::SETofDEVICEEVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofdeviceevent.data,
-                           protocol::enum_names::set_of_event );
+                           protocol::SETofDEVICEEVENT::flag_names );
 }
 
 // KEYSYM
@@ -299,19 +299,20 @@ X11ProtocolParser::_formatProtocolType(
     // TBD could make some sort of list of exception flags for mask types that result in enum string
     //     this seems to be the only exception to normal SETof(KEY|BUTTON|KEYBUT)MASK formatting
     if ( setofkeymask.data == protocol::SETofKEYMASK::ANYMODIFIER ) {
-        const std::string name_str { "AnyModifier" };
         if ( _verbose ) {
             // fmt counts "0x" as part of width when using '#'
             static constexpr size_t hex_width { ( sizeof( setofkeymask.data ) * 2 ) + 2 };
-            const std::string hex_str { fmt::format( "{:#0{}x}", setofkeymask.data, hex_width ) };
-            return fmt::format( "{}({})", hex_str, name_str );
+            const std::string hex_str {
+                fmt::format( "{:#0{}x}", setofkeymask.data, hex_width ) };
+            return fmt::format( "{}({})", hex_str,
+                                protocol::SETofKEYMASK::anymodifier_flag_name );
         }
-        return name_str;
+        return std::string( protocol::SETofKEYMASK::anymodifier_flag_name );
     }
     assert( ( setofkeymask.data & protocol::SETofKEYMASK::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofkeymask.data,
-                           protocol::enum_names::set_of_keybutmask );
+                           protocol::SETofKEYMASK::flag_names );
 }
 
 // BUTMASK
@@ -325,7 +326,7 @@ X11ProtocolParser::_formatProtocolType(
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
     assert( ( setofkeybutmask.data & protocol::SETofKEYBUTMASK::ZERO_BITS ) == 0 );
     return _formatBitmask( setofkeybutmask.data,
-                           protocol::enum_names::set_of_keybutmask );
+                           protocol::SETofKEYBUTMASK::flag_names );
 }
 
 // STRING8

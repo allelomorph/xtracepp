@@ -2,6 +2,8 @@
 #define COMMON_TYPES_HPP
 
 #include <cstdint>
+#include <vector>
+#include <string_view>
 
 // https://www.x.org/releases/current/doc/xproto/x11protocol.pdf
 // Chapter 3. Common Types
@@ -142,67 +144,39 @@ union FONTABLE {
 //   - enum: less verbose comparison but need prefixes or namespaces to avoid collisions
 struct [[gnu::packed]] BITGRAVITY {
     CARD8 data;
+
+    inline static const std::vector<std::string_view> enum_names {
+        "Forget",     //  0
+        "NorthWest",  //  1
+        "North",      //  2
+        "NorthEast",  //  3
+        "West",       //  4
+        "Center",     //  5
+        "East",       //  6
+        "SouthWest",  //  7
+        "South",      //  8
+        "SouthEast",  //  9
+        "Static"      // 10
+    };
 };
-// enum BitGravity {
-//     FORGET,      //  0
-//     NORTHWEST,   //  1
-//     NORTH,       //  2
-//     NORTHEAST,   //  3
-//     WEST,        //  4
-//     CENTER,      //  5
-//     EAST,        //  6
-//     SOUTHWEST,   //  7
-//     SOUTH,       //  8
-//     SOUTHEAST,   //  9
-//     STATIC       // 10
-// };
-// enum BitGravity {
-//     "Forget",      // 0
-//     "NorthWest",   // 1
-//     "North",       // 2
-//     "NorthEast",   // 3
-//     "West",        // 4
-//     "Center",      // 5
-//     "East",        // 6
-//     "SouthWest",   // 7
-//     "South",       // 8
-//     "SouthEast",   // 9
-//     "Static"       //10
-// };
 
 struct [[gnu::packed]] WINGRAVITY {
     CARD8 data;
-};
-// enum WinGravity {
-//     UNMAP,       //  0
-//     NORTHWEST,   //  1
-//     NORTH,       //  2
-//     NORTHEAST,   //  3
-//     WEST,        //  4
-//     CENTER,      //  5
-//     EAST,        //  6
-//     SOUTHWEST,   //  7
-//     SOUTH,       //  8
-//     SOUTHEAST,   //  9
-//     STATIC       // 10
-// };
-// enum WinGravity {
-//     "Unmap",       // 0
-//     "NorthWest",   // 1
-//     "North",       // 2
-//     "NorthEast",   // 3
-//     "West",        // 4
-//     "Center",      // 5
-//     "East",        // 6
-//     "SouthWest",   // 7
-//     "South",       // 8
-//     "SouthEast",   // 9
-//     "Static"       //10
-// };
 
-// enum class BOOL {
-//     True, False
-// };
+    inline static const std::vector<std::string_view> enum_names {
+        "Unmap",      //  0
+        "NorthWest",  //  1
+        "North",      //  2
+        "NorthEast",  //  3
+        "West",       //  4
+        "Center",     //  5
+        "East",       //  6
+        "SouthWest",  //  7
+        "South",      //  8
+        "SouthEast",  //  9
+        "Static"      // 10
+    };
+};
 
 // TBD encoding seems to always use 1 byte for BOOL
 // TBD neither
@@ -212,21 +186,61 @@ struct [[gnu::packed]] WINGRAVITY {
 //   indicate 1 byte
 struct [[gnu::packed]] BOOL {
     uint8_t data;
+
+    inline static const std::vector<std::string_view> enum_names {
+        "False",  // 0
+        "True"    // 1
+    };
 };
 
-// events
+namespace impl {
+
+inline const
+std::vector<std::string_view> SET_OF_EVENT_FLAG_NAMES {
+    "KeyPress",              // 1 <<  0
+    "KeyRelease",            // 1 <<  1
+    "ButtonPress",           // 1 <<  2
+    "ButtonRelease",         // 1 <<  3
+    "EnterWindow",           // 1 <<  4
+    "LeaveWindow",           // 1 <<  5
+    "PointerMotion",         // 1 <<  6
+    "PointerMotionHint",     // 1 <<  7
+    "Button1Motion",         // 1 <<  8
+    "Button2Motion",         // 1 <<  9
+    "Button3Motion",         // 1 << 10
+    "Button4Motion",         // 1 << 11
+    "Button5Motion",         // 1 << 12
+    "ButtonMotion",          // 1 << 13
+    "KeymapState",           // 1 << 14
+    "Exposure",              // 1 << 15
+    "VisibilityChange",      // 1 << 16
+    "StructureNotify",       // 1 << 17
+    "ResizeRedirect",        // 1 << 18
+    "SubstructureNotify",    // 1 << 19
+    "SubstructureRedirect",  // 1 << 20
+    "FocusChange",           // 1 << 21
+    "PropertyChange",        // 1 << 22
+    "ColormapChange",        // 1 << 23
+    "OwnerGrabButton"        // 1 << 24
+};
+
+}  // namespace impl
 
 struct [[gnu::packed]] SETofEVENT {
     CARD32 data;
 
     // must be zeroed in SETofEVENT values
     inline static constexpr uint32_t ZERO_BITS { 0xFE000000 };
+    inline static const std::vector<std::string_view>& flag_names {
+        impl::SET_OF_EVENT_FLAG_NAMES };
 };
 struct [[gnu::packed]] SETofPOINTEREVENT {
     CARD16 data;
 
     // must be zeroed in SETofPOINTEREVENT values
     inline static constexpr uint32_t ZERO_BITS { 0xFFFF8003 };
+    inline static const std::vector<std::string_view>& flag_names {
+        impl::SET_OF_EVENT_FLAG_NAMES };
 };
 // TBD 2B in GetWindowAttributes reply
 struct [[gnu::packed]] SETofDEVICEEVENT {
@@ -234,41 +248,10 @@ struct [[gnu::packed]] SETofDEVICEEVENT {
 
     // must be zeroed in SETofDEVICEEVENT values
     inline static constexpr uint32_t ZERO_BITS { 0xFFFFC0B0 };
+    inline static const std::vector<std::string_view>& flag_names {
+        impl::SET_OF_EVENT_FLAG_NAMES };
 };
 
-// enum EventMaskFlags {
-//     KEYPRESS             = 1 <<  0,  // KeyPress
-//     KEYRELEASE           = 1 <<  1,  // KeyRelease
-//     BUTTONPRESS          = 1 <<  2,  // ButtonPress
-//     BUTTONRELEASE        = 1 <<  3,  // ButtonRelease
-//     ENTERWINDOW          = 1 <<  4,  // EnterWindow
-//     LEAVEWINDOW          = 1 <<  5,  // LeaveWindow
-//     POINTERMOTION        = 1 <<  6,  // PointerMotion
-//     POINTERMOTIONHINT    = 1 <<  7,  // PointerMotionHint
-//     BUTTON1MOTION        = 1 <<  8,  // Button1Motion
-//     BUTTON2MOTION        = 1 <<  9,  // Button2Motion
-//     BUTTON3MOTION        = 1 << 10,  // Button3Motion
-//     BUTTON4MOTION        = 1 << 11,  // Button4Motion
-//     BUTTON5MOTION        = 1 << 12,  // Button5Motion
-//     BUTTONMOTION         = 1 << 13,  // ButtonMotion
-//     KEYMAPSTATE          = 1 << 14,  // KeymapState
-//     EXPOSURE             = 1 << 15,  // Exposure
-//     VISIBILITYCHANGE     = 1 << 16,  // VisibilityChange
-//     STRUCTURENOTIFY      = 1 << 17,  // StructureNotify
-//     RESIZEREDIRECT       = 1 << 18,  // ResizeRedirect
-//     SUBSTRUCTURENOTIFY   = 1 << 19,  // SubstructureNotify
-//     SUBSTRUCTUREREDIRECT = 1 << 20,  // SubstructureRedirect
-//     FOCUSCHANGE          = 1 << 21,  // FocusChange
-//     PROPERTYCHANGE       = 1 << 22,  // PropertyChange
-//     COLORMAPCHANGE       = 1 << 23,  // ColormapChange
-//     OWNERGRABBUTTON      = 1 << 24,  // OwnerGrabButton
-//     // must be zeroed in SETofEVENT values
-//     _SETOFEVENT_ZERO_BITS        = 0XFE000000,
-//     // must be zeroed in SETofPOINTEREVENT values
-//     _SETOFPOINTEREVENT_ZERO_BITS = 0XFFFF8003,
-//     // must be zeroed in SETofDEVICEEVENT values
-//     _SETOFDEVICEEVENT_ZERO_BITS  = 0XFFFFC0B0
-// };
 
 // input
 
@@ -294,13 +277,38 @@ union KEYBUTMASK {
     BUTMASK butmask;
 };
 */
+
+namespace impl {
+
+inline const
+std::vector<std::string_view> SET_OF_KEYBUTMASK_FLAG_NAMES {
+    "Shift",    // 1 <<  0
+    "Lock",     // 1 <<  1
+    "Control",  // 1 <<  2
+    "Mod1",     // 1 <<  3
+    "Mod2",     // 1 <<  4
+    "Mod3",     // 1 <<  5
+    "Mod4",     // 1 <<  6
+    "Mod5",     // 1 <<  7
+    "Button1",  // 1 <<  8
+    "Button2",  // 1 <<  9
+    "Button3",  // 1 << 10
+    "Button4",  // 1 << 11
+    "Button5"   // 1 << 12
+};
+
+}  // namespace impl
+
 // TBD are these sets only 2 bytes?
 struct [[gnu::packed]] SETofKEYBUTMASK {
     CARD16 data;
 
     // must be zeroed in SETofKEYBUTMASK values
     inline static constexpr uint16_t ZERO_BITS { 0xE000 };
+    inline static const std::vector<std::string_view>& flag_names {
+        impl::SET_OF_KEYBUTMASK_FLAG_NAMES };
 };
+
 struct [[gnu::packed]] SETofKEYMASK {
     CARD16 data;
 
@@ -308,25 +316,13 @@ struct [[gnu::packed]] SETofKEYMASK {
     inline static constexpr uint16_t ZERO_BITS { 0xFF00 };
     // special alternate flag value for SETofKEYMASK (violates zero bits rule)
     inline static constexpr uint16_t ANYMODIFIER { 0x8000 };
+    inline static constexpr std::string_view anymodifier_flag_name { "AnyModifier" };
+    inline static const std::vector<std::string_view>& flag_names {
+        impl::SET_OF_KEYBUTMASK_FLAG_NAMES };
 };
+
 
 /*
-enum class KeyButMaskFlags {
-    Shift   = 1 << 0,
-    Lock    = 1 << 1,
-    Control = 1 << 2,
-    Mod1    = 1 << 3,
-    Mod2    = 1 << 4,
-    Mod3    = 1 << 5,
-    Mod4    = 1 << 6,
-    Mod5    = 1 << 7,
-    Button1 = 1 << 8,
-    Button2 = 1 << 9,
-    Button3 = 1 << 10,
-    Button4 = 1 << 11,
-    Button5 = 1 << 12,
-};
-
 // strings
 
 using STRING8     = char;  // LISTofCARD8
