@@ -188,11 +188,14 @@ private:
 
     // TBD consider passing pointer instead of reference to allow for null
     //   checks (use std::optional?) and have lighter weight default ctor
-    // TBD or could default point reference to private member dummy vector
+    // TBD dummy vector as default for enum_names prevents calling vector ctor
+    //   every time _formatProtocolType is called without enum_names
+    inline static const std::vector<std::string_view> _NO_ENUM_NAMES {};
     template < typename ProtocolT >
     std::string
-    _formatProtocolType( const ProtocolT value,
-                         const std::vector<std::string_view>& = {} );
+    _formatProtocolType(
+        const ProtocolT value,
+        const std::vector<std::string_view>& enum_names = _NO_ENUM_NAMES );
 
     struct _ParsingOutputs {
         std::string str       {};

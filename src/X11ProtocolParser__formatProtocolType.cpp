@@ -22,7 +22,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINDOW window,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -37,7 +37,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::PIXMAP pixmap,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( pixmap.data & protocol::PIXMAP::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_copy_from_parent ||
@@ -52,7 +52,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::CURSOR cursor,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( cursor.data & protocol::CURSOR::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none );
@@ -65,7 +65,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::FONT font,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( font.data & protocol::FONT::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none );
@@ -80,7 +80,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::GCONTEXT gcontext,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     assert( ( gcontext.data & protocol::GCONTEXT::ZERO_BITS ) == 0 );
     return _formatInteger( gcontext.data );
 }
@@ -90,7 +90,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::COLORMAP colormap,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( colormap.data & protocol::COLORMAP::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -106,7 +106,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::DRAWABLE drawable,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( drawable.window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     return _formatInteger( drawable.window.data, enum_names );
 }
@@ -119,7 +119,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ATOM atom,
-    const std::vector< std::string_view >& enum_names /* ={}*/) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( atom.data & protocol::ATOM::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -147,7 +147,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::VISUALID visualid,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     assert( ( visualid.data & protocol::VISUALID::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -169,7 +169,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::TIMESTAMP time,
-    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::time );
     }
@@ -197,7 +197,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BITGRAVITY bitgravity,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return _formatInteger( bitgravity.data,
                            protocol::BITGRAVITY::enum_names );
 }
@@ -208,7 +208,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINGRAVITY wingravity,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return _formatInteger( wingravity.data,
                            protocol::WINGRAVITY::enum_names );
 }
@@ -219,7 +219,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BOOL bool_,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return _formatInteger( bool_.data,
                            protocol::BOOL::enum_names );
 }
@@ -229,7 +229,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofEVENT setofevent,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     assert( ( setofevent.data & protocol::SETofEVENT::ZERO_BITS ) == 0 );
     return _formatBitmask( setofevent.data,
                            protocol::SETofEVENT::flag_names );
@@ -240,7 +240,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofPOINTEREVENT setofpointerevent,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     assert( ( setofpointerevent.data & protocol::SETofPOINTEREVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofpointerevent.data,
@@ -252,7 +252,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofDEVICEEVENT setofdeviceevent,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     assert( ( setofdeviceevent.data & protocol::SETofDEVICEEVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofdeviceevent.data,
@@ -267,7 +267,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::KEYCODE keycode,
-    const std::vector< std::string_view >& enum_names /*= {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::key );
     }
@@ -279,7 +279,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BUTTON button,
-    const std::vector< std::string_view >& enum_names /*= {}*/ ) {
+    const std::vector< std::string_view >& enum_names ) {
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::button );
     }
@@ -291,7 +291,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYMASK setofkeymask,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     // TBD exception in Requests 28 GrabButton 29 UngrabButton 33 GrabKey 34 UngrabKey: 0x8000 == AnyModifier
     // TBD this breaks current code paradigm in two ways:
     //    - where to keep "AnyModifier" string in enum_names?
@@ -322,7 +322,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYBUTMASK setofkeybutmask,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     assert( ( setofkeybutmask.data & protocol::SETofKEYBUTMASK::ZERO_BITS ) == 0 );
     return _formatBitmask( setofkeybutmask.data,
                            protocol::SETofKEYBUTMASK::flag_names );
@@ -339,7 +339,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::POINT point,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format( "{{ x: {}, y: {} }}",
                         _formatInteger( point.x ),
                         _formatInteger( point.y ) );
@@ -350,7 +350,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::RECTANGLE rectangle,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format( "{{ x: {}, y: {}, width: {}, height: {} }}",
                         _formatInteger( rectangle.x ),
                         _formatInteger( rectangle.y ),
@@ -363,7 +363,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ARC arc,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format(
         "{{ x: {}, y: {}, width: {}, height: {}, angle1: {}, angle2: {} }}",
         _formatInteger( arc.x ),
@@ -386,7 +386,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::CHARINFO charinfo,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format(
         "{{ left-side-bearing: {}, right-side-bearing: {}, character-width: {}, ascent: {} descent: {} attributes: {} }}",
         _formatInteger( charinfo.left_side_bearing ),
@@ -401,7 +401,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::FONTPROP fontprop,
-    const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format(
         "{{ name: {}, value: {} }}",
         _formatProtocolType( fontprop.name ),
