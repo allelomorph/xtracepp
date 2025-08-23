@@ -300,10 +300,9 @@ X11ProtocolParser::_formatProtocolType(
     //     this seems to be the only exception to normal SETof(KEY|BUTTON|KEYBUT)MASK formatting
     if ( setofkeymask.data == protocol::SETofKEYMASK::ANYMODIFIER ) {
         if ( _verbose ) {
-            // fmt counts "0x" as part of width when using '#'
-            static constexpr size_t hex_width { ( sizeof( setofkeymask.data ) * 2 ) + 2 };
             const std::string hex_str {
-                fmt::format( "{:#0{}x}", setofkeymask.data, hex_width ) };
+                fmt::format( "{:#0{}x}", setofkeymask.data,
+                             _fmtHexWidth( setofkeymask.data ) ) };
             return fmt::format( "{}({})", hex_str,
                                 protocol::SETofKEYMASK::anymodifier_flag_name );
         }

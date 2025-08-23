@@ -812,13 +812,15 @@ X11ProtocolParser::_parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz 
         } else {
             outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::TEXTELT16 );
             std::string hex_str {};
-            // TBD treating CHAR2B as CARD16, but encoding may be more complicated in standard
-            const uint32_t hex_width { ( sizeof( protocol::CHAR2B ) * 2 ) + 2 };
             for ( uint8_t i {}, m { item->text_element.m }; i < m; ++i ) {
+                // TBD treating CHAR2B as CARD16, but encoding may be more
+                //   complicated in standard
+                const uint16_t char2b {
+                    *reinterpret_cast< const uint16_t* >(
+                        data + outputs.bytes_parsed ) };
                 hex_str += fmt::format(
                     "{}{:#0{}x}", hex_str.empty() ? "" : " ",
-                    *reinterpret_cast< const uint16_t* >(
-                        data + outputs.bytes_parsed ), hex_width );
+                    char2b, _fmtHexWidth( char2b ) );
                 outputs.bytes_parsed += sizeof( protocol::CHAR2B );
             }
             // TBD m only if verbose

@@ -89,6 +89,13 @@ private:
         return _padToAlignment( n, _ALIGN );
     }
 
+    template < typename ScalarT,
+               std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
+    inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
+        // fmt counts "0x" as part of width when using '#'
+        return ( sizeof( val ) * 2 ) + sizeof( "0x" );
+    }
+
     // template< typename T >
     // auto _parseSimpleType( const uint8_t** data, size_t* bytes_parsed ) ->
     //     std::enable_if_t< std::is_arithmetic_v< T >, T > {
@@ -124,10 +131,9 @@ private:
                 name_str = std::string( enum_names[ value ] );
         }
         if ( _verbose ) {
-            // fmt counts "0x" as part of width when using '#'
-            static constexpr size_t hex_width { ( sizeof( value ) * 2 ) + 2 };
             const std::string hex_str {
-                fmt::format( "{:#0{}x}", std::make_unsigned_t< ValueT >( value ), hex_width ) };
+                fmt::format( "{:#0{}x}", std::make_unsigned_t< ValueT >( value ),
+                             _fmtHexWidth( value ) ) };
             return name_str.empty() ? hex_str :
                 fmt::format( "{}({})", hex_str, name_str );
         }
@@ -141,9 +147,8 @@ private:
         uint32_t max_flag_i = _UNINITIALIZED ) ->
         std::enable_if_t< std::is_integral_v< MaskT >, std::string > {
         assert( !std::is_signed_v< MaskT > );
-        // fmt counts "0x" as part of width when using '#'
-        static constexpr size_t hex_width { ( sizeof( mask ) * 2 ) + 2 };
-        std::string hex_str { fmt::format( "{:#0{}x}", mask, hex_width ) };
+        std::string hex_str { fmt::format( "{:#0{}x}", mask,
+                                           _fmtHexWidth( mask ) ) };
         std::string flag_str;
         if ( !flag_names.empty() ) {
             if ( max_flag_i == _UNINITIALIZED )
