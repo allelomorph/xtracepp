@@ -284,8 +284,8 @@ X11ProtocolParser::_parseLISTofFORMAT(
 
     X11ProtocolParser::_ParsingOutputs outputs;
     using namespace protocol::connection_setup;
-    const ServerAcceptance::Format* pixmap_formats {
-        reinterpret_cast< const ServerAcceptance::Format* >( data ) };
+    const ServerAcceptance::FORMAT* pixmap_formats {
+        reinterpret_cast< const ServerAcceptance::FORMAT* >( data ) };
 
     const std::string_view struct_indent {
         _multiline ? _tabIndent( tab_ct ) : "" };
@@ -307,7 +307,7 @@ X11ProtocolParser::_parseLISTofFORMAT(
             i == format_ct - 1 ? "" : ",",
             _separator
             );
-        outputs.bytes_parsed += sizeof( ServerAcceptance::Format );
+        outputs.bytes_parsed += sizeof( ServerAcceptance::FORMAT );
     }
     if ( format_ct > 0 )
         outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
@@ -334,10 +334,10 @@ X11ProtocolParser::_parseLISTofSCREEN(
     if ( screen_ct > 0 )
         outputs.str += _separator;
     for ( uint32_t i {}; i < screen_ct; ++i ) {
-        const ServerAcceptance::Screen::Header* header {
-            reinterpret_cast< const ServerAcceptance::Screen::Header* >(
+        const ServerAcceptance::SCREEN::Header* header {
+            reinterpret_cast< const ServerAcceptance::SCREEN::Header* >(
                 data + outputs.bytes_parsed ) };
-        outputs.bytes_parsed += sizeof( ServerAcceptance::Screen::Header );
+        outputs.bytes_parsed += sizeof( ServerAcceptance::SCREEN::Header );
 
         // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4)
         _ParsingOutputs allowed_depths_outputs {
@@ -378,7 +378,7 @@ X11ProtocolParser::_parseLISTofSCREEN(
             _formatProtocolType( header->root_visual ), _separator,
             memb_indent, "backing-stores", name_width, _equals,
             _formatInteger( header->backing_stores,
-                            ServerAcceptance::Screen::backing_stores_names ),
+                            ServerAcceptance::SCREEN::backing_stores_names ),
             _separator,
             memb_indent, "save-unders", name_width, _equals,
             _formatProtocolType( header->save_unders ), _separator,
@@ -414,10 +414,10 @@ X11ProtocolParser::_parseLISTofDEPTH(
     if ( depth_ct > 0 )
         outputs.str += _separator;
     for ( uint32_t i {}; i < depth_ct; ++i ) {
-        const ServerAcceptance::Screen::Depth::Header* header {
-            reinterpret_cast< const ServerAcceptance::Screen::Depth::Header* >(
+        const ServerAcceptance::SCREEN::DEPTH::Header* header {
+            reinterpret_cast< const ServerAcceptance::SCREEN::DEPTH::Header* >(
                 data + outputs.bytes_parsed ) };
-        outputs.bytes_parsed += sizeof( ServerAcceptance::Screen::Depth::Header );
+        outputs.bytes_parsed += sizeof( ServerAcceptance::SCREEN::DEPTH::Header );
 
         // followed by LISTofVISUALTYPE visuals of n * sizeof(VISUALTYPE) bytes
         _ParsingOutputs visuals_outputs {
@@ -468,10 +468,10 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
     if ( vt_ct > 0 )
         outputs.str += _separator;
     for ( uint32_t i {}; i < vt_ct; ++i ) {
-        const ServerAcceptance::Screen::Depth::VisualType::Encoding* visualtype {
-            reinterpret_cast< const ServerAcceptance::Screen::Depth::VisualType::Encoding* >(
+        const ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::Encoding* visualtype {
+            reinterpret_cast< const ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::Encoding* >(
                 data + outputs.bytes_parsed ) };
-        outputs.bytes_parsed += sizeof( ServerAcceptance::Screen::Depth::VisualType::Encoding );
+        outputs.bytes_parsed += sizeof( ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::Encoding );
 
         // TBD for now VISUALTYPE struct is single line regardless of verbosity
         outputs.str += fmt::format(
@@ -481,7 +481,7 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
             _formatProtocolType( visualtype->visual_id ),
             "class",
             _formatInteger( visualtype->class_,
-                            ServerAcceptance::Screen::Depth::VisualType::class_names ),
+                            ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::class_names ),
             "bits-per-rgb-value",
             _formatInteger( visualtype->bits_per_rgb_value ),
             "colormap-entries",
@@ -504,7 +504,7 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
         //     _formatProtocolType( visualtype->visual_id ), _separator,
         //     memb_indent, "class", name_width, _equals,
         //     _formatInteger( visualtype->class_,
-        //                     ServerAcceptance::Screen::Depth::VisualType::class_names ),
+        //                     ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::class_names ),
         //      _separator,
         //     memb_indent, "bits-per-rgb-value", name_width, _equals,
         //     _formatInteger( visualtype->bits_per_rgb_value ), _separator,

@@ -16,6 +16,7 @@ namespace connection_setup {
 //   6000 + N.
 
 struct ClientInitiation {
+    // TBD rename Encoding to match Request/Reply/Event
     struct [[gnu::packed]] Header {
         CARD8    byte_order;  //  byte-order #x42 'B' MSB first (bigend) #x6C 'l' LSB first (littleend)
     private:
@@ -45,6 +46,7 @@ struct ClientInitiation {
 enum success { FAILED, SUCCESS, AUTHENTICATE };  // Failed, Success, Authenticate
 
 struct ServerRefusal {
+    // TBD rename Encoding to match Request/Reply/Event
     struct [[gnu::packed]] Header {
         uint8_t  success;  // 0 protocol::connection_setup::FAILED
         uint8_t  n;  // length of reason in bytes
@@ -57,6 +59,7 @@ struct ServerRefusal {
 
 // Information received by the client if further authentication is required:
 struct ServerRequireFurtherAuthentication {
+    // TBD rename Encoding to match Request/Reply/Event
     struct [[gnu::packed]] Header {
         uint8_t  success;  // 1 protocol::connection_setup::AUTHENTICATE
     private:
@@ -69,6 +72,7 @@ struct ServerRequireFurtherAuthentication {
 
 // Information received by the client if the connection is accepted:
 struct ServerAcceptance {
+    // TBD rename Encoding to match Request/Reply/Event
     struct [[gnu::packed]] Header {
         uint8_t  success;  // 2 protocol::connection_setup::SUCCESS
     private:
@@ -103,7 +107,7 @@ struct ServerAcceptance {
     inline static const std::vector< std::string_view >&
     bit_order_names { protocol::enum_names::bitmap_format_bit_order };
 
-    struct [[gnu::packed]] Format {  // FORMAT
+    struct [[gnu::packed]] FORMAT {  // FORMAT
         CARD8   depth;
         CARD8   bits_per_pixel;  // bits-per-pixel
         CARD8   scanline_pad;  // scanline-pad
@@ -111,7 +115,8 @@ struct ServerAcceptance {
         uint8_t _unused[5];
     };
 
-    struct Screen {  // SCREEN
+    struct SCREEN {  // SCREEN
+        // TBD rename Encoding to match Request/Reply/Event
         struct [[gnu::packed]] Header {
             WINDOW     root;
             COLORMAP   default_colormap;  // default-colormap
@@ -136,7 +141,8 @@ struct ServerAcceptance {
         std::vector< std::string_view >& backing_stores_names {
             protocol::enum_names::screen_backing_stores };
 
-        struct Depth {  // DEPTH
+        struct DEPTH {  // DEPTH
+            // TBD rename Encoding to match Request/Reply/Event
             struct [[gnu::packed]] Header {
                 CARD8    depth;
             private:
@@ -148,7 +154,7 @@ struct ServerAcceptance {
             };
             // followed by LISTofVISUALTYPE visuals of n*sizeof(VisualType) bytes
 
-            struct [[gnu::packed]] VisualType {  // VISUALTYPE
+            struct [[gnu::packed]] VISUALTYPE {  // VISUALTYPE
                 struct [[gnu::packed]] Encoding {
                     VISUALID visual_id;  // visual-id
                     uint8_t  class_;  // class // 0 StaticGray 1 GrayScale 2 StaticColor 3 PseudoColor 4 TrueColor 5 DirectColor
