@@ -36,23 +36,41 @@ struct [[gnu::packed]] TIMESTAMP {
 };
 // using LISTofTIMESTAMP = TIMESTAMP*;
 
+namespace impl {
+
+inline static constexpr uint32_t XID_ZERO_BITS { 0xE0000000 };
+
+}  // namespace impl
+
 struct [[gnu::packed]] CURSOR {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 // using LISTofCURSOR    = CURSOR*;
 
 struct [[gnu::packed]] COLORMAP {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 // using LISTofCOLORMAP  = COLORMAP*;
 
 struct [[gnu::packed]] ATOM {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 // using LISTofATOM      = ATOM*;
 
 struct [[gnu::packed]] VISUALID {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 // using LISTofVISUALID  = VISUALID*;
 
@@ -60,10 +78,16 @@ struct [[gnu::packed]] VISUALID {
 // using LISTofVALUE     = VALUE*;
 
 struct [[gnu::packed]] WINDOW {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 struct [[gnu::packed]] PIXMAP {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 union DRAWABLE {
     WINDOW window;
@@ -74,10 +98,16 @@ union DRAWABLE {
 // using LISTofDRAWABLE  = DRAWABLE*;
 
 struct [[gnu::packed]] FONT {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 struct [[gnu::packed]] GCONTEXT {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 union FONTABLE {
     FONT     font;
@@ -188,14 +218,24 @@ struct [[gnu::packed]] BOOL {
 
 struct [[gnu::packed]] SETofEVENT {
     CARD32 data;
+
+    // must be zeroed in SETofEVENT values
+    inline static constexpr uint32_t ZERO_BITS { 0xFE000000 };
 };
 struct [[gnu::packed]] SETofPOINTEREVENT {
     CARD16 data;
+
+    // must be zeroed in SETofPOINTEREVENT values
+    inline static constexpr uint32_t ZERO_BITS { 0xFFFF8003 };
 };
-// TBD 2B in GetWindowAttributes reply, 4 in CreateWindow LISTofVALUE (disregard, VALUEs are always 4B)
+// TBD 2B in GetWindowAttributes reply
 struct [[gnu::packed]] SETofDEVICEEVENT {
     CARD16 data;
+
+    // must be zeroed in SETofDEVICEEVENT values
+    inline static constexpr uint32_t ZERO_BITS { 0xFFFFC0B0 };
 };
+
 // enum EventMaskFlags {
 //     KEYPRESS             = 1 <<  0,  // KeyPress
 //     KEYRELEASE           = 1 <<  1,  // KeyRelease
@@ -257,10 +297,19 @@ union KEYBUTMASK {
 // TBD are these sets only 2 bytes?
 struct [[gnu::packed]] SETofKEYBUTMASK {
     CARD16 data;
+
+    // must be zeroed in SETofKEYBUTMASK values
+    inline static constexpr uint16_t ZERO_BITS { 0xE000 };
 };
 struct [[gnu::packed]] SETofKEYMASK {
     CARD16 data;
+
+    // must be zeroed in SETofKEYMASK values
+    inline static constexpr uint16_t ZERO_BITS { 0xFF00 };
+    // special alternate flag value for SETofKEYMASK (violates zero bits rule)
+    inline static constexpr uint16_t ANYMODIFIER { 0x8000 };
 };
+
 /*
 enum class KeyButMaskFlags {
     Shift   = 1 << 0,
@@ -276,10 +325,6 @@ enum class KeyButMaskFlags {
     Button3 = 1 << 10,
     Button4 = 1 << 11,
     Button5 = 1 << 12,
-    // must be zeroed in SETofKEYBUTMASK values
-    _SETofKEYBUTMASK_zero_bits = 0xE000,
-    // must be zeroed in SETofKEYMASK values
-    _SETofKEYMASK_zero_bits    = 0xFF00
 };
 
 // strings

@@ -98,17 +98,6 @@ private:
     //     return val;
     // }
 
-    // TBD for CURSOR COLORMAP ATOM VISUALID WINDOW PIXMAP DRAWABLE FONT GCONTEXT FONTABLE
-    static constexpr uint32_t
-    _TOP_3_OF_32_BITS { 0xE0000000 };
-
-    template < typename T >
-    inline auto _top_three_bits_zero( const T value ) ->
-        std::enable_if_t< std::is_integral_v< T > && sizeof( T ) == 4,
-            bool > {
-        return ( ( value & _TOP_3_OF_32_BITS ) == 0 );
-    }
-
     // TBD sentinel necessary?
     static constexpr uint32_t _UNINITIALIZED {
         std::numeric_limits< uint32_t >::max() };

@@ -23,6 +23,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINDOW window,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
                 enum_names == protocol::enum_names::event_destination ||
@@ -37,6 +38,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::PIXMAP pixmap,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( pixmap.data & protocol::PIXMAP::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_copy_from_parent ||
                 enum_names == protocol::enum_names::window_attribute_background_pixmap ||
@@ -51,6 +53,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::CURSOR cursor,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( cursor.data & protocol::CURSOR::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none );
     }
@@ -63,6 +66,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::FONT font,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( font.data & protocol::FONT::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none );
     }
@@ -77,6 +81,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::GCONTEXT gcontext,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
+    assert( ( gcontext.data & protocol::GCONTEXT::ZERO_BITS ) == 0 );
     return _formatInteger( gcontext.data );
 }
 
@@ -86,6 +91,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::COLORMAP colormap,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( colormap.data & protocol::COLORMAP::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
                 enum_names == protocol::enum_names::zero_copy_from_parent );
@@ -100,12 +106,13 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::DRAWABLE drawable,
-    [[maybe_unused]] const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( drawable.window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     return _formatInteger( drawable.window.data, enum_names );
 }
 
 // FONTABLE FONT or GCONTEXT
-  //   // TBD FONTABLE?
+// TBD FONTABLE does not appear in core protocol encoding?
 
 // ATOM
 template <>
@@ -113,7 +120,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ATOM atom,
     const std::vector< std::string_view >& enum_names /* ={}*/) {
-    assert( _top_three_bits_zero( atom.data ) );
+    assert( ( atom.data & protocol::ATOM::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
                 enum_names == protocol::enum_names::property_atom );
@@ -141,6 +148,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::VISUALID visualid,
     const std::vector< std::string_view >& enum_names/* = {}*/ ) {
+    assert( ( visualid.data & protocol::VISUALID::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
                 enum_names == protocol::enum_names::zero_copy_from_parent );
@@ -222,10 +230,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofEVENT setofevent,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
-    // SETofEVENT
-    //     #xFE000000     unused but must be zero
-    static constexpr uint32_t UNUSED_BITS { 0xfe000000 };
-    assert( ( setofevent.data & UNUSED_BITS ) == 0 );
+    assert( ( setofevent.data & protocol::SETofEVENT::ZERO_BITS ) == 0 );
     return _formatBitmask( setofevent.data,
                            protocol::enum_names::set_of_event );
 }
@@ -236,14 +241,10 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofPOINTEREVENT setofpointerevent,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
-    // SETofPOINTEREVENT
-    //      encodings are the same as for SETofEVENT, except with
-    //      #xFFFF8003     unused but must be zero
-    static constexpr uint32_t UNUSED_BITS { 0xffff8003 };
-    assert( ( setofpointerevent.data & UNUSED_BITS ) == 0 );
-    static constexpr size_t MAX_FLAG_I { 14 };
+    assert( ( setofpointerevent.data & protocol::SETofPOINTEREVENT::ZERO_BITS ) == 0 );
+    // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofpointerevent.data,
-                           protocol::enum_names::set_of_event, MAX_FLAG_I );
+                           protocol::enum_names::set_of_event );
 }
 
 // DEVICEEVENT
@@ -252,14 +253,10 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofDEVICEEVENT setofdeviceevent,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
-    // SETofDEVICEEVENT
-    //      encodings are the same as for SETofEVENT, except with
-    //      #xFFFFC0B0     unused but must be zero
-    static constexpr uint32_t UNUSED_BITS { 0xffffc0b0 };
-    assert( ( setofdeviceevent.data & UNUSED_BITS ) == 0 );
-    static constexpr size_t MAX_FLAG_I { 13 };
+    assert( ( setofdeviceevent.data & protocol::SETofDEVICEEVENT::ZERO_BITS ) == 0 );
+    // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofdeviceevent.data,
-                           protocol::enum_names::set_of_event, MAX_FLAG_I );
+                           protocol::enum_names::set_of_event );
 }
 
 // KEYSYM
@@ -295,16 +292,13 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYMASK setofkeymask,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
-    // SETofKEYMASK
-    //      encodings are the same as for SETofKEYBUTMASK, except with
-    //      #xFF00          unused but must be zero
     // TBD exception in Requests 28 GrabButton 29 UngrabButton 33 GrabKey 34 UngrabKey: 0x8000 == AnyModifier
     // TBD this breaks current code paradigm in two ways:
     //    - where to keep "AnyModifier" string in enum_names?
     //    - have to bypass _formatInteger due to its only accommodating enums that start at 0
     // TBD could make some sort of list of exception flags for mask types that result in enum string
     //     this seems to be the only exception to normal SETof(KEY|BUTTON|KEYBUT)MASK formatting
-    if ( setofkeymask.data == 0x8000 ) {
+    if ( setofkeymask.data == protocol::SETofKEYMASK::ANYMODIFIER ) {
         const std::string name_str { "AnyModifier" };
         if ( _verbose ) {
             // fmt counts "0x" as part of width when using '#'
@@ -314,15 +308,14 @@ X11ProtocolParser::_formatProtocolType(
         }
         return name_str;
     }
-    static constexpr uint16_t UNUSED_BITS { 0xff00 };
-    assert( ( setofkeymask.data & UNUSED_BITS ) == 0 );
-    static constexpr size_t MAX_FLAG_I { 7 };
+    assert( ( setofkeymask.data & protocol::SETofKEYMASK::ZERO_BITS ) == 0 );
+    // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofkeymask.data,
-                           protocol::enum_names::set_of_keybutmask, MAX_FLAG_I );
+                           protocol::enum_names::set_of_keybutmask );
 }
 
 // BUTMASK
-// TBD no examples of SETofBUTMASK found in core encoding, but we could implement overload anyway
+// TBD no examples of SETofBUTMASK found in core encoding
 
 // KEYBUTMASK
 template <>
@@ -330,10 +323,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYBUTMASK setofkeybutmask,
     const std::vector< std::string_view >& /*enum_names = {}*/ ) {
-    // SETofKEYBUTMASK
-    //   #xE000     unused but must be zero
-    static constexpr uint16_t UNUSED_BITS { 0xe000 };
-    assert( ( setofkeybutmask.data & UNUSED_BITS ) == 0 );
+    assert( ( setofkeybutmask.data & protocol::SETofKEYBUTMASK::ZERO_BITS ) == 0 );
     return _formatBitmask( setofkeybutmask.data,
                            protocol::enum_names::set_of_keybutmask );
 }
