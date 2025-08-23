@@ -155,18 +155,17 @@ struct ServerAcceptance {
             // followed by LISTofVISUALTYPE visuals of n*sizeof(VisualType) bytes
 
             struct [[gnu::packed]] VISUALTYPE {  // VISUALTYPE
-                struct [[gnu::packed]] Encoding {
-                    VISUALID visual_id;  // visual-id
-                    uint8_t  class_;  // class // 0 StaticGray 1 GrayScale 2 StaticColor 3 PseudoColor 4 TrueColor 5 DirectColor
-                    CARD8    bits_per_rgb_value;  // bits-per-rgb-value
-                    CARD16   colormap_entries;  // colormap-entries
-                    CARD32   red_mask;  // red-mask
-                    CARD32   green_mask;  // green-mask
-                    CARD32   blue_mask;  // blue-mask
-                private:
-                    uint8_t  _unused[4];
-                };
+                VISUALID visual_id;  // visual-id
+                uint8_t  class_;  // class // 0 StaticGray 1 GrayScale 2 StaticColor 3 PseudoColor 4 TrueColor 5 DirectColor
+                CARD8    bits_per_rgb_value;  // bits-per-rgb-value
+                CARD16   colormap_entries;  // colormap-entries
+                CARD32   red_mask;  // red-mask
+                CARD32   green_mask;  // green-mask
+                CARD32   blue_mask;  // blue-mask
+            private:
+                uint8_t  _unused[4];
 
+            public:
                 inline static const
                 std::vector< std::string_view >& class_names {
                     protocol::enum_names::visualtype_class };

@@ -11,6 +11,7 @@
 #include "protocol/enum_names.hpp"
 #include "protocol/predefined_atoms.hpp"
 #include "protocol/requests.hpp"
+#include "protocol/connection_setup.hpp"
 
 
 // TBD zero bit validation should maybe happen instead at parse time
@@ -340,7 +341,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::POINT point,
     const std::vector< std::string_view >& /*enum_names*/ ) {
-    return fmt::format( "{{ x: {}, y: {} }}",
+    return fmt::format( "{{ x={} y={} }}",
                         _formatInteger( point.x ),
                         _formatInteger( point.y ) );
 }
@@ -351,7 +352,7 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::RECTANGLE rectangle,
     const std::vector< std::string_view >& /*enum_names*/ ) {
-    return fmt::format( "{{ x: {}, y: {}, width: {}, height: {} }}",
+    return fmt::format( "{{ x={} y={} width={} height={} }}",
                         _formatInteger( rectangle.x ),
                         _formatInteger( rectangle.y ),
                         _formatInteger( rectangle.width ),
@@ -365,7 +366,7 @@ X11ProtocolParser::_formatProtocolType(
     const protocol::ARC arc,
     const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format(
-        "{{ x: {}, y: {}, width: {}, height: {}, angle1: {}, angle2: {} }}",
+        "{{ x={} y={} width={} height={} angle1={} angle2={} }}",
         _formatInteger( arc.x ),
         _formatInteger( arc.y ),
         _formatInteger( arc.width ),
@@ -388,13 +389,13 @@ X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::CHARINFO charinfo,
     const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format(
-        "{{ left-side-bearing: {}, right-side-bearing: {}, character-width: {}, ascent: {} descent: {} attributes: {} }}",
-        _formatInteger( charinfo.left_side_bearing ),
-        _formatInteger( charinfo.right_side_bearing ),
-        _formatInteger( charinfo.character_width ),
-        _formatInteger( charinfo.ascent ),
-        _formatInteger( charinfo.descent ),
-        _formatInteger( charinfo.attributes ) );
+        "{{ {}={} {}={} {}={} {}={} {}={} {}={} }}",
+        "left-side-bearing",  _formatInteger( charinfo.left_side_bearing ),
+        "right-side-bearing", _formatInteger( charinfo.right_side_bearing ),
+        "character-width",    _formatInteger( charinfo.character_width ),
+        "ascent",             _formatInteger( charinfo.ascent ),
+        "descent",            _formatInteger( charinfo.descent ),
+        "attributes",         _formatInteger( charinfo.attributes ) );
 }
 
 template <>
@@ -403,18 +404,99 @@ X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::FONTPROP fontprop,
     const std::vector< std::string_view >& /*enum_names*/ ) {
     return fmt::format(
-        "{{ name: {}, value: {} }}",
+        "{{ name={} value={} }}",
         _formatProtocolType( fontprop.name ),
         _formatInteger( fontprop.value ) );
 }
 
 // TBD belong here:
 // ServerAcceptance::Format (rename to FORMAT)
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::connection_setup::ServerAcceptance::FORMAT format,
+    const std::vector< std::string_view >& /*enum_names*/ ) {
+    return fmt::format(
+        "{{ depth={} bits-per-pixel={} scanline-pad={} }}",
+        _formatInteger( format.depth ),
+        _formatInteger( format.bits_per_pixel ),
+        _formatInteger( format.scanline_pad ) );
+}
+
 // ServerAcceptance::Screen::Depth::VisualType (rename to VISUALTYPE)
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE visualtype,
+    const std::vector< std::string_view >& /*enum_names*/ ) {
+    return fmt::format(
+        "{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}",
+        "visual-id",          _formatProtocolType( visualtype.visual_id ),
+        "class",              _formatInteger(
+            visualtype.class_,
+            protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::class_names ),
+        "bits-per-rgb-value", _formatInteger( visualtype.bits_per_rgb_value ),
+        "colormap-entries",   _formatInteger( visualtype.colormap_entries ),
+        "red-mask",           _formatBitmask( visualtype.red_mask ),
+        "green-mask",         _formatBitmask( visualtype.green_mask ),
+        "blue-mask",          _formatBitmask( visualtype.blue_mask ) );
+}
+
 // requests::PolySegment::SEGMENT
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::requests::PolySegment::SEGMENT segment,
+    const std::vector< std::string_view >& /*enum_names*/ ) {
+    return fmt::format(
+        "{{ x1={} y1={} x2={} y2={} }}",
+        _formatInteger( segment.x1 ),
+        _formatInteger( segment.y1 ),
+        _formatInteger( segment.x2 ),
+        _formatInteger( segment.y2 ) );
+}
+
 // requests::StoreColors::COLORITEM
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::requests::StoreColors::COLORITEM coloritem,
+    const std::vector< std::string_view >& /*enum_names*/ ) {
+    return fmt::format(
+        " {{ pixel={} red={} green={} blue={} do rgb={} }}",
+        _formatInteger( coloritem.pixel ),
+        _formatInteger( coloritem.red ),
+        _formatInteger( coloritem.green ),
+        _formatInteger( coloritem.blue ),
+        _formatBitmask( coloritem.do_rgb_mask,
+                        protocol::requests::StoreColors::do_rgb_names ) );
+}
+
 // requests::GetMotionEvents::TIMECOORD
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::requests::GetMotionEvents::TIMECOORD timecoord,
+    const std::vector< std::string_view >& /*enum_names*/ ) {
+    return fmt::format(
+        " {{ time={} x={} y={} }}",
+        _formatProtocolType( timecoord.time ),
+        _formatInteger( timecoord.x ),
+        _formatInteger( timecoord.y ) );
+}
+
 // requests::QueryColors::RGB
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::requests::QueryColors::RGB rgb,
+    const std::vector< std::string_view >& /*enum_names*/ ) {
+    return fmt::format(
+        " {{ red={} green={} blue={} }}",
+        _formatInteger( rgb.red ),
+        _formatInteger( rgb.green ),
+        _formatInteger( rgb.blue ) );
+}
 
 
 // TBD need parsing (return _ParsingOutputs) instead of just formatting:

@@ -468,10 +468,10 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
     if ( vt_ct > 0 )
         outputs.str += _separator;
     for ( uint32_t i {}; i < vt_ct; ++i ) {
-        const ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::Encoding* visualtype {
-            reinterpret_cast< const ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::Encoding* >(
+        const ServerAcceptance::SCREEN::DEPTH::VISUALTYPE* visualtype {
+            reinterpret_cast< const ServerAcceptance::SCREEN::DEPTH::VISUALTYPE* >(
                 data + outputs.bytes_parsed ) };
-        outputs.bytes_parsed += sizeof( ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::Encoding );
+        outputs.bytes_parsed += sizeof( ServerAcceptance::SCREEN::DEPTH::VISUALTYPE );
 
         // TBD for now VISUALTYPE struct is single line regardless of verbosity
         outputs.str += fmt::format(
