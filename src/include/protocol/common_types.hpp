@@ -5,6 +5,9 @@
 #include <vector>
 #include <string_view>
 
+#include "protocol/enum_names.hpp"
+
+
 // https://www.x.org/releases/current/doc/xproto/x11protocol.pdf
 // Chapter 3. Common Types
 // Appendix B. Protocol Encoding: Common Types
@@ -363,8 +366,17 @@ struct [[gnu::packed]] HOST {
     CARD8      family;
     CARD8      unused;
     CARD16     n;  // length of address in bytes
+
+    inline static const std::vector<std::string_view>& family_names {
+        protocol::enum_names::host_family };
 };
 // followed by LISTofBYTE address
+
+struct [[gnu::packed]] STR {
+    uint8_t  n;  // length of name in bytes
+};
+// followed by length n STRING8 name
+
 
 }  // namespace protocol
 

@@ -202,6 +202,11 @@ private:
         uint32_t bytes_parsed {};
     };
 
+    template < typename ProtocolT >
+    _ParsingOutputs
+    _parseProtocolType( const uint8_t* data, const size_t sz,
+                        const uint8_t tab_ct/* = ?*/ );
+
     // TBD can we generalize these into _parseLISTof<T>?
     _ParsingOutputs
     _parseLISTofSTR( const uint8_t* data, const uint16_t n );
@@ -253,6 +258,7 @@ private:
     _ParsingOutputs
     _parseLISTofHOST( const uint8_t* data, const uint16_t n );
 
+    // TBD rename to _VALUETraits?
     struct _EnumTraits {
     private:
         inline static const std::vector< std::string_view > _EMPTY_NAMESET;
@@ -271,6 +277,9 @@ private:
             names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
     };
 
+    // TBD put mask in parsing inputs, that way we can calc the name_width of
+    //   widest name _used_, not just overall
+    // TBD for that matter we could just put data and sz in there as well
     template < typename TupleT >
     struct _LISTofVALUEParsingInputs {
         const TupleT& types;

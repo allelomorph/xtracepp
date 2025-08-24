@@ -15,6 +15,7 @@ add_executable(xtracepp
   X11ProtocolParser__logServerEvent.cpp
   X11ProtocolParser__logServerReply.cpp
   X11ProtocolParser__formatProtocolType.cpp
+  X11ProtocolParser__parseProtocolType.cpp
 )
 
 target_include_directories(xtracepp PRIVATE
