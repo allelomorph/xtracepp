@@ -46,7 +46,7 @@ X11ProtocolParser::_bufferHexDump( const uint8_t* data, const size_t sz ) {
             ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP };
         for ( size_t i {}; i < group_sz;
               ++i, ++_data, --bytes_to_parse ) {
-            group1 += fmt::format( "{:02X}{}",
+            group1 += fmt::format( "{:02x}{}",
                                    *_data, ( i < group_sz - 1 ) ? " " : "" );
             as_ascii += fmt::format( "{:c}",
                                      ( std::isprint( *_data ) ) ? *_data : '.' );
@@ -55,12 +55,12 @@ X11ProtocolParser::_bufferHexDump( const uint8_t* data, const size_t sz ) {
                 ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP;
         for ( size_t i {}; i < group_sz;
               ++i, ++_data, --bytes_to_parse ) {
-            group2 += fmt::format( "{:02X}{}",
+            group2 += fmt::format( "{:02x}{}",
                                    *_data, ( i < group_sz - 1 ) ? " " : "" );
             as_ascii += fmt::format( "{:c}",
                                      ( std::isprint( *_data ) ) ? *_data : '.' );
         }
-        hex_dump += fmt::format( "{:08x}  {: <23}  {: <23}  {}",
+        hex_dump += fmt::format( "{:08x}  {: <23}  {: <23}  {}\n",
                                  address_index, group1, group2, as_ascii );
     }
     return hex_dump;
