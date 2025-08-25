@@ -24,6 +24,7 @@
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
 #include "protocol/predefined_atoms.hpp"
+#include "protocol/connection_setup.hpp"
 
 
 class X11ProtocolParser {
@@ -39,7 +40,7 @@ private:
     bool  _denyallextensions {};
 
     // TBD formatting
-    char             _separator { ' ' };  // '\n'  for multiline
+    std::string_view _separator { " " };  // "\n"  for multiline
     std::string_view _equals    { "=" };  // " = " for multiline
 
     struct _StashedAtomID {
@@ -206,6 +207,96 @@ private:
     _ParsingOutputs
     _parseProtocolType( const uint8_t* data, const size_t sz,
                         const uint8_t tab_ct/* = ?*/ );
+
+    template < typename ProtocolT >
+    struct _is_textitem_type :
+        public std::integral_constant<
+        bool,
+        std::is_same_v< ProtocolT, protocol::requests::PolyText8::TEXTITEM8 > ||
+        std::is_same_v< ProtocolT, protocol::requests::PolyText16::TEXTITEM16 > > {};
+
+    template < typename ProtocolT >
+    struct _is_variable_length_protocol_type :
+        public std::integral_constant<
+        bool,
+        _is_textitem_type< ProtocolT >::value ||
+        std::is_same_v< ProtocolT, protocol::STR > ||
+        std::is_same_v< ProtocolT, protocol::HOST > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH > > {};
+
+    // TBD for LISTs that have no length provided eg PolyText8|16
+    template < typename ProtocolT,
+               std::enable_if_t<
+                   _is_textitem_type< ProtocolT >::value, bool> = true >
+    _ParsingOutputs
+    _parseLISTof( const uint8_t* data, const size_t sz, const uint8_t tab_ct ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT::Encoding )  );
+        assert( tab_ct >= 2 );
+
+        const std::string_view list_indent {
+            _multiline ? _tabIndent( tab_ct ) : "" };
+        const std::string_view member_indent {
+            _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+
+        _ParsingOutputs outputs;
+        outputs.str += '[';
+        while ( _pad( outputs.bytes_parsed ) < sz ) {
+            const _ParsingOutputs member {
+                _parseProtocolType< ProtocolT >( data + outputs.bytes_parsed,
+                                                 sz - outputs.bytes_parsed,
+                                                 tab_ct + 2 ) };
+            outputs.bytes_parsed += member.bytes_parsed;
+            outputs.str += fmt::format(
+                "{}{}{}", _separator, member_indent, member.str );
+        }
+        outputs.str += fmt::format( "{}{}]",
+                                    outputs.bytes_parsed == 0 ? "" : _separator,
+                                    list_indent );
+        return outputs;
+    }
+
+    // TBD most other LISTs should have length provided
+    template < typename ProtocolT,
+               std::enable_if_t<
+                   !_is_textitem_type< ProtocolT >::value, bool> = true >
+    _ParsingOutputs
+    _parseLISTof( const uint8_t* data, const size_t sz,
+                  const uint8_t tab_ct, const uint16_t n ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT::Encoding )  );
+        assert( tab_ct >= 2 );
+
+        const std::string_view list_indent {
+            _multiline ? _tabIndent( tab_ct ) : "" };
+        const std::string_view member_indent {
+            _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+
+        _ParsingOutputs outputs;
+        outputs.str += '[';
+        for ( uint16_t i {}; i < n; ++i ) {
+            _ParsingOutputs member;
+            if ( _is_variable_length_protocol_type< ProtocolT >::value ) {
+                member = _parseProtocolType< ProtocolT >( data + outputs.bytes_parsed,
+                                                          sz - outputs.bytes_parsed,
+                                                          tab_ct + 2 );
+            } else {
+                // TBD would we ever need to pass enum/flag names?
+                // TBD _formatProtocolType always singleline for now
+                member = _formatProtocolType(
+                    *reinterpret_cast< const ProtocolT* >(
+                        data + outputs.bytes_parsed ) );
+            }
+            outputs.bytes_parsed += member.bytes_parsed;
+            outputs.str += fmt::format(
+                "{}{}{}", _separator, member_indent, member.str );
+        }
+        outputs.str += fmt::format( "{}{}]",
+                                    n == 0 ? "" : _separator,
+                                    list_indent );
+        return outputs;
+    }
 
     // TBD can we generalize these into _parseLISTof<T>?
     _ParsingOutputs

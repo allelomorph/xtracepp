@@ -1222,7 +1222,7 @@ void X11ProtocolParser::importSettings(
     _denyallextensions = denyallextensions;
 
     if ( _multiline ) {
-        _separator = '\n';
+        _separator = "\n";
         _equals    = " = ";
     }
 }
