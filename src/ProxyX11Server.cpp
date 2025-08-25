@@ -126,6 +126,224 @@ void ProxyX11Server::_parseDisplayNames() {
     _in_display = DisplayInfo( in_displayname );
 }
 
+void ProxyX11Server::_copyAuthentication() {
+    // TBD only supporting MIT-MAGIC-COOKIE-1 for now
+    static constexpr std::string_view AUTH_NAME { "MIT-MAGIC-COOKIE-1" };
+    static constexpr uint16_t          AUTH_DATA_SZ { 16 };
+
+    static constexpr std::string_view XAUTHORITY_ENV_VAR { "XAUTHORITY" };
+    static constexpr std::string_view HOME_ENV_VAR { "HOME" };
+    static constexpr std::string_view XAUTHORITY_DEFAULT_FILENAME { ".Xauthority" };
+
+    static constexpr uint8_t _NAME_MAX {
+#ifdef NAME_MAX
+        NAME_MAX
+#else
+        255
+#endif
+    };
+    static constexpr uint8_t _HOST_NAME_MAX {
+#ifdef HOST_NAME_MAX
+        HOST_NAME_MAX
+#else
+        64
+#endif
+    };
+
+    std::string xauth_path {};
+    const char* xauthority_value { getenv( XAUTHORITY_ENV_VAR.data() ) };
+    if ( xauthority_value == nullptr ) {
+        const char* home_value { getenv( HOME_ENV_VAR.data() ) };
+        if ( home_value == nullptr ) {
+            fmt::println( stderr, "Could not get HOME environmental variable value to resolve auth path" );
+            exit( 1 );
+        }
+        xauth_path =
+            fmt::format( "{}/{}", home_value, XAUTHORITY_DEFAULT_FILENAME );
+    } else {
+        xauth_path = std::string( xauthority_value );
+    }
+
+    std::ifstream ifs( xauth_path );
+    if (!ifs.good()) {
+        fmt::println( stderr, "Could not open auth file, expected paths at ${} or ${}/{}",
+                      XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
+        exit( 1 );
+    }
+    std::stringstream ss;
+    ss << ifs.rdbuf();
+    ifs.close();
+    fmt::println( "{}", parser.bufferHexDump(
+                      (const uint8_t*)ss.str().c_str(), ss.str().size() ) );
+    // https://gitlab.freedesktop.org/alanc/libxau/-/blob/master/README
+    /*
+      The .Xauthority file is a binary file consisting of a sequence of entries
+in the following format:
+
+	2 bytes		Family value (second byte is as in protocol HOST)
+	2 bytes		address length (always MSB first)
+	A bytes		host address (as in protocol HOST)
+	2 bytes		display "number" length (always MSB first)
+	S bytes		display "number" string
+	2 bytes		name length (always MSB first)
+	N bytes		authorization name string
+	2 bytes		data length (always MSB first)
+	D bytes		authorization data string
+     */
+    std::ifstream ifs1 { xauth_path.data(), std::ios::binary };
+    if ( !ifs1.good() ) {
+        fmt::println( stderr, "Could not open auth file, expected paths at ${} or ${}/{}",
+                      XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
+        exit( 1 );
+    }
+
+    struct XAuthInfo {
+        uint16_t family {};
+        uint16_t addr_len_nbo {};
+        uint16_t addr_len {};
+        uint16_t display_len {};
+        uint16_t display_len_nbo {};
+        uint16_t name_len {};
+        uint16_t name_len_nbo {};
+        uint16_t data_len {};
+        uint16_t data_len_nbo {};
+
+        char addr[HOST_NAME_MAX] {};
+        char display[HOST_NAME_MAX] {};
+        char name[NAME_MAX] {};
+        char data[AUTH_DATA_SZ] {};
+    };
+    XAuthInfo out_display_auth;
+    bool display_found {};
+    size_t fakedisplay_auth_data_start_pos {};
+    std::string display_data_str {};
+
+    for ( ; !ifs1.eof(); ifs1.peek() ) {
+        XAuthInfo auth;
+        ifs1.read( (char*)&auth.family, sizeof(auth.family) );
+
+        ifs1.read( (char*)&auth.addr_len_nbo, sizeof(auth.addr_len_nbo) );
+        auth.addr_len = ntohs( auth.addr_len_nbo );
+        assert( auth.addr_len < sizeof(auth.addr) );
+        ifs1.read( auth.addr, auth.addr_len );
+        auth.addr[auth.addr_len] = '\0';
+
+        ifs1.read( (char*)&auth.display_len_nbo, sizeof(auth.display_len_nbo) );
+        auth.display_len = ntohs( auth.display_len_nbo );
+        assert( auth.display_len < sizeof(auth.display) );
+        ifs1.read( auth.display, auth.display_len );
+        auth.display[auth.display_len] = '\0';
+
+        ifs1.read( (char*)&auth.name_len_nbo, sizeof(auth.name_len_nbo) );
+        auth.name_len = ntohs( auth.name_len_nbo );
+        assert( auth.name_len < sizeof(auth.name) );
+        ifs1.read( auth.name, auth.name_len );
+        auth.name[auth.name_len] = '\0';
+
+        ifs1.read( (char*)&auth.data_len_nbo, sizeof(auth.data_len_nbo) );
+        auth.data_len = ntohs( auth.data_len_nbo );
+        assert( auth.data_len == sizeof(auth.data) );
+        if ( std::strtol( auth.display, nullptr, 10 ) == _in_display.display ) {
+            // TBD errors here instead of asserts
+            assert( auth.name == AUTH_NAME );
+            assert( auth.data_len == AUTH_DATA_SZ );
+            assert( auth.family == _in_display.family );
+            fakedisplay_auth_data_start_pos = ifs1.tellg();
+        }
+        ifs1.read( auth.data, auth.data_len );
+
+        std::string data_str {};
+        for ( unsigned i {}; i < AUTH_DATA_SZ; ++i) {
+            data_str += fmt::format( " {:{}x}", auth.data[i], 2 );
+        }
+        data_str += ' ';
+        fmt::println(
+            "family: {} addr_len: {} addr: \"{}\" display_len: {} display: \"{}\" "
+            "name_len: {} name: \"{}\" data_len: {} data: [{}]",
+            auth.family, auth.addr_len, auth.addr, auth.display_len, auth.display,
+            auth.name_len, auth.name, auth.data_len, data_str );
+        if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
+            // TBD errors here instead of asserts
+            assert( auth.name == AUTH_NAME );
+            assert( auth.data_len == AUTH_DATA_SZ );
+            display_found = true;
+            // TBD DisplayInfo() will set family to 2/AF_INET even if DISPLAY starts with "localhost"
+            // TBD should we update the xtrace parsing of DISPLAY?
+            //   - localhost:n.m values should have hostname localhost, protocol local, family AF_UNIX
+            //   - will this break socket programming? theoretically ssh -X is already handling
+            //     forwarding X11 comms sent to DISPLAY to the remote server
+            // TBD X11 over TCP without ssh is deprecated, but we should update DisplayInfo() regex to
+            //   accept URIs and not just "localhost", see:
+            //   - https://github.com/mviereck/x11docker/wiki/How-to-access-X-over-TCP-IP-network
+            //assert( family == _out_display.family );
+            out_display_auth = auth;
+            display_data_str = data_str;
+        }
+
+    }
+    fmt::println( "fakedisplay_auth_data_start_pos: {} display_data: [{}]",
+                  fakedisplay_auth_data_start_pos, display_data_str );
+    ifs1.close();
+
+    assert( display_found );
+    // if ( display_data == nullptr ) {
+    //     const char* display_value { getenv( "DISPLAY" ) };
+    //     if ( display_value == nullptr ) {
+    //         fmt::println( stderr, "Could not get DISPLAY environmental variable" );
+    //         exit( 1 );
+    //     }
+    //     // TBD keep raw string in DisplayInfo so we don't have to call getenv again?
+    //     fmt::println( stderr, "Could not get auth info for display \"{}\"",
+    //                   display_value );
+    //     exit( 1 );
+    // }
+    std::ofstream ofs { "xauth_test", std::ios::binary };
+    if ( !ofs.good() ) {
+        fmt::println( stderr, "Could not open file xauth_test" );
+        exit( 1 );
+    }
+    ofs << ss.rdbuf();
+    if ( fakedisplay_auth_data_start_pos != 0 ) {
+        // revise existing FAKEDISPLAY entry
+        ofs.seekp( fakedisplay_auth_data_start_pos );
+        ofs.write( out_display_auth.data, out_display_auth.data_len );
+    } else {
+        // append new FAKEDISPLAY entry
+        ofs.seekp(0, std::ios_base::end);
+        // TBD may need other hostname/addr
+        XAuthInfo in_display_auth { out_display_auth };
+        std::string display_num { fmt::format( "{}", _in_display.display ) };
+        memcpy( in_display_auth.display, display_num.data(), display_num.size() );
+        in_display_auth.display[display_num.size()] = '\0';
+        in_display_auth.display_len = display_num.size();
+        in_display_auth.display_len_nbo = htons( in_display_auth.display_len );
+
+        ofs.write( (char*)&in_display_auth.family,
+                   sizeof(in_display_auth.family) );
+
+        ofs.write( (char*)&in_display_auth.addr_len_nbo,
+                   sizeof(in_display_auth.addr_len_nbo) );
+        ofs.write( in_display_auth.addr,
+                   in_display_auth.addr_len );
+
+        ofs.write( (char*)&in_display_auth.display_len_nbo,
+                   sizeof(in_display_auth.display_len_nbo) );
+        ofs.write( in_display_auth.display,
+                   in_display_auth.display_len );
+
+        ofs.write( (char*)&in_display_auth.name_len_nbo,
+                   sizeof(in_display_auth.name_len_nbo) );
+        ofs.write( in_display_auth.name,
+                   in_display_auth.name_len );
+
+        ofs.write( (char*)&in_display_auth.data_len_nbo,
+                   sizeof(in_display_auth.data_len_nbo) );
+        ofs.write( in_display_auth.data,
+                   in_display_auth.data_len );
+    }
+    ofs.close();
+}
+
 // TBD inaddr.sin_port never changes, can be part of DisplayInfo
 //    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
 //    (less crucial here as this will only be called once per process execution)
@@ -747,10 +965,10 @@ ProxyX11Server::~ProxyX11Server() {
 
 void ProxyX11Server::init( const int argc, char* const* argv ) {
     settings.parseFromArgv( argc, argv );
-    // if ( server.settings.copyauth )
-    //     copy_authentication();
     // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     _parseDisplayNames();
+    if ( settings.copyauth )
+        _copyAuthentication();
     parser.importSettings(
         settings.log_fs,  settings.multiline,
         settings.verbose, settings.readwritedebug,
@@ -758,8 +976,9 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
 }
 
 int ProxyX11Server::run() {
-    _listenForClients();
-    _startSubcommandClient();
-//    __debugOutput();
-    return _processClientQueue();
+    return 0;
+//     _listenForClients();
+//     _startSubcommandClient();
+// //    __debugOutput();
+//     return _processClientQueue();
 }

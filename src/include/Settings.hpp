@@ -57,7 +57,7 @@ private:
 
 public:
     bool readwritedebug           { false };
-    // bool copyauth                 { true };
+    bool copyauth                 { true };
     bool stopifnoactiveconnx      { true };   // stopwhennone
     bool waitforclient            { false };
     bool denyallextensions        { false };

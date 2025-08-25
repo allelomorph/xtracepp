@@ -43,6 +43,8 @@ private:
 
     void _parseDisplayNames();
 
+    void _copyAuthentication();
+
     void _listenForClients();
     void _startSubcommandClient();
     bool _acceptClient(Connection* conn);
