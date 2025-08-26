@@ -164,6 +164,9 @@ public:
 };
 
 void ProxyX11Server::_copyAuthentication() {
+    assert( !_in_display.unparsed_name.empty() &&
+            !_out_display.unparsed_name.empty() );
+
     ////// get auth path
 
     static constexpr std::string_view XAUTHORITY_ENV_VAR { "XAUTHORITY" };
@@ -948,9 +951,8 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
 }
 
 int ProxyX11Server::run() {
-    return 0;
-//     _listenForClients();
-//     _startSubcommandClient();
-// //    __debugOutput();
-//     return _processClientQueue();
+    _listenForClients();
+    _startSubcommandClient();
+//    __debugOutput();
+    return _processClientQueue();
 }
