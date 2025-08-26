@@ -15,6 +15,7 @@ private:
     static constexpr int _UNSET { -1 };
 
 public:
+    std::string unparsed_name;
     std::string name;
     std::string protocol;
     std::string hostname;

@@ -28,6 +28,12 @@ private:
     static constexpr int _X_TCP_PORT { 6000 };
     static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
 
+    // TBD only supporting MIT-MAGIC-COOKIE-1 for now
+    static constexpr std::string_view _AUTH_NAME { "MIT-MAGIC-COOKIE-1" };
+    static constexpr uint16_t         _AUTH_DATA_SZ { 16 };
+    // TBD for later use in atom prefetching
+    uint8_t auth_data[ _AUTH_DATA_SZ ];
+
     DisplayInfo _in_display;   // used to set traits of listener socket
     DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
 
@@ -43,6 +49,7 @@ private:
 
     void _parseDisplayNames();
 
+    struct XAuthInfo;
     void _copyAuthentication();
 
     void _listenForClients();

@@ -15,6 +15,7 @@
 DisplayInfo::DisplayInfo(const char* display_name) {
     assert( display_name != nullptr );
 
+    unparsed_name = std::string( display_name );
     // extract protocol token if present, skip over hostname token if present
     std::string dname { display_name };
     std::smatch dname_match;
