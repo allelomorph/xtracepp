@@ -74,9 +74,6 @@ private:
     std::optional<std::string_view>
     _getInternedAtom(const protocol::ATOM);
 
-    std::string
-    _bufferHexDump( const uint8_t* data, const size_t sz );
-
     static constexpr uint32_t _TAB_SZ { 2 };  // in spaces
     std::string_view
     _tabIndent( const uint32_t tab_ct );
@@ -599,12 +596,6 @@ public:
         const bool denyallextensions );
     size_t logClientPackets( Connection* conn );
     size_t logServerPackets( Connection* conn );
-
-    // TBD just for testing server._copyAuthentication
-    inline std::string
-    bufferHexDump( const uint8_t* data, const size_t sz ) {
-        return _bufferHexDump( data, sz );
-    }
 
 };
 
