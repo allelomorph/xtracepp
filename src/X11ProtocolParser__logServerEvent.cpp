@@ -417,7 +417,8 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
             _formatInteger( encoding->code ), _separator ),
         // TBD how to indicate max enum without magic number
         memb_indent, "detail", name_width, _equals,
-        _formatInteger( encoding->detail, EnterNotify::detail_names, 4 ), _separator,
+        _formatInteger( encoding->detail,
+                        EnterNotify::detail_names, _IndexRange{ 0, 4 } ), _separator,
         !_verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
@@ -443,7 +444,8 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
         _formatProtocolType( encoding->state ), _separator,
         // TBD how to indicate max enum without magic number
         memb_indent, "mode", name_width, _equals,
-        _formatInteger( encoding->mode, EnterNotify::mode_names, 2 ), _separator,
+        _formatInteger( encoding->mode,
+                        EnterNotify::mode_names, _IndexRange{ 0, 2 } ), _separator,
         memb_indent, "same-screen/focus", name_width, _equals,
         _formatBitmask( encoding->focus_same_screen, EnterNotify::focus_same_screen_names ), _separator,
         struct_indent
@@ -494,7 +496,8 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
             _formatInteger( encoding->code ), _separator ),
         // TBD how to indicate max enum without magic number
         memb_indent, "detail", name_width, _equals,
-        _formatInteger( encoding->detail, LeaveNotify::detail_names, 4 ), _separator,
+        _formatInteger( encoding->detail,
+                        LeaveNotify::detail_names, _IndexRange{ 0, 4 } ), _separator,
         !_verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
@@ -520,7 +523,8 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
         _formatProtocolType( encoding->state ), _separator,
         // TBD how to indicate max enum without magic number
         memb_indent, "mode", name_width, _equals,
-        _formatInteger( encoding->mode, LeaveNotify::mode_names, 2 ), _separator,
+        _formatInteger( encoding->mode,
+                        LeaveNotify::mode_names, _IndexRange{ 0, 2 } ), _separator,
         memb_indent, "same-screen/focus", name_width, _equals,
         _formatBitmask( encoding->focus_same_screen, LeaveNotify::focus_same_screen_names ), _separator,
         struct_indent

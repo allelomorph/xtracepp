@@ -103,55 +103,69 @@ private:
     //     return val;
     // }
 
+    struct _IndexRange {
+        static constexpr uint32_t UNINIT {
+            std::numeric_limits< uint32_t >::max() };
+        uint32_t min { UNINIT };
+        uint32_t max { UNINIT };
+    };
+
     // TBD sentinel necessary?
     static constexpr uint32_t _UNINITIALIZED {
         std::numeric_limits< uint32_t >::max() };
 
-    // TBD maybe for readability pass in _EnumRange{ min, max } instead
     // TBD [u]intXX_t CARDXX INTXX
-    template < typename ValueT >
-    auto _formatInteger(
-        const ValueT value,
+    template < typename IntegerT,
+               std::enable_if_t< std::is_integral_v< IntegerT >, bool > = true >
+    std::string _formatInteger(
+        const IntegerT int_,
         const std::vector< std::string_view >& enum_names = {},
-        uint32_t max_enum = _UNINITIALIZED,
-        uint32_t min_enum = _UNINITIALIZED ) ->
-        std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
+        _IndexRange name_index_range = {} ) {
 
         std::string name_str {};
-        // TBD how much do we need min and max params?
         if ( !enum_names.empty() ) {
-            assert( value != _UNINITIALIZED );
-            if ( max_enum == _UNINITIALIZED )
-                max_enum = enum_names.size() - 1;
-            if ( min_enum == _UNINITIALIZED )
-                min_enum = 0;
-            if ( value <= ValueT( max_enum ) && value >= ValueT( min_enum ) )
-                name_str = std::string( enum_names[ value ] );
+            assert( int_ != _IndexRange::UNINIT );
+            if ( name_index_range.min == _IndexRange::UNINIT )
+                name_index_range.min = 0;
+            if ( name_index_range.max == _IndexRange::UNINIT )
+                name_index_range.max = enum_names.size() - 1;
+            if ( int_ >= name_index_range.min &&
+                 int_ <= name_index_range.max ) {
+                name_str = enum_names[ int_ ];
+            }
         }
         if ( _verbose ) {
             const std::string hex_str {
-                fmt::format( "{:#0{}x}", std::make_unsigned_t< ValueT >( value ),
-                             _fmtHexWidth( value ) ) };
+                fmt::format( "{:#0{}x}", std::make_unsigned_t< IntegerT >( int_ ),
+                             _fmtHexWidth( int_ ) ) };
             return name_str.empty() ? hex_str :
                 fmt::format( "{}({})", hex_str, name_str );
         }
-        return name_str.empty() ? fmt::format( "{:d}", value ) : name_str;
+        return name_str.empty() ? fmt::format( "{:d}", int_ ) : name_str;
     }
 
-    template < typename MaskT >
-    auto _formatBitmask(
+    template < typename MaskT,
+               std::enable_if_t< std::is_integral_v< MaskT >, bool > = true >
+    std::string _formatBitmask(
         const MaskT mask,
         const std::vector< std::string_view >& flag_names = {},
-        uint32_t max_flag_i = _UNINITIALIZED ) ->
-        std::enable_if_t< std::is_integral_v< MaskT >, std::string > {
-        assert( !std::is_signed_v< MaskT > );
+        _IndexRange name_index_range = {} ) {
+
+        // TBD cannot use is_unsigned in SFINAE due to parallel call with
+        //   _formatInteger inside _formatVALUE
+        assert( std::is_unsigned_v< MaskT > );
+
         std::string hex_str { fmt::format( "{:#0{}x}", mask,
                                            _fmtHexWidth( mask ) ) };
         std::string flag_str;
         if ( !flag_names.empty() ) {
-            if ( max_flag_i == _UNINITIALIZED )
-                max_flag_i = flag_names.size() - 1;
-            for ( uint32_t i {}; i <= max_flag_i; ++i ) {
+            assert( mask != _IndexRange::UNINIT );
+            if ( name_index_range.min == _IndexRange::UNINIT )
+                name_index_range.min = 0;
+            if ( name_index_range.max == _IndexRange::UNINIT )
+                name_index_range.max = flag_names.size() - 1;
+            for ( uint32_t i { name_index_range.min }, end_i { name_index_range.max };
+                  i <= end_i; ++i ) {
                 if ( mask & ( 1 << i ) ) {
                     flag_str.append( flag_str.empty() ? "" : "," );
                     flag_str.append( flag_names[i] );
@@ -402,8 +416,8 @@ private:
         const ValueT value, const _EnumTraits& traits ) ->
         std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
         return traits.is_mask ?
-            _formatBitmask( value, traits.names, traits.max ) :
-            _formatInteger( value, traits.names, traits.max );
+            _formatBitmask( value, traits.names, _IndexRange{ 0, traits.max } ) :
+            _formatInteger( value, traits.names, _IndexRange{ 0, traits.max } );
     }
 
     // TBD two fmtCT args (uncertain enum_names)

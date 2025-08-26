@@ -3588,7 +3588,8 @@ size_t X11ProtocolParser::_logClientRequest<
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "format", name_width, _equals,
         // TBD how can we avoid magic numbers here (or anywhere) for max and min enum?
-        _formatInteger( encoding->format, GetImage::format_names, 2, 1 ), _separator,
+        _formatInteger( encoding->format,
+                        GetImage::format_names, _IndexRange{ 1, 2 } ), _separator,
         _verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
@@ -5429,7 +5430,8 @@ size_t X11ProtocolParser::_logClientRequest<
         // TBD if using min/max, maybe make _formatInteger param order consistent
         //   with _EnumTraits member order
         memb_indent, "family", name_width, _equals,
-        _formatInteger( encoding->family, ChangeHosts::family_names, 2, 0 ), _separator,
+        _formatInteger( encoding->family,
+                        ChangeHosts::family_names, _IndexRange{ 0, 2 } ), _separator,
         _verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
