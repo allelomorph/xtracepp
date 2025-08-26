@@ -74,3 +74,16 @@ target_include_directories(ServerRefusal_test PRIVATE
 target_link_libraries(ServerRefusal_test PUBLIC
   ${X11_xcb_LIB}
 )
+
+#[[
+add_executable(all_atoms
+  all_atoms.cpp
+)
+target_include_directories(all_atoms PRIVATE
+  ${X11_xcb_INCLUDE_PATH}
+)
+target_link_libraries(all_atoms PUBLIC
+  ${X11_xcb_LIB}
+  fmt
+)
+]]
