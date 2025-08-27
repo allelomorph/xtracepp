@@ -29,14 +29,12 @@
 
 class X11ProtocolParser {
 private:
-    // TBD change to PAD_ALIGN_SZ to differentiate from VALUE default size
-    static constexpr size_t _ALIGN { 4 };
-
     // TBD could be reference to track changes in server.settings, but settings
     //   not likely to change after initial parse of CLI
     Settings settings;
 
-    // TBD formatting
+    // TBD formattig struct?
+    // TBD would prefer const, maybe make parser ctor that takes Settings param?
     std::string_view _SEPARATOR { " " };  // "\n"  for multiline
     std::string_view _EQUALS    { "=" };  // " = " for multiline
 
@@ -115,11 +113,15 @@ private:
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
+    static constexpr size_t _ALIGN { 4 };
     inline size_t _padToAlignment( const size_t n, const size_t align ) {
         return n + ( ( align - ( n % align ) ) % align );
     };
     inline size_t _pad( const size_t n ) {
         return _padToAlignment( n, _ALIGN );
+    }
+    inline size_t _alignedUnits( const size_t sz ) {
+        return sz / _ALIGN;
     }
 
     template < typename ScalarT,
