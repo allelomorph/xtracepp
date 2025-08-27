@@ -20,13 +20,25 @@
 
 
 std::string_view
-X11ProtocolParser::_tabIndent( const uint32_t tab_ct ) {
+X11ProtocolParser::_Indentation::_tabIndent( const uint8_t tab_ct ) {
+    static constexpr std::string_view WHITESPACE {
+        "                                                           "
+        "                                                           "
+    };
+    const size_t indent_sz ( tab_ct * _TAB_SZ );
+    assert( indent_sz <= WHITESPACE.size() );
+    return { WHITESPACE.data(), indent_sz };
+}
+
+std::string_view
+X11ProtocolParser::_tabIndent( const uint8_t tab_ct ) {
+    static constexpr uint8_t _TAB_SZ { 2 };  // in spaces
     static constexpr std::string_view WHITESPACE {
         "                                                           "
         "                                                           "
     };
     assert( tab_ct * _TAB_SZ <= WHITESPACE.size() );
-    return { WHITESPACE.data(), tab_ct * _TAB_SZ };
+    return { WHITESPACE.data(), size_t( tab_ct * _TAB_SZ ) };
 }
 
 size_t X11ProtocolParser::_logClientInitiation(

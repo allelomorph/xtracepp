@@ -32,7 +32,7 @@ private:
     // TBD change to PAD_ALIGN_SZ to differentiate from VALUE default size
     static constexpr size_t _ALIGN { 4 };
 
-    // TBD settings imported from server class
+    // TBD better to pass in Settings& from server
     FILE* _log_fs            { stdout };
     bool  _multiline         {};
     bool  _verbose           {};
@@ -40,6 +40,7 @@ private:
     bool  _denyallextensions {};
 
     // TBD formatting
+    // TBD capitalize
     std::string_view _separator { " " };  // "\n"  for multiline
     std::string_view _equals    { "=" };  // " = " for multiline
 
@@ -74,9 +75,47 @@ private:
     std::optional<std::string_view>
     _getInternedAtom(const protocol::ATOM);
 
-    static constexpr uint32_t _TAB_SZ { 2 };  // in spaces
-    std::string_view
-    _tabIndent( const uint32_t tab_ct );
+    // TBD maybe move inside _Indentation
+    static std::string_view
+    _tabIndent( const uint8_t tab_ct );
+
+    struct _Indentation {
+    private:
+        static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
+        static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };  // in tabs
+        static constexpr uint8_t   _NESTING_TAB_OFFSET { 2 };  // in tabs
+
+        std::string_view
+        _tabIndent( const uint8_t tab_ct );
+
+    public:
+        enum { SINGLELINE, MULTILINE };
+        const bool                 multiline { SINGLELINE };
+        const uint8_t              base_tab_ct {};
+        const std::string_view     enclosure {
+            !multiline ? "" : _tabIndent( base_tab_ct ) };
+        const std::string_view     member {
+            !multiline ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) };
+
+        _Indentation() = delete;
+        _Indentation(const uint8_t base_tab_ct_,
+                     const bool multiline_ = SINGLELINE ) :
+            multiline( multiline_ ),
+            base_tab_ct( base_tab_ct_ ),
+            enclosure(
+                !multiline ? "" : _tabIndent( base_tab_ct ) ),
+            member(
+                !multiline ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {
+        }
+
+        inline _Indentation
+        nested( const bool multiline_ = SINGLELINE ) {
+            return _Indentation(
+                base_tab_ct + _NESTING_TAB_OFFSET, multiline_ || multiline );
+        }
+    };
+    // TBD better to pass in Settings& from server
+    const _Indentation _ROOT_INDENTS { 0, _multiline };
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
@@ -184,25 +223,6 @@ private:
         }
         return flag_str.empty() ? hex_str : flag_str;
     }
-
-    // TBD committing to _formatProtocolType always producing single-line output for
-    //   small(ish) structs would really simplify its implementation
-    // struct _FormattingInputs {
-    // private:
-    //     inline static const std::vector< std::string_view > _default_empty_vector {};
-
-    // public:
-    //     // TBD use enums for more expressive params on tabs and singleline?
-    //     std::vector< std::string_view >&
-    //             enum_names        { _default_empty_vector };
-    //     uint8_t base_tab_ct       {};
-    //     bool    always_singleline {};
-
-    //     _FormattingInputs(
-    //         const std::vector< std::string_view >& en,
-    //         const uint32_t btc = {}, const bool as = {} ) :
-    //         enum_names{ en }, base_tab_ct{ btc }, always_singleline{ as } {}
-    // };
 
     template < typename ProtocolT >
     std::string
