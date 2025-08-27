@@ -25,10 +25,6 @@ size_t X11ProtocolParser::_logServerError(
     assert( code >= protocol::errors::codes::MIN &&
             code <= protocol::errors::codes::MAX );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( 0 ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     std::string bad_resource_str {};
@@ -36,13 +32,13 @@ size_t X11ProtocolParser::_logServerError(
     case protocol::errors::codes::VALUE:     //  2
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "bad value", name_width, _EQUALS,
+            _BASE_INDENTS.member, "bad value", name_width, _EQUALS,
             _formatInteger( encoding->bad_value ), _SEPARATOR );
         break;
     case protocol::errors::codes::ATOM:      //  5
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "bad atom id", name_width, _EQUALS,
+            _BASE_INDENTS.member, "bad atom id", name_width, _EQUALS,
             _formatInteger( encoding->bad_atom_id ), _SEPARATOR );
         break;
     case protocol::errors::codes::WINDOW:    //  3
@@ -55,7 +51,7 @@ size_t X11ProtocolParser::_logServerError(
     case protocol::errors::codes::IDCHOICE:  // 14
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "bad resource id", name_width, _EQUALS,
+            _BASE_INDENTS.member, "bad resource id", name_width, _EQUALS,
             _formatInteger( encoding->bad_resource_id ), _SEPARATOR );
         break;
     default:
@@ -73,24 +69,24 @@ size_t X11ProtocolParser::_logServerError(
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "error", name_width, _EQUALS,
+            _BASE_INDENTS.member, "error", name_width, _EQUALS,
             _formatInteger( encoding->error ), _SEPARATOR ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "code", name_width, _EQUALS,
+            _BASE_INDENTS.member, "code", name_width, _EQUALS,
             _formatInteger( encoding->code ), _SEPARATOR ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "sequence number", name_width, _EQUALS,
+            _BASE_INDENTS.member, "sequence number", name_width, _EQUALS,
             _formatInteger( encoding->sequence_number ), _SEPARATOR ),
         bad_resource_str,
-        memb_indent, "minor-opcode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "minor-opcode", name_width, _EQUALS,
         _formatInteger( encoding->minor_opcode ), _SEPARATOR,
-        memb_indent, "major-opcode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "major-opcode", name_width, _EQUALS,
         _formatInteger( encoding->major_opcode ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     assert( bytes_parsed == protocol::errors::ENCODING_SZ );
     return bytes_parsed;

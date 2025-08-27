@@ -109,7 +109,7 @@ private:
         }
     };
     // TBD better to pass in Settings& from server
-    const _Indentation _ROOT_INDENTS { 0, settings.multiline };
+    const _Indentation _BASE_INDENTS { 0, settings.multiline };
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
@@ -255,6 +255,7 @@ private:
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN > ||
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH > > {};
 
+    // TBD !!! need to pass _Indentation instead of _BASE_INDENT
     // TBD for LISTs that have no length provided eg PolyText8|16
     template < typename ProtocolT,
                std::enable_if_t<
@@ -265,11 +266,6 @@ private:
         assert( sz >= sizeof( ProtocolT::Encoding )  );
         assert( tab_ct >= 2 );
 
-        const std::string_view list_indent {
-            settings.multiline ? _tabIndent( tab_ct ) : "" };
-        const std::string_view member_indent {
-            settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
-
         _ParsingOutputs outputs;
         outputs.str += '[';
         while ( _pad( outputs.bytes_parsed ) < sz ) {
@@ -279,11 +275,11 @@ private:
                                                  tab_ct + 2 ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _SEPARATOR, member_indent, member.str );
+                "{}{}{}", _SEPARATOR, _BASE_INDENTS.member, member.str );
         }
         outputs.str += fmt::format( "{}{}]",
                                     outputs.bytes_parsed == 0 ? "" : _SEPARATOR,
-                                    list_indent );
+                                    _BASE_INDENTS.enclosure );
         return outputs;
     }
 
@@ -297,11 +293,6 @@ private:
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT::Encoding )  );
         assert( tab_ct >= 2 );
-
-        const std::string_view list_indent {
-            settings.multiline ? _tabIndent( tab_ct ) : "" };
-        const std::string_view member_indent {
-            settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
 
         _ParsingOutputs outputs;
         outputs.str += '[';
@@ -320,11 +311,11 @@ private:
             }
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _SEPARATOR, member_indent, member.str );
+                "{}{}{}", _SEPARATOR, _BASE_INDENTS.member, member.str );
         }
         outputs.str += fmt::format( "{}{}]",
                                     n == 0 ? "" : _SEPARATOR,
-                                    list_indent );
+                                    _BASE_INDENTS.enclosure );
         return outputs;
     }
 

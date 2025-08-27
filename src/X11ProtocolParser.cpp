@@ -63,11 +63,7 @@ size_t X11ProtocolParser::_logClientInitiation(
     bytes_parsed += _pad( header->d );
     assert( bytes_parsed == sz );
 
-    const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
+// !!!
     const uint32_t name_width (
         settings.multiline ? sizeof( "authorization-protocol-data" ) - 1 : 0 );
 
@@ -91,38 +87,38 @@ size_t X11ProtocolParser::_logClientInitiation(
         "{}{: <{}}{}({:d} bytes){}"
         "{}}}",
         _SEPARATOR,
-        memb_indent, "byte-order", name_width, _EQUALS,
+        _BASE_INDENTS.member, "byte-order", name_width, _EQUALS,
         _formatInteger( ( header->byte_order == 'l' ) ? 0 : 1,
                         protocol::enum_names::image_byte_order ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}"
             "{}{: <{}}{}{}{}",
-            memb_indent, "protocol-major-version", name_width, _EQUALS,
+            _BASE_INDENTS.member, "protocol-major-version", name_width, _EQUALS,
             _formatInteger( header->protocol_major_version ), _SEPARATOR,
-            memb_indent, "protocol-minor-version", name_width, _EQUALS,
+            _BASE_INDENTS.member, "protocol-minor-version", name_width, _EQUALS,
             _formatInteger( header->protocol_minor_version ), _SEPARATOR ) :
         fmt::format(
             "{}{: <{}}{}{:d}.{:d}{}",
-            memb_indent, "protocol version", name_width, _EQUALS,
+            _BASE_INDENTS.member, "protocol version", name_width, _EQUALS,
             header->protocol_major_version,
             header->protocol_minor_version, _SEPARATOR ),
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length in bytes of authorization-protocol-name){}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( header->n ), _SEPARATOR ) : "",
-        memb_indent, "authorization-protocol-name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "authorization-protocol-name", name_width, _EQUALS,
         auth_protocol_name, _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length in bytes of authorization-protocol-data){}",
-            memb_indent, "d", name_width, _EQUALS,
+            _BASE_INDENTS.member, "d", name_width, _EQUALS,
             _formatInteger( header->d ), _SEPARATOR ) : "",
         // TBD may be security concerns with logging auth data
-        memb_indent, "authorization-protocol-data", name_width, _EQUALS,
+        _BASE_INDENTS.member, "authorization-protocol-data", name_width, _EQUALS,
         header->d, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     return bytes_parsed;
 }
@@ -143,11 +139,7 @@ size_t X11ProtocolParser::_logServerRefusal(
         reinterpret_cast< const char* >( data + bytes_parsed ), header->n };
     bytes_parsed += _pad( header->n );
 
-    const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
+// !!!
     const uint32_t name_width (
         settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
 
@@ -166,34 +158,34 @@ size_t X11ProtocolParser::_logServerRefusal(
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (status: failed){}",
-            memb_indent, "success", name_width, _EQUALS,
+            _BASE_INDENTS.member, "success", name_width, _EQUALS,
             _formatInteger( header->success ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length of reason in bytes){}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( header->n ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}"
             "{}{: <{}}{}{}{}",
-            memb_indent, "protocol-major-version", name_width, _EQUALS,
+            _BASE_INDENTS.member, "protocol-major-version", name_width, _EQUALS,
             _formatInteger( header->protocol_major_version ), _SEPARATOR,
-            memb_indent, "protocol-minor-version", name_width, _EQUALS,
+            _BASE_INDENTS.member, "protocol-minor-version", name_width, _EQUALS,
             _formatInteger( header->protocol_minor_version ), _SEPARATOR ) :
         fmt::format(
             "{}{: <{}}{}{:d}.{:d}{}",
-            memb_indent, "protocol version", name_width, _EQUALS,
+            _BASE_INDENTS.member, "protocol version", name_width, _EQUALS,
             header->protocol_major_version,
             header->protocol_minor_version, _SEPARATOR ),
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
-            memb_indent, "reason aligned units", name_width, _EQUALS,
+            _BASE_INDENTS.member, "reason aligned units", name_width, _EQUALS,
             _formatInteger( header->reason_aligned_units ), _SEPARATOR ) : "",
-        memb_indent, "reason", name_width, _EQUALS,
+        _BASE_INDENTS.member, "reason", name_width, _EQUALS,
         reason, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     return bytes_parsed;
 }
@@ -216,11 +208,7 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
         reason_padded_sz };
     bytes_parsed += reason_padded_sz;
 
-    const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
+// !!!
     const uint32_t name_width (
         settings.multiline ? sizeof( "success" ) - 1 : 0 );
 
@@ -237,16 +225,16 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (status: authentication){}",
-            memb_indent, "success", name_width, _EQUALS,
+            _BASE_INDENTS.member, "success", name_width, _EQUALS,
             _formatInteger( header->success ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
-            memb_indent, "reason aligned units", name_width, _EQUALS,
+            _BASE_INDENTS.member, "reason aligned units", name_width, _EQUALS,
             _formatInteger( header->reason_aligned_units ), _SEPARATOR ) : "",
-        memb_indent, "reason", name_width, _EQUALS,
+        _BASE_INDENTS.member, "reason", name_width, _EQUALS,
         reason, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     return bytes_parsed;
 }
@@ -264,8 +252,6 @@ X11ProtocolParser::_parseLISTofFORMAT(
 
     const std::string_view struct_indent {
         settings.multiline ? _tabIndent( tab_ct ) : "" };
-    // const std::string_view memb_indent {
-    //     settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "bits-per-pixel" ) - 1 : 0 );
     // TBD for now FORMAT struct is single line regardless of verbosity

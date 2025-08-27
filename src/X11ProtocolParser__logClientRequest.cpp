@@ -42,11 +42,6 @@ size_t X11ProtocolParser::_logSimpleRequest(
     assert( supported_opcodes.count( encoding->opcode ) != 0 );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -58,14 +53,14 @@ size_t X11ProtocolParser::_logSimpleRequest(
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -98,11 +93,6 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
     assert( supported_opcodes.count( encoding->opcode ) != 0 );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -115,16 +105,16 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -149,11 +139,6 @@ size_t X11ProtocolParser::_logListFontsRequest(
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -168,23 +153,23 @@ size_t X11ProtocolParser::_logListFontsRequest(
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "max-names", name_width, _EQUALS,
+        _BASE_INDENTS.member, "max-names", name_width, _EQUALS,
         _formatInteger( encoding->max_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "pattern", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pattern", name_width, _EQUALS,
         pattern, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -205,7 +190,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += sizeof( CreateWindow::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CREATEWINDOW );
 
-    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     const std::vector< _VALUETraits > value_traits {
@@ -230,7 +214,7 @@ size_t X11ProtocolParser::_logClientRequest<
         CreateWindow::value_types,
         CreateWindow::value_names,
         value_traits,
-        tab_ct + 2
+        2 // TBD will be replaced by _Indentation
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -239,10 +223,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -259,40 +239,40 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "depth", name_width, _EQUALS,
+        _BASE_INDENTS.member, "depth", name_width, _EQUALS,
         _formatInteger( encoding->depth ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "wid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "wid", name_width, _EQUALS,
         _formatProtocolType( encoding->wid ), _SEPARATOR,
-        memb_indent, "parent", name_width, _EQUALS,
+        _BASE_INDENTS.member, "parent", name_width, _EQUALS,
         _formatProtocolType( encoding->parent ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        memb_indent, "border-width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "border-width", name_width, _EQUALS,
         _formatInteger( encoding->border_width ), _SEPARATOR,
-        memb_indent, "class", name_width, _EQUALS,
+        _BASE_INDENTS.member, "class", name_width, _EQUALS,
         _formatInteger( encoding->class_,
                         protocol::enum_names::window_class ), _SEPARATOR,
-        memb_indent, "visual", name_width, _EQUALS,
+        _BASE_INDENTS.member, "visual", name_width, _EQUALS,
         _formatProtocolType( encoding->visual,
                            protocol::enum_names::zero_copy_from_parent ), _SEPARATOR,
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        memb_indent, "value-list", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
         value_list_outputs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -313,7 +293,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += sizeof( ChangeWindowAttributes::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES );
 
-    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     // VALUE list encoding same as CreateWindow
@@ -339,7 +318,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeWindowAttributes::value_types,
         ChangeWindowAttributes::value_names,
         value_traits,
-        tab_ct + 2
+        2 // TBD will be replaced by _Indentation
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -348,10 +327,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -364,20 +339,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        memb_indent, "value-list", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
         value_list_outputs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -399,11 +374,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CHANGESAVESET );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -418,18 +388,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, ChangeSaveSet::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -451,11 +421,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::REPARENTWINDOW );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -468,22 +433,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "parent", name_width, _EQUALS,
+        _BASE_INDENTS.member, "parent", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -504,7 +469,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += sizeof( ConfigureWindow::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CONFIGUREWINDOW );
 
-    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     // VALUE list encoding same as CreateWindow
@@ -522,7 +486,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ConfigureWindow::value_types,
         ConfigureWindow::value_names,
         value_traits,
-        tab_ct + 2
+        2 // TBD will be replaced by _Indentation
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -531,10 +495,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -547,20 +507,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        memb_indent, "value-list", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
         value_list_outputs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -582,11 +542,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CIRCULATEWINDOW );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -601,18 +556,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "direction", name_width, _EQUALS,
+        _BASE_INDENTS.member, "direction", name_width, _EQUALS,
         _formatInteger( encoding->direction, CirculateWindow::direction_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -634,11 +589,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETGEOMETRY );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -652,16 +602,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -689,11 +639,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
     _stashAtom( { conn->id, conn->sequence }, name );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -708,23 +653,23 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "only-if-exists", name_width, _EQUALS,
+        _BASE_INDENTS.member, "only-if-exists", name_width, _EQUALS,
         _formatProtocolType( encoding->only_if_exists ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "name", name_width, _EQUALS,
         name, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -746,11 +691,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETATOMNAME );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -763,16 +703,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "atom", name_width, _EQUALS,
+        _BASE_INDENTS.member, "atom", name_width, _EQUALS,
         _formatProtocolType( encoding->atom ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -813,11 +753,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad(data_.bytes_parsed);
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
 
@@ -835,31 +770,31 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, ChangeProperty::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "property", name_width, _EQUALS,
+        _BASE_INDENTS.member, "property", name_width, _EQUALS,
         _formatProtocolType( encoding->property ), _SEPARATOR,
-        memb_indent, "type", name_width, _EQUALS,
+        _BASE_INDENTS.member, "type", name_width, _EQUALS,
         _formatProtocolType( encoding->type ), _SEPARATOR,
-        memb_indent, "format", name_width, _EQUALS,
+        _BASE_INDENTS.member, "format", name_width, _EQUALS,
         _formatInteger( encoding->format ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "format units", name_width, _EQUALS,
+            _BASE_INDENTS.member, "format units", name_width, _EQUALS,
             _formatInteger( encoding->fmt_unit_ct ), _SEPARATOR ) : "",
-        memb_indent, "data", name_width, _EQUALS,
+        _BASE_INDENTS.member, "data", name_width, _EQUALS,
         data_.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -881,11 +816,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::DELETEPROPERTY );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -898,18 +828,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "property", name_width, _EQUALS,
+        _BASE_INDENTS.member, "property", name_width, _EQUALS,
         _formatProtocolType( encoding->property ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -931,11 +861,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETPROPERTY );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -951,26 +876,26 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "delete", name_width, _EQUALS,
+        _BASE_INDENTS.member, "delete", name_width, _EQUALS,
         _formatProtocolType( encoding->delete_ ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "property", name_width, _EQUALS,
+        _BASE_INDENTS.member, "property", name_width, _EQUALS,
         _formatProtocolType( encoding->property ), _SEPARATOR,
-        memb_indent, "type", name_width, _EQUALS,
+        _BASE_INDENTS.member, "type", name_width, _EQUALS,
         _formatProtocolType( encoding->type, GetProperty::request_type_names ), _SEPARATOR,
-        memb_indent, "long-offset", name_width, _EQUALS,
+        _BASE_INDENTS.member, "long-offset", name_width, _EQUALS,
         _formatInteger( encoding->long_offset ), _SEPARATOR,
-        memb_indent, "long-length", name_width, _EQUALS,
+        _BASE_INDENTS.member, "long-length", name_width, _EQUALS,
         _formatInteger( encoding->long_length ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -992,11 +917,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETSELECTIONOWNER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1009,20 +929,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "owner", name_width, _EQUALS,
+        _BASE_INDENTS.member, "owner", name_width, _EQUALS,
         _formatProtocolType( encoding->owner, SetSelectionOwner::owner_names ), _SEPARATOR,
-        memb_indent, "selection", name_width, _EQUALS,
+        _BASE_INDENTS.member, "selection", name_width, _EQUALS,
         _formatProtocolType( encoding->selection ), _SEPARATOR,
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, SetSelectionOwner::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1044,11 +964,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETSELECTIONOWNER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1061,16 +976,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "selection", name_width, _EQUALS,
+        _BASE_INDENTS.member, "selection", name_width, _EQUALS,
         _formatProtocolType( encoding->selection ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1092,11 +1007,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CONVERTSELECTION );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1110,24 +1020,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "requestor", name_width, _EQUALS,
+        _BASE_INDENTS.member, "requestor", name_width, _EQUALS,
         _formatProtocolType( encoding->requestor ), _SEPARATOR,
-        memb_indent, "selection", name_width, _EQUALS,
+        _BASE_INDENTS.member, "selection", name_width, _EQUALS,
         _formatProtocolType( encoding->selection ), _SEPARATOR,
-        memb_indent, "target", name_width, _EQUALS,
+        _BASE_INDENTS.member, "target", name_width, _EQUALS,
         _formatProtocolType( encoding->target ), _SEPARATOR,
-        memb_indent, "property", name_width, _EQUALS,
+        _BASE_INDENTS.member, "property", name_width, _EQUALS,
         _formatProtocolType( encoding->property, ConvertSelection::property_names ), _SEPARATOR,
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, ConvertSelection::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1156,11 +1066,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += event.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1175,22 +1080,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "propagate", name_width, _EQUALS,
+        _BASE_INDENTS.member, "propagate", name_width, _EQUALS,
         _formatProtocolType( encoding->propagate ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "destination", name_width, _EQUALS,
+        _BASE_INDENTS.member, "destination", name_width, _EQUALS,
         _formatProtocolType( encoding->destination, SendEvent::destination_names ), _SEPARATOR,
-        memb_indent, "event-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
         _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        memb_indent, "event", name_width, _EQUALS,
+        _BASE_INDENTS.member, "event", name_width, _EQUALS,
         event.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1212,11 +1117,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GRABPOINTER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1232,30 +1132,30 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "owner-events", name_width, _EQUALS,
+        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
         _formatProtocolType( encoding->owner_events ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "grab-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
         _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        memb_indent, "event-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
         _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        memb_indent, "pointer-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
         _formatInteger( encoding->pointer_mode, GrabPointer::pointer_mode_names ), _SEPARATOR,
-        memb_indent, "keyboard-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
         _formatInteger( encoding->keyboard_mode, GrabPointer::keyboard_mode_names ), _SEPARATOR,
-        memb_indent, "confine-to", name_width, _EQUALS,
+        _BASE_INDENTS.member, "confine-to", name_width, _EQUALS,
         _formatProtocolType( encoding->confine_to, GrabPointer::confine_to_names ), _SEPARATOR,
-        memb_indent, "cursor", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
         _formatProtocolType( encoding->cursor, GrabPointer::cursor_names ), _SEPARATOR,
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, GrabPointer::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1277,11 +1177,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABPOINTER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1294,16 +1189,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, UngrabPointer::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1325,11 +1220,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GRABBUTTON );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1345,32 +1235,32 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "owner-events", name_width, _EQUALS,
+        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
         _formatProtocolType( encoding->owner_events ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "grab-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
         _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        memb_indent, "event-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
         _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        memb_indent, "pointer-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
         _formatInteger( encoding->pointer_mode, GrabButton::pointer_mode_names ), _SEPARATOR,
-        memb_indent, "keyboard-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
         _formatInteger( encoding->keyboard_mode, GrabButton::keyboard_mode_names ), _SEPARATOR,
-        memb_indent, "confine-to", name_width, _EQUALS,
+        _BASE_INDENTS.member, "confine-to", name_width, _EQUALS,
         _formatProtocolType( encoding->confine_to, GrabButton::confine_to_names ), _SEPARATOR,
-        memb_indent, "cursor", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
         _formatProtocolType( encoding->cursor, GrabButton::cursor_names ), _SEPARATOR,
-        memb_indent, "button", name_width, _EQUALS,
+        _BASE_INDENTS.member, "button", name_width, _EQUALS,
         _formatProtocolType( encoding->button, GrabButton::button_names ), _SEPARATOR,
-        memb_indent, "modifiers", name_width, _EQUALS,
+        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
         _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1392,11 +1282,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABBUTTON );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1411,20 +1296,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "button", name_width, _EQUALS,
+        _BASE_INDENTS.member, "button", name_width, _EQUALS,
         _formatProtocolType( encoding->button, UngrabButton::button_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "grab-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
         _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        memb_indent, "modifiers", name_width, _EQUALS,
+        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
         _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1446,11 +1331,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1463,20 +1343,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cursor", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
         _formatProtocolType( encoding->cursor, ChangeActivePointerGrab::cursor_names ), _SEPARATOR,
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, ChangeActivePointerGrab::time_names ), _SEPARATOR,
-        memb_indent, "event-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
         _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1498,11 +1378,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GRABKEYBOARD );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1517,24 +1392,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "owner-events", name_width, _EQUALS,
+        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
         _formatProtocolType( encoding->owner_events ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "grab-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
         _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, GrabKeyboard::time_names ), _SEPARATOR,
-        memb_indent, "pointer-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
         _formatInteger( encoding->pointer_mode, GrabKeyboard::pointer_mode_names ), _SEPARATOR,
-        memb_indent, "keyboard-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
         _formatInteger( encoding->keyboard_mode, GrabKeyboard::keyboard_mode_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1556,11 +1431,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEYBOARD );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1573,16 +1443,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, UngrabKeyboard::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1604,11 +1474,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GRABKEY );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1623,24 +1488,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "owner-events", name_width, _EQUALS,
+        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
         _formatProtocolType( encoding->owner_events ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "modifiers", name_width, _EQUALS,
+        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
         _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        memb_indent, "key", name_width, _EQUALS,
+        _BASE_INDENTS.member, "key", name_width, _EQUALS,
         _formatProtocolType( encoding->key, GrabKey::key_names ), _SEPARATOR,
-        memb_indent, "pointer-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
         _formatInteger( encoding->pointer_mode, GrabKey::pointer_mode_names ), _SEPARATOR,
-        memb_indent, "keyboard-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
         _formatInteger( encoding->keyboard_mode, GrabKey::keyboard_mode_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1662,11 +1527,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEY );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1681,20 +1541,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "key", name_width, _EQUALS,
+        _BASE_INDENTS.member, "key", name_width, _EQUALS,
         _formatProtocolType( encoding->key, UngrabKey::key_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "grab-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
         _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        memb_indent, "modifiers", name_width, _EQUALS,
+        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
         _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1716,11 +1576,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::ALLOWEVENTS );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1735,18 +1590,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, AllowEvents::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, AllowEvents::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1768,11 +1623,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETMOTIONEVENTS );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1785,20 +1635,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "start", name_width, _EQUALS,
+        _BASE_INDENTS.member, "start", name_width, _EQUALS,
         _formatProtocolType( encoding->start, GetMotionEvents::start_names ), _SEPARATOR,
-        memb_indent, "stop", name_width, _EQUALS,
+        _BASE_INDENTS.member, "stop", name_width, _EQUALS,
         _formatProtocolType( encoding->stop, GetMotionEvents::stop_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1820,11 +1670,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::TRANSLATECOORDINATES );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1837,22 +1682,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "src-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-window", name_width, _EQUALS,
         _formatProtocolType( encoding->src_window ), _SEPARATOR,
-        memb_indent, "dst-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-window", name_width, _EQUALS,
         _formatProtocolType( encoding->dst_window ), _SEPARATOR,
-        memb_indent, "src-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
         _formatInteger( encoding->src_x ), _SEPARATOR,
-        memb_indent, "src-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
         _formatInteger( encoding->src_y ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1874,11 +1719,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::WARPPOINTER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1892,30 +1732,30 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "src-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-window", name_width, _EQUALS,
         _formatProtocolType( encoding->src_window, WarpPointer::src_window_names ), _SEPARATOR,
-        memb_indent, "dst-window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-window", name_width, _EQUALS,
         _formatProtocolType( encoding->dst_window, WarpPointer::dst_window_names ), _SEPARATOR,
-        memb_indent, "src-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
         _formatInteger( encoding->src_x ), _SEPARATOR,
-        memb_indent, "src-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
         _formatInteger( encoding->src_y ), _SEPARATOR,
-        memb_indent, "src-width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-width", name_width, _EQUALS,
         _formatInteger( encoding->src_width ), _SEPARATOR,
-        memb_indent, "src-height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-height", name_width, _EQUALS,
         _formatInteger( encoding->src_height ), _SEPARATOR,
-        memb_indent, "dst-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
         _formatInteger( encoding->dst_x ), _SEPARATOR,
-        memb_indent, "dst-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
         _formatInteger( encoding->dst_y ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1937,11 +1777,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETINPUTFOCUS );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -1956,20 +1791,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "revert-to", name_width, _EQUALS,
+        _BASE_INDENTS.member, "revert-to", name_width, _EQUALS,
         _formatInteger( encoding->revert_to, SetInputFocus::revert_to_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "focus", name_width, _EQUALS,
+        _BASE_INDENTS.member, "focus", name_width, _EQUALS,
         _formatProtocolType( encoding->focus, SetInputFocus::focus_names ), _SEPARATOR,
-        memb_indent, "time", name_width, _EQUALS,
+        _BASE_INDENTS.member, "time", name_width, _EQUALS,
         _formatProtocolType( encoding->time, SetInputFocus::time_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1995,11 +1830,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2014,23 +1844,23 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "fid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fid", name_width, _EQUALS,
         _formatProtocolType( encoding->fid ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "name", name_width, _EQUALS,
         name, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2052,11 +1882,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CLOSEFONT );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2069,16 +1894,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "font", name_width, _EQUALS,
+        _BASE_INDENTS.member, "font", name_width, _EQUALS,
         _formatProtocolType( encoding->font ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2100,11 +1925,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::QUERYFONT );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2117,17 +1937,17 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "font", name_width, _EQUALS,
+        _BASE_INDENTS.member, "font", name_width, _EQUALS,
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
         _formatProtocolType( encoding->font.font ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2175,11 +1995,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += padded_string_sz;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2193,24 +2008,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "odd length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "odd length", name_width, _EQUALS,
             _formatProtocolType( encoding->odd_length ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "font", name_width, _EQUALS,
+        _BASE_INDENTS.member, "font", name_width, _EQUALS,
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
         _formatProtocolType( encoding->font.font ), _SEPARATOR,
-        memb_indent, "string", name_width, _EQUALS,
+        _BASE_INDENTS.member, "string", name_width, _EQUALS,
         string_as_hex, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2236,11 +2051,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( path.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2253,21 +2063,21 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "STRs in path", name_width, _EQUALS,
+            _BASE_INDENTS.member, "STRs in path", name_width, _EQUALS,
             _formatInteger( encoding->str_ct ), _SEPARATOR ) : "",
-        memb_indent, "path", name_width, _EQUALS,
+        _BASE_INDENTS.member, "path", name_width, _EQUALS,
         path.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2289,11 +2099,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CREATEPIXMAP );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2308,24 +2113,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "depth", name_width, _EQUALS,
+        _BASE_INDENTS.member, "depth", name_width, _EQUALS,
         _formatInteger( encoding->depth ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "pid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pid", name_width, _EQUALS,
         _formatProtocolType( encoding->pid ), _SEPARATOR,
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2347,11 +2152,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::FREEPIXMAP );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2364,16 +2164,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "pixmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pixmap", name_width, _EQUALS,
         _formatProtocolType( encoding->pixmap ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2394,7 +2194,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += sizeof( CreateGC::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CREATEGC );
 
-    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     const std::vector< _VALUETraits > value_traits {
@@ -2427,7 +2226,7 @@ size_t X11ProtocolParser::_logClientRequest<
         CreateGC::value_types,
         CreateGC::value_names,
         value_traits,
-        tab_ct + 2
+        2 // TBD will be replaced by _Indentation
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -2436,10 +2235,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2452,23 +2247,23 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cid", name_width, _EQUALS,
         _formatProtocolType( encoding->cid ), _SEPARATOR,
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
         // TBD only print value-mask in verbose mode? print all flags even with value-list?
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        memb_indent, "value-list", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
         value_list_outputs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2489,7 +2284,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += sizeof( ChangeGC::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEGC );
 
-    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     const std::vector< _VALUETraits > value_traits {
@@ -2522,7 +2316,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeGC::value_types,
         ChangeGC::value_names,
         value_traits,
-        tab_ct + 2
+        2 // TBD will be replaced by _Indentation
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -2531,10 +2325,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2547,21 +2337,21 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
         // TBD only print value-mask in verbose mode? print all flags even with value-list?
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        memb_indent, "value-list", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
         value_list_outputs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2583,11 +2373,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::COPYGC );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2600,20 +2385,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "src-gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-gc", name_width, _EQUALS,
         _formatProtocolType( encoding->src_gc ), _SEPARATOR,
-        memb_indent, "dst-gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-gc", name_width, _EQUALS,
         _formatProtocolType( encoding->dst_gc ), _SEPARATOR,
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask, CopyGC::value_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2639,11 +2424,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( dashes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2658,25 +2438,25 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "dash-offset", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dash-offset", name_width, _EQUALS,
         _formatInteger( encoding->dash_offset ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "dashes", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dashes", name_width, _EQUALS,
         dashes.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2706,11 +2486,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2725,24 +2500,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "ordering", name_width, _EQUALS,
+        _BASE_INDENTS.member, "ordering", name_width, _EQUALS,
         _formatInteger( encoding->ordering, SetClipRectangles::ordering_names  ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "clip-x-origin", name_width, _EQUALS,
+        _BASE_INDENTS.member, "clip-x-origin", name_width, _EQUALS,
         _formatInteger( encoding->clip_x_origin ), _SEPARATOR,
-        memb_indent, "clip-y-origin", name_width, _EQUALS,
+        _BASE_INDENTS.member, "clip-y-origin", name_width, _EQUALS,
         _formatInteger( encoding->clip_y_origin ), _SEPARATOR,
-        memb_indent, "rectangles", name_width, _EQUALS,
+        _BASE_INDENTS.member, "rectangles", name_width, _EQUALS,
         rectangles.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2764,11 +2539,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::FREEGC );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2781,16 +2551,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2812,11 +2582,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CLEARAREA );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2832,26 +2597,26 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "exposures", name_width, _EQUALS,
+        _BASE_INDENTS.member, "exposures", name_width, _EQUALS,
         _formatProtocolType( encoding->exposures ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2873,11 +2638,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::COPYAREA );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2892,32 +2652,32 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "src-drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->src_drawable ), _SEPARATOR,
-        memb_indent, "dst-drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->dst_drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "src-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
         _formatInteger( encoding->src_x ), _SEPARATOR,
-        memb_indent, "src-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
         _formatInteger( encoding->src_y ), _SEPARATOR,
-        memb_indent, "dst-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
         _formatInteger( encoding->dst_x ), _SEPARATOR,
-        memb_indent, "dst-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
         _formatInteger( encoding->dst_y ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2939,11 +2699,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::COPYPLANE );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -2959,34 +2714,34 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "src-drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->src_drawable ), _SEPARATOR,
-        memb_indent, "dst-drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->dst_drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "src-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
         _formatInteger( encoding->src_x ), _SEPARATOR,
-        memb_indent, "src-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
         _formatInteger( encoding->src_y ), _SEPARATOR,
-        memb_indent, "dst-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
         _formatInteger( encoding->dst_x ), _SEPARATOR,
-        memb_indent, "dst-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
         _formatInteger( encoding->dst_y ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        memb_indent, "bit-plane", name_width, _EQUALS,
+        _BASE_INDENTS.member, "bit-plane", name_width, _EQUALS,
         _formatInteger( encoding->bit_plane ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3015,11 +2770,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
     fmt::println(
@@ -3034,22 +2784,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "coordinate-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "coordinate-mode", name_width, _EQUALS,
         _formatInteger( encoding->coordinate_mode, PolyPoint::coordinate_mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "points", name_width, _EQUALS,
+        _BASE_INDENTS.member, "points", name_width, _EQUALS,
         points.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3079,11 +2829,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
     fmt::println(
@@ -3098,22 +2843,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "coordinate-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "coordinate-mode", name_width, _EQUALS,
         _formatInteger( encoding->coordinate_mode, PolyLine::coordinate_mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "points", name_width, _EQUALS,
+        _BASE_INDENTS.member, "points", name_width, _EQUALS,
         points.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3142,11 +2887,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( segments.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3159,20 +2899,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "segments", name_width, _EQUALS,
+        _BASE_INDENTS.member, "segments", name_width, _EQUALS,
         segments.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3201,11 +2941,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3218,20 +2953,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "rectangles", name_width, _EQUALS,
+        _BASE_INDENTS.member, "rectangles", name_width, _EQUALS,
         rectangles.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3260,11 +2995,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3277,20 +3007,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "arcs", name_width, _EQUALS,
+        _BASE_INDENTS.member, "arcs", name_width, _EQUALS,
         arcs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3319,11 +3049,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
     fmt::println(
@@ -3337,24 +3062,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "shape", name_width, _EQUALS,
+        _BASE_INDENTS.member, "shape", name_width, _EQUALS,
         _formatInteger( encoding->shape, FillPoly::shape_names ), _SEPARATOR,
-        memb_indent, "coordinate-mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "coordinate-mode", name_width, _EQUALS,
         _formatInteger( encoding->coordinate_mode, FillPoly::coordinate_mode_names ), _SEPARATOR,
-        memb_indent, "points", name_width, _EQUALS,
+        _BASE_INDENTS.member, "points", name_width, _EQUALS,
         points.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3383,11 +3108,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3400,20 +3120,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "rectangles", name_width, _EQUALS,
+        _BASE_INDENTS.member, "rectangles", name_width, _EQUALS,
         rectangles.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3442,11 +3162,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3459,20 +3174,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "arcs", name_width, _EQUALS,
+        _BASE_INDENTS.member, "arcs", name_width, _EQUALS,
         arcs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3499,11 +3214,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += image_data_sz;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3520,34 +3230,34 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "format", name_width, _EQUALS,
+        _BASE_INDENTS.member, "format", name_width, _EQUALS,
         _formatInteger( encoding->format, PutImage::format_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        memb_indent, "dst-x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
         _formatInteger( encoding->dst_x ), _SEPARATOR,
-        memb_indent, "dst-y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
         _formatInteger( encoding->dst_y ), _SEPARATOR,
-        memb_indent, "left-pad", name_width, _EQUALS,
+        _BASE_INDENTS.member, "left-pad", name_width, _EQUALS,
         _formatInteger( encoding->left_pad ), _SEPARATOR,
-        memb_indent, "depth", name_width, _EQUALS,
+        _BASE_INDENTS.member, "depth", name_width, _EQUALS,
         _formatInteger( encoding->depth ), _SEPARATOR,
-        memb_indent, "data", name_width, _EQUALS,
+        _BASE_INDENTS.member, "data", name_width, _EQUALS,
         image_data_sz, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3569,11 +3279,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETIMAGE );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3589,30 +3294,30 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "format", name_width, _EQUALS,
+        _BASE_INDENTS.member, "format", name_width, _EQUALS,
         // TBD how can we avoid magic numbers here (or anywhere) for max and min enum?
         _formatInteger( encoding->format,
                         GetImage::format_names, _IndexRange{ 1, 2 } ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        memb_indent, "plane-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "plane-mask", name_width, _EQUALS,
         _formatInteger( encoding->plane_mask ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3640,11 +3345,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3658,24 +3358,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "items", name_width, _EQUALS,
+        _BASE_INDENTS.member, "items", name_width, _EQUALS,
         text_items.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3703,11 +3403,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3721,24 +3416,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "items", name_width, _EQUALS,
+        _BASE_INDENTS.member, "items", name_width, _EQUALS,
         text_items.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3764,11 +3459,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3782,29 +3472,29 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "string", name_width, _EQUALS,
+        _BASE_INDENTS.member, "string", name_width, _EQUALS,
         string, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3841,11 +3531,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n * sizeof( protocol::CHAR2B ) );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3859,29 +3544,29 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "gc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
         _formatProtocolType( encoding->gc ), _SEPARATOR,
-        memb_indent, "x", name_width, _EQUALS,
+        _BASE_INDENTS.member, "x", name_width, _EQUALS,
         _formatInteger( encoding->x ), _SEPARATOR,
-        memb_indent, "y", name_width, _EQUALS,
+        _BASE_INDENTS.member, "y", name_width, _EQUALS,
         _formatInteger( encoding->y ), _SEPARATOR,
-        memb_indent, "string", name_width, _EQUALS,
+        _BASE_INDENTS.member, "string", name_width, _EQUALS,
         string_as_hex, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3903,11 +3588,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CREATECOLORMAP );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3922,22 +3602,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "alloc", name_width, _EQUALS,
+        _BASE_INDENTS.member, "alloc", name_width, _EQUALS,
         _formatInteger( encoding->alloc, CreateColormap::alloc_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "mid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mid", name_width, _EQUALS,
         _formatProtocolType( encoding->mid ), _SEPARATOR,
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
-        memb_indent, "visual", name_width, _EQUALS,
+        _BASE_INDENTS.member, "visual", name_width, _EQUALS,
         _formatProtocolType( encoding->visual ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3959,11 +3639,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::FREECOLORMAP );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -3976,16 +3651,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4007,11 +3682,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::COPYCOLORMAPANDFREE );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4024,18 +3694,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "mid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mid", name_width, _EQUALS,
         _formatProtocolType( encoding->mid ), _SEPARATOR,
-        memb_indent, "src-cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "src-cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->src_cmap ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4058,11 +3728,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::INSTALLCOLORMAP );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4075,16 +3740,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4106,11 +3771,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::UNINSTALLCOLORMAP );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4123,16 +3783,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4154,11 +3814,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLOR );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4171,22 +3826,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "red", name_width, _EQUALS,
         _formatInteger( encoding->red ), _SEPARATOR,
-        memb_indent, "green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "green", name_width, _EQUALS,
         _formatInteger( encoding->green ), _SEPARATOR,
-        memb_indent, "blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "blue", name_width, _EQUALS,
         _formatInteger( encoding->blue ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4212,11 +3867,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4231,23 +3881,23 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "name", name_width, _EQUALS,
         name, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4269,11 +3919,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORCELLS );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4288,22 +3933,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "contiguous", name_width, _EQUALS,
+        _BASE_INDENTS.member, "contiguous", name_width, _EQUALS,
         _formatProtocolType( encoding->contiguous ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "colors", name_width, _EQUALS,
+        _BASE_INDENTS.member, "colors", name_width, _EQUALS,
         _formatInteger( encoding->colors ), _SEPARATOR,
-        memb_indent, "planes", name_width, _EQUALS,
+        _BASE_INDENTS.member, "planes", name_width, _EQUALS,
         _formatInteger( encoding->planes ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4325,11 +3970,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORPLANES );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4345,26 +3985,26 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "contiguous", name_width, _EQUALS,
+        _BASE_INDENTS.member, "contiguous", name_width, _EQUALS,
         _formatProtocolType( encoding->contiguous ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "colors", name_width, _EQUALS,
+        _BASE_INDENTS.member, "colors", name_width, _EQUALS,
         _formatInteger( encoding->colors ), _SEPARATOR,
-        memb_indent, "reds", name_width, _EQUALS,
+        _BASE_INDENTS.member, "reds", name_width, _EQUALS,
         _formatInteger( encoding->reds ), _SEPARATOR,
-        memb_indent, "greens", name_width, _EQUALS,
+        _BASE_INDENTS.member, "greens", name_width, _EQUALS,
         _formatInteger( encoding->greens ), _SEPARATOR,
-        memb_indent, "blues", name_width, _EQUALS,
+        _BASE_INDENTS.member, "blues", name_width, _EQUALS,
         _formatInteger( encoding->blues ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4393,11 +4033,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4411,20 +4046,20 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "plane-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "plane-mask", name_width, _EQUALS,
         _formatBitmask( encoding->plane_mask ), _SEPARATOR,
-        memb_indent, "pixels", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pixels", name_width, _EQUALS,
         pixels.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4453,11 +4088,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4470,18 +4100,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "items", name_width, _EQUALS,
+        _BASE_INDENTS.member, "items", name_width, _EQUALS,
         items.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4507,11 +4137,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4528,27 +4153,27 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "do rgb", name_width, _EQUALS,
+        _BASE_INDENTS.member, "do rgb", name_width, _EQUALS,
         _formatBitmask( encoding->do_rgb_mask, StoreNamedColor::do_rgb_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "pixel", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pixel", name_width, _EQUALS,
         _formatInteger( encoding->pixel ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "name", name_width, _EQUALS,
         name, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4577,11 +4202,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4594,18 +4214,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        memb_indent, "pixels", name_width, _EQUALS,
+        _BASE_INDENTS.member, "pixels", name_width, _EQUALS,
         pixels.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4631,11 +4251,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4650,23 +4265,23 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cmap", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
         _formatProtocolType( encoding->cmap ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "name", name_width, _EQUALS,
         name, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4688,11 +4303,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CREATECURSOR );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4707,32 +4317,32 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cid", name_width, _EQUALS,
         _formatProtocolType( encoding->cid ), _SEPARATOR,
-        memb_indent, "source", name_width, _EQUALS,
+        _BASE_INDENTS.member, "source", name_width, _EQUALS,
         _formatProtocolType( encoding->source ), _SEPARATOR,
-        memb_indent, "mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mask", name_width, _EQUALS,
         _formatProtocolType( encoding->mask, CreateCursor::mask_names ), _SEPARATOR,
-        memb_indent, "fore-red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-red", name_width, _EQUALS,
         _formatInteger( encoding->fore_red ), _SEPARATOR,
-        memb_indent, "fore-green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-green", name_width, _EQUALS,
         _formatInteger( encoding->fore_green ), _SEPARATOR,
-        memb_indent, "fore-blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-blue", name_width, _EQUALS,
         _formatInteger( encoding->fore_blue ), _SEPARATOR,
-        memb_indent, "back-red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-red", name_width, _EQUALS,
         _formatInteger( encoding->back_red ), _SEPARATOR,
-        memb_indent, "back-green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-green", name_width, _EQUALS,
         _formatInteger( encoding->back_green ), _SEPARATOR,
-        memb_indent, "back-blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-blue", name_width, _EQUALS,
         _formatInteger( encoding->back_blue ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4754,11 +4364,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CREATEGLYPHCURSOR );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4773,36 +4378,36 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cid", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cid", name_width, _EQUALS,
         _formatProtocolType( encoding->cid ), _SEPARATOR,
-        memb_indent, "source-font", name_width, _EQUALS,
+        _BASE_INDENTS.member, "source-font", name_width, _EQUALS,
         _formatProtocolType( encoding->source_font ), _SEPARATOR,
-        memb_indent, "mask-font", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mask-font", name_width, _EQUALS,
         _formatProtocolType( encoding->mask_font, CreateGlyphCursor::mask_font_names ), _SEPARATOR,
-        memb_indent, "source-char", name_width, _EQUALS,
+        _BASE_INDENTS.member, "source-char", name_width, _EQUALS,
         _formatInteger( encoding->source_char ), _SEPARATOR,
-        memb_indent, "mask-char", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mask-char", name_width, _EQUALS,
         _formatInteger( encoding->mask_char ), _SEPARATOR,
-        memb_indent, "fore-red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-red", name_width, _EQUALS,
         _formatInteger( encoding->fore_red ), _SEPARATOR,
-        memb_indent, "fore-green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-green", name_width, _EQUALS,
         _formatInteger( encoding->fore_green ), _SEPARATOR,
-        memb_indent, "fore-blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-blue", name_width, _EQUALS,
         _formatInteger( encoding->fore_blue ), _SEPARATOR,
-        memb_indent, "back-red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-red", name_width, _EQUALS,
         _formatInteger( encoding->back_red ), _SEPARATOR,
-        memb_indent, "back-green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-green", name_width, _EQUALS,
         _formatInteger( encoding->back_green ), _SEPARATOR,
-        memb_indent, "back-blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-blue", name_width, _EQUALS,
         _formatInteger( encoding->back_blue ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4824,11 +4429,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::FREECURSOR );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4841,16 +4441,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cursor", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
         _formatProtocolType( encoding->cursor ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4872,11 +4472,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::RECOLORCURSOR );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4890,28 +4485,28 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "cursor", name_width, _EQUALS,
+        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
         _formatProtocolType( encoding->cursor ), _SEPARATOR,
-        memb_indent, "fore-red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-red", name_width, _EQUALS,
         _formatInteger( encoding->fore_red ), _SEPARATOR,
-        memb_indent, "fore-green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-green", name_width, _EQUALS,
         _formatInteger( encoding->fore_green ), _SEPARATOR,
-        memb_indent, "fore-blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "fore-blue", name_width, _EQUALS,
         _formatInteger( encoding->fore_blue ), _SEPARATOR,
-        memb_indent, "back-red", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-red", name_width, _EQUALS,
         _formatInteger( encoding->back_red ), _SEPARATOR,
-        memb_indent, "back-green", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-green", name_width, _EQUALS,
         _formatInteger( encoding->back_green ), _SEPARATOR,
-        memb_indent, "back-blue", name_width, _EQUALS,
+        _BASE_INDENTS.member, "back-blue", name_width, _EQUALS,
         _formatInteger( encoding->back_blue ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4933,11 +4528,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::QUERYBESTSIZE );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -4952,22 +4542,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "class", name_width, _EQUALS,
+        _BASE_INDENTS.member, "class", name_width, _EQUALS,
         _formatInteger( encoding->class_, QueryBestSize::class_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "drawable", name_width, _EQUALS,
+        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
         _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        memb_indent, "width", name_width, _EQUALS,
+        _BASE_INDENTS.member, "width", name_width, _EQUALS,
         _formatInteger( encoding->width ), _SEPARATOR,
-        memb_indent, "height", name_width, _EQUALS,
+        _BASE_INDENTS.member, "height", name_width, _EQUALS,
         _formatInteger( encoding->height ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4993,11 +4583,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5010,21 +4595,21 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            _BASE_INDENTS.member, "n", name_width, _EQUALS,
             _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        memb_indent, "name", name_width, _EQUALS,
+        _BASE_INDENTS.member, "name", name_width, _EQUALS,
         name, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5051,11 +4636,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( keysyms.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
     fmt::println(
@@ -5070,22 +4650,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "keycode-count", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keycode-count", name_width, _EQUALS,
         _formatInteger( encoding->keycode_count ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "first-keycode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "first-keycode", name_width, _EQUALS,
         _formatProtocolType( encoding->first_keycode ), _SEPARATOR,
-        memb_indent, "keysyms-per-keycode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keysyms-per-keycode", name_width, _EQUALS,
         _formatInteger( encoding->keysyms_per_keycode ), _SEPARATOR,
-        memb_indent, "keysyms", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keysyms", name_width, _EQUALS,
         keysyms.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5107,11 +4687,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::GETKEYBOARDMAPPING );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
     fmt::println(
@@ -5124,18 +4699,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "first-keycode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "first-keycode", name_width, _EQUALS,
         _formatProtocolType( encoding->first_keycode ), _SEPARATOR,
-        memb_indent, "count", name_width, _EQUALS,
+        _BASE_INDENTS.member, "count", name_width, _EQUALS,
         _formatInteger( encoding->count ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5156,7 +4731,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += sizeof( ChangeKeyboardControl::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEKEYBOARDCONTROL );
 
-    static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     const std::vector< _VALUETraits > value_traits {
@@ -5176,7 +4750,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeKeyboardControl::value_types,
         ChangeKeyboardControl::value_names,
         value_traits,
-        tab_ct + 2
+        2 // TBD will be replaced by _Indentation
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -5185,10 +4759,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5201,18 +4771,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "value-mask", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
         _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        memb_indent, "value-list", name_width, _EQUALS,
+        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
         value_list_outputs.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5234,11 +4804,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::BELL );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5252,16 +4817,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "percent", name_width, _EQUALS,
+        _BASE_INDENTS.member, "percent", name_width, _EQUALS,
         _formatInteger( encoding->percent ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5283,11 +4848,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEPOINTERCONTROL );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
     fmt::println(
@@ -5301,24 +4861,24 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "acceleration-numerator", name_width, _EQUALS,
+        _BASE_INDENTS.member, "acceleration-numerator", name_width, _EQUALS,
         _formatInteger( encoding->acceleration_numerator ), _SEPARATOR,
-        memb_indent, "acceleration-denominator", name_width, _EQUALS,
+        _BASE_INDENTS.member, "acceleration-denominator", name_width, _EQUALS,
         _formatInteger( encoding->acceleration_denominator ), _SEPARATOR,
-        memb_indent, "threshold", name_width, _EQUALS,
+        _BASE_INDENTS.member, "threshold", name_width, _EQUALS,
         _formatInteger( encoding->threshold ), _SEPARATOR,
-        memb_indent, "do-acceleration", name_width, _EQUALS,
+        _BASE_INDENTS.member, "do-acceleration", name_width, _EQUALS,
         _formatProtocolType( encoding->do_acceleration ), _SEPARATOR,
-        memb_indent, "do-threshold", name_width, _EQUALS,
+        _BASE_INDENTS.member, "do-threshold", name_width, _EQUALS,
         _formatProtocolType( encoding->do_threshold ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5340,11 +4900,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETSCREENSAVER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "prefer-blanking" ) - 1 : 0 );
     fmt::println(
@@ -5357,22 +4912,22 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "timeout", name_width, _EQUALS,
+        _BASE_INDENTS.member, "timeout", name_width, _EQUALS,
         _formatInteger( encoding->timeout ), _SEPARATOR,
-        memb_indent, "interval", name_width, _EQUALS,
+        _BASE_INDENTS.member, "interval", name_width, _EQUALS,
         _formatInteger( encoding->interval ), _SEPARATOR,
-        memb_indent, "prefer-blanking", name_width, _EQUALS,
+        _BASE_INDENTS.member, "prefer-blanking", name_width, _EQUALS,
         _formatInteger( encoding->prefer_blanking, SetScreenSaver::prefer_blanking_names ), _SEPARATOR,
-        memb_indent, "allow-exposures", name_width, _EQUALS,
+        _BASE_INDENTS.member, "allow-exposures", name_width, _EQUALS,
         _formatInteger( encoding->allow_exposures, SetScreenSaver::allow_exposures_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5403,11 +4958,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( address.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "length of address" ) - 1 : 0 );
     fmt::println(
@@ -5424,29 +4974,29 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, ChangeHosts::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
         // TBD need way to limit enum without magic numbers
         // TBD if using min/max, maybe make _formatInteger param order consistent
         //   with _EnumTraits member order
-        memb_indent, "family", name_width, _EQUALS,
+        _BASE_INDENTS.member, "family", name_width, _EQUALS,
         _formatInteger( encoding->family,
                         ChangeHosts::family_names, _IndexRange{ 0, 2 } ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "length of address", name_width, _EQUALS,
+            _BASE_INDENTS.member, "length of address", name_width, _EQUALS,
             _formatInteger( encoding->length_of_address ), _SEPARATOR ) : "",
-        memb_indent, "address", name_width, _EQUALS,
+        _BASE_INDENTS.member, "address", name_width, _EQUALS,
         address.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5468,11 +5018,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETACCESSCONTROL );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5486,16 +5031,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, SetAccessControl::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5517,11 +5062,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETCLOSEDOWNMODE );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5535,16 +5075,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, SetCloseDownMode::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5566,11 +5106,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::KILLCLIENT );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5583,16 +5118,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "resource", name_width, _EQUALS,
+        _BASE_INDENTS.member, "resource", name_width, _EQUALS,
         _formatInteger( encoding->resource, KillClient::resource_names ), _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5618,11 +5153,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( properties.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "number of properties" ) - 1 : 0 );
     fmt::println(
@@ -5637,25 +5167,25 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "window", name_width, _EQUALS,
+        _BASE_INDENTS.member, "window", name_width, _EQUALS,
         _formatProtocolType( encoding->window ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "number of properties", name_width, _EQUALS,
+            _BASE_INDENTS.member, "number of properties", name_width, _EQUALS,
             _formatInteger( encoding->number_of_properties ), _SEPARATOR ) : "",
-        memb_indent, "delta", name_width, _EQUALS,
+        _BASE_INDENTS.member, "delta", name_width, _EQUALS,
         _formatInteger( encoding->delta ), _SEPARATOR,
-        memb_indent, "properties", name_width, _EQUALS,
+        _BASE_INDENTS.member, "properties", name_width, _EQUALS,
         properties.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5677,11 +5207,6 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::FORCESCREENSAVER );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5695,16 +5220,16 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "mode", name_width, _EQUALS,
+        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
         _formatInteger( encoding->mode, ForceScreenSaver::mode_names ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5730,11 +5255,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( map.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5749,18 +5269,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "length_of_map", name_width, _EQUALS,
+        _BASE_INDENTS.member, "length_of_map", name_width, _EQUALS,
         _formatInteger( encoding->length_of_map ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "map", name_width, _EQUALS,
+        _BASE_INDENTS.member, "map", name_width, _EQUALS,
         map.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5789,11 +5309,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += _pad( keycodes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
     fmt::println(
@@ -5808,18 +5323,18 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        memb_indent, "keycodes-per-modifier", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keycodes-per-modifier", name_width, _EQUALS,
         _formatInteger( encoding->keycodes_per_modifier ), _SEPARATOR,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        memb_indent, "keycodes", name_width, _EQUALS,
+        _BASE_INDENTS.member, "keycodes", name_width, _EQUALS,
         keycodes.str, _SEPARATOR,
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5843,11 +5358,6 @@ size_t X11ProtocolParser::_logClientRequest<
     bytes_parsed += ( encoding->request_length - 1 ) * _ALIGN;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
-    static const uint32_t tab_ct { 0 };
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
@@ -5859,14 +5369,14 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "opcode", name_width, _EQUALS,
+            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
             _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "request length", name_width, _EQUALS,
+            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
             _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        struct_indent
+        _BASE_INDENTS.enclosure
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
