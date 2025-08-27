@@ -77,18 +77,20 @@ private:
     private:
         static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
         static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };  // in tabs
-        static constexpr uint8_t   _NESTING_TAB_OFFSET { 2 };  // in tabs
+        static constexpr uint8_t   _NESTING_TAB_OFFSET { 1 };  // in tabs
 
         std::string_view
         _tabIndent( const uint8_t tab_ct );
 
     public:
         enum { SINGLELINE, MULTILINE };
-        const bool                 multiline { SINGLELINE };
-        const uint8_t              base_tab_ct {};
-        const std::string_view     enclosure {
+        // TBD members cannot be const while using _Indentation(_Indentation&&),
+        //   see importSettings
+        bool                 multiline { SINGLELINE };
+        uint8_t              base_tab_ct {};
+        std::string_view     enclosure {
             !multiline ? "" : _tabIndent( base_tab_ct ) };
-        const std::string_view     member {
+        std::string_view     member {
             !multiline ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) };
 
         _Indentation() = delete;
@@ -103,13 +105,13 @@ private:
         }
 
         inline _Indentation
-        nested( const bool multiline_ = SINGLELINE ) {
+        nested( const bool multiline_ = SINGLELINE ) const {
             return _Indentation(
                 base_tab_ct + _NESTING_TAB_OFFSET, multiline_ || multiline );
         }
     };
-    // TBD better to pass in Settings& from server
-    const _Indentation _BASE_INDENTS { 0, settings.multiline };
+    // TBD can only be const if set in parser ctor after server gets settings
+    _Indentation _BASE_INDENTS { 0, settings.multiline };
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
@@ -547,16 +549,13 @@ private:
 
     size_t _logServerEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
-    enum class _EventFormat {
-        NORMAL, SEND_EVENT
-    };
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const _EventFormat format = _EventFormat::NORMAL );
+        const _Indentation& indents );
     template < typename EventT >
     _ParsingOutputs _parseEvent(
-        Connection* conn, const uint8_t* data,
-        const _EventFormat format = _EventFormat::NORMAL );
+        Connection* conn, const uint8_t* data, const size_t sz,
+        const _Indentation& indents );
 
 
     size_t _logClientRequest(

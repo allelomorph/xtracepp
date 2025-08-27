@@ -1169,6 +1169,7 @@ size_t X11ProtocolParser::_logServerPacket(
     return bytes_parsed;
 }
 
+// TBD this should all happen in parser ctor to allow const settings
 void X11ProtocolParser::importSettings(
     const Settings& settings_ ) {
 
@@ -1177,6 +1178,7 @@ void X11ProtocolParser::importSettings(
     assert( !feof( settings.log_fs ) && !ferror( settings_.log_fs ) );
 
     if ( settings.multiline ) {
+        _BASE_INDENTS = _Indentation( 0, settings.multiline );
         _SEPARATOR = "\n";
         _EQUALS    = " = ";
     }

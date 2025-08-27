@@ -1062,7 +1062,7 @@ size_t X11ProtocolParser::_logClientRequest<
     //   both a log func and a format func?
     _ParsingOutputs event { _parseEvent(
             conn, data + bytes_parsed, protocol::events::ENCODING_SZ,
-            _EventFormat::SEND_EVENT ) };
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += event.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
