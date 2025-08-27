@@ -108,18 +108,24 @@ private:
             std::numeric_limits< uint32_t >::max() };
         uint32_t min { UNINIT };
         uint32_t max { UNINIT };
+
+        _IndexRange() {}
+        _IndexRange( const uint32_t min_, const uint32_t max_ ) :
+            min( min_ ), max( max_ ) {}
     };
 
-    // TBD sentinel necessary?
-    static constexpr uint32_t _UNINITIALIZED {
-        std::numeric_limits< uint32_t >::max() };
+    // TBD using this as a default for name vector references prevents calling
+    //   std::vector{} every time
+    // TBD consider passing pointer instead of reference to allow for null
+    //   checks (use std::optional?) and have lighter weight default ctor
+    inline static const std::vector<std::string_view> _NO_NAMES {};
 
     // TBD [u]intXX_t CARDXX INTXX
     template < typename IntegerT,
                std::enable_if_t< std::is_integral_v< IntegerT >, bool > = true >
     std::string _formatInteger(
         const IntegerT int_,
-        const std::vector< std::string_view >& enum_names = {},
+        const std::vector< std::string_view >& enum_names = _NO_NAMES,
         _IndexRange name_index_range = {} ) {
 
         std::string name_str {};
@@ -148,7 +154,7 @@ private:
                std::enable_if_t< std::is_integral_v< MaskT >, bool > = true >
     std::string _formatBitmask(
         const MaskT mask,
-        const std::vector< std::string_view >& flag_names = {},
+        const std::vector< std::string_view >& flag_names = _NO_NAMES,
         _IndexRange name_index_range = {} ) {
 
         // TBD cannot use is_unsigned in SFINAE due to parallel call with
@@ -198,16 +204,11 @@ private:
     //         enum_names{ en }, base_tab_ct{ btc }, always_singleline{ as } {}
     // };
 
-    // TBD consider passing pointer instead of reference to allow for null
-    //   checks (use std::optional?) and have lighter weight default ctor
-    // TBD dummy vector as default for enum_names prevents calling vector ctor
-    //   every time _formatProtocolType is called without enum_names
-    inline static const std::vector<std::string_view> _NO_ENUM_NAMES {};
     template < typename ProtocolT >
     std::string
     _formatProtocolType(
         const ProtocolT value,
-        const std::vector<std::string_view>& enum_names = _NO_ENUM_NAMES );
+        const std::vector<std::string_view>& enum_names = _NO_NAMES );
 
     struct _ParsingOutputs {
         std::string str       {};
@@ -360,23 +361,34 @@ private:
     _ParsingOutputs
     _parseLISTofHOST( const uint8_t* data, const uint16_t n );
 
-    // TBD rename to _VALUETraits?
-    struct _EnumTraits {
-    private:
-        inline static const std::vector< std::string_view > _EMPTY_NAMESET;
-    public:
-        const std::vector< std::string_view >& names { _EMPTY_NAMESET };
-        const uint32_t min { _UNINITIALIZED };
-        const uint32_t max { _UNINITIALIZED };
-        const bool is_mask {};
+    struct _VALUETraits {
+        // TBD cannot have union of plain references?
+        //   - https://stackoverflow.com/questions/38691282/use-of-union-with-reference
+        // union {
+        //     const std::vector< std::string_view >& enum_names {};
+        //     const std::vector< std::string_view >& flag_names;
+        // };
+        const std::vector< std::string_view >& enum_names { _NO_NAMES };
+        const std::vector< std::string_view >& flag_names { enum_names };
+        _IndexRange name_index_range {};
+        enum { IS_NOT_BITMASK, IS_BITMASK };
+        const bool is_mask { IS_NOT_BITMASK };
 
-        _EnumTraits() {}
-        _EnumTraits(
-            const std::vector<std::string_view>& names_,
-            const bool is_mask_ = false,
-            const uint32_t max_ = _UNINITIALIZED,
-            const uint32_t min_ = _UNINITIALIZED ) :
-            names( names_ ), is_mask( is_mask_ ), max( max_ ), min( min_ ) {}
+        _VALUETraits() {}
+        _VALUETraits( const std::vector<std::string_view>& names_,
+                      const _IndexRange name_index_range_ = {},
+            const bool is_mask_ = IS_NOT_BITMASK ) :
+            enum_names( names_ ), flag_names( enum_names ),
+            is_mask( is_mask_ ), name_index_range( name_index_range_ ) {
+
+            if ( !enum_names.empty() ) {
+                if ( name_index_range_.min == _IndexRange::UNINIT )
+                    name_index_range.min = 0;
+                if ( name_index_range_.max == _IndexRange::UNINIT )
+                    name_index_range.max = enum_names.size() - 1;
+                assert( name_index_range.min <= name_index_range.max );
+            }
+        }
     };
 
     // TBD put mask in parsing inputs, that way we can calc the name_width of
@@ -384,24 +396,28 @@ private:
     // TBD for that matter we could just put data and sz in there as well
     template < typename TupleT >
     struct _LISTofVALUEParsingInputs {
+        const uint32_t value_mask;
         const TupleT& types;
         const std::vector< std::string_view >& names;
-        // TBD how about tuple of format funcs instead?
-        const std::vector< _EnumTraits >& traits;
+        const std::vector< _VALUETraits >& traits;
         const uint32_t tab_ct;
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
+            const uint32_t value_mask_,
             const TupleT& types_, const std::vector<std::string_view>& names_,
-            const std::vector< _EnumTraits >& traits_,
+            const std::vector< _VALUETraits >& traits_,
             const uint32_t tab_ct_ ) :
+            value_mask( value_mask_ ),
             types( types_ ), names( names_ ),
             traits( traits_ ), tab_ct( tab_ct_ ) {
             assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
-            for ( const std::string_view& value_name : names ) {
-                name_width = std::max( name_width, value_name.size() );
+            for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
+                if ( value_mask & ( 1 << i ) ) {
+                    name_width = std::max( name_width, names[i].size() );
+                }
             }
         }
     };
@@ -413,27 +429,27 @@ private:
     // TBD [u]intXX_t CARDXX INTXX
     template < typename ValueT >
     inline auto _formatVALUE(
-        const ValueT value, const _EnumTraits& traits ) ->
+        const ValueT value, const _VALUETraits& traits ) ->
         std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
         return traits.is_mask ?
-            _formatBitmask( value, traits.names, _IndexRange{ 0, traits.max } ) :
-            _formatInteger( value, traits.names, _IndexRange{ 0, traits.max } );
+            _formatBitmask( value, traits.enum_names, traits.name_index_range ) :
+            _formatInteger( value, traits.flag_names, traits.name_index_range );
     }
 
     // TBD two fmtCT args (uncertain enum_names)
     // PIXMAP WINDOW VISUALID COLORMAP
     template < typename ValueT >
     inline auto _formatVALUE(
-        const ValueT value, const _EnumTraits& traits ) ->
+        const ValueT value, const _VALUETraits& traits ) ->
         std::enable_if_t< is_variable_enum_common_type< ValueT >::value, std::string > {
-        return _formatProtocolType( value, traits.names );
+        return _formatProtocolType( value, traits.enum_names );
     }
 
     // TBD one fmtCT arg
     // TIMESTAMP CURSOR ATOM FONT BITGRAVITY WINGRAVITY BOOL SETofEVENT SETofPOINTEREVENT SETofDEVICEEVENT KEYCODE BUTTON SETofKEYMASK SETofKEYBUTMASK POINT RECTANGLE ARC
     template < typename ValueT >
     inline auto _formatVALUE(
-        const ValueT value, const _EnumTraits& /*traits*/ ) ->
+        const ValueT value, const _VALUETraits& /*traits*/ ) ->
         std::enable_if_t< !std::is_integral_v< ValueT > &&
                           !is_variable_enum_common_type< ValueT >::value, std::string > {
         return _formatProtocolType( value );

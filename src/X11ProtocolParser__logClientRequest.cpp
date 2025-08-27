@@ -208,7 +208,7 @@ size_t X11ProtocolParser::_logClientRequest<
     static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
-    const std::vector< _EnumTraits > value_traits {
+    const std::vector< _VALUETraits > value_traits {
         /* background-pixmap     */ { CreateWindow::background_pixmap_names },
         /* background-pixel      */ {},
         /* border-pixmap         */ { CreateWindow::border_pixmap_names },
@@ -226,6 +226,7 @@ size_t X11ProtocolParser::_logClientRequest<
         /* cursor                */ { CreateWindow::cursor_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        encoding->value_mask,
         CreateWindow::value_types,
         CreateWindow::value_names,
         value_traits,
@@ -316,7 +317,7 @@ size_t X11ProtocolParser::_logClientRequest<
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     // VALUE list encoding same as CreateWindow
-    const std::vector< _EnumTraits > value_traits {
+    const std::vector< _VALUETraits > value_traits {
         /* background-pixmap     */ { ChangeWindowAttributes::background_pixmap_names },
         /* background-pixel      */ {},
         /* border-pixmap         */ { ChangeWindowAttributes::border_pixmap_names },
@@ -334,6 +335,7 @@ size_t X11ProtocolParser::_logClientRequest<
         /* cursor                */ { ChangeWindowAttributes::cursor_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        encoding->value_mask,
         ChangeWindowAttributes::value_types,
         ChangeWindowAttributes::value_names,
         value_traits,
@@ -506,7 +508,7 @@ size_t X11ProtocolParser::_logClientRequest<
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
     // VALUE list encoding same as CreateWindow
-    const std::vector< _EnumTraits > value_traits {
+    const std::vector< _VALUETraits > value_traits {
         /* x            */ {},
         /* y            */ {},
         /* width        */ {},
@@ -516,6 +518,7 @@ size_t X11ProtocolParser::_logClientRequest<
         /* stack-mode   */ { ConfigureWindow::stack_mode_names },
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        encoding->value_mask,
         ConfigureWindow::value_types,
         ConfigureWindow::value_names,
         value_traits,
@@ -2394,7 +2397,7 @@ size_t X11ProtocolParser::_logClientRequest<
     static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
-    const std::vector< _EnumTraits > value_traits {
+    const std::vector< _VALUETraits > value_traits {
         /* function              */ { CreateGC::function_names },
         /* plane-mask            */ {},
         /* foreground            */ {},
@@ -2420,6 +2423,7 @@ size_t X11ProtocolParser::_logClientRequest<
         /* arc-mode              */ { CreateGC::arc_mode_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        encoding->value_mask,
         CreateGC::value_types,
         CreateGC::value_names,
         value_traits,
@@ -2488,7 +2492,7 @@ size_t X11ProtocolParser::_logClientRequest<
     static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
-    const std::vector< _EnumTraits > value_traits {
+    const std::vector< _VALUETraits > value_traits {
         /* function              */ { ChangeGC::function_names },
         /* plane-mask            */ {},
         /* foreground            */ {},
@@ -2514,6 +2518,7 @@ size_t X11ProtocolParser::_logClientRequest<
         /* arc-mode              */ { ChangeGC::arc_mode_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        encoding->value_mask,
         ChangeGC::value_types,
         ChangeGC::value_names,
         value_traits,
@@ -5154,18 +5159,20 @@ size_t X11ProtocolParser::_logClientRequest<
     static const uint32_t tab_ct { 0 };
     // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
     //   nested in value_list_inputs initializer
-    const std::vector< _EnumTraits > value_traits {
+    const std::vector< _VALUETraits > value_traits {
         /* key-click-percent */ {},
         /* bell-percent      */ {},
         /* bell-pitch        */ {},
         /* bell-duration     */ {},
         /* led               */ {},
         // TBD how to limit to first two without magic numbers?
-        /* led-mode          */ { ChangeKeyboardControl::led_mode_names, 0, 1 },
+        /* led-mode          */ { ChangeKeyboardControl::led_mode_names,
+                                  _IndexRange{ 0, 1 } },
         /* key               */ {},
-        /* auto-repeat-mode  */ { ChangeKeyboardControl::led_mode_names },
+        /* auto-repeat-mode  */ { ChangeKeyboardControl::led_mode_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        encoding->value_mask,
         ChangeKeyboardControl::value_types,
         ChangeKeyboardControl::value_names,
         value_traits,
