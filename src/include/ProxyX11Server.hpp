@@ -62,7 +62,6 @@ private:
     void _processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                                  fd_set* exceptfds );
     int  _processClientQueue();
-    size_t logClientPacket(Connection* conn);
 
     void __debugOutput();
 
