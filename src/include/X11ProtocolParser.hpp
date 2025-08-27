@@ -422,41 +422,26 @@ private:
         }
     };
 
-    template < typename T >
-    struct is_variable_enum_common_type : public std::false_type {};
-    // TBD explicit template specializations need to be outside class declaration
-
     // TBD [u]intXX_t CARDXX INTXX
-    template < typename ValueT >
-    inline auto _formatVALUE(
-        const ValueT value, const _VALUETraits& traits ) ->
-        std::enable_if_t< std::is_integral_v< ValueT >, std::string > {
+    template < typename ValueT,
+               std::enable_if_t< std::is_integral_v< ValueT >, bool > = true >
+    inline std::string
+    _formatVALUE(
+        const ValueT value, const _VALUETraits& traits ) {
         return traits.is_mask ?
             _formatBitmask( value, traits.enum_names, traits.name_index_range ) :
             _formatInteger( value, traits.flag_names, traits.name_index_range );
     }
 
-    // TBD two fmtCT args (uncertain enum_names)
-    // PIXMAP WINDOW VISUALID COLORMAP
-    template < typename ValueT >
-    inline auto _formatVALUE(
-        const ValueT value, const _VALUETraits& traits ) ->
-        std::enable_if_t< is_variable_enum_common_type< ValueT >::value, std::string > {
+    // PIXMAP WINDOW VISUALID COLORMAP  // TBD these don't need to pass names, but no need for overload due to default param
+    // TIMESTAMP CURSOR ATOM FONT BITGRAVITY WINGRAVITY BOOL SETofEVENT SETofPOINTEREVENT SETofDEVICEEVENT KEYCODE BUTTON SETofKEYMASK SETofKEYBUTMASK POINT RECTANGLE ARC
+    template < typename ValueT,
+               std::enable_if_t< !std::is_integral_v< ValueT >, bool > = true >
+    inline std::string
+    _formatVALUE(
+        const ValueT value, const _VALUETraits& traits ) {
         return _formatProtocolType( value, traits.enum_names );
     }
-
-    // TBD one fmtCT arg
-    // TIMESTAMP CURSOR ATOM FONT BITGRAVITY WINGRAVITY BOOL SETofEVENT SETofPOINTEREVENT SETofDEVICEEVENT KEYCODE BUTTON SETofKEYMASK SETofKEYBUTMASK POINT RECTANGLE ARC
-    template < typename ValueT >
-    inline auto _formatVALUE(
-        const ValueT value, const _VALUETraits& /*traits*/ ) ->
-        std::enable_if_t< !std::is_integral_v< ValueT > &&
-                          !is_variable_enum_common_type< ValueT >::value, std::string > {
-        return _formatProtocolType( value );
-    }
-
-    // TBD not efficient to have static vars in templated function...
-    static constexpr size_t _VALUE_ENCODING_SZ { sizeof( protocol::CARD32 ) };
 
     // tuple iteration allows for run time taversal of heterogeneous list of types
     // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
@@ -503,9 +488,9 @@ private:
                                              outputs->bytes_parsed == 0 ? "" : ", ",
                                              inputs.names[I], value_str );
             }
-            outputs->bytes_parsed += _VALUE_ENCODING_SZ;
+            outputs->bytes_parsed += sizeof( protocol::VALUE );
             _parseLISTofVALUE< I + 1, Args... >(
-                value_mask, inputs, data + _VALUE_ENCODING_SZ, outputs );
+                value_mask, inputs, data + sizeof( protocol::VALUE ), outputs );
         } else {
             _parseLISTofVALUE< I + 1, Args... >(
                 value_mask, inputs, data, outputs );
@@ -628,22 +613,6 @@ public:
     size_t logServerPackets( Connection* conn );
 
 };
-
-template <>
-struct X11ProtocolParser::is_variable_enum_common_type< protocol::PIXMAP > :
-    public std::true_type {};
-
-template <>
-struct X11ProtocolParser::is_variable_enum_common_type< protocol::WINDOW > :
-    public std::true_type {};
-
-template <>
-struct X11ProtocolParser::is_variable_enum_common_type< protocol::VISUALID > :
-    public std::true_type {};
-
-template <>
-struct X11ProtocolParser::is_variable_enum_common_type< protocol::COLORMAP > :
-    public std::true_type {};
 
 
 #endif  // X11PROTOCOLPARSER_HPP

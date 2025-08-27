@@ -79,6 +79,7 @@ struct [[gnu::packed]] VISUALID {
 };
 // using LISTofVISUALID  = VISUALID*;
 
+using VALUE = CARD32;  // TBD currently only used for sizeof()
 //struct [[gnu::packed]] VALUE           = CARD32;  // (used only in LISTofVALUE)
 // using LISTofVALUE     = VALUE*;
 
