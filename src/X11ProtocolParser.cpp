@@ -65,13 +65,13 @@ size_t X11ProtocolParser::_logClientInitiation(
 
     const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "authorization-protocol-data" ) - 1 : 0 );
+        settings.multiline ? sizeof( "authorization-protocol-data" ) - 1 : 0 );
 
-    fmt::print( _log_fs, "{:03d}:<:client \"{}\" requesting connection ",
+    fmt::print( settings.log_fs, "{:03d}:<:client \"{}\" requesting connection ",
                 conn->id, conn->client_desc );
     // TBD may be security concerns with logging auth data
     // std::string auth_data_hex;
@@ -81,7 +81,7 @@ size_t X11ProtocolParser::_logClientInitiation(
     //         auth_protocol_data[i] );
     // }
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -94,7 +94,7 @@ size_t X11ProtocolParser::_logClientInitiation(
         memb_indent, "byte-order", name_width, _equals,
         _formatInteger( ( header->byte_order == 'l' ) ? 0 : 1,
                         protocol::enum_names::image_byte_order ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}"
             "{}{: <{}}{}{}{}",
@@ -107,14 +107,14 @@ size_t X11ProtocolParser::_logClientInitiation(
             memb_indent, "protocol version", name_width, _equals,
             header->protocol_major_version,
             header->protocol_minor_version, _separator ),
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length in bytes of authorization-protocol-name){}",
             memb_indent, "n", name_width, _equals,
             _formatInteger( header->n ), _separator ) : "",
         memb_indent, "authorization-protocol-name", name_width, _equals,
         auth_protocol_name, _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length in bytes of authorization-protocol-data){}",
             memb_indent, "d", name_width, _equals,
@@ -145,16 +145,16 @@ size_t X11ProtocolParser::_logServerRefusal(
 
     const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
+        settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
 
-    fmt::print( _log_fs, "{:03d}:>:server refused connection ",
+    fmt::print( settings.log_fs, "{:03d}:>:server refused connection ",
                 conn->id );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}"
@@ -163,17 +163,17 @@ size_t X11ProtocolParser::_logServerRefusal(
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (status: failed){}",
             memb_indent, "success", name_width, _equals,
             _formatInteger( header->success ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length of reason in bytes){}",
             memb_indent, "n", name_width, _equals,
             _formatInteger( header->n ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}"
             "{}{: <{}}{}{}{}",
@@ -186,7 +186,7 @@ size_t X11ProtocolParser::_logServerRefusal(
             memb_indent, "protocol version", name_width, _equals,
             header->protocol_major_version,
             header->protocol_minor_version, _separator ),
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
             memb_indent, "reason aligned units", name_width, _equals,
@@ -218,28 +218,28 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
 
     const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "success" ) - 1 : 0 );
+        settings.multiline ? sizeof( "success" ) - 1 : 0 );
 
-    fmt::print( _log_fs, "{:03d}:>:server requested further authentication ",
+    fmt::print( settings.log_fs, "{:03d}:>:server requested further authentication ",
                 conn->id );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (status: authentication){}",
             memb_indent, "success", name_width, _equals,
             _formatInteger( header->success ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
             memb_indent, "reason aligned units", name_width, _equals,
@@ -263,11 +263,11 @@ X11ProtocolParser::_parseLISTofFORMAT(
         reinterpret_cast< const ServerAcceptance::FORMAT* >( data ) };
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     // const std::string_view memb_indent {
-    //     _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+    //     settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "bits-per-pixel" ) - 1 : 0 );
+        settings.multiline ? sizeof( "bits-per-pixel" ) - 1 : 0 );
     // TBD for now FORMAT struct is single line regardless of verbosity
     outputs.str += '[';
     if ( format_ct > 0 )
@@ -285,7 +285,7 @@ X11ProtocolParser::_parseLISTofFORMAT(
         outputs.bytes_parsed += sizeof( ServerAcceptance::FORMAT );
     }
     if ( format_ct > 0 )
-        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
+        outputs.str += settings.multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -298,11 +298,11 @@ X11ProtocolParser::_parseLISTofSCREEN(
 
     X11ProtocolParser::_ParsingOutputs outputs;
     const std::string_view list_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
+        settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     outputs.str += '[';
@@ -365,7 +365,7 @@ X11ProtocolParser::_parseLISTofSCREEN(
             );
     }
     if ( screen_ct > 0 )
-        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
+        outputs.str += settings.multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -378,11 +378,11 @@ X11ProtocolParser::_parseLISTofDEPTH(
 
     X11ProtocolParser::_ParsingOutputs outputs;
     const std::string_view list_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "visuals" ) - 1 : 0 );
+        settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     outputs.str += '[';
@@ -408,7 +408,7 @@ X11ProtocolParser::_parseLISTofDEPTH(
             list_indent, _separator,
             memb_indent, "depth", name_width, _equals,
             _formatInteger( header->depth ), _separator,
-            _verbose ?
+            settings.verbose ?
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "n", name_width, _equals,
@@ -419,7 +419,7 @@ X11ProtocolParser::_parseLISTofDEPTH(
             );
     }
     if ( depth_ct > 0 )
-        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
+        outputs.str += settings.multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -432,11 +432,11 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
 
     X11ProtocolParser::_ParsingOutputs outputs;
     const std::string_view list_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "bits-per-rgb-value" ) - 1 : 0 );
+        settings.multiline ? sizeof( "bits-per-rgb-value" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     outputs.str += '[';
@@ -495,7 +495,7 @@ X11ProtocolParser::_parseLISTofVISUALTYPE(
         //     );
     }
     if ( vt_ct > 0 )
-        outputs.str += _multiline ? _tabIndent( tab_ct - 1 ) : "";
+        outputs.str += settings.multiline ? _tabIndent( tab_ct - 1 ) : "";
     outputs.str += ']';
     return outputs;
 }
@@ -942,7 +942,7 @@ X11ProtocolParser::_parseLISTofHOST( const uint8_t* data, const uint16_t n ) {
         outputs.str += fmt::format(
             " {{ family={}{} address={} }}",
             _formatInteger( host.family, protocol::enum_names::host_family ),
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format( " n address bytes={}",
                          _formatInteger( host.n ) ),
             address.str );
@@ -978,16 +978,16 @@ size_t X11ProtocolParser::_logServerAcceptance(
     bytes_parsed += roots_outputs.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
+        settings.multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
 
-    fmt::print( _log_fs, "{:03d}:>:server accepted connection ",
+    fmt::print( settings.log_fs, "{:03d}:>:server accepted connection ",
                 conn->id );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -999,12 +999,12 @@ size_t X11ProtocolParser::_logServerAcceptance(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (status: accepted){}",
             memb_indent, "success", name_width, _equals,
             _formatInteger( header->success ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}"
             "{}{: <{}}{}{}{}",
@@ -1017,7 +1017,7 @@ size_t X11ProtocolParser::_logServerAcceptance(
             memb_indent, "protocol version", name_width, _equals,
             header->protocol_major_version,
             header->protocol_minor_version, _separator ),
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length of (padded) vendor + pixmap-formats + roots, in 4-byte units){}",
             memb_indent, "ad", name_width, _equals,
@@ -1030,19 +1030,19 @@ size_t X11ProtocolParser::_logServerAcceptance(
         _formatInteger( header->resource_id_mask ), _separator,
         memb_indent, "motion-buffer-size", name_width, _equals,
         _formatInteger( header->motion_buffer_size ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (length of vendor in bytes){}",
             memb_indent, "v", name_width, _equals,
             _formatInteger( header->v ), _separator ) : "",
         memb_indent, "maximum-request-length", name_width, _equals,
         _formatInteger( header->maximum_request_length ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (number of SCREENs in roots){}",
                      memb_indent, "r", name_width, _equals,
             _formatInteger( header->r ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{} (number of FORMATs in pixmap-formats){}",
             memb_indent, "n", name_width, _equals,
@@ -1184,19 +1184,13 @@ size_t X11ProtocolParser::_logServerPacket(
 }
 
 void X11ProtocolParser::importSettings(
-    FILE* log_fs, const bool multiline,
-    const bool verbose, const bool readwritedebug,
-    const bool denyallextensions ) {
-    assert( log_fs != nullptr );
-    assert( !feof( log_fs ) && !ferror( log_fs ) );
+    const Settings& settings_ ) {
 
-    _log_fs = log_fs;
-    _multiline = multiline;
-    _verbose = verbose;
-    _readwritedebug = readwritedebug;
-    _denyallextensions = denyallextensions;
+    settings = settings_;
+    assert( settings.log_fs != nullptr );
+    assert( !feof( settings.log_fs ) && !ferror( settings_.log_fs ) );
 
-    if ( _multiline ) {
+    if ( settings.multiline ) {
         _separator = "\n";
         _equals    = " = ";
     }
@@ -1218,8 +1212,8 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
             _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
-        if ( _readwritedebug ) {
-            fmt::println( _log_fs, "{:03d}:<:parsed   {:4d} bytes",
+        if ( settings.readwritedebug ) {
+            fmt::println( settings.log_fs, "{:03d}:<:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
         }
         data += bytes_parsed;
@@ -1238,8 +1232,8 @@ size_t X11ProtocolParser::logServerPackets( Connection* conn ) {
           tl_bytes_parsed < bytes_to_parse; ) {
         size_t bytes_parsed {
             _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
-        if ( _readwritedebug ) {
-            fmt::println( _log_fs, "{:03d}:>:parsed   {:4d} bytes",
+        if ( settings.readwritedebug ) {
+            fmt::println( settings.log_fs, "{:03d}:>:parsed   {:4d} bytes",
                           conn->id, bytes_parsed );
         }
         data += bytes_parsed;

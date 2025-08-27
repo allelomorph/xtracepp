@@ -28,11 +28,11 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -44,14 +44,14 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "detail", name_width, _equals,
         _formatProtocolType( encoding->detail ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -102,11 +102,11 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -118,14 +118,14 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "detail", name_width, _equals,
         _formatProtocolType( encoding->detail ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -175,11 +175,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -191,14 +191,14 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "detail", name_width, _equals,
         _formatProtocolType( encoding->detail ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -249,11 +249,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -265,14 +265,14 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "detail", name_width, _equals,
         _formatProtocolType( encoding->detail ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -322,11 +322,11 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -338,14 +338,14 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "detail", name_width, _equals,
         _formatInteger( encoding->detail, MotionNotify::detail_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -394,11 +394,11 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
+        settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -410,7 +410,7 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
@@ -419,7 +419,7 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
         memb_indent, "detail", name_width, _equals,
         _formatInteger( encoding->detail,
                         EnterNotify::detail_names, _IndexRange{ 0, 4 } ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -473,11 +473,11 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
+        settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -489,7 +489,7 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
@@ -498,7 +498,7 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
         memb_indent, "detail", name_width, _equals,
         _formatInteger( encoding->detail,
                         LeaveNotify::detail_names, _IndexRange{ 0, 4 } ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -551,11 +551,11 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
+        settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -565,7 +565,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
@@ -573,7 +573,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
         // TBD how to indicate max enum without magic number
         memb_indent, "detail", name_width, _equals,
         _formatInteger( encoding->detail, FocusIn::detail_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -607,11 +607,11 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
+        settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -621,7 +621,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
@@ -629,7 +629,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
         // TBD how to indicate max enum without magic number
         memb_indent, "detail", name_width, _equals,
         _formatInteger( encoding->detail, FocusOut::detail_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -666,11 +666,11 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "keys(0-7 omitted)" ) - 1 : 0 );
+        settings.multiline ? sizeof( "keys(0-7 omitted)" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -678,7 +678,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
@@ -710,11 +710,11 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -723,12 +723,12 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -769,11 +769,11 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -783,12 +783,12 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -834,11 +834,11 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -846,12 +846,12 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -887,11 +887,11 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -899,12 +899,12 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -937,11 +937,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -950,12 +950,12 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1000,11 +1000,11 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1012,12 +1012,12 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1050,11 +1050,11 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1062,12 +1062,12 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1102,11 +1102,11 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1114,12 +1114,12 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1154,11 +1154,11 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1166,12 +1166,12 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1204,11 +1204,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1217,12 +1217,12 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1263,11 +1263,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1277,12 +1277,12 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1329,11 +1329,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -1345,14 +1345,14 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "stack-mode", name_width, _equals,
         _formatInteger( encoding->stack_mode, ConfigureRequest::stack_mode_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1399,11 +1399,11 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1411,12 +1411,12 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1453,11 +1453,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1465,12 +1465,12 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1505,11 +1505,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1517,12 +1517,12 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1557,11 +1557,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1569,12 +1569,12 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1609,11 +1609,11 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1621,12 +1621,12 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1663,11 +1663,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1675,12 +1675,12 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1715,11 +1715,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1728,12 +1728,12 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1774,11 +1774,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1787,12 +1787,12 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1831,11 +1831,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1843,12 +1843,12 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1885,11 +1885,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}"
@@ -1899,14 +1899,14 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
         memb_indent, "format", name_width, _equals,
         _formatInteger( encoding->format ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -1939,11 +1939,11 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     const uint32_t tab_ct (
         ( format == _EventFormat::SEND_EVENT ) ? 1 : 0 );
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
         "{}({}) {{{}"
         "{}{}"
@@ -1951,12 +1951,12 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
@@ -2134,7 +2134,7 @@ size_t X11ProtocolParser::_logServerEvent(
 
     _ParsingOutputs event {
         _parseEvent( conn, data, sz ) };
-    fmt::println( _log_fs, "{:03d}:<:server event {}",
+    fmt::println( settings.log_fs, "{:03d}:<:server event {}",
                   conn->id, event.str );
     assert( event.bytes_parsed == protocol::events::ENCODING_SZ );
     return event.bytes_parsed;

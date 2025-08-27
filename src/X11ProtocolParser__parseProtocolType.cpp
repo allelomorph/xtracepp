@@ -38,7 +38,7 @@ X11ProtocolParser::_parseProtocolType<
     outputs.bytes_parsed += str.n;
     outputs.str += fmt::format(
         "{{ {}name=\"{}\" }}",
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format( "n={} ", _formatInteger( str.n ) ),
         name );
     return outputs;
@@ -66,7 +66,7 @@ X11ProtocolParser::_parseProtocolType<
     outputs.str += fmt::format(
         "{{ family={}{} address={} }}",
         _formatInteger( host.family, protocol::HOST::family_names ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format( " n address bytes={}",
                      _formatInteger( host.n ) ),
         address.str );
@@ -87,11 +87,11 @@ X11ProtocolParser::_parseProtocolType<
     assert( tab_ct >= 2 );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
+        settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
 
     _ParsingOutputs outputs;
     const SCREEN::Header* header { reinterpret_cast< const SCREEN::Header* >( data ) };
@@ -163,11 +163,11 @@ X11ProtocolParser::_parseProtocolType<
 
     _ParsingOutputs outputs;
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "visuals" ) - 1 : 0 );
+        settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
     using namespace protocol::connection_setup;
 
     const DEPTH::Header* header {
@@ -188,7 +188,7 @@ X11ProtocolParser::_parseProtocolType<
         _separator,
         memb_indent, "depth", name_width, _equals,
         _formatInteger( header->depth ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -223,7 +223,7 @@ X11ProtocolParser::_parseProtocolType<
                 *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) ) };
         outputs.str += fmt::format(
             "{{ {}font={} }}",
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format( "font-shift={} ",
                          _formatInteger( item.font.font_shift ) ),
             _formatProtocolType( font ) );
@@ -236,7 +236,7 @@ X11ProtocolParser::_parseProtocolType<
         outputs.bytes_parsed += item.text_element.m;
         outputs.str += fmt::format(
             " {{ {}delta={} string=\"{}\" }}",
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format( "m={} ", _formatInteger( item.text_element.m ) ),
             _formatInteger( item.text_element.delta ),
             string );
@@ -267,7 +267,7 @@ X11ProtocolParser::_parseProtocolType<
                 *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) ) };
         outputs.str += fmt::format(
             "{{ {}font={} }}",
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format( "font-shift={} ",
                          _formatInteger( item.font.font_shift ) ),
             _formatProtocolType( font ) );
@@ -288,7 +288,7 @@ X11ProtocolParser::_parseProtocolType<
         }
         outputs.str += fmt::format(
             " {{ {}delta={} string=[{}] }}",
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format( "m={} ", _formatInteger( item.text_element.m ) ),
             _formatInteger( item.text_element.delta ),
             hex_str );

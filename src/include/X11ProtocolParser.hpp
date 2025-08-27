@@ -32,12 +32,9 @@ private:
     // TBD change to PAD_ALIGN_SZ to differentiate from VALUE default size
     static constexpr size_t _ALIGN { 4 };
 
-    // TBD better to pass in Settings& from server
-    FILE* _log_fs            { stdout };
-    bool  _multiline         {};
-    bool  _verbose           {};
-    bool  _readwritedebug    {};
-    bool  _denyallextensions {};
+    // TBD could be reference to track changes in server.settings, but settings
+    //   not likely to change after initial parse of CLI
+    Settings settings;
 
     // TBD formatting
     // TBD capitalize
@@ -115,7 +112,7 @@ private:
         }
     };
     // TBD better to pass in Settings& from server
-    const _Indentation _ROOT_INDENTS { 0, _multiline };
+    const _Indentation _ROOT_INDENTS { 0, settings.multiline };
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
@@ -179,7 +176,7 @@ private:
                 name_str = enum_names[ int_ ];
             }
         }
-        if ( _verbose ) {
+        if ( settings.verbose ) {
             const std::string hex_str {
                 fmt::format( "{:#0{}x}", std::make_unsigned_t< IntegerT >( int_ ),
                              _fmtHexWidth( int_ ) ) };
@@ -217,7 +214,7 @@ private:
                 }
             }
         }
-        if ( _verbose ) {
+        if ( settings.verbose ) {
             return flag_str.empty() ? hex_str :
                 fmt::format( "{}({})", hex_str, flag_str );
         }
@@ -268,9 +265,9 @@ private:
         assert( tab_ct >= 2 );
 
         const std::string_view list_indent {
-            _multiline ? _tabIndent( tab_ct ) : "" };
+            settings.multiline ? _tabIndent( tab_ct ) : "" };
         const std::string_view member_indent {
-            _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+            settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
 
         _ParsingOutputs outputs;
         outputs.str += '[';
@@ -301,9 +298,9 @@ private:
         assert( tab_ct >= 2 );
 
         const std::string_view list_indent {
-            _multiline ? _tabIndent( tab_ct ) : "" };
+            settings.multiline ? _tabIndent( tab_ct ) : "" };
         const std::string_view member_indent {
-            _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+            settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
 
         _ParsingOutputs outputs;
         outputs.str += '[';
@@ -473,7 +470,7 @@ private:
         const uint8_t* /*data*/, _ParsingOutputs* outputs ) ->
         std::enable_if_t< I == sizeof...( Args ), void > {
         if ( value_mask != 0 ) {
-            outputs->str += _multiline ? _tabIndent( inputs.tab_ct - 1 ) : " ";
+            outputs->str += settings.multiline ? _tabIndent( inputs.tab_ct - 1 ) : " ";
         }
         outputs->str += ']';
     }
@@ -488,7 +485,7 @@ private:
         if ( I == 0 ) {
             outputs->str += '[';
             if ( value_mask != 0 ) {
-                outputs->str += _multiline ? '\n' : ' ';
+                outputs->str += settings.multiline ? '\n' : ' ';
             }
         }
         using ValueT = std::remove_reference_t<
@@ -497,7 +494,7 @@ private:
             const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
             const std::string value_str { _formatVALUE( value, inputs.traits[I] ) };
             const std::string_view indent { _tabIndent( inputs.tab_ct ) };
-            if ( _multiline ) {
+            if ( settings.multiline ) {
                 outputs->str += fmt::format( "{}{: <{}} = {}\n",
                                              indent,
                                              inputs.names[I],
@@ -626,9 +623,7 @@ public:
     X11ProtocolParser() {}
 
     void importSettings(
-        FILE* log_fs, const bool multiline,
-        const bool verbose, const bool readwritedebug,
-        const bool denyallextensions );
+        const Settings& settings );
     size_t logClientPackets( Connection* conn );
     size_t logServerPackets( Connection* conn );
 

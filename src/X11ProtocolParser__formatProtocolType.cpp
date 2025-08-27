@@ -181,7 +181,7 @@ X11ProtocolParser::_formatProtocolType(
     const std::time_t time_ ( time.data );
     strftime( time_str, sizeof( time_str ), "%FT%TZ",
               gmtime( &time_ ) );
-    if ( _verbose ) {
+    if ( settings.verbose ) {
         // fmt counts "0x" as part of width when using '#'
         static constexpr size_t hex_width { ( sizeof( time.data ) * 2 ) + 2 };
         return fmt::format( "{:#0{}x}({})", time.data, hex_width,
@@ -300,7 +300,7 @@ X11ProtocolParser::_formatProtocolType(
     // TBD could make some sort of list of exception flags for mask types that result in enum string
     //     this seems to be the only exception to normal SETof(KEY|BUTTON|KEYBUT)MASK formatting
     if ( setofkeymask.data == protocol::SETofKEYMASK::ANYMODIFIER ) {
-        if ( _verbose ) {
+        if ( settings.verbose ) {
             const std::string hex_str {
                 fmt::format( "{:#0{}x}", setofkeymask.data,
                              _fmtHexWidth( setofkeymask.data ) ) };

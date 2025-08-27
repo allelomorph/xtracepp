@@ -26,11 +26,11 @@ size_t X11ProtocolParser::_logServerError(
             code <= protocol::errors::codes::MAX );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     std::string bad_resource_str {};
     switch ( code ) {
     case protocol::errors::codes::VALUE:     //  2
@@ -62,7 +62,7 @@ size_t X11ProtocolParser::_logServerError(
         break;
     }
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{:03d}:<:server error {}({}) "
         "{{{}"
         "{}{}{}{}"
@@ -70,17 +70,17 @@ size_t X11ProtocolParser::_logServerError(
         "{}}}",
         conn->id, protocol::errors::names[code], code,
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "error", name_width, _equals,
             _formatInteger( encoding->error ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "code", name_width, _equals,
             _formatInteger( encoding->code ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,

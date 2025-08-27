@@ -32,11 +32,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
+        settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -48,19 +48,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "backing-store", name_width, _equals,
         _formatInteger( encoding->backing_store, GetWindowAttributes::backing_store_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -117,11 +117,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
+        settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -131,19 +131,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "depth", name_width, _equals,
         _formatInteger( encoding->depth ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -191,11 +191,11 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += children.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
@@ -204,17 +204,17 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -223,7 +223,7 @@ size_t X11ProtocolParser::_logServerReply<
         _formatProtocolType( encoding->root ), _separator,
         memb_indent, "parent", name_width, _equals,
         _formatProtocolType( encoding->parent, QueryTree::parent_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n children", name_width, _equals,
@@ -259,28 +259,28 @@ size_t X11ProtocolParser::_logServerReply<
         _internStashedAtom( { conn->id, conn->sequence }, encoding->atom );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -317,33 +317,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += _pad(encoding->n);
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "name length", name_width, _equals,
@@ -390,11 +390,11 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += _pad( value.bytes_parsed );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -405,19 +405,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "format", name_width, _equals,
         _formatInteger( encoding->format ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -426,7 +426,7 @@ size_t X11ProtocolParser::_logServerReply<
         _formatProtocolType( encoding->type, GetProperty::reply_type_names ), _separator,
         memb_indent, "bytes-after", name_width, _equals,
         _formatInteger( encoding->bytes_after ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n format units", name_width, _equals,
@@ -464,33 +464,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += _pad( atoms.bytes_parsed );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n atoms", name_width, _equals,
@@ -522,28 +522,28 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -575,11 +575,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -587,19 +587,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "status", name_width, _equals,
         _formatInteger( encoding->status, GrabPointer::status_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -629,11 +629,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -641,19 +641,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "status", name_width, _equals,
         _formatInteger( encoding->status, GrabKeyboard::status_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -683,11 +683,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -697,19 +697,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "same-screen", name_width, _equals,
         _formatProtocolType( encoding->same_screen ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -758,33 +758,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += events.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n events", name_width, _equals,
@@ -817,11 +817,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -830,19 +830,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "same-screen", name_width, _equals,
         _formatProtocolType( encoding->same_screen ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -878,11 +878,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -891,19 +891,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "revert-to", name_width, _equals,
         _formatInteger( encoding->revert_to, GetInputFocus::revert_to_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -939,28 +939,28 @@ size_t X11ProtocolParser::_logServerReply<
     // keys bytes already parsed as part of encoding
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1001,11 +1001,11 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += char_infos.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
+        settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
@@ -1018,17 +1018,17 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1043,7 +1043,7 @@ size_t X11ProtocolParser::_logServerReply<
         _formatInteger( encoding->max_char_or_byte2 ), _separator,
         memb_indent, "default-char", name_width, _equals,
         _formatInteger( encoding->default_char ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n properties", name_width, _equals,
@@ -1060,7 +1060,7 @@ size_t X11ProtocolParser::_logServerReply<
         _formatInteger( encoding->font_ascent ), _separator,
         memb_indent, "font-descent", name_width, _equals,
         _formatInteger( encoding->font_descent ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "m char-infos", name_width, _equals,
@@ -1094,11 +1094,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -1108,19 +1108,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "draw-direction", name_width, _equals,
         _formatInteger( encoding->draw_direction, QueryTextExtents::draw_direction_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1169,33 +1169,33 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n names", name_width, _equals,
@@ -1223,9 +1223,9 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     if ( encoding->n == ListFontsWithInfo::LAST_REPLY ) {
         const ListFontsWithInfo::FinalReplyEncoding* fr_encoding {
             reinterpret_cast< const ListFontsWithInfo::FinalReplyEncoding* >( data ) };
@@ -1234,7 +1234,7 @@ size_t X11ProtocolParser::_logServerReply<
                 ( sizeof(ListFontsWithInfo::FinalReplyEncoding) -
                   protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
         const uint32_t name_width (
-            _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+            settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
         fmt::println(
             "{{{}"
             "{}"
@@ -1242,19 +1242,19 @@ size_t X11ProtocolParser::_logServerReply<
             "{}{}"
             "{}}}",
             _separator,
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "reply", name_width, _equals,
                 _formatInteger( fr_encoding->reply ), _separator ),
             memb_indent, "last-reply", name_width, _equals,
             _formatInteger( fr_encoding->last_reply ), _separator,
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "sequence number", name_width, _equals,
                 _formatInteger( fr_encoding->sequence_number ), _separator ),
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "reply length", name_width, _equals,
@@ -1277,7 +1277,7 @@ size_t X11ProtocolParser::_logServerReply<
                   ( sizeof(ListFontsWithInfo::FONTPROP) * encoding->m ) -
                   protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
         const uint32_t name_width (
-            _multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
+            settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
         fmt::println(
             "{{{}"
             "{}{}{}{}"
@@ -1289,22 +1289,22 @@ size_t X11ProtocolParser::_logServerReply<
             "{}{: <{}}{}\"{}\"{}"
             "{}}}",
             _separator,
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "reply", name_width, _equals,
                 _formatInteger( encoding->reply ), _separator ),
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "name len", name_width, _equals,
                 _formatInteger( encoding->n ), _separator ),
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "sequence number", name_width, _equals,
                 _formatInteger( encoding->sequence_number ), _separator ),
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "reply length", name_width, _equals,
@@ -1319,7 +1319,7 @@ size_t X11ProtocolParser::_logServerReply<
             _formatInteger( encoding->max_char_or_byte2 ), _separator,
             memb_indent, "default-char", name_width, _equals,
             _formatInteger( encoding->default_char ), _separator,
-            !_verbose ? "" :
+            !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
                 memb_indent, "n properties", name_width, _equals,
@@ -1373,33 +1373,33 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n path elems", name_width, _equals,
@@ -1434,11 +1434,11 @@ size_t X11ProtocolParser::_logServerReply<
     //   suffix length (no way to know value of p but n will always be padded)
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -1447,19 +1447,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "depth", name_width, _equals,
         _formatInteger( encoding->depth ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1498,33 +1498,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += cmaps.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n cmaps", name_width, _equals,
@@ -1556,28 +1556,28 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1615,11 +1615,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
@@ -1627,17 +1627,17 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1689,38 +1689,38 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += pixels.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n pixels", name_width, _equals,
             _formatInteger( encoding->n ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n masks", name_width, _equals,
@@ -1758,33 +1758,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += pixels.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n pixels", name_width, _equals,
@@ -1827,33 +1827,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += colors.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n colors", name_width, _equals,
@@ -1885,11 +1885,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
@@ -1897,17 +1897,17 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -1949,28 +1949,28 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2007,32 +2007,32 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply_length ==
             ( sizeof(QueryExtension::ReplyEncoding) -
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
-    if ( _denyallextensions )
+    if ( settings.denyallextensions )
         encoding->present.data = int(false);
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2075,33 +2075,33 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n names", name_width, _equals,
             _formatInteger( encoding->n ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2141,33 +2141,33 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "keysyms-per-keycode", name_width, _equals,
             _formatInteger( encoding->keysyms_per_keycode ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2206,11 +2206,11 @@ size_t X11ProtocolParser::_logServerReply<
     //   member of GetKeyboardControl::ReplyEncoding
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "global-auto-repeat" ) - 1 : 0 );
+        settings.multiline ? sizeof( "global-auto-repeat" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -2220,19 +2220,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "global-auto-repeat", name_width, _equals,
         _formatInteger( encoding->global_auto_repeat, GetKeyboardControl::global_auto_repeat_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2274,28 +2274,28 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
+        settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2331,28 +2331,28 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2395,11 +2395,11 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += hosts.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -2408,24 +2408,24 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, ListHosts::mode_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
             _formatInteger( encoding->reply_length ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n hosts", name_width, _equals,
@@ -2457,11 +2457,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -2469,19 +2469,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "status", name_width, _equals,
         _formatInteger( encoding->status, SetPointerMapping::status_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2516,33 +2516,33 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += _pad(map.bytes_parsed);
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n map bytes", name_width, _equals,
             _formatInteger( encoding->n ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2574,11 +2574,11 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -2586,19 +2586,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "status", name_width, _equals,
         _formatInteger( encoding->status, SetModifierMapping::status_names ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,
@@ -2635,11 +2635,11 @@ size_t X11ProtocolParser::_logServerReply<
     bytes_parsed += keycodes.bytes_parsed;
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( 0 ) : "" };
+        settings.multiline ? _tabIndent( 0 ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( 1 ) : "" };
+        settings.multiline ? _tabIndent( 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
+        settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
     fmt::println(
         "{{{}"
         "{}"
@@ -2648,19 +2648,19 @@ size_t X11ProtocolParser::_logServerReply<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply", name_width, _equals,
             _formatInteger( encoding->reply ), _separator ),
         memb_indent, "keycodes-per-modifier", name_width, _equals,
         _formatInteger( encoding->keycodes_per_modifier ), _separator,
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "sequence number", name_width, _equals,
             _formatInteger( encoding->sequence_number ), _separator ),
-        !_verbose ? "" :
+        !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "reply length", name_width, _equals,

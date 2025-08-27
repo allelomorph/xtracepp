@@ -44,23 +44,23 @@ size_t X11ProtocolParser::_logSimpleRequest(
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -100,24 +100,24 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -151,13 +151,13 @@ size_t X11ProtocolParser::_logListFontsRequest(
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
@@ -165,19 +165,19 @@ size_t X11ProtocolParser::_logListFontsRequest(
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "max-names", name_width, _equals,
         _formatInteger( encoding->max_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -240,13 +240,13 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -256,14 +256,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "depth", name_width, _equals,
         _formatInteger( encoding->depth ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -349,24 +349,24 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -401,13 +401,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -415,14 +415,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, ChangeSaveSet::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -453,24 +453,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -532,24 +532,24 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -584,13 +584,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -598,14 +598,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "direction", name_width, _equals,
         _formatInteger( encoding->direction, CirculateWindow::direction_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -636,25 +636,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -691,13 +691,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -705,19 +705,19 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "only-if-exists", name_width, _equals,
         _formatProtocolType( encoding->only_if_exists ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -748,24 +748,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -815,14 +815,14 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
 
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -832,14 +832,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, ChangeProperty::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -852,7 +852,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _formatProtocolType( encoding->type ), _separator,
         memb_indent, "format", name_width, _equals,
         _formatInteger( encoding->format ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "format units", name_width, _equals,
@@ -883,24 +883,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -933,13 +933,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -948,14 +948,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "delete", name_width, _equals,
         _formatProtocolType( encoding->delete_ ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -994,24 +994,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1046,24 +1046,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1094,25 +1094,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1158,13 +1158,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1172,14 +1172,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "propagate", name_width, _equals,
         _formatProtocolType( encoding->propagate ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1214,13 +1214,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1229,14 +1229,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "owner-events", name_width, _equals,
         _formatProtocolType( encoding->owner_events ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1279,24 +1279,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1327,13 +1327,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1342,14 +1342,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "owner-events", name_width, _equals,
         _formatProtocolType( encoding->owner_events ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1394,13 +1394,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1408,14 +1408,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "button", name_width, _equals,
         _formatProtocolType( encoding->button, UngrabButton::button_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1448,24 +1448,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1500,13 +1500,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1514,14 +1514,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "owner-events", name_width, _equals,
         _formatProtocolType( encoding->owner_events ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1558,24 +1558,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1606,13 +1606,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1620,14 +1620,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "owner-events", name_width, _equals,
         _formatProtocolType( encoding->owner_events ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1664,13 +1664,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1678,14 +1678,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "key", name_width, _equals,
         _formatProtocolType( encoding->key, UngrabKey::key_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1718,13 +1718,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1732,14 +1732,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, AllowEvents::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1770,24 +1770,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1822,24 +1822,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1876,25 +1876,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1939,13 +1939,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1953,14 +1953,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "revert-to", name_width, _equals,
         _formatInteger( encoding->revert_to, SetInputFocus::revert_to_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -1997,13 +1997,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
@@ -2011,19 +2011,19 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "fid", name_width, _equals,
         _formatProtocolType( encoding->fid ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -2054,24 +2054,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2102,24 +2102,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2177,30 +2177,30 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}{: <{}}{}[{}]{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "odd length", name_width, _equals,
             _formatProtocolType( encoding->odd_length ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2238,29 +2238,29 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "STRs in path", name_width, _equals,
@@ -2291,13 +2291,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2305,14 +2305,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "depth", name_width, _equals,
         _formatInteger( encoding->depth ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2349,24 +2349,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2437,24 +2437,24 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2532,24 +2532,24 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2585,24 +2585,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2641,13 +2641,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -2655,12 +2655,12 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2669,7 +2669,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _formatProtocolType( encoding->gc ), _separator,
         memb_indent, "dash-offset", name_width, _equals,
         _formatInteger( encoding->dash_offset ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -2708,13 +2708,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2722,14 +2722,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "ordering", name_width, _equals,
         _formatInteger( encoding->ordering, SetClipRectangles::ordering_names  ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2766,24 +2766,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2814,13 +2814,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2829,14 +2829,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "exposures", name_width, _equals,
         _formatProtocolType( encoding->exposures ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2875,13 +2875,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -2889,12 +2889,12 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -2941,13 +2941,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -2956,12 +2956,12 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3017,13 +3017,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -3031,14 +3031,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "coordinate-mode", name_width, _equals,
         _formatInteger( encoding->coordinate_mode, PolyPoint::coordinate_mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3081,13 +3081,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -3095,14 +3095,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "coordinate-mode", name_width, _equals,
         _formatInteger( encoding->coordinate_mode, PolyLine::coordinate_mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3144,24 +3144,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3203,24 +3203,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3262,24 +3262,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3321,25 +3321,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3385,24 +3385,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3444,24 +3444,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3501,13 +3501,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -3517,14 +3517,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}({} bytes){}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "format", name_width, _equals,
         _formatInteger( encoding->format, PutImage::format_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3571,13 +3571,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -3586,7 +3586,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
@@ -3595,7 +3595,7 @@ size_t X11ProtocolParser::_logClientRequest<
         // TBD how can we avoid magic numbers here (or anywhere) for max and min enum?
         _formatInteger( encoding->format,
                         GetImage::format_names, _IndexRange{ 1, 2 } ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3642,25 +3642,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3705,25 +3705,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3766,30 +3766,30 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
             _formatInteger( encoding->n ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3843,30 +3843,30 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}[{}]{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
             _formatInteger( encoding->n ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3905,13 +3905,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -3919,14 +3919,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "alloc", name_width, _equals,
         _formatInteger( encoding->alloc, CreateColormap::alloc_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -3961,24 +3961,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4009,24 +4009,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4060,24 +4060,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4108,24 +4108,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4156,24 +4156,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4214,13 +4214,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
@@ -4228,19 +4228,19 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "cmap", name_width, _equals,
         _formatProtocolType( encoding->cmap ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -4271,13 +4271,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -4285,14 +4285,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "contiguous", name_width, _equals,
         _formatProtocolType( encoding->contiguous ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4327,13 +4327,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -4342,14 +4342,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "contiguous", name_width, _equals,
         _formatProtocolType( encoding->contiguous ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4395,25 +4395,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4455,24 +4455,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4509,13 +4509,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -4525,14 +4525,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "do rgb", name_width, _equals,
         _formatBitmask( encoding->do_rgb_mask, StoreNamedColor::do_rgb_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4541,7 +4541,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _formatProtocolType( encoding->cmap ), _separator,
         memb_indent, "pixel", name_width, _equals,
         _formatInteger( encoding->pixel ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -4579,24 +4579,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4633,13 +4633,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
@@ -4647,19 +4647,19 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "cmap", name_width, _equals,
         _formatProtocolType( encoding->cmap ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -4690,13 +4690,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -4704,12 +4704,12 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4756,13 +4756,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -4770,12 +4770,12 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4826,24 +4826,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4874,25 +4874,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4935,13 +4935,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -4949,14 +4949,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "class", name_width, _equals,
         _formatInteger( encoding->class_, QueryBestSize::class_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -4995,29 +4995,29 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "n", name_width, _equals,
@@ -5053,13 +5053,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -5067,14 +5067,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "keycode-count", name_width, _equals,
         _formatInteger( encoding->keycode_count ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5109,24 +5109,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5186,24 +5186,24 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5236,27 +5236,27 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "percent", name_width, _equals,
         _formatInteger( encoding->percent ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5285,25 +5285,25 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
+        settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5342,24 +5342,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "prefer-blanking" ) - 1 : 0 );
+        settings.multiline ? sizeof( "prefer-blanking" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5405,13 +5405,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "length of address" ) - 1 : 0 );
+        settings.multiline ? sizeof( "length of address" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -5421,14 +5421,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, ChangeHosts::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5439,7 +5439,7 @@ size_t X11ProtocolParser::_logClientRequest<
         memb_indent, "family", name_width, _equals,
         _formatInteger( encoding->family,
                         ChangeHosts::family_names, _IndexRange{ 0, 2 } ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "length of address", name_width, _equals,
@@ -5470,27 +5470,27 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, SetAccessControl::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5519,27 +5519,27 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, SetCloseDownMode::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5568,24 +5568,24 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5620,13 +5620,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "number of properties" ) - 1 : 0 );
+        settings.multiline ? sizeof( "number of properties" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
@@ -5634,19 +5634,19 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
             _formatInteger( encoding->request_length ), _separator ) : "",
         memb_indent, "window", name_width, _equals,
         _formatProtocolType( encoding->window ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "number of properties", name_width, _equals,
@@ -5679,27 +5679,27 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "mode", name_width, _equals,
         _formatInteger( encoding->mode, ForceScreenSaver::mode_names ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5732,13 +5732,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -5746,14 +5746,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "length_of_map", name_width, _equals,
         _formatInteger( encoding->length_of_map ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5791,13 +5791,13 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
+        settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -5805,14 +5805,14 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
         memb_indent, "keycodes-per-modifier", name_width, _equals,
         _formatInteger( encoding->keycodes_per_modifier ), _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5845,23 +5845,23 @@ size_t X11ProtocolParser::_logClientRequest<
 
     static const uint32_t tab_ct { 0 };
     const std::string_view struct_indent {
-        _multiline ? _tabIndent( tab_ct ) : "" };
+        settings.multiline ? _tabIndent( tab_ct ) : "" };
     const std::string_view memb_indent {
-        _multiline ? _tabIndent( tab_ct + 1 ) : "" };
+        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
-        _multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
     fmt::println(
-        _log_fs,
+        settings.log_fs,
         "{{{}"
         "{}{}"
         "{}}}",
         _separator,
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "opcode", name_width, _equals,
             _formatInteger( encoding->opcode ), _separator ) : "",
-        _verbose ?
+        settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
             memb_indent, "request length", name_width, _equals,
@@ -5884,7 +5884,7 @@ size_t X11ProtocolParser::_logClientRequest(
     conn->registerRequest( opcode );
 
     size_t bytes_parsed {};
-    fmt::print( _log_fs, "{:03d}:<:client request {:>3d}: {} ",
+    fmt::print( settings.log_fs, "{:03d}:<:client request {:>3d}: {} ",
                 conn->id, opcode, protocol::requests::names[ opcode ] );
     switch ( opcode ) {
     case protocol::requests::opcodes::CREATEWINDOW:
