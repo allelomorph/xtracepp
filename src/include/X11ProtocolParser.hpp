@@ -37,9 +37,8 @@ private:
     Settings settings;
 
     // TBD formatting
-    // TBD capitalize
-    std::string_view _separator { " " };  // "\n"  for multiline
-    std::string_view _equals    { "=" };  // " = " for multiline
+    std::string_view _SEPARATOR { " " };  // "\n"  for multiline
+    std::string_view _EQUALS    { "=" };  // " = " for multiline
 
     struct _StashedAtomID {
         uint32_t conn_id {};
@@ -278,10 +277,10 @@ private:
                                                  tab_ct + 2 ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _separator, member_indent, member.str );
+                "{}{}{}", _SEPARATOR, member_indent, member.str );
         }
         outputs.str += fmt::format( "{}{}]",
-                                    outputs.bytes_parsed == 0 ? "" : _separator,
+                                    outputs.bytes_parsed == 0 ? "" : _SEPARATOR,
                                     list_indent );
         return outputs;
     }
@@ -319,10 +318,10 @@ private:
             }
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _separator, member_indent, member.str );
+                "{}{}{}", _SEPARATOR, member_indent, member.str );
         }
         outputs.str += fmt::format( "{}{}]",
-                                    n == 0 ? "" : _separator,
+                                    n == 0 ? "" : _SEPARATOR,
                                     list_indent );
         return outputs;
     }
