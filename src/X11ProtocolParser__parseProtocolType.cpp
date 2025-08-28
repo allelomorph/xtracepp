@@ -1,3 +1,5 @@
+#include <arpa/inet.h>  // ntohl
+
 #include <cassert>
 #include <cstdint>
 
@@ -14,8 +16,6 @@
 
 
 // TBD zero bit validation should maybe happen instead at parse time
-// TBD consider passing vector pointer instead of reference to allow for null
-//   checks (use std::optional?) and have lighter weight default ctor
 
 
 template <>
@@ -24,9 +24,9 @@ X11ProtocolParser::_parseProtocolType<
     protocol::STR >(
         const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::STR ) );
 
     _ParsingOutputs outputs;
+    assert( sz >= sizeof( protocol::STR ) );
     const protocol::STR str {
         *reinterpret_cast< const protocol::STR* >( data ) };
     assert( str.n > 0 );
@@ -36,6 +36,8 @@ X11ProtocolParser::_parseProtocolType<
         str.n };
     // note that LISTofSTR will often be padded, but not single STR
     outputs.bytes_parsed += str.n;
+
+    // TBD leaving hard-coded singleline for now
     outputs.str += fmt::format(
         "{{ {}name=\"{}\" }}",
         !settings.verbose ? "" :
@@ -63,6 +65,8 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs address {
         _parseLISTofBYTE( data + outputs.bytes_parsed, host.n ) };
     outputs.bytes_parsed += _pad( host.n );
+
+    // TBD leaving hard-coded singleline for now
     outputs.str += fmt::format(
         "{{ family={}{} address={} }}",
         _formatInteger( host.family, protocol::HOST::family_names ),
@@ -154,9 +158,6 @@ X11ProtocolParser::_parseProtocolType<
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
-
     using DEPTH = protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH;
     assert( sz >= sizeof( DEPTH::Header ));
     const DEPTH::Header* header {
@@ -169,6 +170,8 @@ X11ProtocolParser::_parseProtocolType<
                                 4 /* TBD soon _Indentation */ ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
 
+    const uint32_t name_width (
+        settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
     outputs.str += fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}"
@@ -195,7 +198,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText8::TEXTITEM8 >(
-        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
@@ -203,33 +206,57 @@ X11ProtocolParser::_parseProtocolType<
     assert( sz >= sizeof( PolyText8::TEXTITEM8 ) );
     const PolyText8::TEXTITEM8 item {
         *reinterpret_cast< const PolyText8::TEXTITEM8* >( data ) };
-    const uint8_t first_byte { *data };
-    if ( first_byte == PolyText8::FONT_SHIFT ) {
+    if ( item.font.font_shift == PolyText8::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::FONT );
         // font bytes in array from MSB to LSB
-        // TBD assume little endian for now, will change when server byte order is addressed
         const protocol::FONT font {
-            __builtin_bswap32(
-                *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) ) };
+            ntohl( *reinterpret_cast< const uint32_t* >(
+                       item.font.font_bytes ) ) };
+
+        const uint32_t name_width (
+            settings.multiline ? sizeof( "font-shift" ) - 1 : 0 );
         outputs.str += fmt::format(
-            "{{ {}font={} }}",
+            "{{{}"
+            "{}"
+            "{}{: <{}}{}{}{}"
+            "{}}}",
+            _SEPARATOR,
             !settings.verbose ? "" :
-            fmt::format( "font-shift={} ",
-                         _formatInteger( item.font.font_shift ) ),
-            _formatProtocolType( font ) );
+            fmt::format(
+                "{}{: <{}}{}{}{}",
+                indents.member, "font-shift", name_width, _EQUALS,
+                _formatInteger( item.font.font_shift ), _SEPARATOR ),
+            indents.member, "font", name_width, _EQUALS,
+            _formatProtocolType( font ), _SEPARATOR,
+            indents.enclosure
+            );
     } else {
-        assert( first_byte > 0 );
+        assert( item.text_element.m > 0 );
         outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::TEXTELT8 );
         std::string_view string {
             reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
             item.text_element.m };
         outputs.bytes_parsed += item.text_element.m;
+
+        const uint32_t name_width (
+            settings.multiline ? sizeof( "string" ) - 1 : 0 );
         outputs.str += fmt::format(
-            " {{ {}delta={} string=\"{}\" }}",
+            "{{{}"
+            "{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}\"{}\"{}"
+            "{}}}",
+            _SEPARATOR,
             !settings.verbose ? "" :
-            fmt::format( "m={} ", _formatInteger( item.text_element.m ) ),
-            _formatInteger( item.text_element.delta ),
-            string );
+            fmt::format(
+                "{}{: <{}}{}{}{}",
+                indents.member, "m", name_width, _EQUALS,
+                _formatInteger( item.text_element.m ), _SEPARATOR ),
+            indents.member, "delta", name_width, _EQUALS,
+            _formatInteger( item.text_element.delta ), _SEPARATOR,
+            indents.member, "string", name_width, _EQUALS,
+            string, _SEPARATOR,
+            indents.enclosure
+            );
     }
     return outputs;
 }
@@ -239,7 +266,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText16::TEXTITEM16 >(
-        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
@@ -251,16 +278,27 @@ X11ProtocolParser::_parseProtocolType<
     if ( first_byte == PolyText16::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::FONT );
         // font bytes in array from MSB to LSB
-        // TBD assume little endian for now, will change when server byte order is addressed
         const protocol::FONT font {
-            __builtin_bswap32(
-                *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) ) };
+            htonl( *reinterpret_cast< const uint32_t* >(
+                       item.font.font_bytes ) ) };
+
+        const uint32_t name_width (
+            settings.multiline ? sizeof( "font-shift" ) - 1 : 0 );
         outputs.str += fmt::format(
-            "{{ {}font={} }}",
+            "{{{}"
+            "{}"
+            "{}{: <{}}{}{}{}"
+            "{}}}",
+            _SEPARATOR,
             !settings.verbose ? "" :
-            fmt::format( "font-shift={} ",
-                         _formatInteger( item.font.font_shift ) ),
-            _formatProtocolType( font ) );
+            fmt::format(
+                "{}{: <{}}{}{}{}",
+                indents.member, "font-shift", name_width, _EQUALS,
+                _formatInteger( item.font.font_shift ), _SEPARATOR ),
+            indents.member, "font", name_width, _EQUALS,
+            _formatProtocolType( font ), _SEPARATOR,
+            indents.enclosure
+            );
     } else {
         assert( first_byte > 0 );
         outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::TEXTELT16 );
@@ -276,12 +314,26 @@ X11ProtocolParser::_parseProtocolType<
                 char2b, _fmtHexWidth( char2b ) );
             outputs.bytes_parsed += sizeof( protocol::CHAR2B );
         }
+
+        const uint32_t name_width (
+            settings.multiline ? sizeof( "string" ) - 1 : 0 );
         outputs.str += fmt::format(
-            " {{ {}delta={} string=[{}] }}",
+            "{{{}"
+            "{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}[{}]{}"
+            "{}}}",
+            _SEPARATOR,
             !settings.verbose ? "" :
-            fmt::format( "m={} ", _formatInteger( item.text_element.m ) ),
-            _formatInteger( item.text_element.delta ),
-            hex_str );
+            fmt::format(
+                "{}{: <{}}{}{}{}",
+                indents.member, "m", name_width, _EQUALS,
+                _formatInteger( item.text_element.m ), _SEPARATOR ),
+            indents.member, "delta", name_width, _EQUALS,
+            _formatInteger( item.text_element.delta ), _SEPARATOR,
+            indents.member, "string", name_width, _EQUALS,
+            hex_str, _SEPARATOR,
+            indents.enclosure
+            );
     }
     return outputs;
 }

@@ -73,43 +73,51 @@ private:
     static std::string_view
     _tabIndent( const uint8_t tab_ct );
 
-    struct _Indentation {
+    class _Indentation {
     private:
         static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
         static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };
         static constexpr uint8_t   _NESTING_TAB_OFFSET { 1 };
 
+        bool _default_multiline {};
+        _Indentation(const uint8_t base_tab_ct_, const bool default_multiline_,
+                     const bool multiline_ ) :
+            _default_multiline( default_multiline_ ),
+            multiline( multiline_ ),
+            base_tab_ct( base_tab_ct_ ),
+            enclosure(
+                !multiline_ ? "" : _tabIndent( base_tab_ct ) ),
+            member(
+                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {}
+
         std::string_view
         _tabIndent( const uint8_t tab_ct );
 
     public:
-        enum { SINGLELINE, MULTILINE };
+        enum { SINGLELINE, MULTILINE, UNINITIALIZED };
         // TBD members cannot be const while using _Indentation(_Indentation&&),
         //   see importSettings
-        bool                 multiline { SINGLELINE };
+        bool                 multiline {};
         uint8_t              base_tab_ct {};
-        std::string_view     enclosure {
-            !multiline ? "" : _tabIndent( base_tab_ct ) };
-        std::string_view     member {
-            !multiline ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) };
+        std::string_view     enclosure {};
+        std::string_view     member {};
 
         _Indentation() = delete;
-        _Indentation(const uint8_t base_tab_ct_,
-                     const bool multiline_ = SINGLELINE ) :
+        _Indentation(const uint8_t base_tab_ct_, const bool multiline_ ) :
+            _default_multiline( multiline_ ),
             multiline( multiline_ ),
             base_tab_ct( base_tab_ct_ ),
             enclosure(
-                !multiline ? "" : _tabIndent( base_tab_ct ) ),
+                !multiline_ ? "" : _tabIndent( base_tab_ct ) ),
             member(
-                !multiline ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {
-        }
+                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {}
 
-        // TBD using default value means we can't opt out of mutliline for certain
-        //   structs when global is multiline
         inline _Indentation
-        nested( const bool multiline_ = SINGLELINE ) const {
-            return _Indentation(
-                base_tab_ct + _NESTING_TAB_OFFSET, multiline_ || multiline );
+        nested( const int multiline_ = UNINITIALIZED ) const {
+            return _Indentation (
+                base_tab_ct + _NESTING_TAB_OFFSET,
+                _default_multiline,
+                multiline_ >= UNINITIALIZED ? _default_multiline : multiline_ );
         }
     };
     // TBD can only be const if set in parser ctor after server gets settings
@@ -257,6 +265,12 @@ private:
 
     // TBD create SFINAE filter to allow _parseLISTof<> to enforce always printing certain
     //   list member types as singleline
+    // TBO OR we could just hardcode it into each template specialization of _parse|formatProtocolType
+    // template < typename ProtocolT >
+    // struct _is_protocol_type_always_formatted_singleline :
+    //     public std::integral_constant<
+    //     bool,
+    //     std::is_same_v< ProtocolT, void/*protocol::*/ > > {};
 
     // TBD for LISTs that have no length provided eg PolyText8|16
     template < typename ProtocolT,
@@ -410,23 +424,25 @@ private:
         const TupleT& types;
         const std::vector< std::string_view >& names;
         const std::vector< _VALUETraits >& traits;
-        const uint32_t tab_ct;
+        const _Indentation indents;
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
             const uint32_t value_mask_,
-            const TupleT& types_, const std::vector<std::string_view>& names_,
+            const TupleT& types_,
+            const std::vector< std::string_view >& names_,
             const std::vector< _VALUETraits >& traits_,
-            const uint32_t tab_ct_ ) :
-            value_mask( value_mask_ ),
-            types( types_ ), names( names_ ),
-            traits( traits_ ), tab_ct( tab_ct_ ) {
+            const _Indentation indents_ ) :
+            value_mask( value_mask_ ), types( types_ ), names( names_ ),
+            traits( traits_ ), indents( indents_ ) {
             assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
-            for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
-                if ( value_mask & ( 1 << i ) ) {
-                    name_width = std::max( name_width, names[i].size() );
+            if ( indents.multiline ) {
+                for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
+                    if ( value_mask & ( 1 << i ) ) {
+                        name_width = std::max( name_width, names[i].size() );
+                    }
                 }
             }
         }
@@ -456,55 +472,44 @@ private:
     // tuple iteration allows for run time taversal of heterogeneous list of types
     // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
     // TBD recommended tuple iteration pattern using recursive templating
-    template< size_t I = 0, typename... Args >
-    auto _parseLISTofVALUE(
-        const uint32_t value_mask,
+    template< size_t I = 0, typename... Args,
+              std::enable_if_t< I == sizeof...( Args ), bool > = true >
+    void _parseLISTofVALUE(
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-        const uint8_t* /*data*/, _ParsingOutputs* outputs ) ->
-        std::enable_if_t< I == sizeof...( Args ), void > {
-        if ( value_mask != 0 ) {
-            outputs->str += settings.multiline ? _tabIndent( inputs.tab_ct - 1 ) : " ";
+        const uint8_t*/* data*/, _ParsingOutputs* outputs ) {
+        if ( inputs.value_mask != 0 ) {
+            outputs->str += inputs.indents.enclosure;
         }
         outputs->str += ']';
     }
 
     // TBD recommended tuple iteration pattern using recursive templating
-    template< size_t I = 0, typename... Args >
-    auto _parseLISTofVALUE(
-        const uint32_t value_mask,
+    template< size_t I = 0, typename... Args,
+              std::enable_if_t< I < sizeof...( Args ), bool > = true >
+    void _parseLISTofVALUE(
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-        const uint8_t* data, _ParsingOutputs* outputs ) ->
-        std::enable_if_t< I < sizeof...( Args ), void > {
+        const uint8_t* data, _ParsingOutputs* outputs ) {
         if ( I == 0 ) {
             outputs->str += '[';
-            if ( value_mask != 0 ) {
-                outputs->str += settings.multiline ? '\n' : ' ';
+            if ( inputs.value_mask != 0 ) {
+                outputs->str += _SEPARATOR;
             }
+        }
+        if ( inputs.value_mask & ( 1 << I ) == 0 ) {
+            return _parseLISTofVALUE< I + 1, Args... >( inputs, data, outputs );
         }
         using ValueT = std::remove_reference_t<
             decltype( std::get< I >( inputs.types ) ) >;
-        if ( value_mask & ( 1 << I ) ) {
-            const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
-            const std::string value_str { _formatVALUE( value, inputs.traits[I] ) };
-            const std::string_view indent { _tabIndent( inputs.tab_ct ) };
-            if ( settings.multiline ) {
-                outputs->str += fmt::format( "{}{: <{}} = {}\n",
-                                             indent,
-                                             inputs.names[I],
-                                             inputs.name_width,
-                                             value_str );
-            } else {
-                outputs->str += fmt::format( "{}{}={}",
-                                             outputs->bytes_parsed == 0 ? "" : ", ",
-                                             inputs.names[I], value_str );
-            }
-            outputs->bytes_parsed += sizeof( protocol::VALUE );
-            _parseLISTofVALUE< I + 1, Args... >(
-                value_mask, inputs, data + sizeof( protocol::VALUE ), outputs );
-        } else {
-            _parseLISTofVALUE< I + 1, Args... >(
-                value_mask, inputs, data, outputs );
-        }
+        const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
+        outputs->bytes_parsed += sizeof( protocol::VALUE );
+
+        outputs->str += fmt::format(
+            "{}{: <{}}{}{}{}",
+            inputs.indents.member, inputs.names[I], inputs.name_width, _EQUALS,
+            _formatVALUE( value, inputs.traits[I] ), _SEPARATOR );
+
+        return _parseLISTofVALUE< I + 1, Args... >(
+            inputs, data + sizeof( protocol::VALUE ), outputs );
     }
 
     size_t _logClientInitiation(

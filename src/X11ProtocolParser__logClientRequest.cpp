@@ -214,12 +214,11 @@ size_t X11ProtocolParser::_logClientRequest<
         CreateWindow::value_types,
         CreateWindow::value_names,
         value_traits,
-        2 // TBD will be replaced by _Indentation
+        _BASE_INDENTS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
-        encoding->value_mask, value_list_inputs,
-        data + bytes_parsed, &value_list_outputs );
+        value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -318,12 +317,10 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeWindowAttributes::value_types,
         ChangeWindowAttributes::value_names,
         value_traits,
-        2 // TBD will be replaced by _Indentation
+        _BASE_INDENTS.nested()
     };
     _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE(
-        encoding->value_mask, value_list_inputs,
-        data + bytes_parsed, &value_list_outputs );
+    _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -486,12 +483,10 @@ size_t X11ProtocolParser::_logClientRequest<
         ConfigureWindow::value_types,
         ConfigureWindow::value_names,
         value_traits,
-        2 // TBD will be replaced by _Indentation
+        _BASE_INDENTS.nested()
     };
     _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE(
-        encoding->value_mask, value_list_inputs,
-        data + bytes_parsed, &value_list_outputs );
+    _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2226,12 +2221,10 @@ size_t X11ProtocolParser::_logClientRequest<
         CreateGC::value_types,
         CreateGC::value_names,
         value_traits,
-        2 // TBD will be replaced by _Indentation
+        _BASE_INDENTS.nested()
     };
     _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE(
-        encoding->value_mask, value_list_inputs,
-        data + bytes_parsed, &value_list_outputs );
+    _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2316,12 +2309,10 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeGC::value_types,
         ChangeGC::value_names,
         value_traits,
-        2 // TBD will be replaced by _Indentation
+        _BASE_INDENTS.nested()
     };
     _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE(
-        encoding->value_mask, value_list_inputs,
-        data + bytes_parsed, &value_list_outputs );
+    _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4750,12 +4741,10 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeKeyboardControl::value_types,
         ChangeKeyboardControl::value_names,
         value_traits,
-        2 // TBD will be replaced by _Indentation
+        _BASE_INDENTS.nested()
     };
     _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE(
-        encoding->value_mask, value_list_inputs,
-        data + bytes_parsed, &value_list_outputs );
+    _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
