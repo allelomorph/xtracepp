@@ -339,8 +339,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::POINT point,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const protocol::POINT point, const _Indentation&/* indents*/ ) {
     return fmt::format( "{{ x={} y={} }}",
                         _formatInteger( point.x ),
                         _formatInteger( point.y ) );
@@ -350,8 +349,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::RECTANGLE rectangle,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const protocol::RECTANGLE rectangle, const _Indentation&/* indents*/ ) {
     return fmt::format( "{{ x={} y={} width={} height={} }}",
                         _formatInteger( rectangle.x ),
                         _formatInteger( rectangle.y ),
@@ -363,8 +361,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::ARC arc,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const protocol::ARC arc, const _Indentation&/* indents*/ ) {
     return fmt::format(
         "{{ x={} y={} width={} height={} angle1={} angle2={} }}",
         _formatInteger( arc.x ),
@@ -402,7 +399,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::FONTPROP fontprop,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         "{{ name={} value={} }}",
         _formatProtocolType( fontprop.name ),
@@ -415,7 +412,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::connection_setup::ServerAcceptance::FORMAT format,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         "{{ depth={} bits-per-pixel={} scanline-pad={} }}",
         _formatInteger( format.depth ),
@@ -428,7 +425,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE visualtype,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         "{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}",
         "visual-id",          _formatProtocolType( visualtype.visual_id ),
@@ -447,7 +444,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::PolySegment::SEGMENT segment,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         "{{ x1={} y1={} x2={} y2={} }}",
         _formatInteger( segment.x1 ),
@@ -461,7 +458,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::StoreColors::COLORITEM coloritem,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         " {{ pixel={} red={} green={} blue={} do rgb={} }}",
         _formatInteger( coloritem.pixel ),
@@ -477,7 +474,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::GetMotionEvents::TIMECOORD timecoord,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         " {{ time={} x={} y={} }}",
         _formatProtocolType( timecoord.time ),
@@ -490,19 +487,10 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryColors::RGB rgb,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         " {{ red={} green={} blue={} }}",
         _formatInteger( rgb.red ),
         _formatInteger( rgb.green ),
         _formatInteger( rgb.blue ) );
 }
-
-
-// TBD need parsing (return _ParsingOutputs) instead of just formatting:
-// STR (only in LISTofSTR? may need custom func _parseSTR)
-// ServerAcceptance::Screen (rename to SCREEN)
-// ServerAcceptance::Screen::Depth (rename to DEPTH)
-// requests::PolyText8::TEXTITEM8 (need parsing due to TEXTITEM*.TEXTELT8 being followed by STRING8)
-// requests::PolyText16::TEXTITEM16 (need parsing due to TEXTITEM*.TEXTELT16 being followed by STRING16)
-// protocol::HOST (followed by n LISTofBYTE)

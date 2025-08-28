@@ -846,7 +846,8 @@ X11ProtocolParser::_parseLISTofFONTPROP( const uint8_t* data, const uint16_t n )
             " {}",
             _formatProtocolType(
                 *reinterpret_cast< const QueryFont::FONTPROP* >(
-                    data + outputs.bytes_parsed ) ) );
+                    data + outputs.bytes_parsed ),
+                _BASE_INDENTS.nested() /* TBD soon passed in indents */ ) );
         outputs.bytes_parsed += sizeof( QueryFont::FONTPROP );
     }
     outputs.str += n > 0 ? " ]" : "]";

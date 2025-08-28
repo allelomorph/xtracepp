@@ -76,8 +76,8 @@ private:
     struct _Indentation {
     private:
         static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
-        static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };  // in tabs
-        static constexpr uint8_t   _NESTING_TAB_OFFSET { 1 };  // in tabs
+        static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };
+        static constexpr uint8_t   _NESTING_TAB_OFFSET { 1 };
 
         std::string_view
         _tabIndent( const uint8_t tab_ct );
@@ -104,6 +104,8 @@ private:
                 !multiline ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {
         }
 
+        // TBD using default value means we can't opt out of mutliline for certain
+        //   structs when global is multiline
         inline _Indentation
         nested( const bool multiline_ = SINGLELINE ) const {
             return _Indentation(
@@ -132,15 +134,6 @@ private:
         // fmt counts "0x" as part of width when using '#'
         return ( sizeof( val ) * 2 ) + sizeof( "0x" );
     }
-
-    // template< typename T >
-    // auto _parseSimpleType( const uint8_t** data, size_t* bytes_parsed ) ->
-    //     std::enable_if_t< std::is_arithmetic_v< T >, T > {
-    //     T val { *reinterpret_cast< T* >( *data ) };
-    //     *bytes_parsed += sizeof( T );
-    //     *data += sizeof( T );
-    //     return val;
-    // }
 
     struct _IndexRange {
         static constexpr uint32_t UNINIT {
@@ -230,6 +223,11 @@ private:
         const ProtocolT value,
         const std::vector<std::string_view>& enum_names = _NO_NAMES );
 
+    template < typename ProtocolT >
+    std::string
+    _formatProtocolType(
+        const ProtocolT value, const _Indentation& indents );
+
     struct _ParsingOutputs {
         std::string str       {};
         uint32_t bytes_parsed {};
@@ -238,7 +236,7 @@ private:
     template < typename ProtocolT >
     _ParsingOutputs
     _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const uint8_t tab_ct/* = ?*/ );
+                        const _Indentation& indents );
 
     template < typename ProtocolT >
     struct _is_textitem_type :
@@ -257,31 +255,33 @@ private:
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN > ||
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH > > {};
 
-    // TBD !!! need to pass _Indentation instead of _BASE_INDENT
+    // TBD create SFINAE filter to allow _parseLISTof<> to enforce always printing certain
+    //   list member types as singleline
+
     // TBD for LISTs that have no length provided eg PolyText8|16
     template < typename ProtocolT,
                std::enable_if_t<
                    _is_textitem_type< ProtocolT >::value, bool> = true >
     _ParsingOutputs
-    _parseLISTof( const uint8_t* data, const size_t sz, const uint8_t tab_ct ) {
+    _parseLISTof( const uint8_t* data, const size_t sz,
+                  const _Indentation& indents ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT::Encoding )  );
-        assert( tab_ct >= 2 );
 
         _ParsingOutputs outputs;
         outputs.str += '[';
         while ( _pad( outputs.bytes_parsed ) < sz ) {
             const _ParsingOutputs member {
-                _parseProtocolType< ProtocolT >( data + outputs.bytes_parsed,
-                                                 sz - outputs.bytes_parsed,
-                                                 tab_ct + 2 ) };
+                _parseProtocolType< ProtocolT >(
+                    data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                    indents.nested() ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _SEPARATOR, _BASE_INDENTS.member, member.str );
+                "{}{}{}", _SEPARATOR, indents.member, member.str );
         }
         outputs.str += fmt::format( "{}{}]",
                                     outputs.bytes_parsed == 0 ? "" : _SEPARATOR,
-                                    _BASE_INDENTS.enclosure );
+                                    indents.enclosure );
         return outputs;
     }
 
@@ -290,20 +290,19 @@ private:
                std::enable_if_t<
                    !_is_textitem_type< ProtocolT >::value, bool> = true >
     _ParsingOutputs
-    _parseLISTof( const uint8_t* data, const size_t sz,
-                  const uint8_t tab_ct, const uint16_t n ) {
+    _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
+                  const _Indentation& indents ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT::Encoding )  );
-        assert( tab_ct >= 2 );
 
         _ParsingOutputs outputs;
         outputs.str += '[';
         for ( uint16_t i {}; i < n; ++i ) {
             _ParsingOutputs member;
             if ( _is_variable_length_protocol_type< ProtocolT >::value ) {
-                member = _parseProtocolType< ProtocolT >( data + outputs.bytes_parsed,
-                                                          sz - outputs.bytes_parsed,
-                                                          tab_ct + 2 );
+                member = _parseProtocolType< ProtocolT >(
+                    data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                    indents.nested() );
             } else {
                 // TBD would we ever need to pass enum/flag names?
                 // TBD _formatProtocolType always singleline for now
@@ -313,11 +312,11 @@ private:
             }
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _SEPARATOR, _BASE_INDENTS.member, member.str );
+                "{}{}{}", _SEPARATOR, indents.member, member.str );
         }
         outputs.str += fmt::format( "{}{}]",
                                     n == 0 ? "" : _SEPARATOR,
-                                    _BASE_INDENTS.enclosure );
+                                    indents.enclosure );
         return outputs;
     }
 

@@ -22,7 +22,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::STR >(
-        const uint8_t* data, const size_t sz, const uint8_t/* tab_ct*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
     assert( data != nullptr );
     assert( sz >= sizeof( protocol::STR ) );
 
@@ -49,7 +49,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::HOST >(
-        const uint8_t* data, const size_t sz, const uint8_t/* tab_ct*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
     assert( data != nullptr );
     assert( sz >= sizeof( protocol::HOST ) );
 
@@ -75,31 +75,26 @@ X11ProtocolParser::_parseProtocolType<
 
 // ==============================
 
-// ServerAcceptance::Screen (rename to SCREEN)
+// ServerAcceptance::SCREEN
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ServerAcceptance::SCREEN >(
-        const uint8_t* data, const size_t sz, const uint8_t tab_ct ) {
-    using SCREEN = protocol::connection_setup::ServerAcceptance::SCREEN;
+        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
     assert( data != nullptr );
-    assert( sz >= sizeof( SCREEN::Header ));
-    assert( tab_ct >= 2 );
 
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
 
     _ParsingOutputs outputs;
+    using SCREEN = protocol::connection_setup::ServerAcceptance::SCREEN;
+    assert( sz >= sizeof( SCREEN::Header ));
     const SCREEN::Header* header { reinterpret_cast< const SCREEN::Header* >( data ) };
     outputs.bytes_parsed += sizeof( SCREEN::Header );
 
     // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4)
     const _ParsingOutputs allowed_depths {
-        _parseLISTofDEPTH( data + outputs.bytes_parsed, header->d, tab_ct + 2 ) };
+        _parseLISTofDEPTH( data + outputs.bytes_parsed, header->d, 4 /* soon _Indentation */ ) };
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
 
     outputs.str += fmt::format(
@@ -110,40 +105,40 @@ X11ProtocolParser::_parseProtocolType<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _SEPARATOR,
-        memb_indent, "root", name_width, _EQUALS,
+        indents.member, "root", name_width, _EQUALS,
         _formatProtocolType( header->root ), _SEPARATOR,
-        memb_indent, "default-colormap", name_width, _EQUALS,
+        indents.member, "default-colormap", name_width, _EQUALS,
         _formatProtocolType( header->default_colormap ), _SEPARATOR,
-        memb_indent, "white-pixel", name_width, _EQUALS,
+        indents.member, "white-pixel", name_width, _EQUALS,
         _formatInteger( header->white_pixel ), _SEPARATOR,
-        memb_indent, "black-pixel", name_width, _EQUALS,
+        indents.member, "black-pixel", name_width, _EQUALS,
         _formatInteger( header->black_pixel ), _SEPARATOR,
-        memb_indent, "current-input-masks", name_width, _EQUALS,
+        indents.member, "current-input-masks", name_width, _EQUALS,
         _formatProtocolType( header->current_input_masks ), _SEPARATOR,
-        memb_indent, "width-in-pixels", name_width, _EQUALS,
+        indents.member, "width-in-pixels", name_width, _EQUALS,
         _formatInteger( header->width_in_pixels ), _SEPARATOR,
-        memb_indent, "height-in-pixels", name_width, _EQUALS,
+        indents.member, "height-in-pixels", name_width, _EQUALS,
         _formatInteger( header->height_in_pixels ), _SEPARATOR,
-        memb_indent, "width-in-millimeters", name_width, _EQUALS,
+        indents.member, "width-in-millimeters", name_width, _EQUALS,
         _formatInteger( header->width_in_millimeters ), _SEPARATOR,
-        memb_indent, "height-in-millimeters", name_width, _EQUALS,
+        indents.member, "height-in-millimeters", name_width, _EQUALS,
         _formatInteger( header->height_in_millimeters ), _SEPARATOR,
-        memb_indent, "min-installed-maps", name_width, _EQUALS,
+        indents.member, "min-installed-maps", name_width, _EQUALS,
         _formatInteger( header->min_installed_maps ), _SEPARATOR,
-        memb_indent, "max-installed-maps", name_width, _EQUALS,
+        indents.member, "max-installed-maps", name_width, _EQUALS,
         _formatInteger( header->max_installed_maps ), _SEPARATOR,
-        memb_indent, "root-visual", name_width, _EQUALS,
+        indents.member, "root-visual", name_width, _EQUALS,
         _formatProtocolType( header->root_visual ), _SEPARATOR,
-        memb_indent, "backing-stores", name_width, _EQUALS,
+        indents.member, "backing-stores", name_width, _EQUALS,
         _formatInteger( header->backing_stores,
                         SCREEN::backing_stores_names ), _SEPARATOR,
-        memb_indent, "save-unders", name_width, _EQUALS,
+        indents.member, "save-unders", name_width, _EQUALS,
         _formatProtocolType( header->save_unders ), _SEPARATOR,
-        memb_indent, "root-depth", name_width, _EQUALS,
+        indents.member, "root-depth", name_width, _EQUALS,
         _formatInteger( header->root_depth ), _SEPARATOR,
-        memb_indent, "allowed-depths", name_width, _EQUALS,
+        indents.member, "allowed-depths", name_width, _EQUALS,
         allowed_depths.str, _SEPARATOR,
-        struct_indent
+        indents.enclosure
         );
     return outputs;
 }
@@ -155,28 +150,23 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH >(
-        const uint8_t* data, const size_t sz, const uint8_t tab_ct ) {
-    using DEPTH = protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH;
+        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
     assert( data != nullptr );
-    assert( sz >= sizeof( DEPTH::Header ));
-    assert( tab_ct >= 2 );
 
     _ParsingOutputs outputs;
-    const std::string_view struct_indent {
-        settings.multiline ? _tabIndent( tab_ct ) : "" };
-    const std::string_view memb_indent {
-        settings.multiline ? _tabIndent( tab_ct + 1 ) : "" };
     const uint32_t name_width (
         settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
-    using namespace protocol::connection_setup;
 
+    using DEPTH = protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH;
+    assert( sz >= sizeof( DEPTH::Header ));
     const DEPTH::Header* header {
         reinterpret_cast< const DEPTH::Header* >( data ) };
     outputs.bytes_parsed += sizeof( DEPTH::Header );
 
     // followed by LISTofVISUALTYPE visuals of n * sizeof(VISUALTYPE) bytes
     const _ParsingOutputs visuals {
-        _parseLISTofVISUALTYPE( data + outputs.bytes_parsed, header->n, tab_ct + 2 ) };
+        _parseLISTofVISUALTYPE( data + outputs.bytes_parsed, header->n,
+                                4 /* TBD soon _Indentation */ ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
 
     outputs.str += fmt::format(
@@ -186,16 +176,16 @@ X11ProtocolParser::_parseProtocolType<
         "{}{: <{}}{}{}{}"
         "{}}}",
         _SEPARATOR,
-        memb_indent, "depth", name_width, _EQUALS,
+        indents.member, "depth", name_width, _EQUALS,
         _formatInteger( header->depth ), _SEPARATOR,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            memb_indent, "n", name_width, _EQUALS,
+            indents.member, "n", name_width, _EQUALS,
             _formatInteger( header->n ), _SEPARATOR ),
-        memb_indent, "visuals", name_width, _EQUALS,
+        indents.member, "visuals", name_width, _EQUALS,
         visuals.str, _SEPARATOR,
-        struct_indent
+        indents.enclosure
         );
     return outputs;
 }
@@ -205,12 +195,12 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText8::TEXTITEM8 >(
-        const uint8_t* data, const size_t sz, const uint8_t/* tab_ct*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::requests::PolyText8::TEXTITEM8 ) );
 
     _ParsingOutputs outputs;
     using protocol::requests::PolyText8;
+    assert( sz >= sizeof( PolyText8::TEXTITEM8 ) );
     const PolyText8::TEXTITEM8 item {
         *reinterpret_cast< const PolyText8::TEXTITEM8* >( data ) };
     const uint8_t first_byte { *data };
@@ -249,12 +239,12 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText16::TEXTITEM16 >(
-        const uint8_t* data, const size_t sz, const uint8_t/* tab_ct*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::requests::PolyText8::TEXTITEM8 ) );
 
     _ParsingOutputs outputs;
     using protocol::requests::PolyText16;
+    assert( sz >= sizeof( PolyText16::TEXTITEM16 ) );
     const PolyText16::TEXTITEM16 item {
         *reinterpret_cast< const PolyText16::TEXTITEM16* >( data ) };
     const uint16_t first_byte { *data };
