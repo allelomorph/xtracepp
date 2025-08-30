@@ -137,7 +137,7 @@ private:
                std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
     inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
         // fmt counts "0x" as part of width when using '#'
-        return ( sizeof( val ) * 2 ) + sizeof( "0x" );
+        return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
     }
 
     struct _IndexRange {
