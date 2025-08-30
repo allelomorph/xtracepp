@@ -261,7 +261,14 @@ X11ProtocolParser::_formatProtocolType(
 }
 
 // KEYSYM
-// TBD print as byte for now
+// TBD print as hex for now, as encoding is convoluted, see Appendix A. KEYSYM Encoding
+template <>
+std::string
+X11ProtocolParser::_formatProtocolType(
+    const protocol::KEYSYM keysym,
+    const std::vector< std::string_view >&/* enum_names*/ ) {
+    return _formatInteger( keysym.data );
+}
 
 // KEYCODE
 template <>
@@ -384,7 +391,7 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::CHARINFO charinfo,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const _Indentation&/* indents*/ ) {
     return fmt::format(
         "{{ {}={} {}={} {}={} {}={} {}={} {}={} }}",
         "left-side-bearing",  _formatInteger( charinfo.left_side_bearing ),

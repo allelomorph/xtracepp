@@ -19,19 +19,12 @@ namespace protocol {
 using INT8         = int8_t;
 using INT16        = int16_t;
 using INT32        = int32_t;
-// using LISTofINT8   = INT8*;
-// using LISTofINT16  = INT16*;
-// using LISTofINT32  = INT32*;
 
 using CARD8        = uint8_t;
 using CARD16       = uint16_t;
 using CARD32       = uint32_t;
-// using LISTofCARD8  = CARD8*;
-// using LISTofCARD16 = CARD16*;
-// using LISTofCARD32 = CARD32*;
 
 using BYTE         = uint8_t;
-// using LISTofBYTE   = BYTE*;
 // common simple types
 
 // TBD switching to structs with data member from aliases to allow for overloading and type resolution
@@ -39,7 +32,6 @@ using BYTE         = uint8_t;
 struct [[gnu::packed]] TIMESTAMP {
     CARD32 data;
 };
-// using LISTofTIMESTAMP = TIMESTAMP*;
 
 namespace impl {
 
@@ -53,7 +45,6 @@ struct [[gnu::packed]] CURSOR {
     // (top three bits guaranteed to be zero)
     inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
-// using LISTofCURSOR    = CURSOR*;
 
 struct [[gnu::packed]] COLORMAP {
     CARD32 data;
@@ -61,7 +52,6 @@ struct [[gnu::packed]] COLORMAP {
     // (top three bits guaranteed to be zero)
     inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
-// using LISTofCOLORMAP  = COLORMAP*;
 
 struct [[gnu::packed]] ATOM {
     CARD32 data;
@@ -69,7 +59,6 @@ struct [[gnu::packed]] ATOM {
     // (top three bits guaranteed to be zero)
     inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
-// using LISTofATOM      = ATOM*;
 
 struct [[gnu::packed]] VISUALID {
     CARD32 data;
@@ -77,7 +66,6 @@ struct [[gnu::packed]] VISUALID {
     // (top three bits guaranteed to be zero)
     inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
-// using LISTofVISUALID  = VISUALID*;
 
 using VALUE = CARD32;  // TBD currently only used for sizeof()
 //struct [[gnu::packed]] VALUE           = CARD32;  // (used only in LISTofVALUE)
@@ -99,9 +87,6 @@ union DRAWABLE {
     WINDOW window;
     PIXMAP pixmap;
 };
-// using LISTofWINDOW    = WINDOW*;
-// using LISTofPIXMAP    = PIXMAP*;
-// using LISTofDRAWABLE  = DRAWABLE*;
 
 struct [[gnu::packed]] FONT {
     CARD32 data;
@@ -119,9 +104,6 @@ union FONTABLE {
     FONT     font;
     GCONTEXT gcontext;
 };
-// using LISTofFONT      = FONT*;
-// using LISTofGCONTEXT  = GCONTEXT*;
-// using LISTofFONTABLE  = FONTABLE*;
 
 // "The types BITMASK and LISTofVALUE are somewhat special. Various requests
 //   contain arguments of the form:
@@ -260,7 +242,10 @@ struct [[gnu::packed]] SETofDEVICEEVENT {
 // input
 
 struct [[gnu::packed]] KEYSYM {
-    CARD32 data;  // (top three bits guaranteed to be zero)
+    CARD32 data;
+
+    // (top three bits guaranteed to be zero)
+    inline static constexpr uint32_t ZERO_BITS { impl::XID_ZERO_BITS };
 };
 struct [[gnu::packed]] KEYCODE {
     CARD8 data;
@@ -339,7 +324,6 @@ struct [[gnu::packed]] CHAR2B {
     CARD8 byte1, byte2;
 };
 /*
-// using LISTofCHAR2B = CHAR2B*;
 using STRING16     = CHAR2B;  // LISTofCHAR2B
 
 // other structs
@@ -348,20 +332,16 @@ struct [[gnu::packed]] POINT {
     INT16 x, y;
 };
 
-// using LISTofPOINT = POINT*;
-
 struct [[gnu::packed]] RECTANGLE {
     INT16  x, y;
     CARD16 width, height;
 };
-// using LISTofRECTANGLE = RECTANGLE*;
 
 struct [[gnu::packed]] ARC {
     INT16  x, y;
     CARD16 width, height;
     INT16  angle1, angle2;
 };
-// using LISTofARC = ARC*;
 
 struct [[gnu::packed]] HOST {
     CARD8      family;

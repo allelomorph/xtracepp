@@ -606,8 +606,10 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     assert( encoding->code == protocol::events::codes::KEYMAPNOTIFY );
 
     // TBD can we develop a way of printing the keyboard state instead of bytes?
-    _ParsingOutputs keys { _parseLISTofCARD8(
-            encoding->keys, sizeof( encoding->keys ) ) };
+    _ParsingOutputs keys {
+        _parseLISTof< protocol::CARD8 >(
+            encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
+            indents.nested( _Indentation::SINGLELINE ) ) };
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keys(0-7 omitted)" ) - 1 : 0 );

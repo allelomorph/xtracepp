@@ -51,7 +51,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::HOST >(
-        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
+        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
     assert( data != nullptr );
     assert( sz >= sizeof( protocol::HOST ) );
 
@@ -63,7 +63,9 @@ X11ProtocolParser::_parseProtocolType<
     assert( host.family != 3 && host.family != 4 );
     outputs.bytes_parsed += sizeof( protocol::HOST );
     const _ParsingOutputs address {
-        _parseLISTofBYTE( data + outputs.bytes_parsed, host.n ) };
+        _parseLISTof< protocol::BYTE >(
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed, host.n,
+            indents.nested( _Indentation::SINGLELINE ) ) };
     outputs.bytes_parsed += _pad( host.n );
 
     // TBD leaving hard-coded singleline for now
@@ -98,7 +100,9 @@ X11ProtocolParser::_parseProtocolType<
 
     // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4)
     const _ParsingOutputs allowed_depths {
-        _parseLISTofDEPTH( data + outputs.bytes_parsed, header->d, 4 /* soon _Indentation */ ) };
+        _parseLISTof< SCREEN::DEPTH >(
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed, header->d,
+            indents.nested() ) };
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
 
     outputs.str += fmt::format(
@@ -166,8 +170,9 @@ X11ProtocolParser::_parseProtocolType<
 
     // followed by LISTofVISUALTYPE visuals of n * sizeof(VISUALTYPE) bytes
     const _ParsingOutputs visuals {
-        _parseLISTofVISUALTYPE( data + outputs.bytes_parsed, header->n,
-                                4 /* TBD soon _Indentation */ ) };
+        _parseLISTof< DEPTH::VISUALTYPE >(
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed, header->n,
+            indents.nested() ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
 
     const uint32_t name_width (
@@ -306,6 +311,7 @@ X11ProtocolParser::_parseProtocolType<
         for ( uint8_t i {}, m { item.text_element.m }; i < m; ++i ) {
             // TBD treating CHAR2B as CARD16, but encoding may be more
             //   complicated in standard
+            // TBD write a _parseLISTof<CHAR2B>?
             const uint16_t char2b {
                 *reinterpret_cast< const uint16_t* >(
                     data + outputs.bytes_parsed ) };

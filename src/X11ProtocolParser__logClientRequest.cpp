@@ -744,7 +744,9 @@ size_t X11ProtocolParser::_logClientRequest<
     }() };
     // TBD can we modify printing based on type, or at least print as string when "STRING"?
     const _ParsingOutputs data_ {
-        _parseLISTofBYTE( data + bytes_parsed, data_sz ) };
+        _parseLISTof< protocol::BYTE >(
+            data + bytes_parsed, sz - bytes_parsed, data_sz,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad(data_.bytes_parsed);
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2042,7 +2044,9 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETFONTPATH );
 
     _ParsingOutputs path {
-        _parseLISTofSTR( data + bytes_parsed, encoding->str_ct ) };
+        _parseLISTof< protocol::STR >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->str_ct,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( path.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2411,7 +2415,9 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETDASHES );
 
     _ParsingOutputs dashes {
-        _parseLISTofCARD8( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::CARD8 >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( dashes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2473,7 +2479,9 @@ size_t X11ProtocolParser::_logClientRequest<
           sizeof( SetClipRectangles::Encoding ) ) /
         sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
-        _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
+        _parseLISTof< protocol::RECTANGLE >(
+            data + bytes_parsed, sz - bytes_parsed, n_rectangles,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2757,7 +2765,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyPoint::Encoding ) ) / sizeof( protocol::POINT ) };
     _ParsingOutputs points {
-        _parseLISTofPOINT( data + bytes_parsed, n_points ) };
+        _parseLISTof< protocol::POINT >(
+            data + bytes_parsed, sz - bytes_parsed, n_points,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2816,7 +2826,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyLine::Encoding ) ) / sizeof( protocol::POINT ) };
     _ParsingOutputs points {
-        _parseLISTofPOINT( data + bytes_parsed, n_points ) };
+        _parseLISTof< protocol::POINT >(
+            data + bytes_parsed, sz - bytes_parsed, n_points,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2874,7 +2886,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolySegment::Encoding ) ) / sizeof( PolySegment::SEGMENT ) };
     _ParsingOutputs segments {
-        _parseLISTofSEGMENT( data + bytes_parsed, n_segments ) };
+        _parseLISTof< PolySegment::SEGMENT >(
+            data + bytes_parsed, sz - bytes_parsed, n_segments,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( segments.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2928,7 +2942,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
-        _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
+        _parseLISTof< protocol::RECTANGLE >(
+            data + bytes_parsed, sz - bytes_parsed, n_rectangles,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2982,7 +2998,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyArc::Encoding ) ) / sizeof( protocol::ARC ) };
     _ParsingOutputs arcs {
-        _parseLISTofARC( data + bytes_parsed, n_arcs ) };
+        _parseLISTof< protocol::ARC >(
+            data + bytes_parsed, sz - bytes_parsed, n_arcs,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3036,7 +3054,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( FillPoly::Encoding ) ) / sizeof( protocol::POINT ) };
     _ParsingOutputs points {
-        _parseLISTofPOINT( data + bytes_parsed, n_points ) };
+        _parseLISTof< protocol::POINT >(
+            data + bytes_parsed, sz - bytes_parsed, n_points,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3095,7 +3115,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyFillRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
-        _parseLISTofRECTANGLE( data + bytes_parsed, n_rectangles ) };
+        _parseLISTof< protocol::RECTANGLE >(
+            data + bytes_parsed, sz - bytes_parsed, n_rectangles,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3149,7 +3171,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( PolyFillArc::Encoding ) ) / sizeof( protocol::ARC ) };
     _ParsingOutputs arcs {
-        _parseLISTofARC( data + bytes_parsed, n_arcs ) };
+        _parseLISTof< protocol::ARC >(
+            data + bytes_parsed, sz - bytes_parsed, n_arcs,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3332,7 +3356,9 @@ size_t X11ProtocolParser::_logClientRequest<
     const size_t text_item_list_sz {
         ( encoding->request_length * _ALIGN ) - sizeof( PolyText8::Encoding ) };
     _ParsingOutputs text_items {
-        _parseLISTofTEXTITEM8( data + bytes_parsed, text_item_list_sz ) };
+        _parseLISTof< PolyText8::TEXTITEM8 >(
+            data + bytes_parsed, text_item_list_sz,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3390,7 +3416,9 @@ size_t X11ProtocolParser::_logClientRequest<
     const size_t text_item_list_sz {
         ( encoding->request_length * _ALIGN ) - sizeof( PolyText16::Encoding ) };
     _ParsingOutputs text_items {
-        _parseLISTofTEXTITEM16( data + bytes_parsed, text_item_list_sz ) };
+        _parseLISTof< PolyText16::TEXTITEM16 >(
+            data + bytes_parsed, text_item_list_sz,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4020,7 +4048,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( FreeColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
     _ParsingOutputs pixels {
-        _parseLISTofCARD32( data + bytes_parsed, n_pixels ) };
+        _parseLISTof< protocol::CARD32 >(
+            data + bytes_parsed, sz - bytes_parsed, n_pixels,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4075,7 +4105,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( StoreColors::Encoding ) ) / sizeof( StoreColors::COLORITEM ) };
     _ParsingOutputs items {
-        _parseLISTofCOLORITEM( data + bytes_parsed, n_items ) };
+        _parseLISTof< StoreColors::COLORITEM >(
+            data + bytes_parsed, sz - bytes_parsed, n_items,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4189,7 +4221,9 @@ size_t X11ProtocolParser::_logClientRequest<
         ( ( encoding->request_length * _ALIGN ) -
           sizeof( QueryColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
     _ParsingOutputs pixels {
-        _parseLISTofCARD32( data + bytes_parsed, n_pixels ) };
+        _parseLISTof< protocol::CARD32 >(
+            data + bytes_parsed, sz - bytes_parsed, n_pixels,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4622,8 +4656,10 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEKEYBOARDMAPPING );
 
     _ParsingOutputs keysyms {
-        _parseLISTofKEYSYM( data + bytes_parsed,
-                            encoding->keycode_count * encoding->keysyms_per_keycode ) };
+        _parseLISTof< protocol::KEYSYM >(
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->keycode_count * encoding->keysyms_per_keycode,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( keysyms.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4943,7 +4979,10 @@ size_t X11ProtocolParser::_logClientRequest<
     //   to 5 family values, but in the encoding section, family is limited to
     //   Internet, DECnet, or Chaos
     _ParsingOutputs address {
-        _parseLISTofCARD8( data + bytes_parsed, encoding->length_of_address ) };
+        _parseLISTof< protocol::CARD8 >(
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->length_of_address,
+            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
     bytes_parsed += _pad( address.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -5138,7 +5177,10 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::ROTATEPROPERTIES );
 
     _ParsingOutputs properties {
-        _parseLISTofATOM( data + bytes_parsed, encoding->number_of_properties ) };
+        _parseLISTof< protocol::ATOM >(
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->number_of_properties,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( properties.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -5240,7 +5282,10 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SETPOINTERMAPPING );
 
     _ParsingOutputs map {
-        _parseLISTofCARD8( data + bytes_parsed, encoding->length_of_map ) };
+        _parseLISTof< protocol::CARD8 >(
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->length_of_map,
+            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
     bytes_parsed += _pad( map.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -5294,7 +5339,10 @@ size_t X11ProtocolParser::_logClientRequest<
     //   (or a Length error results)."
     // TBD may need constant to avoid magic value 8
     _ParsingOutputs keycodes {
-        _parseLISTofKEYCODE( data + bytes_parsed, 8 * encoding->keycodes_per_modifier ) };
+        _parseLISTof< protocol::KEYCODE >(
+            data + bytes_parsed, sz - bytes_parsed,
+            8 * encoding->keycodes_per_modifier,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( keycodes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 

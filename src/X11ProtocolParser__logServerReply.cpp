@@ -178,7 +178,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs children {
-        _parseLISTofWINDOW( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::WINDOW >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     assert( encoding->reply_length == children.bytes_parsed / _ALIGN );
     bytes_parsed += children.bytes_parsed;
 
@@ -366,7 +368,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs value {
-        _parseLISTofBYTE( data + bytes_parsed, value_sz ) };
+        _parseLISTof< protocol::BYTE >(
+            data + bytes_parsed, sz - bytes_parsed, value_sz,
+            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
     bytes_parsed += _pad( value.bytes_parsed );
 
     const uint32_t name_width (
@@ -436,7 +440,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs atoms {
-        _parseLISTofATOM( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::ATOM >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad( atoms.bytes_parsed );
 
     const uint32_t name_width (
@@ -710,7 +716,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs events {
-        _parseLISTofTIMECOORD( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< GetMotionEvents::TIMECOORD >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += events.bytes_parsed;
 
     const uint32_t name_width (
@@ -879,7 +887,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs keys {
-        _parseLISTofCARD8( encoding->keys, sizeof(encoding->keys) ) };
+        _parseLISTof< protocol::CARD8 >(
+            encoding->keys, sizeof(encoding->keys), sizeof(encoding->keys),
+            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
     // keys bytes already parsed as part of encoding
 
     const uint32_t name_width (
@@ -934,10 +944,14 @@ size_t X11ProtocolParser::_logServerReply<
               ( sizeof( QueryFont::CHARINFO ) * encoding->m ) ) / _ALIGN );
 
     const _ParsingOutputs properties {
-        _parseLISTofFONTPROP( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< QueryFont::FONTPROP >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += properties.bytes_parsed;
     const _ParsingOutputs char_infos {
-        _parseLISTofCHARINFO( data + bytes_parsed, encoding->m ) };
+        _parseLISTof< QueryFont::CHARINFO >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->m,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += char_infos.bytes_parsed;
 
     const uint32_t name_width (
@@ -970,9 +984,9 @@ size_t X11ProtocolParser::_logServerReply<
             _BASE_INDENTS.member, "reply length", name_width, _EQUALS,
             _formatInteger( encoding->reply_length ), _SEPARATOR ),
         _BASE_INDENTS.member, "min-bounds", name_width, _EQUALS,
-        _formatProtocolType( encoding->min_bounds ), _SEPARATOR,
+        _formatProtocolType( encoding->min_bounds, _BASE_INDENTS.nested() ), _SEPARATOR,
         _BASE_INDENTS.member, "max-bounds", name_width, _EQUALS,
-        _formatProtocolType( encoding->max_bounds ), _SEPARATOR,
+        _formatProtocolType( encoding->max_bounds, _BASE_INDENTS.nested() ), _SEPARATOR,
         _BASE_INDENTS.member, "min-char-or-byte2", name_width, _EQUALS,
         _formatInteger( encoding->min_char_or_byte2 ), _SEPARATOR,
         _BASE_INDENTS.member, "max-char-or-byte2", name_width, _EQUALS,
@@ -1093,7 +1107,9 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs names {
-        _parseLISTofSTR( data + bytes_parsed, encoding->name_ct ) };
+        _parseLISTof< protocol::STR >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->name_ct,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad(names.bytes_parsed);
     assert( encoding->reply_length ==
             ( sizeof(ListFonts::ReplyEncoding) +
@@ -1189,7 +1205,9 @@ size_t X11ProtocolParser::_logServerReply<
         bytes_parsed += sizeof( ListFontsWithInfo::ReplyEncoding );
 
         const _ParsingOutputs properties {
-            _parseLISTofFONTPROP( data + bytes_parsed, encoding->m ) };
+            _parseLISTof< ListFontsWithInfo::FONTPROP >(
+                data + bytes_parsed, sz - bytes_parsed, encoding->m,
+                _BASE_INDENTS.nested() ) };
         bytes_parsed += properties.bytes_parsed;
         const std::string_view name {
             reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
@@ -1234,9 +1252,9 @@ size_t X11ProtocolParser::_logServerReply<
                 _BASE_INDENTS.member, "reply length", name_width, _EQUALS,
                 _formatInteger( encoding->reply_length ), _SEPARATOR ),
             _BASE_INDENTS.member, "min-bounds", name_width, _EQUALS,
-            _formatProtocolType( encoding->min_bounds ), _SEPARATOR,
+            _formatProtocolType( encoding->min_bounds, _BASE_INDENTS.nested() ), _SEPARATOR,
             _BASE_INDENTS.member, "max-bounds", name_width, _EQUALS,
-            _formatProtocolType( encoding->max_bounds ), _SEPARATOR,
+            _formatProtocolType( encoding->max_bounds, _BASE_INDENTS.nested() ), _SEPARATOR,
             _BASE_INDENTS.member, "min-char-or-byte2", name_width, _EQUALS,
             _formatInteger( encoding->min_char_or_byte2 ), _SEPARATOR,
             _BASE_INDENTS.member, "max-char-or-byte2", name_width, _EQUALS,
@@ -1289,7 +1307,9 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs path {
-        _parseLISTofSTR( data + bytes_parsed, encoding->str_ct ) };
+        _parseLISTof< protocol::STR >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->str_ct,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad(path.bytes_parsed);
     assert( encoding->reply_length ==
             ( sizeof(GetFontPath::ReplyEncoding) +
@@ -1348,7 +1368,9 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs data_ {
-        _parseLISTofBYTE( data + bytes_parsed, encoding->reply_length * _ALIGN ) };
+        _parseLISTof< protocol::BYTE >(
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->reply_length * _ALIGN, _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad(data_.bytes_parsed);
     // TBD no assert on reply_length as in this case it is the source of the encoding
     //   suffix length (no way to know value of p but n will always be padded)
@@ -1410,7 +1432,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs cmaps {
-        _parseLISTofCOLORMAP( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::COLORMAP >(
+            data + bytes_parsed, sz- bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += cmaps.bytes_parsed;
 
     const uint32_t name_width (
@@ -1585,11 +1609,15 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs pixels {
-        _parseLISTofCARD32( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::CARD32 >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += pixels.bytes_parsed;
     // TBD format as bitmasks
     const _ParsingOutputs masks {
-        _parseLISTofCARD32( data + bytes_parsed, encoding->m ) };
+        _parseLISTof< protocol::CARD32 >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->m,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t name_width (
@@ -1654,7 +1682,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs pixels {
-        _parseLISTofCARD32( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::CARD32 >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t name_width (
@@ -1719,7 +1749,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs colors {
-        _parseLISTofRGB( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< QueryColors::RGB >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += colors.bytes_parsed;
 
     const uint32_t name_width (
@@ -1947,7 +1979,9 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs names {
-        _parseLISTofSTR( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::STR >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += _pad(names.bytes_parsed);
     assert( encoding->reply_length ==
             ( sizeof(ListExtensions::ReplyEncoding) +
@@ -2008,8 +2042,10 @@ size_t X11ProtocolParser::_logServerReply<
     // n_keycodes should equal `count` from the request
     const uint32_t n_keycodes { encoding->reply_length / encoding->keysyms_per_keycode };
     const _ParsingOutputs keysyms {
-        _parseLISTofKEYSYM( data + bytes_parsed,
-                            n_keycodes * encoding->keysyms_per_keycode ) };
+        _parseLISTof< protocol::KEYSYM >(
+            data + bytes_parsed, sz - bytes_parsed,
+            n_keycodes * encoding->keysyms_per_keycode,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += keysyms.bytes_parsed;
     assert( encoding->reply_length ==
             ( sizeof(GetKeyboardMapping::ReplyEncoding) +
@@ -2071,9 +2107,10 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs auto_repeats {
-        _parseLISTofCARD8( data + bytes_parsed,
-                           sizeof(GetKeyboardControl::ReplyEncoding::auto_repeats) /
-                           sizeof(protocol::CARD8) ) };
+        _parseLISTof< protocol::CARD8 >(
+            data + bytes_parsed, sz - bytes_parsed,
+            sizeof(GetKeyboardControl::ReplyEncoding::auto_repeats),
+            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
     // auto_repeats.bytes_parsed ignored, as auto-repeats is a fixed size array
     //   member of GetKeyboardControl::ReplyEncoding
 
@@ -2251,7 +2288,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs hosts {
-        _parseLISTofHOST( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::HOST >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += hosts.bytes_parsed;
 
     const uint32_t name_width (
@@ -2364,7 +2403,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs map {
-        _parseLISTofCARD8( data + bytes_parsed, encoding->n ) };
+        _parseLISTof< protocol::CARD8 >(
+            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
     bytes_parsed += _pad(map.bytes_parsed);
 
     const uint32_t name_width (
@@ -2475,7 +2516,9 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const _ParsingOutputs keycodes {
-        _parseLISTofKEYCODE( data + bytes_parsed, n_keycodes ) };
+        _parseLISTof< protocol::KEYCODE >(
+            data + bytes_parsed, sz - bytes_parsed, n_keycodes,
+            _BASE_INDENTS.nested() ) };
     bytes_parsed += keycodes.bytes_parsed;
 
     const uint32_t name_width (

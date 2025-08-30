@@ -69,10 +69,6 @@ private:
     std::optional<std::string_view>
     _getInternedAtom(const protocol::ATOM);
 
-    // TBD maybe move inside _Indentation
-    static std::string_view
-    _tabIndent( const uint8_t tab_ct );
-
     class _Indentation {
     private:
         static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
@@ -94,7 +90,7 @@ private:
         _tabIndent( const uint8_t tab_ct );
 
     public:
-        enum { SINGLELINE, MULTILINE, UNINITIALIZED };
+        enum { SINGLELINE, MULTILINE, UNDEFINED };
         // TBD members cannot be const while using _Indentation(_Indentation&&),
         //   see importSettings
         bool                 multiline {};
@@ -113,11 +109,12 @@ private:
                 !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {}
 
         inline _Indentation
-        nested( const int multiline_ = UNINITIALIZED ) const {
+        nested( const int multiline_ = UNDEFINED ) const {
             return _Indentation (
                 base_tab_ct + _NESTING_TAB_OFFSET,
                 _default_multiline,
-                multiline_ >= UNINITIALIZED ? _default_multiline : multiline_ );
+                // TBD can nest singleline in multiline but not reverse
+                multiline_ == SINGLELINE ? multiline_ : _default_multiline );
         }
     };
     // TBD can only be const if set in parser ctor after server gets settings
@@ -241,149 +238,205 @@ private:
         uint32_t bytes_parsed {};
     };
 
+    // TBD SFINAE here is less extensible and grows onerous, maybe use empty parent classes
+    //   in protocol::impl to select categories of protocol types
     template < typename ProtocolT >
-    _ParsingOutputs
-    _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const _Indentation& indents );
+    struct _is_protocol_integer_alias :
+        public std::is_integral< ProtocolT > {};
+    template < typename ProtocolT >
+    static constexpr bool _is_protocol_integer_alias_v =
+        _is_protocol_integer_alias< ProtocolT >::value;
 
     template < typename ProtocolT >
-    struct _is_textitem_type :
+    struct _is_textitem_protocol_type :
         public std::integral_constant<
         bool,
         std::is_same_v< ProtocolT, protocol::requests::PolyText8::TEXTITEM8 > ||
         std::is_same_v< ProtocolT, protocol::requests::PolyText16::TEXTITEM16 > > {};
+    template < typename ProtocolT >
+    static constexpr bool _is_textitem_protocol_type_v = _is_textitem_protocol_type< ProtocolT >::value;
 
     template < typename ProtocolT >
-    struct _is_variable_length_protocol_type :
+    struct _is_variable_length_struct_protocol_type :
         public std::integral_constant<
         bool,
-        _is_textitem_type< ProtocolT >::value ||
+        _is_textitem_protocol_type< ProtocolT >::value ||
         std::is_same_v< ProtocolT, protocol::STR > ||
         std::is_same_v< ProtocolT, protocol::HOST > ||
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN > ||
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH > > {};
+    template < typename ProtocolT >
+    static constexpr bool _is_variable_length_struct_protocol_type_v =
+        _is_variable_length_struct_protocol_type< ProtocolT >::value;
 
-    // TBD create SFINAE filter to allow _parseLISTof<> to enforce always printing certain
-    //   list member types as singleline
-    // TBO OR we could just hardcode it into each template specialization of _parse|formatProtocolType
-    // template < typename ProtocolT >
-    // struct _is_protocol_type_always_formatted_singleline :
-    //     public std::integral_constant<
-    //     bool,
-    //     std::is_same_v< ProtocolT, void/*protocol::*/ > > {};
+    template < typename ProtocolT >
+    struct _is_fixed_length_struct_protocol_type :
+        public std::integral_constant<
+        bool,
+        std::is_same_v< ProtocolT, protocol::CHAR2B > ||
+        std::is_same_v< ProtocolT, protocol::POINT > ||
+        std::is_same_v< ProtocolT, protocol::RECTANGLE > ||
+        std::is_same_v< ProtocolT, protocol::ARC > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::FORMAT > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE > ||
+        std::is_same_v< ProtocolT, protocol::requests::GetMotionEvents::TIMECOORD > ||
+        std::is_same_v< ProtocolT, protocol::requests::QueryFont::FONTPROP > ||
+        std::is_same_v< ProtocolT, protocol::requests::QueryFont::CHARINFO > ||
+        std::is_same_v< ProtocolT, protocol::requests::PolySegment::SEGMENT > ||
+        std::is_same_v< ProtocolT, protocol::requests::StoreColors::COLORITEM > ||
+        std::is_same_v< ProtocolT, protocol::requests::QueryColors::RGB > > {};
+    template < typename ProtocolT >
+    static constexpr bool _is_fixed_length_struct_protocol_type_v =
+        _is_fixed_length_struct_protocol_type< ProtocolT >::value;
 
-    // TBD for LISTs that have no length provided eg PolyText8|16
+    template < typename ProtocolT >
+    struct _is_integer_protocol_type :
+        public std::integral_constant<
+        bool,
+        !_is_protocol_integer_alias_v< ProtocolT > &&
+        !_is_fixed_length_struct_protocol_type_v< ProtocolT > &&
+        !_is_variable_length_struct_protocol_type_v< ProtocolT > > {};
+    template < typename ProtocolT >
+    static constexpr bool _is_integer_protocol_type_v =
+        _is_integer_protocol_type< ProtocolT >::value;
+
+    // TBD individual template specializations in source
     template < typename ProtocolT,
                std::enable_if_t<
-                   _is_textitem_type< ProtocolT >::value, bool> = true >
+                   _is_variable_length_struct_protocol_type_v< ProtocolT >, bool > = true>
+    _ParsingOutputs
+    _parseProtocolType( const uint8_t* data, const size_t sz,
+                        const _Indentation& indents );
+
+    // TBD wrapper mainly for use with _parseLISTof<>
+    template < typename ProtocolT,
+               std::enable_if_t<
+                   _is_fixed_length_struct_protocol_type_v< ProtocolT > , bool > = true>
+    _ParsingOutputs
+    _parseProtocolType( const uint8_t* data, const size_t sz,
+                        const _Indentation& indents ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT ) );
+
+        return { _formatProtocolType( *reinterpret_cast< const ProtocolT* >( data ),
+                                      indents ),
+                 sizeof( ProtocolT ) };
+    }
+
+    // TBD wrapper mainly for use with _parseLISTof<>
+    template < typename ProtocolT,
+               std::enable_if_t<
+                   _is_protocol_integer_alias_v< ProtocolT >, bool > = true >
+    _ParsingOutputs
+    _parseProtocolType(
+        const uint8_t* data, const size_t sz,
+        const std::vector< std::string_view >& enum_names = _NO_NAMES ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT ) );
+
+        return { _formatInteger( *reinterpret_cast< const ProtocolT* >( data ),
+                                 enum_names ),
+                 sizeof( ProtocolT ) };
+    }
+
+    // TBD wrapper mainly for use with _parseLISTof<>
+    // all other types, eg ATOM TIMESTAMP WINDOW
+    template < typename ProtocolT,
+               std::enable_if_t< _is_integer_protocol_type_v< ProtocolT >, bool > = true>
+    _ParsingOutputs
+    _parseProtocolType(
+        const uint8_t* data, const size_t sz,
+        const std::vector< std::string_view >& enum_names = _NO_NAMES ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT ) );
+
+        return { _formatProtocolType( *reinterpret_cast< const ProtocolT* >( data ),
+                                      enum_names ),
+                 sizeof( ProtocolT ) };
+    }
+
+    // TBD for LISTs that have no length provided eg PolyText8|16
+    template < typename MemberT,
+               std::enable_if_t< _is_textitem_protocol_type_v< MemberT >, bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz,
-                  const _Indentation& indents ) {
+                  const _Indentation& indents,
+                  const int members_multiline = _Indentation::UNDEFINED ) {
         assert( data != nullptr );
-        assert( sz >= sizeof( ProtocolT::Encoding )  );
+        // assert( sz >= sizeof( MemberT::Encoding ) ); // TBD may be empty list
 
         _ParsingOutputs outputs;
-        outputs.str += '[';
+        outputs.str += fmt::format( "[{}",
+                                    sz == 0 ? "" : _SEPARATOR );
         while ( _pad( outputs.bytes_parsed ) < sz ) {
+            const _ParsingOutputs member {
+                _parseProtocolType< MemberT >(
+                    data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                    indents.nested( members_multiline ) ) };
+            outputs.bytes_parsed += member.bytes_parsed;
+            outputs.str += fmt::format(
+                "{}{}{}", indents.member, member.str, _SEPARATOR );
+        }
+        outputs.str += fmt::format(
+            "{}]", outputs.bytes_parsed == 0 ? "" : indents.enclosure );
+        return outputs;
+    }
+
+    template < typename ProtocolT,
+               std::enable_if_t<
+                   _is_fixed_length_struct_protocol_type_v< ProtocolT > ||
+                   _is_variable_length_struct_protocol_type_v< ProtocolT >, bool > = true>
+    _ParsingOutputs
+    _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
+                  const _Indentation& indents,
+                  const int members_multiline = _Indentation::UNDEFINED ) {
+        assert( data != nullptr );
+        // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
+
+        _ParsingOutputs outputs;
+        outputs.str += fmt::format( "[{}",
+                                    n == 0 ? "" : _SEPARATOR );
+        for ( uint16_t i {}; i < n; ++i ) {
             const _ParsingOutputs member {
                 _parseProtocolType< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    indents.nested() ) };
+                    indents.nested( members_multiline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _SEPARATOR, indents.member, member.str );
+                "{}{}{}", indents.member, member.str, _SEPARATOR );
         }
-        outputs.str += fmt::format( "{}{}]",
-                                    outputs.bytes_parsed == 0 ? "" : _SEPARATOR,
-                                    indents.enclosure );
+        outputs.str += fmt::format(
+            "{}]", n == 0 ? "" : indents.enclosure );
         return outputs;
     }
 
-    // TBD most other LISTs should have length provided
     template < typename ProtocolT,
                std::enable_if_t<
-                   !_is_textitem_type< ProtocolT >::value, bool> = true >
+                   _is_integer_protocol_type_v< ProtocolT > ||
+                   _is_protocol_integer_alias_v< ProtocolT >, bool > = true>
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
-                  const _Indentation& indents ) {
+                  const _Indentation& indents,
+                  const std::vector< std::string_view >& enum_names = _NO_NAMES ) {
         assert( data != nullptr );
-        assert( sz >= sizeof( ProtocolT::Encoding )  );
+        // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
 
         _ParsingOutputs outputs;
-        outputs.str += '[';
+        outputs.str += fmt::format( "[{}",
+                                    n == 0 ? "" : _SEPARATOR );
         for ( uint16_t i {}; i < n; ++i ) {
-            _ParsingOutputs member;
-            if ( _is_variable_length_protocol_type< ProtocolT >::value ) {
-                member = _parseProtocolType< ProtocolT >(
+            const _ParsingOutputs member {
+                _parseProtocolType< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    indents.nested() );
-            } else {
-                // TBD would we ever need to pass enum/flag names?
-                // TBD _formatProtocolType always singleline for now
-                member = _formatProtocolType(
-                    *reinterpret_cast< const ProtocolT* >(
-                        data + outputs.bytes_parsed ) );
-            }
+                    enum_names ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", _SEPARATOR, indents.member, member.str );
+                "{}{}{}", indents.member, member.str, _SEPARATOR );
         }
-        outputs.str += fmt::format( "{}{}]",
-                                    n == 0 ? "" : _SEPARATOR,
-                                    indents.enclosure );
+        outputs.str += fmt::format(
+            "{}]", n == 0 ? "" : indents.enclosure );
         return outputs;
     }
-
-    // TBD can we generalize these into _parseLISTof<T>?
-    _ParsingOutputs
-    _parseLISTofSTR( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofCARD8( const uint8_t* data, const uint16_t n );
-    inline _ParsingOutputs
-    _parseLISTofBYTE( const uint8_t* data, const uint16_t n ) {
-        return _parseLISTofCARD8( data, n );
-    }
-    _ParsingOutputs
-    _parseLISTofCARD32( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofRECTANGLE( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofPOINT( const uint8_t* data, const uint16_t n );
-    // TBD should this be encapsulated elsewhere? SEGMENT is not common type, but part of PolySegment request
-    _ParsingOutputs
-    _parseLISTofSEGMENT( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofARC( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofCOLORITEM( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofKEYSYM( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofATOM( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofKEYCODE( const uint8_t* data, const uint16_t n );
-
-    _ParsingOutputs
-    _parseLISTofTEXTITEM8( const uint8_t* data, const size_t sz );
-    _ParsingOutputs
-    _parseLISTofTEXTITEM16( const uint8_t* data, const size_t sz );
-
-    _ParsingOutputs
-    _parseLISTofWINDOW( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofTIMECOORD( const uint8_t* data, const uint16_t n );
-    // TBD FONTPROP is a shared between two requests
-    _ParsingOutputs
-    _parseLISTofFONTPROP( const uint8_t* data, const uint16_t n );
-    // TBD CHARINFO is a shared between two requests
-    _ParsingOutputs
-    _parseLISTofCHARINFO( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofCOLORMAP( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofRGB( const uint8_t* data, const uint16_t n );
-    _ParsingOutputs
-    _parseLISTofHOST( const uint8_t* data, const uint16_t n );
 
     struct _VALUETraits {
         // TBD cannot have union of plain references?
@@ -515,19 +568,11 @@ private:
     size_t _logClientInitiation(
         const Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logServerRefusal(
-        Connection* conn, const uint8_t* data );
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logServerRequireFurtherAuthentication(
-        Connection* conn, const uint8_t* data );
-    _ParsingOutputs _parseLISTofFORMAT(
-        const uint8_t* data, const uint32_t format_ct, const uint32_t tab_ct );
-    _ParsingOutputs _parseLISTofSCREEN(
-        const uint8_t* data, const uint32_t screen_ct, const uint32_t tab_ct );
-    _ParsingOutputs _parseLISTofDEPTH(
-        const uint8_t* data, const uint32_t depth_ct, const uint32_t tab_ct );
-    _ParsingOutputs _parseLISTofVISUALTYPE(
-        const uint8_t* data, const uint32_t vt_ct, const uint32_t tab_ct );
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logServerAcceptance(
-        Connection* conn, const uint8_t* data );
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logServerResponse(
         Connection* conn, const uint8_t* data, const size_t sz );
 
