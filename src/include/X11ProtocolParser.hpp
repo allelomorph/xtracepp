@@ -548,7 +548,7 @@ private:
                 outputs->str += _SEPARATOR;
             }
         }
-        if ( inputs.value_mask & ( 1 << I ) == 0 ) {
+        if ( ( inputs.value_mask & ( 1 << I ) ) == 0 ) {
             return _parseLISTofVALUE< I + 1, Args... >( inputs, data, outputs );
         }
         using ValueT = std::remove_reference_t<
@@ -560,7 +560,6 @@ private:
             "{}{: <{}}{}{}{}",
             inputs.indents.member, inputs.names[I], inputs.name_width, _EQUALS,
             _formatVALUE( value, inputs.traits[I] ), _SEPARATOR );
-
         return _parseLISTofVALUE< I + 1, Args... >(
             inputs, data + sizeof( protocol::VALUE ), outputs );
     }
