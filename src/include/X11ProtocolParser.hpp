@@ -58,7 +58,7 @@ private:
     std::unordered_map<_StashedAtomID, std::string_view, _StashedAtomIDHash>
     _stashed_atoms;
     // TBD once InternAtom replies with server ATOM, properly map to ATOM
-    std::unordered_map<uint32_t, std::string_view> _interned_atoms;
+    std::unordered_map<uint32_t, std::string> _interned_atoms;
 
     // only atom string known at InternAtom request parsing
     void
