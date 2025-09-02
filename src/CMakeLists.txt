@@ -10,6 +10,8 @@ add_executable(xtracepp
   Settings.cpp
   SocketBuffer.cpp
   X11ProtocolParser.cpp
+  X11ProtocolParser__logClientInitiation.cpp
+  X11ProtocolParser__logServerResponse.cpp
   X11ProtocolParser__logClientRequest.cpp
   X11ProtocolParser__logServerError.cpp
   X11ProtocolParser__logServerEvent.cpp
