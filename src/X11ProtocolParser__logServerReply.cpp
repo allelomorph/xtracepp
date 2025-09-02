@@ -352,17 +352,8 @@ size_t X11ProtocolParser::_logServerReply<
         reinterpret_cast< const GetProperty::ReplyEncoding* >( data ) };
     bytes_parsed += sizeof( GetProperty::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    const uint32_t value_sz { [&encoding](){
-        uint32_t bytes { encoding->fmt_unit_ct };
-        switch ( encoding->format ) {
-        case 0:  bytes *= 0; break;
-        case 8:  bytes *= 1; break;
-        case 16: bytes *= 2; break;
-        case 32: bytes *= 4; break;
-        default: break;
-        }
-        return bytes;
-    }() };
+    assert( encoding->format <= 32 && encoding->format % 8 == 0 );
+    const uint32_t value_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
     assert( encoding->reply_length ==
             ( sizeof(GetProperty::ReplyEncoding) + _pad( value_sz ) -
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );

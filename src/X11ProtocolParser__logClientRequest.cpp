@@ -727,21 +727,8 @@ size_t X11ProtocolParser::_logClientRequest<
         reinterpret_cast< const ChangeProperty::Encoding* >( data ) };
     bytes_parsed += sizeof( ChangeProperty::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEPROPERTY );
-    assert( encoding->format == 8 || encoding->format == 16 ||
-        encoding->format == 32 );
-    // TBD more readable as a switch, more compact as:
-    // const uint32_t data_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
-    const uint32_t data_sz { [&encoding](){
-        uint32_t bytes { encoding->fmt_unit_ct };
-        switch ( encoding->format ) {
-        case 0:  bytes *= 0; break;
-        case 8:  bytes *= 1; break;
-        case 16: bytes *= 2; break;
-        case 32: bytes *= 4; break;
-        default: break;
-        }
-        return bytes;
-    }() };
+    assert( encoding->format <= 32 && encoding->format % 8 == 0 );
+    const uint32_t data_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
     // TBD can we modify printing based on type, or at least print as string when "STRING"?
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
