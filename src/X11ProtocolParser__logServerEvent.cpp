@@ -13,7 +13,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -37,40 +37,40 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "detail", name_width, _EQUALS,
-        _formatProtocolType( encoding->detail ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatProtocolType( encoding->detail ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, KeyPress::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
-        indents.member, "same-screen", name_width, _EQUALS,
-        _formatProtocolType( encoding->same_screen ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, KeyPress::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->same_screen ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -81,7 +81,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -105,40 +105,40 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "detail", name_width, _EQUALS,
-        _formatProtocolType( encoding->detail ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatProtocolType( encoding->detail ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, KeyRelease::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
-        indents.member, "same-screen", name_width, _EQUALS,
-        _formatProtocolType( encoding->same_screen ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, KeyRelease::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->same_screen ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -148,7 +148,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -172,40 +172,40 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "detail", name_width, _EQUALS,
-        _formatProtocolType( encoding->detail ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatProtocolType( encoding->detail ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, ButtonPress::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
-        indents.member, "same-screen", name_width, _EQUALS,
-        _formatProtocolType( encoding->same_screen ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, ButtonPress::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->same_screen ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -216,7 +216,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -240,40 +240,40 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "detail", name_width, _EQUALS,
-        _formatProtocolType( encoding->detail ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatProtocolType( encoding->detail ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, ButtonRelease::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
-        indents.member, "same-screen", name_width, _EQUALS,
-        _formatProtocolType( encoding->same_screen ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, ButtonRelease::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->same_screen ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -283,7 +283,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -307,40 +307,40 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "detail", name_width, _EQUALS,
-        _formatInteger( encoding->detail, MotionNotify::detail_names ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatInteger( encoding->detail, MotionNotify::detail_names ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, MotionNotify::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
-        indents.member, "same-screen", name_width, _EQUALS,
-        _formatProtocolType( encoding->same_screen ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, MotionNotify::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->same_screen ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -349,7 +349,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -373,46 +373,46 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         // TBD how to indicate max enum without magic number
-        indents.member, "detail", name_width, _EQUALS,
+        ws.memb_indent, "detail", name_width, ws.equals,
         _formatInteger( encoding->detail,
-                        EnterNotify::detail_names, _IndexRange{ 0, 4 } ), _SEPARATOR,
+                        EnterNotify::detail_names, _IndexRange{ 0, 4 } ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, EnterNotify::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, EnterNotify::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
         // TBD how to indicate max enum without magic number
-        indents.member, "mode", name_width, _EQUALS,
+        ws.memb_indent, "mode", name_width, ws.equals,
         _formatInteger( encoding->mode,
-                        EnterNotify::mode_names, _IndexRange{ 0, 2 } ), _SEPARATOR,
-        indents.member, "same-screen/focus", name_width, _EQUALS,
-        _formatBitmask( encoding->focus_same_screen, EnterNotify::focus_same_screen_names ), _SEPARATOR,
-        indents.enclosure
+                        EnterNotify::mode_names, _IndexRange{ 0, 2 } ), ws.separator,
+        ws.memb_indent, "same-screen/focus", name_width, ws.equals,
+        _formatBitmask( encoding->focus_same_screen, EnterNotify::focus_same_screen_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -422,7 +422,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -446,46 +446,46 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         // TBD how to indicate max enum without magic number
-        indents.member, "detail", name_width, _EQUALS,
+        ws.memb_indent, "detail", name_width, ws.equals,
         _formatInteger( encoding->detail,
-                        LeaveNotify::detail_names, _IndexRange{ 0, 4 } ), _SEPARATOR,
+                        LeaveNotify::detail_names, _IndexRange{ 0, 4 } ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( encoding->root ), _SEPARATOR,
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "child", name_width, _EQUALS,
-        _formatProtocolType( encoding->child, LeaveNotify::child_names ), _SEPARATOR,
-        indents.member, "root-x", name_width, _EQUALS,
-        _formatInteger( encoding->root_x ), _SEPARATOR,
-        indents.member, "root-y", name_width, _EQUALS,
-        _formatInteger( encoding->root_y ), _SEPARATOR,
-        indents.member, "event-x", name_width, _EQUALS,
-        _formatInteger( encoding->event_x ), _SEPARATOR,
-        indents.member, "event-y", name_width, _EQUALS,
-        _formatInteger( encoding->event_y ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatProtocolType( encoding->state ), _SEPARATOR,
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child, LeaveNotify::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "event-x", name_width, ws.equals,
+        _formatInteger( encoding->event_x ), ws.separator,
+        ws.memb_indent, "event-y", name_width, ws.equals,
+        _formatInteger( encoding->event_y ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatProtocolType( encoding->state ), ws.separator,
         // TBD how to indicate max enum without magic number
-        indents.member, "mode", name_width, _EQUALS,
+        ws.memb_indent, "mode", name_width, ws.equals,
         _formatInteger( encoding->mode,
-                        LeaveNotify::mode_names, _IndexRange{ 0, 2 } ), _SEPARATOR,
-        indents.member, "same-screen/focus", name_width, _EQUALS,
-        _formatBitmask( encoding->focus_same_screen, LeaveNotify::focus_same_screen_names ), _SEPARATOR,
-        indents.enclosure
+                        LeaveNotify::mode_names, _IndexRange{ 0, 2 } ), ws.separator,
+        ws.memb_indent, "same-screen/focus", name_width, ws.equals,
+        _formatBitmask( encoding->focus_same_screen, LeaveNotify::focus_same_screen_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -494,7 +494,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -516,25 +516,25 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         // TBD how to indicate max enum without magic number
-        indents.member, "detail", name_width, _EQUALS,
-        _formatInteger( encoding->detail, FocusIn::detail_names ), _SEPARATOR,
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatInteger( encoding->detail, FocusIn::detail_names ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, FocusIn::mode_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( encoding->mode, FocusIn::mode_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -544,7 +544,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -566,25 +566,25 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         // TBD how to indicate max enum without magic number
-        indents.member, "detail", name_width, _EQUALS,
-        _formatInteger( encoding->detail, FocusOut::detail_names ), _SEPARATOR,
+        ws.memb_indent, "detail", name_width, ws.equals,
+        _formatInteger( encoding->detail, FocusOut::detail_names ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, FocusOut::mode_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( encoding->mode, FocusOut::mode_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -593,7 +593,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -609,7 +609,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
-            indents.nested( _Indentation::SINGLELINE ) ) };
+            ws.nested( _Whitespace::SINGLELINE ) ) };
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keys(0-7 omitted)" ) - 1 : 0 );
@@ -619,16 +619,16 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
         "{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         // TBD can we make a way to log the keyboard state from this map?
-        indents.member, "keys(0-7 omitted)", name_width, _EQUALS,
-        keys.str, _SEPARATOR,
-        indents.enclosure
+        ws.memb_indent, "keys(0-7 omitted)", name_width, ws.equals,
+        keys.str, ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -637,7 +637,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -658,30 +658,30 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        indents.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        indents.member, "count", name_width, _EQUALS,
-        _formatInteger( encoding->count ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "count", name_width, ws.equals,
+        _formatInteger( encoding->count ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -690,7 +690,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -712,35 +712,35 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        indents.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        indents.member, "minor-opcode", name_width, _EQUALS,
-        _formatInteger( encoding->minor_opcode ), _SEPARATOR,
-        indents.member, "count", name_width, _EQUALS,
-        _formatInteger( encoding->count ), _SEPARATOR,
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "minor-opcode", name_width, ws.equals,
+        _formatInteger( encoding->minor_opcode ), ws.separator,
+        ws.memb_indent, "count", name_width, ws.equals,
+        _formatInteger( encoding->count ), ws.separator,
         // TBD breakout reuqest printing by opcode "RequestName(opcode)" in separate func
-        indents.member, "major-opcode", name_width, _EQUALS,
-        _formatInteger( encoding->major_opcode ), _SEPARATOR,
-        indents.enclosure
+        ws.memb_indent, "major-opcode", name_width, ws.equals,
+        _formatInteger( encoding->major_opcode ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -749,7 +749,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -769,25 +769,25 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        indents.member, "minor-opcode", name_width, _EQUALS,
-        _formatInteger( encoding->minor_opcode ), _SEPARATOR,
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "minor-opcode", name_width, ws.equals,
+        _formatInteger( encoding->minor_opcode ), ws.separator,
         // TBD breakout reuqest printing by opcode "RequestName(opcode)" in separate func
-        indents.member, "major-opcode", name_width, _EQUALS,
-        _formatInteger( encoding->major_opcode ), _SEPARATOR,
-        indents.enclosure
+        ws.memb_indent, "major-opcode", name_width, ws.equals,
+        _formatInteger( encoding->major_opcode ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -796,7 +796,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -816,22 +816,22 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatInteger( encoding->state, VisibilityNotify::state_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatInteger( encoding->state, VisibilityNotify::state_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -840,7 +840,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -861,34 +861,34 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->parent ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        indents.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        indents.member, "border-width", name_width, _EQUALS,
-        _formatInteger( encoding->border_width ), _SEPARATOR,
-        indents.member, "override-redirect", name_width, _EQUALS,
-        _formatProtocolType( encoding->override_redirect ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "border-width", name_width, ws.equals,
+        _formatInteger( encoding->border_width ), ws.separator,
+        ws.memb_indent, "override-redirect", name_width, ws.equals,
+        _formatProtocolType( encoding->override_redirect ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -897,7 +897,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -917,22 +917,22 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -941,7 +941,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -961,24 +961,24 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "from-configure", name_width, _EQUALS,
-        _formatProtocolType( encoding->from_configure ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "from-configure", name_width, ws.equals,
+        _formatProtocolType( encoding->from_configure ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -987,7 +987,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1007,24 +1007,24 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "override-redirect", name_width, _EQUALS,
-        _formatProtocolType( encoding->override_redirect ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "override-redirect", name_width, ws.equals,
+        _formatProtocolType( encoding->override_redirect ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1033,7 +1033,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1053,22 +1053,22 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->parent ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1077,7 +1077,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1098,30 +1098,30 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->parent ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.member, "override-redirect", name_width, _EQUALS,
-        _formatProtocolType( encoding->override_redirect ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "override-redirect", name_width, ws.equals,
+        _formatProtocolType( encoding->override_redirect ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1130,7 +1130,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1152,36 +1152,36 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "above-sibling", name_width, _EQUALS,
-        _formatProtocolType( encoding->above_sibling, ConfigureNotify::above_sibling_names ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        indents.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        indents.member, "border-width", name_width, _EQUALS,
-        _formatInteger( encoding->border_width ), _SEPARATOR,
-        indents.member, "override-redirect", name_width, _EQUALS,
-        _formatProtocolType( encoding->override_redirect ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "above-sibling", name_width, ws.equals,
+        _formatProtocolType( encoding->above_sibling, ConfigureNotify::above_sibling_names ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "border-width", name_width, ws.equals,
+        _formatInteger( encoding->border_width ), ws.separator,
+        ws.memb_indent, "override-redirect", name_width, ws.equals,
+        _formatProtocolType( encoding->override_redirect ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1190,7 +1190,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1214,38 +1214,38 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "stack-mode", name_width, _EQUALS,
-        _formatInteger( encoding->stack_mode, ConfigureRequest::stack_mode_names ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "stack-mode", name_width, ws.equals,
+        _formatInteger( encoding->stack_mode, ConfigureRequest::stack_mode_names ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->parent ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "sibling", name_width, _EQUALS,
-        _formatProtocolType( encoding->sibling, ConfigureRequest::sibling_names ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        indents.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        indents.member, "border-width", name_width, _EQUALS,
-        _formatInteger( encoding->border_width ), _SEPARATOR,
-        indents.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask, ConfigureRequest::value_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "sibling", name_width, ws.equals,
+        _formatProtocolType( encoding->sibling, ConfigureRequest::sibling_names ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "border-width", name_width, ws.equals,
+        _formatInteger( encoding->border_width ), ws.separator,
+        ws.memb_indent, "value-mask", name_width, ws.equals,
+        _formatBitmask( encoding->value_mask, ConfigureRequest::value_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1254,7 +1254,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1274,26 +1274,26 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        indents.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1302,7 +1302,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1322,24 +1322,24 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        indents.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1348,7 +1348,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1368,24 +1368,24 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "event", name_width, _EQUALS,
-        _formatProtocolType( encoding->event ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "place", name_width, _EQUALS,
-        _formatInteger( encoding->place, CirculateNotify::place_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "event", name_width, ws.equals,
+        _formatProtocolType( encoding->event ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "place", name_width, ws.equals,
+        _formatInteger( encoding->place, CirculateNotify::place_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1394,7 +1394,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1414,24 +1414,24 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->parent ), _SEPARATOR,
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "place", name_width, _EQUALS,
-        _formatInteger( encoding->place, CirculateRequest::place_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "place", name_width, ws.equals,
+        _formatInteger( encoding->place, CirculateRequest::place_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1440,7 +1440,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1460,26 +1460,26 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "atom", name_width, _EQUALS,
-        _formatProtocolType( encoding->atom ), _SEPARATOR,
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatInteger( encoding->state, PropertyNotify::state_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "atom", name_width, ws.equals,
+        _formatProtocolType( encoding->atom ), ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatInteger( encoding->state, PropertyNotify::state_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1488,7 +1488,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1508,24 +1508,24 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time ), _SEPARATOR,
-        indents.member, "owner", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner ), _SEPARATOR,
-        indents.member, "selection", name_width, _EQUALS,
-        _formatProtocolType( encoding->selection ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time ), ws.separator,
+        ws.memb_indent, "owner", name_width, ws.equals,
+        _formatProtocolType( encoding->owner ), ws.separator,
+        ws.memb_indent, "selection", name_width, ws.equals,
+        _formatProtocolType( encoding->selection ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1534,7 +1534,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1555,30 +1555,30 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, SelectionRequest::time_names ), _SEPARATOR,
-        indents.member, "owner", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner ), _SEPARATOR,
-        indents.member, "requestor", name_width, _EQUALS,
-        _formatProtocolType( encoding->requestor ), _SEPARATOR,
-        indents.member, "selection", name_width, _EQUALS,
-        _formatProtocolType( encoding->selection ), _SEPARATOR,
-        indents.member, "target", name_width, _EQUALS,
-        _formatProtocolType( encoding->target ), _SEPARATOR,
-        indents.member, "property", name_width, _EQUALS,
-        _formatProtocolType( encoding->property, SelectionRequest::property_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time, SelectionRequest::time_names ), ws.separator,
+        ws.memb_indent, "owner", name_width, ws.equals,
+        _formatProtocolType( encoding->owner ), ws.separator,
+        ws.memb_indent, "requestor", name_width, ws.equals,
+        _formatProtocolType( encoding->requestor ), ws.separator,
+        ws.memb_indent, "selection", name_width, ws.equals,
+        _formatProtocolType( encoding->selection ), ws.separator,
+        ws.memb_indent, "target", name_width, ws.equals,
+        _formatProtocolType( encoding->target ), ws.separator,
+        ws.memb_indent, "property", name_width, ws.equals,
+        _formatProtocolType( encoding->property, SelectionRequest::property_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1587,7 +1587,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1608,28 +1608,28 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, SelectionNotify::time_names ), _SEPARATOR,
-        indents.member, "requestor", name_width, _EQUALS,
-        _formatProtocolType( encoding->requestor ), _SEPARATOR,
-        indents.member, "selection", name_width, _EQUALS,
-        _formatProtocolType( encoding->selection ), _SEPARATOR,
-        indents.member, "target", name_width, _EQUALS,
-        _formatProtocolType( encoding->target ), _SEPARATOR,
-        indents.member, "property", name_width, _EQUALS,
-        _formatProtocolType( encoding->property, SelectionNotify::property_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time, SelectionNotify::time_names ), ws.separator,
+        ws.memb_indent, "requestor", name_width, ws.equals,
+        _formatProtocolType( encoding->requestor ), ws.separator,
+        ws.memb_indent, "selection", name_width, ws.equals,
+        _formatProtocolType( encoding->selection ), ws.separator,
+        ws.memb_indent, "target", name_width, ws.equals,
+        _formatProtocolType( encoding->target ), ws.separator,
+        ws.memb_indent, "property", name_width, ws.equals,
+        _formatProtocolType( encoding->property, SelectionNotify::property_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1638,7 +1638,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1658,26 +1658,26 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "colormap", name_width, _EQUALS,
-        _formatProtocolType( encoding->colormap, ColormapNotify::colormap_names ), _SEPARATOR,
-        indents.member, "new", name_width, _EQUALS,
-        _formatProtocolType( encoding->new_ ), _SEPARATOR,
-        indents.member, "state", name_width, _EQUALS,
-        _formatInteger( encoding->state, ColormapNotify::state_names ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "colormap", name_width, ws.equals,
+        _formatProtocolType( encoding->colormap, ColormapNotify::colormap_names ), ws.separator,
+        ws.memb_indent, "new", name_width, ws.equals,
+        _formatProtocolType( encoding->new_ ), ws.separator,
+        ws.memb_indent, "state", name_width, ws.equals,
+        _formatInteger( encoding->state, ColormapNotify::state_names ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1686,7 +1686,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1708,24 +1708,24 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
-        indents.member, "format", name_width, _EQUALS,
-        _formatInteger( encoding->format ), _SEPARATOR,
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
+        ws.memb_indent, "format", name_width, ws.equals,
+        _formatInteger( encoding->format ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        indents.member, "type", name_width, _EQUALS,
-        _formatProtocolType( encoding->type ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "type", name_width, ws.equals,
+        _formatProtocolType( encoding->type ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1734,7 +1734,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const X11ProtocolParser::_Indentation& indents ) {
+    const X11ProtocolParser::_Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
 
@@ -1754,24 +1754,24 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         protocol::events::names[encoding->code], encoding->code,
-        _SEPARATOR,
+        ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            ws.memb_indent, "code", name_width, ws.equals,
+            _formatInteger( encoding->code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
-        indents.member, "request", name_width, _EQUALS,
-        _formatInteger( encoding->request, MappingNotify::request_names ), _SEPARATOR,
-        indents.member, "first-keycode", name_width, _EQUALS,
-        _formatProtocolType( encoding->first_keycode ), _SEPARATOR,
-        indents.member, "count", name_width, _EQUALS,
-        _formatInteger( encoding->count ), _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "sequence number", name_width, ws.equals,
+            _formatInteger( encoding->sequence_number ), ws.separator ),
+        ws.memb_indent, "request", name_width, ws.equals,
+        _formatInteger( encoding->request, MappingNotify::request_names ), ws.separator,
+        ws.memb_indent, "first-keycode", name_width, ws.equals,
+        _formatProtocolType( encoding->first_keycode ), ws.separator,
+        ws.memb_indent, "count", name_width, ws.equals,
+        _formatInteger( encoding->count ), ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -1779,7 +1779,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent(
     Connection* conn, const uint8_t* data, const size_t sz,
-    const _Indentation& indents ) {
+    const _Whitespace& ws ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= protocol::events::ENCODING_SZ ); // TBD
@@ -1791,135 +1791,135 @@ X11ProtocolParser::_parseEvent(
     switch ( code ) {
     case protocol::events::codes::KEYPRESS:          //  2
         event = _parseEvent< protocol::events::KeyPress >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::KEYRELEASE:        //  3
         event = _parseEvent< protocol::events::KeyRelease >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::BUTTONPRESS:       //  4
         event = _parseEvent< protocol::events::ButtonPress >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::BUTTONRELEASE:     //  5
         event = _parseEvent< protocol::events::ButtonRelease >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::MOTIONNOTIFY:      //  6
         event = _parseEvent< protocol::events::MotionNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::ENTERNOTIFY:       //  7
         event = _parseEvent< protocol::events::EnterNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::LEAVENOTIFY:       //  8
         event = _parseEvent< protocol::events::LeaveNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::FOCUSIN:           //  9
         event = _parseEvent< protocol::events::FocusIn >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::FOCUSOUT:          // 10
         event = _parseEvent< protocol::events::FocusOut >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::KEYMAPNOTIFY:      // 11
         event = _parseEvent< protocol::events::KeymapNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::EXPOSE:            // 12
         event = _parseEvent< protocol::events::Expose >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::GRAPHICSEXPOSURE:  // 13
         event = _parseEvent< protocol::events::GraphicsExposure >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::NOEXPOSURE:        // 14
         event = _parseEvent< protocol::events::NoExposure >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::VISIBILITYNOTIFY:  // 15
         event = _parseEvent< protocol::events::VisibilityNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::CREATENOTIFY:      // 16
         event = _parseEvent< protocol::events::CreateNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::DESTROYNOTIFY:     // 17
         event = _parseEvent< protocol::events::DestroyNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::UNMAPNOTIFY:       // 18
         event = _parseEvent< protocol::events::UnmapNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::MAPNOTIFY:         // 19
         event = _parseEvent< protocol::events::MapNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::MAPREQUEST:        // 20
         event = _parseEvent< protocol::events::MapRequest >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::REPARENTNOTIFY:    // 21
         event = _parseEvent< protocol::events::ReparentNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::CONFIGURENOTIFY:   // 22
         event = _parseEvent< protocol::events::ConfigureNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::CONFIGUREREQUEST:  // 23
         event = _parseEvent< protocol::events::ConfigureRequest >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::GRAVITYNOTIFY:     // 24
         event = _parseEvent< protocol::events::GravityNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::RESIZEREQUEST:     // 25
         event = _parseEvent< protocol::events::ResizeRequest >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::CIRCULATENOTIFY:   // 26
         event = _parseEvent< protocol::events::CirculateNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::CIRCULATEREQUEST:  // 27
         event = _parseEvent< protocol::events::CirculateRequest >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::PROPERTYNOTIFY:    // 28
         event = _parseEvent< protocol::events::PropertyNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::SELECTIONCLEAR:    // 29
         event = _parseEvent< protocol::events::SelectionClear >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::SELECTIONREQUEST:  // 30
         event = _parseEvent< protocol::events::SelectionRequest >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::SELECTIONNOTIFY:   // 31
         event = _parseEvent< protocol::events::SelectionNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::COLORMAPNOTIFY:    // 32
         event = _parseEvent< protocol::events::ColormapNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::CLIENTMESSAGE:     // 33
         event = _parseEvent< protocol::events::ClientMessage >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     case protocol::events::codes::MAPPINGNOTIFY:     // 34
         event = _parseEvent< protocol::events::MappingNotify >(
-            conn, data, sz, indents );
+            conn, data, sz, ws );
         break;
     default:
         break;
@@ -1937,7 +1937,7 @@ size_t X11ProtocolParser::_logServerEvent(
     assert( sz >= protocol::events::ENCODING_SZ ); // TBD
 
     _ParsingOutputs event {
-        _parseEvent( conn, data, sz, _BASE_INDENTS ) };
+        _parseEvent( conn, data, sz, _ROOT_WS ) };
     fmt::println( settings.log_fs, "{:03d}:<:server event {}",
                   conn->id, event.str );
     assert( event.bytes_parsed == protocol::events::ENCODING_SZ );

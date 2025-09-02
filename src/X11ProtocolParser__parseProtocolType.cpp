@@ -22,7 +22,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::STR >(
-        const uint8_t* data, const size_t sz, const _Indentation&/* indents*/ ) {
+        const uint8_t* data, const size_t sz, const _Whitespace&/* ws*/ ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
@@ -51,7 +51,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::HOST >(
-        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
+        const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
     assert( sz >= sizeof( protocol::HOST ) );
 
@@ -65,7 +65,7 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs address {
         _parseLISTof< protocol::BYTE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed, host.n,
-            indents.nested( _Indentation::SINGLELINE ) ) };
+            ws.nested( _Whitespace::SINGLELINE ) ) };
     outputs.bytes_parsed += _pad( host.n );
 
     // TBD leaving hard-coded singleline for now
@@ -86,7 +86,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ServerAcceptance::SCREEN >(
-        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
+        const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
 
     const uint32_t name_width (
@@ -102,7 +102,7 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs allowed_depths {
         _parseLISTof< SCREEN::DEPTH >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed, header->d,
-            indents.nested() ) };
+            ws.nested() ) };
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
 
     outputs.str += fmt::format(
@@ -112,41 +112,41 @@ X11ProtocolParser::_parseProtocolType<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
-        indents.member, "root", name_width, _EQUALS,
-        _formatProtocolType( header->root ), _SEPARATOR,
-        indents.member, "default-colormap", name_width, _EQUALS,
-        _formatProtocolType( header->default_colormap ), _SEPARATOR,
-        indents.member, "white-pixel", name_width, _EQUALS,
-        _formatInteger( header->white_pixel ), _SEPARATOR,
-        indents.member, "black-pixel", name_width, _EQUALS,
-        _formatInteger( header->black_pixel ), _SEPARATOR,
-        indents.member, "current-input-masks", name_width, _EQUALS,
-        _formatProtocolType( header->current_input_masks ), _SEPARATOR,
-        indents.member, "width-in-pixels", name_width, _EQUALS,
-        _formatInteger( header->width_in_pixels ), _SEPARATOR,
-        indents.member, "height-in-pixels", name_width, _EQUALS,
-        _formatInteger( header->height_in_pixels ), _SEPARATOR,
-        indents.member, "width-in-millimeters", name_width, _EQUALS,
-        _formatInteger( header->width_in_millimeters ), _SEPARATOR,
-        indents.member, "height-in-millimeters", name_width, _EQUALS,
-        _formatInteger( header->height_in_millimeters ), _SEPARATOR,
-        indents.member, "min-installed-maps", name_width, _EQUALS,
-        _formatInteger( header->min_installed_maps ), _SEPARATOR,
-        indents.member, "max-installed-maps", name_width, _EQUALS,
-        _formatInteger( header->max_installed_maps ), _SEPARATOR,
-        indents.member, "root-visual", name_width, _EQUALS,
-        _formatProtocolType( header->root_visual ), _SEPARATOR,
-        indents.member, "backing-stores", name_width, _EQUALS,
+        ws.separator,
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( header->root ), ws.separator,
+        ws.memb_indent, "default-colormap", name_width, ws.equals,
+        _formatProtocolType( header->default_colormap ), ws.separator,
+        ws.memb_indent, "white-pixel", name_width, ws.equals,
+        _formatInteger( header->white_pixel ), ws.separator,
+        ws.memb_indent, "black-pixel", name_width, ws.equals,
+        _formatInteger( header->black_pixel ), ws.separator,
+        ws.memb_indent, "current-input-masks", name_width, ws.equals,
+        _formatProtocolType( header->current_input_masks ), ws.separator,
+        ws.memb_indent, "width-in-pixels", name_width, ws.equals,
+        _formatInteger( header->width_in_pixels ), ws.separator,
+        ws.memb_indent, "height-in-pixels", name_width, ws.equals,
+        _formatInteger( header->height_in_pixels ), ws.separator,
+        ws.memb_indent, "width-in-millimeters", name_width, ws.equals,
+        _formatInteger( header->width_in_millimeters ), ws.separator,
+        ws.memb_indent, "height-in-millimeters", name_width, ws.equals,
+        _formatInteger( header->height_in_millimeters ), ws.separator,
+        ws.memb_indent, "min-installed-maps", name_width, ws.equals,
+        _formatInteger( header->min_installed_maps ), ws.separator,
+        ws.memb_indent, "max-installed-maps", name_width, ws.equals,
+        _formatInteger( header->max_installed_maps ), ws.separator,
+        ws.memb_indent, "root-visual", name_width, ws.equals,
+        _formatProtocolType( header->root_visual ), ws.separator,
+        ws.memb_indent, "backing-stores", name_width, ws.equals,
         _formatInteger( header->backing_stores,
-                        SCREEN::backing_stores_names ), _SEPARATOR,
-        indents.member, "save-unders", name_width, _EQUALS,
-        _formatProtocolType( header->save_unders ), _SEPARATOR,
-        indents.member, "root-depth", name_width, _EQUALS,
-        _formatInteger( header->root_depth ), _SEPARATOR,
-        indents.member, "allowed-depths", name_width, _EQUALS,
-        allowed_depths.str, _SEPARATOR,
-        indents.enclosure
+                        SCREEN::backing_stores_names ), ws.separator,
+        ws.memb_indent, "save-unders", name_width, ws.equals,
+        _formatProtocolType( header->save_unders ), ws.separator,
+        ws.memb_indent, "root-depth", name_width, ws.equals,
+        _formatInteger( header->root_depth ), ws.separator,
+        ws.memb_indent, "allowed-depths", name_width, ws.equals,
+        allowed_depths.str, ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -158,7 +158,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH >(
-        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
+        const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
@@ -172,7 +172,7 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs visuals {
         _parseLISTof< DEPTH::VISUALTYPE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed, header->n,
-            indents.nested() ) };
+            ws.nested() ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
 
     const uint32_t name_width (
@@ -183,17 +183,17 @@ X11ProtocolParser::_parseProtocolType<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
-        indents.member, "depth", name_width, _EQUALS,
-        _formatInteger( header->depth ), _SEPARATOR,
+        ws.separator,
+        ws.memb_indent, "depth", name_width, ws.equals,
+        _formatInteger( header->depth ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            indents.member, "n", name_width, _EQUALS,
-            _formatInteger( header->n ), _SEPARATOR ),
-        indents.member, "visuals", name_width, _EQUALS,
-        visuals.str, _SEPARATOR,
-        indents.enclosure
+            ws.memb_indent, "n", name_width, ws.equals,
+            _formatInteger( header->n ), ws.separator ),
+        ws.memb_indent, "visuals", name_width, ws.equals,
+        visuals.str, ws.separator,
+        ws.encl_indent
         );
     return outputs;
 }
@@ -203,7 +203,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText8::TEXTITEM8 >(
-        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
+        const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
@@ -225,15 +225,15 @@ X11ProtocolParser::_parseProtocolType<
             "{}"
             "{}{: <{}}{}{}{}"
             "{}}}",
-            _SEPARATOR,
+            ws.separator,
             !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
-                indents.member, "font-shift", name_width, _EQUALS,
-                _formatInteger( item.font.font_shift ), _SEPARATOR ),
-            indents.member, "font", name_width, _EQUALS,
-            _formatProtocolType( font ), _SEPARATOR,
-            indents.enclosure
+                ws.memb_indent, "font-shift", name_width, ws.equals,
+                _formatInteger( item.font.font_shift ), ws.separator ),
+            ws.memb_indent, "font", name_width, ws.equals,
+            _formatProtocolType( font ), ws.separator,
+            ws.encl_indent
             );
     } else {
         assert( item.text_element.m > 0 );
@@ -250,17 +250,17 @@ X11ProtocolParser::_parseProtocolType<
             "{}"
             "{}{: <{}}{}{}{}{}{: <{}}{}\"{}\"{}"
             "{}}}",
-            _SEPARATOR,
+            ws.separator,
             !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
-                indents.member, "m", name_width, _EQUALS,
-                _formatInteger( item.text_element.m ), _SEPARATOR ),
-            indents.member, "delta", name_width, _EQUALS,
-            _formatInteger( item.text_element.delta ), _SEPARATOR,
-            indents.member, "string", name_width, _EQUALS,
-            string, _SEPARATOR,
-            indents.enclosure
+                ws.memb_indent, "m", name_width, ws.equals,
+                _formatInteger( item.text_element.m ), ws.separator ),
+            ws.memb_indent, "delta", name_width, ws.equals,
+            _formatInteger( item.text_element.delta ), ws.separator,
+            ws.memb_indent, "string", name_width, ws.equals,
+            string, ws.separator,
+            ws.encl_indent
             );
     }
     return outputs;
@@ -271,7 +271,7 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText16::TEXTITEM16 >(
-        const uint8_t* data, const size_t sz, const _Indentation& indents ) {
+        const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
@@ -294,15 +294,15 @@ X11ProtocolParser::_parseProtocolType<
             "{}"
             "{}{: <{}}{}{}{}"
             "{}}}",
-            _SEPARATOR,
+            ws.separator,
             !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
-                indents.member, "font-shift", name_width, _EQUALS,
-                _formatInteger( item.font.font_shift ), _SEPARATOR ),
-            indents.member, "font", name_width, _EQUALS,
-            _formatProtocolType( font ), _SEPARATOR,
-            indents.enclosure
+                ws.memb_indent, "font-shift", name_width, ws.equals,
+                _formatInteger( item.font.font_shift ), ws.separator ),
+            ws.memb_indent, "font", name_width, ws.equals,
+            _formatProtocolType( font ), ws.separator,
+            ws.encl_indent
             );
     } else {
         assert( first_byte > 0 );
@@ -328,17 +328,17 @@ X11ProtocolParser::_parseProtocolType<
             "{}"
             "{}{: <{}}{}{}{}{}{: <{}}{}[{}]{}"
             "{}}}",
-            _SEPARATOR,
+            ws.separator,
             !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
-                indents.member, "m", name_width, _EQUALS,
-                _formatInteger( item.text_element.m ), _SEPARATOR ),
-            indents.member, "delta", name_width, _EQUALS,
-            _formatInteger( item.text_element.delta ), _SEPARATOR,
-            indents.member, "string", name_width, _EQUALS,
-            hex_str, _SEPARATOR,
-            indents.enclosure
+                ws.memb_indent, "m", name_width, ws.equals,
+                _formatInteger( item.text_element.m ), ws.separator ),
+            ws.memb_indent, "delta", name_width, ws.equals,
+            _formatInteger( item.text_element.delta ), ws.separator,
+            ws.memb_indent, "string", name_width, ws.equals,
+            hex_str, ws.separator,
+            ws.encl_indent
             );
     }
     return outputs;

@@ -33,11 +33,6 @@ private:
     //   not likely to change after initial parse of CLI
     Settings settings;
 
-    // TBD formattig struct?
-    // TBD would prefer const, maybe make parser ctor that takes Settings param?
-    std::string_view _SEPARATOR { " " };  // "\n"  for multiline
-    std::string_view _EQUALS    { "=" };  // " = " for multiline
-
     struct _StashedAtomID {
         uint32_t conn_id {};
         uint16_t seq_num {};
@@ -69,48 +64,59 @@ private:
     std::optional<std::string_view>
     _getInternedAtom(const protocol::ATOM);
 
-    class _Indentation {
+    class _Whitespace {
     private:
         static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
         static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };
         static constexpr uint8_t   _NESTING_TAB_OFFSET { 1 };
 
+        static constexpr std::string_view _SL_EQUALS    { "=" };
+        static constexpr std::string_view _SL_SEPARATOR { " " };
+        static constexpr std::string_view _ML_EQUALS    { " = " };
+        static constexpr std::string_view _ML_SEPARATOR { "\n" };
+
         bool _default_multiline {};
-        _Indentation(const uint8_t base_tab_ct_, const bool default_multiline_,
+        _Whitespace(const uint8_t base_tab_ct_, const bool default_multiline_,
                      const bool multiline_ ) :
             _default_multiline( default_multiline_ ),
             multiline( multiline_ ),
             base_tab_ct( base_tab_ct_ ),
-            enclosure(
+            encl_indent(
                 !multiline_ ? "" : _tabIndent( base_tab_ct ) ),
-            member(
-                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {}
+            memb_indent(
+                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ),
+            equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
+            separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
 
         std::string_view
         _tabIndent( const uint8_t tab_ct );
 
     public:
         enum { SINGLELINE, MULTILINE, UNDEFINED };
-        // TBD members cannot be const while using _Indentation(_Indentation&&),
+        // TBD members cannot be const while using _Whitespace(_Whitespace&&),
         //   see importSettings
-        bool                 multiline {};
-        uint8_t              base_tab_ct {};
-        std::string_view     enclosure {};
-        std::string_view     member {};
+        bool                multiline {};
+        uint8_t             base_tab_ct {};
+        std::string_view    encl_indent {};
+        std::string_view    memb_indent {};
+        std::string_view    equals;     // TBD would prefer const& if not using copy ctor
+        std::string_view    separator;  // TBD would prefer const& if not using copy ctor
 
-        _Indentation() = delete;
-        _Indentation(const uint8_t base_tab_ct_, const bool multiline_ ) :
+        _Whitespace() = delete;
+        _Whitespace(const uint8_t base_tab_ct_, const bool multiline_ ) :
             _default_multiline( multiline_ ),
             multiline( multiline_ ),
             base_tab_ct( base_tab_ct_ ),
-            enclosure(
+            encl_indent(
                 !multiline_ ? "" : _tabIndent( base_tab_ct ) ),
-            member(
-                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ) {}
+            memb_indent(
+                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ),
+            equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
+            separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
 
-        inline _Indentation
+        inline _Whitespace
         nested( const int multiline_ = UNDEFINED ) const {
-            return _Indentation (
+            return _Whitespace (
                 base_tab_ct + _NESTING_TAB_OFFSET,
                 _default_multiline,
                 // TBD can nest singleline in multiline but not reverse
@@ -118,7 +124,7 @@ private:
         }
     };
     // TBD can only be const if set in parser ctor after server gets settings
-    _Indentation _BASE_INDENTS { 0, settings.multiline };
+    _Whitespace _ROOT_WS { 0, settings.multiline };
 
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
@@ -231,7 +237,7 @@ private:
     template < typename ProtocolT >
     std::string
     _formatProtocolType(
-        const ProtocolT value, const _Indentation& indents );
+        const ProtocolT value, const _Whitespace& indents );
 
     struct _ParsingOutputs {
         std::string str       {};
@@ -306,7 +312,7 @@ private:
                    _is_variable_length_struct_protocol_type_v< ProtocolT >, bool > = true>
     _ParsingOutputs
     _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const _Indentation& indents );
+                        const _Whitespace& ws );
 
     // TBD wrapper mainly for use with _parseLISTof<>
     template < typename ProtocolT,
@@ -314,12 +320,12 @@ private:
                    _is_fixed_length_struct_protocol_type_v< ProtocolT > , bool > = true>
     _ParsingOutputs
     _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const _Indentation& indents ) {
+                        const _Whitespace& ws ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
         return { _formatProtocolType( *reinterpret_cast< const ProtocolT* >( data ),
-                                      indents ),
+                                      ws ),
                  sizeof( ProtocolT ) };
     }
 
@@ -360,25 +366,25 @@ private:
                std::enable_if_t< _is_textitem_protocol_type_v< MemberT >, bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz,
-                  const _Indentation& indents,
-                  const int members_multiline = _Indentation::UNDEFINED ) {
+                  const _Whitespace& ws,
+                  const int members_multiline = _Whitespace::UNDEFINED ) {
         assert( data != nullptr );
         // assert( sz >= sizeof( MemberT::Encoding ) ); // TBD may be empty list
 
         _ParsingOutputs outputs;
         outputs.str += fmt::format( "[{}",
-                                    sz == 0 ? "" : _SEPARATOR );
+                                    sz == 0 ? "" : ws.separator );
         while ( _pad( outputs.bytes_parsed ) < sz ) {
             const _ParsingOutputs member {
                 _parseProtocolType< MemberT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    indents.nested( members_multiline ) ) };
+                    ws.nested( members_multiline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", indents.member, member.str, _SEPARATOR );
+                "{}{}{}", ws.memb_indent, member.str, ws.separator );
         }
         outputs.str += fmt::format(
-            "{}]", outputs.bytes_parsed == 0 ? "" : indents.enclosure );
+            "{}]", outputs.bytes_parsed == 0 ? "" : ws.encl_indent );
         return outputs;
     }
 
@@ -388,25 +394,25 @@ private:
                    _is_variable_length_struct_protocol_type_v< ProtocolT >, bool > = true>
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
-                  const _Indentation& indents,
-                  const int members_multiline = _Indentation::UNDEFINED ) {
+                  const _Whitespace& ws,
+                  const int members_multiline = _Whitespace::UNDEFINED ) {
         assert( data != nullptr );
         // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
 
         _ParsingOutputs outputs;
         outputs.str += fmt::format( "[{}",
-                                    n == 0 ? "" : _SEPARATOR );
+                                    n == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < n; ++i ) {
             const _ParsingOutputs member {
                 _parseProtocolType< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    indents.nested( members_multiline ) ) };
+                    ws.nested( members_multiline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", indents.member, member.str, _SEPARATOR );
+                "{}{}{}", ws.memb_indent, member.str, ws.separator );
         }
         outputs.str += fmt::format(
-            "{}]", n == 0 ? "" : indents.enclosure );
+            "{}]", n == 0 ? "" : ws.encl_indent );
         return outputs;
     }
 
@@ -416,14 +422,14 @@ private:
                    _is_protocol_integer_alias_v< ProtocolT >, bool > = true>
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
-                  const _Indentation& indents,
+                  const _Whitespace& ws,
                   const std::vector< std::string_view >& enum_names = _NO_NAMES ) {
         assert( data != nullptr );
         // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
 
         _ParsingOutputs outputs;
         outputs.str += fmt::format( "[{}",
-                                    n == 0 ? "" : _SEPARATOR );
+                                    n == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < n; ++i ) {
             const _ParsingOutputs member {
                 _parseProtocolType< ProtocolT >(
@@ -431,10 +437,10 @@ private:
                     enum_names ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
-                "{}{}{}", indents.member, member.str, _SEPARATOR );
+                "{}{}{}", ws.memb_indent, member.str, ws.separator );
         }
         outputs.str += fmt::format(
-            "{}]", n == 0 ? "" : indents.enclosure );
+            "{}]", n == 0 ? "" : ws.encl_indent );
         return outputs;
     }
 
@@ -477,7 +483,7 @@ private:
         const TupleT& types;
         const std::vector< std::string_view >& names;
         const std::vector< _VALUETraits >& traits;
-        const _Indentation indents;
+        const _Whitespace ws;
         size_t name_width {};
 
         _LISTofVALUEParsingInputs() = delete;
@@ -486,12 +492,12 @@ private:
             const TupleT& types_,
             const std::vector< std::string_view >& names_,
             const std::vector< _VALUETraits >& traits_,
-            const _Indentation indents_ ) :
+            const _Whitespace ws_ ) :
             value_mask( value_mask_ ), types( types_ ), names( names_ ),
-            traits( traits_ ), indents( indents_ ) {
+            traits( traits_ ), ws( ws_ ) {
             assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
-            if ( indents.multiline ) {
+            if ( ws.multiline ) {
                 for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
                     if ( value_mask & ( 1 << i ) ) {
                         name_width = std::max( name_width, names[i].size() );
@@ -531,7 +537,7 @@ private:
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         const uint8_t*/* data*/, _ParsingOutputs* outputs ) {
         if ( inputs.value_mask != 0 ) {
-            outputs->str += inputs.indents.enclosure;
+            outputs->str += inputs.ws.encl_indent;
         }
         outputs->str += ']';
     }
@@ -545,7 +551,7 @@ private:
         if ( I == 0 ) {
             outputs->str += '[';
             if ( inputs.value_mask != 0 ) {
-                outputs->str += _SEPARATOR;
+                outputs->str += inputs.ws.separator;
             }
         }
         if ( ( inputs.value_mask & ( 1 << I ) ) == 0 ) {
@@ -558,8 +564,8 @@ private:
 
         outputs->str += fmt::format(
             "{}{: <{}}{}{}{}",
-            inputs.indents.member, inputs.names[I], inputs.name_width, _EQUALS,
-            _formatVALUE( value, inputs.traits[I] ), _SEPARATOR );
+            inputs.ws.memb_indent, inputs.names[I], inputs.name_width, inputs.ws.equals,
+            _formatVALUE( value, inputs.traits[I] ), inputs.ws.separator );
         return _parseLISTofVALUE< I + 1, Args... >(
             inputs, data + sizeof( protocol::VALUE ), outputs );
     }
@@ -599,11 +605,11 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const _Indentation& indents );
+        const _Whitespace& indents );
     template < typename EventT >
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const _Indentation& indents );
+        const _Whitespace& indents );
 
 
     size_t _logClientRequest(

@@ -32,14 +32,14 @@ size_t X11ProtocolParser::_logServerError(
     case protocol::errors::codes::VALUE:     //  2
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "bad value", name_width, _EQUALS,
-            _formatInteger( encoding->bad_value ), _SEPARATOR );
+            _ROOT_WS.memb_indent, "bad value", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->bad_value ), _ROOT_WS.separator );
         break;
     case protocol::errors::codes::ATOM:      //  5
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "bad atom id", name_width, _EQUALS,
-            _formatInteger( encoding->bad_atom_id ), _SEPARATOR );
+            _ROOT_WS.memb_indent, "bad atom id", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->bad_atom_id ), _ROOT_WS.separator );
         break;
     case protocol::errors::codes::WINDOW:    //  3
     case protocol::errors::codes::PIXMAP:    //  4
@@ -51,8 +51,8 @@ size_t X11ProtocolParser::_logServerError(
     case protocol::errors::codes::IDCHOICE:  // 14
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "bad resource id", name_width, _EQUALS,
-            _formatInteger( encoding->bad_resource_id ), _SEPARATOR );
+            _ROOT_WS.memb_indent, "bad resource id", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->bad_resource_id ), _ROOT_WS.separator );
         break;
     default:
         break;
@@ -65,28 +65,28 @@ size_t X11ProtocolParser::_logServerError(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         conn->id, protocol::errors::names[code], code,
-        _SEPARATOR,
+        _ROOT_WS.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "error", name_width, _EQUALS,
-            _formatInteger( encoding->error ), _SEPARATOR ),
+            _ROOT_WS.memb_indent, "error", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->error ), _ROOT_WS.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "code", name_width, _EQUALS,
-            _formatInteger( encoding->code ), _SEPARATOR ),
+            _ROOT_WS.memb_indent, "code", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->code ), _ROOT_WS.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "sequence number", name_width, _EQUALS,
-            _formatInteger( encoding->sequence_number ), _SEPARATOR ),
+            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
         bad_resource_str,
-        _BASE_INDENTS.member, "minor-opcode", name_width, _EQUALS,
-        _formatInteger( encoding->minor_opcode ), _SEPARATOR,
-        _BASE_INDENTS.member, "major-opcode", name_width, _EQUALS,
-        _formatInteger( encoding->major_opcode ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+        _ROOT_WS.memb_indent, "minor-opcode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->minor_opcode ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "major-opcode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->major_opcode ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     assert( bytes_parsed == protocol::errors::ENCODING_SZ );
     return bytes_parsed;

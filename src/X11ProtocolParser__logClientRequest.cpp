@@ -49,18 +49,18 @@ size_t X11ProtocolParser::_logSimpleRequest(
         "{{{}"
         "{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -101,20 +101,20 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -149,27 +149,27 @@ size_t X11ProtocolParser::_logListFontsRequest(
         "{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "max-names", name_width, _EQUALS,
-        _formatInteger( encoding->max_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "max-names", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->max_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "pattern", name_width, _EQUALS,
-        pattern, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "pattern", name_width, _ROOT_WS.equals,
+        pattern, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -214,7 +214,7 @@ size_t X11ProtocolParser::_logClientRequest<
         CreateWindow::value_types,
         CreateWindow::value_names,
         value_traits,
-        _BASE_INDENTS.nested()
+        _ROOT_WS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE(
@@ -234,44 +234,44 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "depth", name_width, _EQUALS,
-        _formatInteger( encoding->depth ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->depth ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "wid", name_width, _EQUALS,
-        _formatProtocolType( encoding->wid ), _SEPARATOR,
-        _BASE_INDENTS.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->parent ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.member, "border-width", name_width, _EQUALS,
-        _formatInteger( encoding->border_width ), _SEPARATOR,
-        _BASE_INDENTS.member, "class", name_width, _EQUALS,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "wid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->wid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "parent", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->parent ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "border-width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->border_width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "class", name_width, _ROOT_WS.equals,
         _formatInteger( encoding->class_,
-                        protocol::enum_names::window_class ), _SEPARATOR,
-        _BASE_INDENTS.member, "visual", name_width, _EQUALS,
+                        protocol::enum_names::window_class ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "visual", name_width, _ROOT_WS.equals,
         _formatProtocolType( encoding->visual,
-                           protocol::enum_names::zero_copy_from_parent ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
-        value_list_outputs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+                           protocol::enum_names::zero_copy_from_parent ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
+        value_list_outputs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -317,7 +317,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeWindowAttributes::value_types,
         ChangeWindowAttributes::value_names,
         value_traits,
-        _BASE_INDENTS.nested()
+        _ROOT_WS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
@@ -332,24 +332,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
-        value_list_outputs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
+        value_list_outputs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -381,22 +381,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, ChangeSaveSet::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, ChangeSaveSet::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -426,26 +426,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "parent", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "parent", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -483,7 +483,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ConfigureWindow::value_types,
         ConfigureWindow::value_names,
         value_traits,
-        _BASE_INDENTS.nested()
+        _ROOT_WS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
@@ -498,24 +498,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
-        value_list_outputs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
+        value_list_outputs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -547,22 +547,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "direction", name_width, _EQUALS,
-        _formatInteger( encoding->direction, CirculateWindow::direction_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "direction", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->direction, CirculateWindow::direction_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -593,20 +593,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -644,27 +644,27 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "only-if-exists", name_width, _EQUALS,
-        _formatProtocolType( encoding->only_if_exists ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "only-if-exists", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->only_if_exists ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "name", name_width, _EQUALS,
-        name, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
+        name, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -694,20 +694,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "atom", name_width, _EQUALS,
-        _formatProtocolType( encoding->atom ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "atom", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->atom ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -746,7 +746,7 @@ size_t X11ProtocolParser::_logClientRequest<
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
             data + bytes_parsed, sz - bytes_parsed, data_sz,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad(data_.bytes_parsed);
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -763,35 +763,35 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, ChangeProperty::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, ChangeProperty::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "property", name_width, _EQUALS,
-        _formatProtocolType( encoding->property ), _SEPARATOR,
-        _BASE_INDENTS.member, "type", name_width, _EQUALS,
-        _formatProtocolType( encoding->type ), _SEPARATOR,
-        _BASE_INDENTS.member, "format", name_width, _EQUALS,
-        _formatInteger( encoding->format ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->property ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "type", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->type ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->format ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "format units", name_width, _EQUALS,
-            _formatInteger( encoding->fmt_unit_ct ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "data", name_width, _EQUALS,
-        data_.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "format units", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->fmt_unit_ct ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "data", name_width, _ROOT_WS.equals,
+        data_.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -821,22 +821,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "property", name_width, _EQUALS,
-        _formatProtocolType( encoding->property ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->property ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -869,30 +869,30 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "delete", name_width, _EQUALS,
-        _formatProtocolType( encoding->delete_ ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "delete", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->delete_ ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "property", name_width, _EQUALS,
-        _formatProtocolType( encoding->property ), _SEPARATOR,
-        _BASE_INDENTS.member, "type", name_width, _EQUALS,
-        _formatProtocolType( encoding->type, GetProperty::request_type_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "long-offset", name_width, _EQUALS,
-        _formatInteger( encoding->long_offset ), _SEPARATOR,
-        _BASE_INDENTS.member, "long-length", name_width, _EQUALS,
-        _formatInteger( encoding->long_length ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->property ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "type", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->type, GetProperty::request_type_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "long-offset", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->long_offset ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "long-length", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->long_length ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -922,24 +922,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "owner", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner, SetSelectionOwner::owner_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "selection", name_width, _EQUALS,
-        _formatProtocolType( encoding->selection ), _SEPARATOR,
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, SetSelectionOwner::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "owner", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->owner, SetSelectionOwner::owner_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "selection", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->selection ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, SetSelectionOwner::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -969,20 +969,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "selection", name_width, _EQUALS,
-        _formatProtocolType( encoding->selection ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "selection", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->selection ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1013,28 +1013,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "requestor", name_width, _EQUALS,
-        _formatProtocolType( encoding->requestor ), _SEPARATOR,
-        _BASE_INDENTS.member, "selection", name_width, _EQUALS,
-        _formatProtocolType( encoding->selection ), _SEPARATOR,
-        _BASE_INDENTS.member, "target", name_width, _EQUALS,
-        _formatProtocolType( encoding->target ), _SEPARATOR,
-        _BASE_INDENTS.member, "property", name_width, _EQUALS,
-        _formatProtocolType( encoding->property, ConvertSelection::property_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, ConvertSelection::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "requestor", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->requestor ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "selection", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->selection ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "target", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->target ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->property, ConvertSelection::property_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, ConvertSelection::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1059,7 +1059,7 @@ size_t X11ProtocolParser::_logClientRequest<
     //   both a log func and a format func?
     _ParsingOutputs event { _parseEvent(
             conn, data + bytes_parsed, protocol::events::ENCODING_SZ,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += event.bytes_parsed;
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -1073,26 +1073,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "propagate", name_width, _EQUALS,
-        _formatProtocolType( encoding->propagate ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "propagate", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->propagate ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "destination", name_width, _EQUALS,
-        _formatProtocolType( encoding->destination, SendEvent::destination_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
-        _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "event", name_width, _EQUALS,
-        event.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "destination", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->destination, SendEvent::destination_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "event", name_width, _ROOT_WS.equals,
+        event.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1125,34 +1125,34 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner_events ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
-        _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
-        _formatInteger( encoding->pointer_mode, GrabPointer::pointer_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
-        _formatInteger( encoding->keyboard_mode, GrabPointer::keyboard_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "confine-to", name_width, _EQUALS,
-        _formatProtocolType( encoding->confine_to, GrabPointer::confine_to_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
-        _formatProtocolType( encoding->cursor, GrabPointer::cursor_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, GrabPointer::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->pointer_mode, GrabPointer::pointer_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keyboard_mode, GrabPointer::keyboard_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "confine-to", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->confine_to, GrabPointer::confine_to_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cursor, GrabPointer::cursor_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, GrabPointer::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1182,20 +1182,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, UngrabPointer::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, UngrabPointer::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1228,36 +1228,36 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner_events ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
-        _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
-        _formatInteger( encoding->pointer_mode, GrabButton::pointer_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
-        _formatInteger( encoding->keyboard_mode, GrabButton::keyboard_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "confine-to", name_width, _EQUALS,
-        _formatProtocolType( encoding->confine_to, GrabButton::confine_to_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
-        _formatProtocolType( encoding->cursor, GrabButton::cursor_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "button", name_width, _EQUALS,
-        _formatProtocolType( encoding->button, GrabButton::button_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
-        _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->pointer_mode, GrabButton::pointer_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keyboard_mode, GrabButton::keyboard_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "confine-to", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->confine_to, GrabButton::confine_to_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cursor, GrabButton::cursor_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "button", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->button, GrabButton::button_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1289,24 +1289,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "button", name_width, _EQUALS,
-        _formatProtocolType( encoding->button, UngrabButton::button_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "button", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->button, UngrabButton::button_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
-        _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1336,24 +1336,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
-        _formatProtocolType( encoding->cursor, ChangeActivePointerGrab::cursor_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, ChangeActivePointerGrab::time_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "event-mask", name_width, _EQUALS,
-        _formatProtocolType( encoding->event_mask ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cursor, ChangeActivePointerGrab::cursor_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, ChangeActivePointerGrab::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1385,28 +1385,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner_events ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, GrabKeyboard::time_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
-        _formatInteger( encoding->pointer_mode, GrabKeyboard::pointer_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
-        _formatInteger( encoding->keyboard_mode, GrabKeyboard::keyboard_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, GrabKeyboard::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->pointer_mode, GrabKeyboard::pointer_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keyboard_mode, GrabKeyboard::keyboard_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1436,20 +1436,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, UngrabKeyboard::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, UngrabKeyboard::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1481,28 +1481,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "owner-events", name_width, _EQUALS,
-        _formatProtocolType( encoding->owner_events ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
-        _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        _BASE_INDENTS.member, "key", name_width, _EQUALS,
-        _formatProtocolType( encoding->key, GrabKey::key_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "pointer-mode", name_width, _EQUALS,
-        _formatInteger( encoding->pointer_mode, GrabKey::pointer_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "keyboard-mode", name_width, _EQUALS,
-        _formatInteger( encoding->keyboard_mode, GrabKey::keyboard_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "key", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->key, GrabKey::key_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->pointer_mode, GrabKey::pointer_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keyboard_mode, GrabKey::keyboard_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1534,24 +1534,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "key", name_width, _EQUALS,
-        _formatProtocolType( encoding->key, UngrabKey::key_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "key", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->key, UngrabKey::key_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "grab-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->grab_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "modifiers", name_width, _EQUALS,
-        _formatProtocolType( encoding->modifiers ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1583,22 +1583,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, AllowEvents::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, AllowEvents::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, AllowEvents::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, AllowEvents::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1628,24 +1628,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "start", name_width, _EQUALS,
-        _formatProtocolType( encoding->start, GetMotionEvents::start_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "stop", name_width, _EQUALS,
-        _formatProtocolType( encoding->stop, GetMotionEvents::stop_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "start", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->start, GetMotionEvents::start_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "stop", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->stop, GetMotionEvents::stop_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1675,26 +1675,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "src-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->src_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->dst_window ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
-        _formatInteger( encoding->src_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
-        _formatInteger( encoding->src_y ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "src-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->src_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->dst_window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1725,34 +1725,34 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "src-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->src_window, WarpPointer::src_window_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-window", name_width, _EQUALS,
-        _formatProtocolType( encoding->dst_window, WarpPointer::dst_window_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
-        _formatInteger( encoding->src_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
-        _formatInteger( encoding->src_y ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-width", name_width, _EQUALS,
-        _formatInteger( encoding->src_width ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-height", name_width, _EQUALS,
-        _formatInteger( encoding->src_height ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
-        _formatInteger( encoding->dst_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
-        _formatInteger( encoding->dst_y ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "src-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->src_window, WarpPointer::src_window_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->dst_window, WarpPointer::dst_window_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_height ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1784,24 +1784,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "revert-to", name_width, _EQUALS,
-        _formatInteger( encoding->revert_to, SetInputFocus::revert_to_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "revert-to", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->revert_to, SetInputFocus::revert_to_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "focus", name_width, _EQUALS,
-        _formatProtocolType( encoding->focus, SetInputFocus::focus_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "time", name_width, _EQUALS,
-        _formatProtocolType( encoding->time, SetInputFocus::time_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "focus", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->focus, SetInputFocus::focus_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->time, SetInputFocus::time_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1837,27 +1837,27 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "fid", name_width, _EQUALS,
-        _formatProtocolType( encoding->fid ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "fid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->fid ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "name", name_width, _EQUALS,
-        name, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
+        name, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1887,20 +1887,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "font", name_width, _EQUALS,
-        _formatProtocolType( encoding->font ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "font", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->font ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -1930,21 +1930,21 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "font", name_width, _EQUALS,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "font", name_width, _ROOT_WS.equals,
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
-        _formatProtocolType( encoding->font.font ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+        _formatProtocolType( encoding->font.font ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2001,28 +2001,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}{: <{}}{}[{}]{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "odd length", name_width, _EQUALS,
-            _formatProtocolType( encoding->odd_length ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "odd length", name_width, _ROOT_WS.equals,
+            _formatProtocolType( encoding->odd_length ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "font", name_width, _EQUALS,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "font", name_width, _ROOT_WS.equals,
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
-        _formatProtocolType( encoding->font.font ), _SEPARATOR,
-        _BASE_INDENTS.member, "string", name_width, _EQUALS,
-        string_as_hex, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+        _formatProtocolType( encoding->font.font ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
+        string_as_hex, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2046,7 +2046,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
             data + bytes_parsed, sz - bytes_parsed, encoding->str_ct,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( path.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2058,25 +2058,25 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "STRs in path", name_width, _EQUALS,
-            _formatInteger( encoding->str_ct ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "path", name_width, _EQUALS,
-        path.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "STRs in path", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->str_ct ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "path", name_width, _ROOT_WS.equals,
+        path.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2108,28 +2108,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "depth", name_width, _EQUALS,
-        _formatInteger( encoding->depth ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->depth ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "pid", name_width, _EQUALS,
-        _formatProtocolType( encoding->pid ), _SEPARATOR,
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "pid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->pid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2159,20 +2159,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "pixmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->pixmap ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "pixmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->pixmap ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2225,7 +2225,7 @@ size_t X11ProtocolParser::_logClientRequest<
         CreateGC::value_types,
         CreateGC::value_names,
         value_traits,
-        _BASE_INDENTS.nested()
+        _ROOT_WS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
@@ -2240,27 +2240,27 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cid", name_width, _EQUALS,
-        _formatProtocolType( encoding->cid ), _SEPARATOR,
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
         // TBD only print value-mask in verbose mode? print all flags even with value-list?
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
-        value_list_outputs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
+        value_list_outputs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2313,7 +2313,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeGC::value_types,
         ChangeGC::value_names,
         value_traits,
-        _BASE_INDENTS.nested()
+        _ROOT_WS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
@@ -2328,25 +2328,25 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
         // TBD only print value-mask in verbose mode? print all flags even with value-list?
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
-        value_list_outputs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
+        value_list_outputs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2376,24 +2376,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "src-gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->src_gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->dst_gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask, CopyGC::value_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "src-gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->src_gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->dst_gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask, CopyGC::value_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2417,7 +2417,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs dashes {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, sz - bytes_parsed, encoding->n,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( dashes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2431,29 +2431,29 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "dash-offset", name_width, _EQUALS,
-        _formatInteger( encoding->dash_offset ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dash-offset", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dash_offset ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "dashes", name_width, _EQUALS,
-        dashes.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "dashes", name_width, _ROOT_WS.equals,
+        dashes.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2481,7 +2481,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + bytes_parsed, sz - bytes_parsed, n_rectangles,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2495,28 +2495,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "ordering", name_width, _EQUALS,
-        _formatInteger( encoding->ordering, SetClipRectangles::ordering_names  ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "ordering", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->ordering, SetClipRectangles::ordering_names  ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "clip-x-origin", name_width, _EQUALS,
-        _formatInteger( encoding->clip_x_origin ), _SEPARATOR,
-        _BASE_INDENTS.member, "clip-y-origin", name_width, _EQUALS,
-        _formatInteger( encoding->clip_y_origin ), _SEPARATOR,
-        _BASE_INDENTS.member, "rectangles", name_width, _EQUALS,
-        rectangles.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "clip-x-origin", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->clip_x_origin ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "clip-y-origin", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->clip_y_origin ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "rectangles", name_width, _ROOT_WS.equals,
+        rectangles.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2546,20 +2546,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2592,30 +2592,30 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "exposures", name_width, _EQUALS,
-        _formatProtocolType( encoding->exposures ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "exposures", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->exposures ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2647,36 +2647,36 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "src-drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->src_drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->dst_drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
-        _formatInteger( encoding->src_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
-        _formatInteger( encoding->src_y ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
-        _formatInteger( encoding->dst_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
-        _formatInteger( encoding->dst_y ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "src-drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->src_drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->dst_drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2709,38 +2709,38 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "src-drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->src_drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->dst_drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-x", name_width, _EQUALS,
-        _formatInteger( encoding->src_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-y", name_width, _EQUALS,
-        _formatInteger( encoding->src_y ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
-        _formatInteger( encoding->dst_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
-        _formatInteger( encoding->dst_y ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.member, "bit-plane", name_width, _EQUALS,
-        _formatInteger( encoding->bit_plane ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "src-drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->src_drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->dst_drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "bit-plane", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->bit_plane ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2767,7 +2767,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
             data + bytes_parsed, sz - bytes_parsed, n_points,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2781,26 +2781,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "coordinate-mode", name_width, _EQUALS,
-        _formatInteger( encoding->coordinate_mode, PolyPoint::coordinate_mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "coordinate-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->coordinate_mode, PolyPoint::coordinate_mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "points", name_width, _EQUALS,
-        points.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "points", name_width, _ROOT_WS.equals,
+        points.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2828,7 +2828,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
             data + bytes_parsed, sz - bytes_parsed, n_points,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2842,26 +2842,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "coordinate-mode", name_width, _EQUALS,
-        _formatInteger( encoding->coordinate_mode, PolyLine::coordinate_mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "coordinate-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->coordinate_mode, PolyLine::coordinate_mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "points", name_width, _EQUALS,
-        points.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "points", name_width, _ROOT_WS.equals,
+        points.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2888,7 +2888,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs segments {
         _parseLISTof< PolySegment::SEGMENT >(
             data + bytes_parsed, sz - bytes_parsed, n_segments,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( segments.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2900,24 +2900,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "segments", name_width, _EQUALS,
-        segments.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "segments", name_width, _ROOT_WS.equals,
+        segments.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -2944,7 +2944,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + bytes_parsed, sz - bytes_parsed, n_rectangles,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -2956,24 +2956,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "rectangles", name_width, _EQUALS,
-        rectangles.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "rectangles", name_width, _ROOT_WS.equals,
+        rectangles.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3000,7 +3000,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
             data + bytes_parsed, sz - bytes_parsed, n_arcs,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3012,24 +3012,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "arcs", name_width, _EQUALS,
-        arcs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "arcs", name_width, _ROOT_WS.equals,
+        arcs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3056,7 +3056,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
             data + bytes_parsed, sz - bytes_parsed, n_points,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3069,28 +3069,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "shape", name_width, _EQUALS,
-        _formatInteger( encoding->shape, FillPoly::shape_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "coordinate-mode", name_width, _EQUALS,
-        _formatInteger( encoding->coordinate_mode, FillPoly::coordinate_mode_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "points", name_width, _EQUALS,
-        points.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "shape", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->shape, FillPoly::shape_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "coordinate-mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->coordinate_mode, FillPoly::coordinate_mode_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "points", name_width, _ROOT_WS.equals,
+        points.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3117,7 +3117,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + bytes_parsed, sz - bytes_parsed, n_rectangles,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3129,24 +3129,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "rectangles", name_width, _EQUALS,
-        rectangles.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "rectangles", name_width, _ROOT_WS.equals,
+        rectangles.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3173,7 +3173,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
             data + bytes_parsed, sz - bytes_parsed, n_arcs,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3185,24 +3185,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "arcs", name_width, _EQUALS,
-        arcs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "arcs", name_width, _ROOT_WS.equals,
+        arcs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3241,38 +3241,38 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}({} bytes){}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "format", name_width, _EQUALS,
-        _formatInteger( encoding->format, PutImage::format_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->format, PutImage::format_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-x", name_width, _EQUALS,
-        _formatInteger( encoding->dst_x ), _SEPARATOR,
-        _BASE_INDENTS.member, "dst-y", name_width, _EQUALS,
-        _formatInteger( encoding->dst_y ), _SEPARATOR,
-        _BASE_INDENTS.member, "left-pad", name_width, _EQUALS,
-        _formatInteger( encoding->left_pad ), _SEPARATOR,
-        _BASE_INDENTS.member, "depth", name_width, _EQUALS,
-        _formatInteger( encoding->depth ), _SEPARATOR,
-        _BASE_INDENTS.member, "data", name_width, _EQUALS,
-        image_data_sz, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "left-pad", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->left_pad ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->depth ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "data", name_width, _ROOT_WS.equals,
+        image_data_sz, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3305,34 +3305,34 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "format", name_width, _EQUALS,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
         // TBD how can we avoid magic numbers here (or anywhere) for max and min enum?
         _formatInteger( encoding->format,
-                        GetImage::format_names, _IndexRange{ 1, 2 } ), _SEPARATOR,
+                        GetImage::format_names, _IndexRange{ 1, 2 } ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.member, "plane-mask", name_width, _EQUALS,
-        _formatInteger( encoding->plane_mask ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "plane-mask", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->plane_mask ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3358,7 +3358,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs text_items {
         _parseLISTof< PolyText8::TEXTITEM8 >(
             data + bytes_parsed, text_item_list_sz,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3371,28 +3371,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "items", name_width, _EQUALS,
-        text_items.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "items", name_width, _ROOT_WS.equals,
+        text_items.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3418,7 +3418,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs text_items {
         _parseLISTof< PolyText16::TEXTITEM16 >(
             data + bytes_parsed, text_item_list_sz,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3431,28 +3431,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "items", name_width, _EQUALS,
-        text_items.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "items", name_width, _ROOT_WS.equals,
+        text_items.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3487,33 +3487,33 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "string", name_width, _EQUALS,
-        string, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
+        string, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3559,33 +3559,33 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}[{}]{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "gc", name_width, _EQUALS,
-        _formatProtocolType( encoding->gc ), _SEPARATOR,
-        _BASE_INDENTS.member, "x", name_width, _EQUALS,
-        _formatInteger( encoding->x ), _SEPARATOR,
-        _BASE_INDENTS.member, "y", name_width, _EQUALS,
-        _formatInteger( encoding->y ), _SEPARATOR,
-        _BASE_INDENTS.member, "string", name_width, _EQUALS,
-        string_as_hex, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->x ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->y ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
+        string_as_hex, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3617,26 +3617,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "alloc", name_width, _EQUALS,
-        _formatInteger( encoding->alloc, CreateColormap::alloc_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "alloc", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->alloc, CreateColormap::alloc_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mid", name_width, _EQUALS,
-        _formatProtocolType( encoding->mid ), _SEPARATOR,
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
-        _BASE_INDENTS.member, "visual", name_width, _EQUALS,
-        _formatProtocolType( encoding->visual ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->mid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "visual", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->visual ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3666,20 +3666,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3709,22 +3709,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mid", name_width, _EQUALS,
-        _formatProtocolType( encoding->mid ), _SEPARATOR,
-        _BASE_INDENTS.member, "src-cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->src_cmap ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->mid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "src-cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->src_cmap ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3755,20 +3755,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3798,20 +3798,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3841,26 +3841,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "red", name_width, _EQUALS,
-        _formatInteger( encoding->red ), _SEPARATOR,
-        _BASE_INDENTS.member, "green", name_width, _EQUALS,
-        _formatInteger( encoding->green ), _SEPARATOR,
-        _BASE_INDENTS.member, "blue", name_width, _EQUALS,
-        _formatInteger( encoding->blue ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->blue ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3896,27 +3896,27 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "name", name_width, _EQUALS,
-        name, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
+        name, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -3948,26 +3948,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "contiguous", name_width, _EQUALS,
-        _formatProtocolType( encoding->contiguous ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "contiguous", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->contiguous ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "colors", name_width, _EQUALS,
-        _formatInteger( encoding->colors ), _SEPARATOR,
-        _BASE_INDENTS.member, "planes", name_width, _EQUALS,
-        _formatInteger( encoding->planes ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "colors", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->colors ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "planes", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->planes ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4000,30 +4000,30 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "contiguous", name_width, _EQUALS,
-        _formatProtocolType( encoding->contiguous ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "contiguous", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->contiguous ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "colors", name_width, _EQUALS,
-        _formatInteger( encoding->colors ), _SEPARATOR,
-        _BASE_INDENTS.member, "reds", name_width, _EQUALS,
-        _formatInteger( encoding->reds ), _SEPARATOR,
-        _BASE_INDENTS.member, "greens", name_width, _EQUALS,
-        _formatInteger( encoding->greens ), _SEPARATOR,
-        _BASE_INDENTS.member, "blues", name_width, _EQUALS,
-        _formatInteger( encoding->blues ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "colors", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->colors ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "reds", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->reds ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "greens", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->greens ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "blues", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->blues ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4050,7 +4050,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
             data + bytes_parsed, sz - bytes_parsed, n_pixels,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4063,24 +4063,24 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "plane-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->plane_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "pixels", name_width, _EQUALS,
-        pixels.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "plane-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->plane_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pixels", name_width, _ROOT_WS.equals,
+        pixels.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4107,7 +4107,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs items {
         _parseLISTof< StoreColors::COLORITEM >(
             data + bytes_parsed, sz - bytes_parsed, n_items,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( items.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4119,22 +4119,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "items", name_width, _EQUALS,
-        items.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "items", name_width, _ROOT_WS.equals,
+        items.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4172,31 +4172,31 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "do rgb", name_width, _EQUALS,
-        _formatBitmask( encoding->do_rgb_mask, StoreNamedColor::do_rgb_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "do rgb", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->do_rgb_mask, StoreNamedColor::do_rgb_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "pixel", name_width, _EQUALS,
-        _formatInteger( encoding->pixel ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pixel", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->pixel ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "name", name_width, _EQUALS,
-        name, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
+        name, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4223,7 +4223,7 @@ size_t X11ProtocolParser::_logClientRequest<
     _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
             data + bytes_parsed, sz - bytes_parsed, n_pixels,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4235,22 +4235,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
-        _BASE_INDENTS.member, "pixels", name_width, _EQUALS,
-        pixels.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "pixels", name_width, _ROOT_WS.equals,
+        pixels.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4286,27 +4286,27 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cmap", name_width, _EQUALS,
-        _formatProtocolType( encoding->cmap ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "name", name_width, _EQUALS,
-        name, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
+        name, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4338,36 +4338,36 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cid", name_width, _EQUALS,
-        _formatProtocolType( encoding->cid ), _SEPARATOR,
-        _BASE_INDENTS.member, "source", name_width, _EQUALS,
-        _formatProtocolType( encoding->source ), _SEPARATOR,
-        _BASE_INDENTS.member, "mask", name_width, _EQUALS,
-        _formatProtocolType( encoding->mask, CreateCursor::mask_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-red", name_width, _EQUALS,
-        _formatInteger( encoding->fore_red ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-green", name_width, _EQUALS,
-        _formatInteger( encoding->fore_green ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-blue", name_width, _EQUALS,
-        _formatInteger( encoding->fore_blue ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-red", name_width, _EQUALS,
-        _formatInteger( encoding->back_red ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-green", name_width, _EQUALS,
-        _formatInteger( encoding->back_green ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-blue", name_width, _EQUALS,
-        _formatInteger( encoding->back_blue ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "source", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->source ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "mask", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->mask, CreateCursor::mask_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_blue ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_blue ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4399,40 +4399,40 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cid", name_width, _EQUALS,
-        _formatProtocolType( encoding->cid ), _SEPARATOR,
-        _BASE_INDENTS.member, "source-font", name_width, _EQUALS,
-        _formatProtocolType( encoding->source_font ), _SEPARATOR,
-        _BASE_INDENTS.member, "mask-font", name_width, _EQUALS,
-        _formatProtocolType( encoding->mask_font, CreateGlyphCursor::mask_font_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "source-char", name_width, _EQUALS,
-        _formatInteger( encoding->source_char ), _SEPARATOR,
-        _BASE_INDENTS.member, "mask-char", name_width, _EQUALS,
-        _formatInteger( encoding->mask_char ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-red", name_width, _EQUALS,
-        _formatInteger( encoding->fore_red ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-green", name_width, _EQUALS,
-        _formatInteger( encoding->fore_green ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-blue", name_width, _EQUALS,
-        _formatInteger( encoding->fore_blue ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-red", name_width, _EQUALS,
-        _formatInteger( encoding->back_red ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-green", name_width, _EQUALS,
-        _formatInteger( encoding->back_green ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-blue", name_width, _EQUALS,
-        _formatInteger( encoding->back_blue ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cid", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cid ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "source-font", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->source_font ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "mask-font", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->mask_font, CreateGlyphCursor::mask_font_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "source-char", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->source_char ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "mask-char", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mask_char ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_blue ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_blue ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4462,20 +4462,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
-        _formatProtocolType( encoding->cursor ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cursor ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4506,32 +4506,32 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "cursor", name_width, _EQUALS,
-        _formatProtocolType( encoding->cursor ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-red", name_width, _EQUALS,
-        _formatInteger( encoding->fore_red ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-green", name_width, _EQUALS,
-        _formatInteger( encoding->fore_green ), _SEPARATOR,
-        _BASE_INDENTS.member, "fore-blue", name_width, _EQUALS,
-        _formatInteger( encoding->fore_blue ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-red", name_width, _EQUALS,
-        _formatInteger( encoding->back_red ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-green", name_width, _EQUALS,
-        _formatInteger( encoding->back_green ), _SEPARATOR,
-        _BASE_INDENTS.member, "back-blue", name_width, _EQUALS,
-        _formatInteger( encoding->back_blue ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->cursor ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "fore-blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->fore_blue ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-red", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_red ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-green", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_green ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "back-blue", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->back_blue ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4563,26 +4563,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "class", name_width, _EQUALS,
-        _formatInteger( encoding->class_, QueryBestSize::class_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "class", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->class_, QueryBestSize::class_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "drawable", name_width, _EQUALS,
-        _formatProtocolType( encoding->drawable ), _SEPARATOR,
-        _BASE_INDENTS.member, "width", name_width, _EQUALS,
-        _formatInteger( encoding->width ), _SEPARATOR,
-        _BASE_INDENTS.member, "height", name_width, _EQUALS,
-        _formatInteger( encoding->height ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->width ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->height ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4616,25 +4616,25 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}{}"
         "{}{: <{}}{}\"{}\"{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "n", name_width, _EQUALS,
-            _formatInteger( encoding->n ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "name", name_width, _EQUALS,
-        name, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
+        name, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4659,7 +4659,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _parseLISTof< protocol::KEYSYM >(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->keycode_count * encoding->keysyms_per_keycode,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( keysyms.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4673,26 +4673,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "keycode-count", name_width, _EQUALS,
-        _formatInteger( encoding->keycode_count ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "keycode-count", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keycode_count ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "first-keycode", name_width, _EQUALS,
-        _formatProtocolType( encoding->first_keycode ), _SEPARATOR,
-        _BASE_INDENTS.member, "keysyms-per-keycode", name_width, _EQUALS,
-        _formatInteger( encoding->keysyms_per_keycode ), _SEPARATOR,
-        _BASE_INDENTS.member, "keysyms", name_width, _EQUALS,
-        keysyms.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "first-keycode", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->first_keycode ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "keysyms-per-keycode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keysyms_per_keycode ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "keysyms", name_width, _ROOT_WS.equals,
+        keysyms.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4722,22 +4722,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "first-keycode", name_width, _EQUALS,
-        _formatProtocolType( encoding->first_keycode ), _SEPARATOR,
-        _BASE_INDENTS.member, "count", name_width, _EQUALS,
-        _formatInteger( encoding->count ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "first-keycode", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->first_keycode ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "count", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->count ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4777,7 +4777,7 @@ size_t X11ProtocolParser::_logClientRequest<
         ChangeKeyboardControl::value_types,
         ChangeKeyboardControl::value_names,
         value_traits,
-        _BASE_INDENTS.nested()
+        _ROOT_WS.nested()
     };
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
@@ -4792,22 +4792,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "value-mask", name_width, _EQUALS,
-        _formatBitmask( encoding->value_mask ), _SEPARATOR,
-        _BASE_INDENTS.member, "value-list", name_width, _EQUALS,
-        value_list_outputs.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
+        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
+        value_list_outputs.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4838,20 +4838,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "percent", name_width, _EQUALS,
-        _formatInteger( encoding->percent ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "percent", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->percent ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4882,28 +4882,28 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "acceleration-numerator", name_width, _EQUALS,
-        _formatInteger( encoding->acceleration_numerator ), _SEPARATOR,
-        _BASE_INDENTS.member, "acceleration-denominator", name_width, _EQUALS,
-        _formatInteger( encoding->acceleration_denominator ), _SEPARATOR,
-        _BASE_INDENTS.member, "threshold", name_width, _EQUALS,
-        _formatInteger( encoding->threshold ), _SEPARATOR,
-        _BASE_INDENTS.member, "do-acceleration", name_width, _EQUALS,
-        _formatProtocolType( encoding->do_acceleration ), _SEPARATOR,
-        _BASE_INDENTS.member, "do-threshold", name_width, _EQUALS,
-        _formatProtocolType( encoding->do_threshold ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "acceleration-numerator", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->acceleration_numerator ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "acceleration-denominator", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->acceleration_denominator ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "threshold", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->threshold ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "do-acceleration", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->do_acceleration ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "do-threshold", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->do_threshold ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4933,26 +4933,26 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "timeout", name_width, _EQUALS,
-        _formatInteger( encoding->timeout ), _SEPARATOR,
-        _BASE_INDENTS.member, "interval", name_width, _EQUALS,
-        _formatInteger( encoding->interval ), _SEPARATOR,
-        _BASE_INDENTS.member, "prefer-blanking", name_width, _EQUALS,
-        _formatInteger( encoding->prefer_blanking, SetScreenSaver::prefer_blanking_names ), _SEPARATOR,
-        _BASE_INDENTS.member, "allow-exposures", name_width, _EQUALS,
-        _formatInteger( encoding->allow_exposures, SetScreenSaver::allow_exposures_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "timeout", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->timeout ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "interval", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->interval ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "prefer-blanking", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->prefer_blanking, SetScreenSaver::prefer_blanking_names ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "allow-exposures", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->allow_exposures, SetScreenSaver::allow_exposures_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -4982,7 +4982,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->length_of_address,
-            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
+            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     bytes_parsed += _pad( address.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4998,33 +4998,33 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, ChangeHosts::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, ChangeHosts::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
         // TBD need way to limit enum without magic numbers
         // TBD if using min/max, maybe make _formatInteger param order consistent
         //   with _EnumTraits member order
-        _BASE_INDENTS.member, "family", name_width, _EQUALS,
+        _ROOT_WS.memb_indent, "family", name_width, _ROOT_WS.equals,
         _formatInteger( encoding->family,
-                        ChangeHosts::family_names, _IndexRange{ 0, 2 } ), _SEPARATOR,
+                        ChangeHosts::family_names, _IndexRange{ 0, 2 } ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "length of address", name_width, _EQUALS,
-            _formatInteger( encoding->length_of_address ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "address", name_width, _EQUALS,
-        address.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "length of address", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->length_of_address ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "address", name_width, _ROOT_WS.equals,
+        address.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5055,20 +5055,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, SetAccessControl::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, SetAccessControl::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5099,20 +5099,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, SetCloseDownMode::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, SetCloseDownMode::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5142,20 +5142,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "resource", name_width, _EQUALS,
-        _formatInteger( encoding->resource, KillClient::resource_names ), _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "resource", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->resource, KillClient::resource_names ), _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5180,7 +5180,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _parseLISTof< protocol::ATOM >(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->number_of_properties,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( properties.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -5194,29 +5194,29 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "window", name_width, _EQUALS,
-        _formatProtocolType( encoding->window ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
+        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "number of properties", name_width, _EQUALS,
-            _formatInteger( encoding->number_of_properties ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "delta", name_width, _EQUALS,
-        _formatInteger( encoding->delta ), _SEPARATOR,
-        _BASE_INDENTS.member, "properties", name_width, _EQUALS,
-        properties.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "number of properties", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->number_of_properties ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "delta", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->delta ), _ROOT_WS.separator,
+        _ROOT_WS.memb_indent, "properties", name_width, _ROOT_WS.equals,
+        properties.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5247,20 +5247,20 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "mode", name_width, _EQUALS,
-        _formatInteger( encoding->mode, ForceScreenSaver::mode_names ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->mode, ForceScreenSaver::mode_names ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5285,7 +5285,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->length_of_map,
-            _BASE_INDENTS.nested( _Indentation::SINGLELINE ) ) };
+            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     bytes_parsed += _pad( map.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -5299,22 +5299,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "length_of_map", name_width, _EQUALS,
-        _formatInteger( encoding->length_of_map ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "length_of_map", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->length_of_map ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "map", name_width, _EQUALS,
-        map.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "map", name_width, _ROOT_WS.equals,
+        map.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5342,7 +5342,7 @@ size_t X11ProtocolParser::_logClientRequest<
         _parseLISTof< protocol::KEYCODE >(
             data + bytes_parsed, sz - bytes_parsed,
             8 * encoding->keycodes_per_modifier,
-            _BASE_INDENTS.nested() ) };
+            _ROOT_WS.nested() ) };
     bytes_parsed += _pad( keycodes.bytes_parsed );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -5356,22 +5356,22 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "keycodes-per-modifier", name_width, _EQUALS,
-        _formatInteger( encoding->keycodes_per_modifier ), _SEPARATOR,
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "keycodes-per-modifier", name_width, _ROOT_WS.equals,
+        _formatInteger( encoding->keycodes_per_modifier ), _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.member, "keycodes", name_width, _EQUALS,
-        keycodes.str, _SEPARATOR,
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.memb_indent, "keycodes", name_width, _ROOT_WS.equals,
+        keycodes.str, _ROOT_WS.separator,
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
@@ -5402,18 +5402,18 @@ size_t X11ProtocolParser::_logClientRequest<
         "{{{}"
         "{}{}"
         "{}}}",
-        _SEPARATOR,
+        _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "opcode", name_width, _EQUALS,
-            _formatInteger( encoding->opcode ), _SEPARATOR ) : "",
+            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
         settings.verbose ?
         fmt::format(
             "{}{: <{}}{}{}{}",
-            _BASE_INDENTS.member, "request length", name_width, _EQUALS,
-            _formatInteger( encoding->request_length ), _SEPARATOR ) : "",
-        _BASE_INDENTS.enclosure
+            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
+            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
+        _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
     return bytes_parsed;
