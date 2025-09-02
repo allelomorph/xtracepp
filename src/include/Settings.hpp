@@ -60,7 +60,7 @@ public:
     bool copyauth                 { true };
     bool stopifnoactiveconnx      { true };   // stopwhennone
     bool waitforclient            { false };
-    bool denyallextensions        { false };
+    bool denyallextensions        { true };   // TBD temp while debugging core protocol
     bool multiline                { false };
     bool verbose                  { false };
     // bool interactive              { false };
