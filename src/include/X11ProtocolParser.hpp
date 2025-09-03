@@ -601,6 +601,8 @@ private:
     size_t _logServerReply(
         Connection* conn, const uint8_t* data, const size_t sz );
 
+    static constexpr uint8_t _GENERATED_EVENT_FLAG { 0x80 };
+    static constexpr uint8_t _EVENT_CODE_MASK { uint8_t(~_GENERATED_EVENT_FLAG) };
     size_t _logServerEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
     _ParsingOutputs _parseEvent(
