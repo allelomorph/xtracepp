@@ -1,7 +1,8 @@
 #include <unistd.h>  // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
 #include <getopt.h>  // getopt_long
 #include <stdlib.h>  // strtoll exit
-#include <stdio.h>   // fclose fopen
+#include <stdio.h>   // fclose fopen setvbuf _IONBF _IOLBF _IOFBF
+#include <stdio_ext.h>   // __flbf __fbufsize
 
 #include <cassert>
 
@@ -17,7 +18,11 @@
 
 Settings::~Settings() {
     fflush( log_fs );
-    fclose( log_fs );
+    if ( log_fs == stdout || log_fs == stderr ) {
+        _restoreFileStreamBufferDefaults();
+    } else {
+        fclose( log_fs );
+    }
 }
 
 void Settings::parseFromArgv(const int argc, char* const* argv) {
@@ -70,6 +75,9 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         // case 'b':
         //     buffered = true;
         //     break;
+        case 'u':
+            unbuffered = true;
+            break;
         case 'o':
             if ( log_path != nullptr ) {
                 std::filesystem::remove( log_path );
@@ -181,4 +189,23 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         subcmd_argc = argc - optind;
         subcmd_argv = argv + optind;
     }
+
+    _recordFileStreamBufferDefaults();
+    if ( unbuffered ) {
+        // TBD have proper cstdlib error handling as elsewhere
+        setvbuf( log_fs, nullptr, _IONBF, 0 );
+    }
+}
+
+void Settings::_recordFileStreamBufferDefaults() {
+    assert( log_fs == stdout || log_fs == stderr );
+    _log_fs_buffer_sz = __fbufsize( log_fs );
+    _log_fs_mode = __flbf( log_fs ) ? _IOLBF :
+        _log_fs_buffer_sz == 0 ? _IONBF : _IOFBF;
+}
+
+void Settings::_restoreFileStreamBufferDefaults() {
+    assert( log_fs == stdout || log_fs == stderr );
+    // TBD have proper cstdlib error handling as elsewhere
+    setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz );
 }

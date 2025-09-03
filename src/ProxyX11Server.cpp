@@ -940,10 +940,11 @@ ProxyX11Server::~ProxyX11Server() {
 
 void ProxyX11Server::init( const int argc, char* const* argv ) {
     settings.parseFromArgv( argc, argv );
-    // setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     _parseDisplayNames();
+
     if ( settings.copyauth )
         _copyAuthentication();
+
     parser.importSettings( settings );
 }
 

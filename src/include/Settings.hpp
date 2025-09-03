@@ -40,6 +40,7 @@ private:
         // {"maxlistlength",        required_argument, NULL,              'm'},  // TBD conlfict with multiline
         {"outfile",              required_argument, NULL,              'o'},
         // {"buffered",             no_argument,       NULL,              'b'},
+        {"unbuffered",           no_argument,       NULL,              'u'},
         // {"interactive",          no_argument,       NULL,              'i'},
         {"multiline",            no_argument,          NULL,           'm'},
         {"verbose",              no_argument,          NULL,           'v'},
@@ -53,7 +54,13 @@ private:
         {NULL,                   0,                 NULL,              0}
     };
     //static constexpr std::string_view _optstring { "+d:D:f:F:cnWskiewm:o:b" };
-    static constexpr std::string_view _optstring { "+d:D:ewo:mv" };
+    static constexpr std::string_view _optstring { "+d:D:ewo:umv" };
+
+    void _recordFileStreamBufferDefaults();
+    void _restoreFileStreamBufferDefaults();
+
+    int    _log_fs_mode {};
+    size_t _log_fs_buffer_sz {};
 
 public:
     bool readwritedebug           { false };
@@ -68,6 +75,7 @@ public:
     // bool print_reltimestamps      { false };
     // bool print_uptimestamps       { false };
     // bool buffered                 { false };
+    bool unbuffered               { false };
     // size_t maxshownlistlen        { SIZE_MAX };
     // bool print_counts             { false };
     // bool print_offsets            { false };
