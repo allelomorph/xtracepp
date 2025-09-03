@@ -64,8 +64,9 @@ Connection::registerRequest( const uint8_t opcode ) {
 uint8_t
 Connection::lookupRequest( const uint16_t seq_num ) {
     assert( seq_num < _request_opcodes_by_seq_num.size() );
-    // TBD temp asserts here to see if replies ever sent out of sequence
-    assert( seq_num == _request_opcodes_by_seq_num.size() - 1 );
-    assert( seq_num == sequence );
+    // TBD replies/errors do seem to be in sequence order, but may be batched,
+    //   so a reply may reference a number before conn.sequence
+    // assert( seq_num == _request_opcodes_by_seq_num.size() - 1 );
+    // assert( seq_num == sequence );
     return _request_opcodes_by_seq_num[ seq_num ];
 }

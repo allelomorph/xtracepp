@@ -243,10 +243,9 @@ size_t X11ProtocolParser::_logServerReply<
     assert( encoding->reply_length ==
             ( sizeof(InternAtom::ReplyEncoding) -
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
-    // TBD make this assert for every Reply
-    assert( conn->sequence == encoding->sequence_number );
+    // TBD replies may be batched, so use encoding->sequence_number instead of conn->sequence
     if ( encoding->atom.data != protocol::atoms::NONE )
-        _internStashedAtom( { conn->id, conn->sequence }, encoding->atom );
+        _internStashedAtom( { conn->id, encoding->sequence_number }, encoding->atom );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
