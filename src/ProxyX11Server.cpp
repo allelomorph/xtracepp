@@ -709,7 +709,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                     if ( settings.readwritedebug ) {
                         fmt::println( settings.log_fs,
                                       "{:03d}:>:error writing to client: {}",
-                                      conn.id, e.code().message() );
+                                      conn.id, e.what() );
                     }
                     _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
@@ -732,7 +732,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                         fmt::println(
                             settings.log_fs,
                             "{:03d}:<:error reading from client buffer: {}",
-                            conn.id, e.code().message() );
+                            conn.id, e.what() );
                     }
                     _open_fds.erase( conn.client_fd );
                     conn.closeClientSocket();
@@ -784,7 +784,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                     if ( settings.readwritedebug ) {
                         fmt::println( settings.log_fs,
                                     "{:03d}:<:error writing to server: {}",
-                                    conn.id, e.code().message() );
+                                    conn.id, e.what() );
                     }
                     _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
@@ -807,7 +807,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                         fmt::println(
                             settings.log_fs,
                             "{:03d}:>:error reading from server buffer: {}",
-                            conn.id, e.code().message() );
+                            conn.id, e.what() );
                     }
                     _open_fds.erase( conn.server_fd );
                     conn.closeServerSocket();
