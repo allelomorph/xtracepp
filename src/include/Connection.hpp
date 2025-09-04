@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>  // generic_category
-#include <vector>
+#include <unordered_map>
 
 #include <cstdint>
 
@@ -21,9 +21,12 @@ private:
     static constexpr int _FD_CLOSED  { -1 };
     inline static uint32_t  _next_id {};
 
-    // 1-indexed so begin with one dummy member
-    // TBD this allows for lookup of request traits when parsing Error/Reply
-    std::vector< uint8_t > _request_opcodes_by_seq_num { 1 };
+    // TBD xtrace uses static incrementing sequence number, but in testing we requests can be sent
+    //   and replied to in batches, so while replies/errors are in order by sequence number, the
+    //   number of the next reply may not be the one of the last request
+    // TBD if we store in a map, other than returning an error, how do we know when a sequence number is
+    //   no longer needed, ie will events still reference a seq num after a reply?
+    std::unordered_map< uint16_t, uint8_t > _request_opcodes_by_seq_num;
 
 public:
     const uint32_t id {};          // unique serial number
@@ -36,7 +39,7 @@ public:
     SocketBuffer   server_buffer;
 
     uint16_t       sequence {}; // Request sequence number, should match real server
-                                // starts at 1 after first call to registerRequest
+                                //   starts at 1 after first call to registerRequest
 
 // TBD connection states are: uncontacted > open > closed
 //                                        > closed ( general fail )
@@ -115,8 +118,29 @@ public:
         return client_buffer.write( server_fd );
     }
 
-    void registerRequest( const uint8_t opcode );
-    uint8_t lookupRequest( const uint16_t seq_num );
+    // TBD how does xtrace refer to seq nums before current one without storing anything?
+    inline void
+    registerRequest( const uint8_t opcode ) {
+        _request_opcodes_by_seq_num.emplace( ++sequence, opcode );
+    }
+
+    inline uint8_t
+    lookupRequest( const uint16_t seq_num ) {
+        // TBD replies/errors do seem to be in sequence order, but may be batched,
+        //   so a reply may reference a number before conn.sequence
+        // TBD using std::out_of_range from at() as bounds check instead of assert
+        return _request_opcodes_by_seq_num.at( seq_num );
+    }
+
+    // TBD other than returning an error, how do we know when a sequence number is
+    //   no longer needed, ie will events still reference a seq num after a reply?
+    //   Working theory for now is that requests without replies/errors can be
+    //   referenced by seq num until connection closes
+    inline void
+    unregisterRequest( const uint16_t seq_num ) {
+        // TBD .erase is idempotent, no need for bounds check assert
+        _request_opcodes_by_seq_num.erase( seq_num );
+    }
 };
 
 

@@ -88,6 +88,7 @@ size_t X11ProtocolParser::_logServerError(
         _formatInteger( encoding->major_opcode ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
+    conn->unregisterRequest( encoding->sequence_number );
     assert( bytes_parsed == protocol::errors::ENCODING_SZ );
     return bytes_parsed;
 }

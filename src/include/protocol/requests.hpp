@@ -333,6 +333,7 @@ struct [[gnu::packed]] ReplyHeader {
         uint8_t revert_to; // 43
         uint8_t draw_direction; // 48
         uint8_t name_len; // 50 (_verbose only)
+        uint8_t last_reply; // 50 (_verbose only)
         CARD8   depth; // 73
         CARD8   names_len; // 99 (_verbose only)
         uint8_t keysyms_per_keycode; // 101

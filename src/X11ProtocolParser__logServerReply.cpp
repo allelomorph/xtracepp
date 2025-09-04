@@ -2559,6 +2559,7 @@ size_t X11ProtocolParser::_logServerReply(
         reinterpret_cast< const ReplyHeader* >( data ) };
     assert( header->reply == protocol::requests::REPLY_PREFIX );
     const uint8_t opcode { conn->lookupRequest( header->sequence_number ) };
+    // TBD only before extension implementation
     assert( opcode >= protocol::requests::opcodes::MIN &&
             opcode <= protocol::requests::opcodes::MAX );
 
@@ -2773,6 +2774,12 @@ size_t X11ProtocolParser::_logServerReply(
     default:
         break;
     };
+    // ListFontsWithInfo is exceptional in that it triggers a series of replies
+    //   instead of one
+    if ( opcode != protocol::requests::opcodes::LISTFONTSWITHINFO ||
+         header->last_reply == protocol::requests::ListFontsWithInfo::LAST_REPLY ) {
+        conn->unregisterRequest( header->sequence_number );
+    }
     assert( bytes_parsed >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
     return bytes_parsed;
 }
