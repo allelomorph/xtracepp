@@ -58,14 +58,14 @@ std::array<std::string_view, PREDEFINED_MAX + 1> predefined {
     "VISUALID",             // 32
     "WINDOW",               // 33
     "WM_COMMAND",           // 34
-    "WM_HPPINTS",           // 35
+    "WM_HINTS",             // 35
     "WM_CLIENT_MACHINE",    // 36
     "WM_ICON_NAME",         // 37
     "WM_ICON_SIZE",         // 38
     "WM_NAME",              // 39
-    "WM_NORMAL_HPPINTS",    // 40
-    "WM_SIZE_HPPINTS",      // 41
-    "WM_ZOOM_HPPINTS",      // 42
+    "WM_NORMAL_HINTS",      // 40
+    "WM_SIZE_HINTS",        // 41
+    "WM_ZOOM_HINTS",        // 42
     "MIN_SPACE",            // 43
     "NORM_SPACE",           // 44
     "MAX_SPACE",            // 45
@@ -79,7 +79,7 @@ std::array<std::string_view, PREDEFINED_MAX + 1> predefined {
     "STRIKEOUT_ASCENT",     // 53
     "STRIKEOUT_DESCENT",    // 54
     "ITALIC_ANGLE",         // 55
-    "X_HPPEIGHT",           // 56
+    "X_HEIGHT",             // 56
     "QUAD_WIDTH",           // 57
     "WEIGHT",               // 58
     "POINT_SIZE",           // 59
@@ -89,7 +89,7 @@ std::array<std::string_view, PREDEFINED_MAX + 1> predefined {
     "FONT_NAME",            // 63
     "FAMILY_NAME",          // 64
     "FULL_NAME",            // 65
-    "CAP_HPPEIGHT",         // 66
+    "CAP_HEIGHT",           // 66
     "WM_CLASS",             // 67
     "WM_TRANSIENT_FOR",     // 68
 };
