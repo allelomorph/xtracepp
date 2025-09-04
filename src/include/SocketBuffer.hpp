@@ -10,6 +10,7 @@
 #include <unistd.h>     // ssize_t
 
 
+#include <cassert>
 // TBD can this be done more elegantly/idiomatically with std::streambuf
 //   or std::stringbuf? For example:
 //   - https://gist.github.com/amezin/c4bfc0dd11dd200c13b3
@@ -27,14 +28,14 @@ private:
                    decltype( _buffer )::size_type, size_t > );
     size_t               _bytes_read    {};
     size_t               _bytes_written {};
-    // _buffer.data() + _bytes_written
-    uint8_t*             _data;
+    // _buffer.size() - _bytes_read
+    size_t               _bytes_available { _BLOCK_SZ };
 
 public:
-    SocketBuffer() : _buffer( _BLOCK_SZ ), _data( _buffer.data() ) {}
+    SocketBuffer() : _buffer( _BLOCK_SZ ), _bytes_available( _buffer.size() ) {
+        assert( !_buffer.empty() ); }
     // TBD needed for passing to _connections.emplace(): buffer is copied and ptr needs to be updated
-    SocketBuffer( const SocketBuffer& other ) : _data( _buffer.data() + _bytes_written ) {}
-//    SocketBuffer( SocketBuffer&& other ) : _data( _buffer.data() + _bytes_written ) {}
+    //SocketBuffer( const SocketBuffer& other ) { assert( _buffer.size() ); }
 
     size_t write( const int sockfd,
                   const size_t bytes_to_write );
@@ -44,8 +45,11 @@ public:
                  const size_t bytes_to_read );
     size_t read( const int sockfd );
 
+    size_t load( const void* input,
+                 const size_t bytes_to_load );
+
     inline uint8_t* data() {
-        return _data;
+        return _buffer.data() + _bytes_written;
     }
 
     inline size_t size() {
@@ -59,11 +63,11 @@ public:
     inline void clear() {
         _bytes_read    = 0;
         _bytes_written = 0;
-        _data          = _buffer.data();
+        _bytes_available = _buffer.size();
     }
 
     inline size_t capacity() {
-        return _buffer.capacity();
+        return _bytes_available;
     }
 };
 
