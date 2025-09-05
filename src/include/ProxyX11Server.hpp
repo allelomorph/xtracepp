@@ -38,7 +38,6 @@ private:
     DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
 
     int _listener_fd { -1 };  // listening for x clients to intercept comms with x server
-
     pid_t _child_pid { -1 };  // cli subcmd pid
 
     std::unordered_map<int, Connection> _connections;
@@ -64,6 +63,8 @@ private:
     int  _processClientQueue();
 
     void __debugOutput();
+
+    void _fetchCurrentServerTime();
 
 public:
     Settings settings;

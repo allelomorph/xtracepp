@@ -178,7 +178,12 @@ X11ProtocolParser::_formatProtocolType(
     // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
     char time_str [ sizeof( "yyyy-mm-ddThh:mm:ssZ" ) ] {};
     // TBD check return val? should == sizeof( time_str )
-    const std::time_t time_ ( time.data );
+    // TBD can use fmt/chrono.h to avoid strftime
+    // TBD in testing the granularity of TIMESTAMPS seems to be in millisec
+    static constexpr uint32_t TIMESTAMP_TICKS_PER_SEC { 1000 };
+    const std::time_t time_ (
+        ( ( time.data - settings.ref_TIMESTAMP ) / TIMESTAMP_TICKS_PER_SEC )
+        + settings.ref_unix_time );
     strftime( time_str, sizeof( time_str ), "%FT%TZ",
               gmtime( &time_ ) );
     if ( settings.verbose ) {

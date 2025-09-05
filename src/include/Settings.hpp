@@ -88,6 +88,10 @@ public:
     char* const*  subcmd_argv     { nullptr };  // argv after --
     int           subcmd_argc     {};           // subcmd_argv arg ct
 
+    // TBD reference points to interpret server millisecond timestamps as real times
+    uint32_t ref_TIMESTAMP {};
+    time_t   ref_unix_time {};
+
     ~Settings();
 
     void parseFromArgv(const int argc, char* const* argv);
