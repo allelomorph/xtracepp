@@ -28,6 +28,9 @@ struct ClientInitiation {
         uint16_t d;                       // length of authorization-protocol-data
     private:
         uint16_t _unused2;
+    public:
+        static constexpr uint8_t MSB_FIRST { 'B' };
+        static constexpr uint8_t LSB_FIRST { 'l' };
     };
     // header is followed by STRING8 of n bytes, authorization_protocol_name (authorization-protocol-name)
     // followed by p bytes to pad n to multiple of 4
