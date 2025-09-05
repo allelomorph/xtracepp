@@ -43,6 +43,7 @@ public:
 
     size_t unload( void* output,
                    const size_t bytes_to_unload );
+    size_t unload( const size_t bytes_to_unload );
 
     size_t read( const int sockfd,
                  const size_t bytes_to_read );

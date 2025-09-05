@@ -40,9 +40,18 @@ size_t SocketBuffer::write( const int sockfd,
 // TBD direct manual buffer unload for simple clients used during init
 size_t SocketBuffer::unload( void* output,
                              const size_t bytes_to_unload ) {
+    assert( output != nullptr );
     assert( bytes_to_unload <= size() );
-    if ( output != nullptr )
-        memcpy( output, data(), bytes_to_unload );
+    memcpy( output, data(), bytes_to_unload );
+    // bytes written removed (hidden) from front of buffer
+    _bytes_written += bytes_to_unload;
+    if ( _bytes_written == _bytes_read )
+        clear();
+    return bytes_to_unload;
+}
+
+size_t SocketBuffer::unload( const size_t bytes_to_unload ) {
+    assert( bytes_to_unload <= size() );
     // bytes written removed (hidden) from front of buffer
     _bytes_written += bytes_to_unload;
     if ( _bytes_written == _bytes_read )
