@@ -41,6 +41,9 @@ public:
                   const size_t bytes_to_write );
     size_t write( const int sockfd );
 
+    size_t unload( void* output,
+                   const size_t bytes_to_unload );
+
     size_t read( const int sockfd,
                  const size_t bytes_to_read );
     size_t read( const int sockfd );
