@@ -80,6 +80,8 @@ private:
     void __debugOutput();
 
     void _pollSingleSocket( const int socket_fd, const short events );
+    bool _authenticateServerConnection(
+        const int server_fd, protocol::WINDOW* screen0_root = nullptr );
     void _fetchCurrentServerTime();
 
 public:

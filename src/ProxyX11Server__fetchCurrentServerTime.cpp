@@ -51,19 +51,10 @@ void ProxyX11Server::_pollSingleSocket(
     }
 }
 
-void ProxyX11Server::_fetchCurrentServerTime() {
-    const int server_fd { _connectToServer() };
-    if( server_fd < 0 ) {
-        // TBD exception
-        fmt::println(
-            stderr, "{}: failure to connect to X server for display: {}",
-            __PRETTY_FUNCTION__, _out_display.name );
-        return;
-    }
+bool ProxyX11Server::_authenticateServerConnection(
+    const int server_fd, protocol::WINDOW* screen0_root/* = nullptr*/ ) {
+
     SocketBuffer sbuffer;
-
-    ////// Establish connection // TBD ( could be subroutine to DRY with atom prefetching )
-
     using protocol::connection_setup::ClientInitiation;
     ClientInitiation::Header init_header;
     init_header.byte_order = ClientInitiation::Header::LSB_FIRST;
@@ -77,24 +68,21 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     sbuffer.load( auth_data, _pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
         sizeof(init_header) + _pad( _AUTH_NAME.size() ) + _pad( _AUTH_DATA_SZ ) );
-    {
-        try {
-            _pollSingleSocket( server_fd, POLLOUT );
-        } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
-            goto close_socket;
-        }
-        sbuffer.write( server_fd );
-        assert( sbuffer.empty() );
+    try {
+        _pollSingleSocket( server_fd, POLLOUT );
+    } catch ( const std::exception& e ) {
+        fmt::println( stderr, "{}", e.what() );
+        return false;
     }
+    sbuffer.write( server_fd );
+    assert( sbuffer.empty() );
 
-    protocol::WINDOW screen0_root;
     {
         try {
             _pollSingleSocket( server_fd, POLLIN );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
-            goto close_socket;
+            return false;
         }
         sbuffer.read( server_fd );
         using protocol::connection_setup::ServerAcceptance;
@@ -104,12 +92,14 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         assert( sbuffer.size() >= _pad( acceptance_header.v ) +
                 acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) +
                 sizeof( ServerAcceptance::SCREEN::Header ) );
-        // TBD use err fail instead of assert
-        assert( acceptance_header.success == protocol::connection_setup::SUCCESS );
-        assert( acceptance_header.protocol_major_version ==
-                init_header.protocol_major_version );
-        assert( acceptance_header.protocol_minor_version ==
-                init_header.protocol_minor_version );
+        if ( acceptance_header.success != protocol::connection_setup::SUCCESS )
+            return false;
+        if ( acceptance_header.protocol_major_version !=
+             init_header.protocol_major_version )
+            return false;
+        if( acceptance_header.protocol_minor_version !=
+            init_header.protocol_minor_version )
+            return false;
         // TBD skip over vendor
         sbuffer.unload( _pad( acceptance_header.v ) );
         // TBD skip over pixmap-formats
@@ -117,8 +107,29 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         // TBD get WINDOW for root window of first screen
         ServerAcceptance::SCREEN::Header screen_header;
         sbuffer.unload( &screen_header, sizeof( ServerAcceptance::SCREEN::Header ) );
-        screen0_root = screen_header.root;
+        if ( screen0_root != nullptr )
+            *screen0_root = screen_header.root;
         sbuffer.clear();
+    }
+    return true;
+}
+
+void ProxyX11Server::_fetchCurrentServerTime() {
+    const int server_fd { _connectToServer() };
+    if( server_fd < 0 ) {
+        // TBD exception
+        fmt::println(
+            stderr, "{}: failure to connect to X server for display: {}",
+            __PRETTY_FUNCTION__, _out_display.name );
+        return;
+    }
+
+    SocketBuffer sbuffer;
+    protocol::WINDOW screen0_root;
+    if ( !_authenticateServerConnection( server_fd, &screen0_root ) ) {
+        fmt::println( stderr, "{}: failed to authenticate connection to X server",
+                      __PRETTY_FUNCTION__ );
+        goto close_socket;
     }
 
     ////// Send ChangeWindowAttributes on screen->root to toggle reporting PropertNotify events
