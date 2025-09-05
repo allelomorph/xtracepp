@@ -1,5 +1,5 @@
-#ifndef PREDEFINED_ATOMS_HPP
-#define PREDEFINED_ATOMS_HPP
+#ifndef PROTOCOL_PREDEFINED_ATOMS_HPP
+#define PROTOCOL_PREDEFINED_ATOMS_HPP
 
 
 #include <cstdint>
@@ -99,4 +99,4 @@ std::array<std::string_view, PREDEFINED_MAX + 1> predefined {
 }  // namespace protocol
 
 
-#endif  // PREDEFINED_ATOMS_HPP
+#endif  // PROTOCOL_PREDEFINED_ATOMS_HPP

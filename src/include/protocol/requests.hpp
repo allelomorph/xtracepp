@@ -1,5 +1,5 @@
-#ifndef REQUESTS_HPP
-#define REQUESTS_HPP
+#ifndef PROTOCOL_REQUESTS_HPP
+#define PROTOCOL_REQUESTS_HPP
 
 
 #include <cstdint>
@@ -3054,4 +3054,4 @@ struct NoOperation : public impl::SimpleRequest {
 }  // namespace protocol
 
 
-#endif  // REQUESTS_HPP
+#endif  // PROTOCOL_REQUESTS_HPP

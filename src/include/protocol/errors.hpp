@@ -1,5 +1,5 @@
-#ifndef ERRORS_HPP
-#define ERRORS_HPP
+#ifndef PROTOCOL_ERRORS_HPP
+#define PROTOCOL_ERRORS_HPP
 
 
 #include <cstdint>
@@ -236,4 +236,4 @@ static constexpr uint32_t ENCODING_SZ { sizeof(Encoding) };
 }  // namespace protocol
 
 
-#endif  // ERRORS_HPP
+#endif  // PROTOCOL_ERRORS_HPP

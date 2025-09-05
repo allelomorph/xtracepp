@@ -1,5 +1,5 @@
-#ifndef EVENTS_HPP
-#define EVENTS_HPP
+#ifndef PROTOCOL_EVENTS_HPP
+#define PROTOCOL_EVENTS_HPP
 
 
 #include <cstdint>
@@ -837,4 +837,4 @@ static_assert( sizeof( MappingNotify::Encoding )    == ENCODING_SZ );
 }  // namespace protocol
 
 
-#endif  // EVENTS_HPP
+#endif  // PROTOCOL_EVENTS_HPP

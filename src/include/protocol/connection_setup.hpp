@@ -1,5 +1,5 @@
-#ifndef CONNECTION_SETUP_HPP
-#define CONNECTION_SETUP_HPP
+#ifndef PROTOCOL_CONNECTION_SETUP_HPP
+#define PROTOCOL_CONNECTION_SETUP_HPP
 
 #include "protocol/common_types.hpp"
 
@@ -179,4 +179,4 @@ struct ServerAcceptance {
 }  // namespace protocol
 
 
-#endif  // CONNECTION_SETUP_HPP
+#endif  // PROTOCOL_CONNECTION_SETUP_HPP

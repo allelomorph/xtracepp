@@ -1,5 +1,5 @@
-#ifndef COMMON_TYPES_HPP
-#define COMMON_TYPES_HPP
+#ifndef PROTOCOL_COMMON_TYPES_HPP
+#define PROTOCOL_COMMON_TYPES_HPP
 
 #include <cstdint>
 #include <vector>
@@ -362,4 +362,4 @@ struct [[gnu::packed]] STR {
 }  // namespace protocol
 
 
-#endif  // COMMON_TYPES_HPP
+#endif  // PROTOCOL_COMMON_TYPES_HPP
