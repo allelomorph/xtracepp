@@ -83,6 +83,9 @@ namespace protocol {
 
 namespace errors {
 
+// aids in disambiguating packet by the first byte
+static constexpr uint8_t PREFIX { 0 };
+
 namespace codes {
 
 enum Codes {

@@ -946,6 +946,7 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
         _copyAuthentication();
 
     _fetchCurrentServerTime();
+    _fetchInternedAtoms();
 
     parser.importSettings( settings );
 }

@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <cassert>
 
 #include <poll.h>  // nfds_t pollfd POLL(IN|OUT|ERR|HUP|NVAL)
@@ -18,20 +20,22 @@
 
 
 void ProxyX11Server::_pollSingleSocket(
-    const int socket_fd, const short events ) {
+    const int socket_fd, const short events, int timeout/* = -1*/ ) {
     assert( events == POLLIN || events == POLLOUT ||
             events == POLLIN | POLLOUT );
     const      nfds_t   nfds { 1 };
     /*struct */pollfd   pfds[1];
     pfds[0].fd = socket_fd;
-    static constexpr int POLL_TIMEOUT_MS { 3000 };
+    static constexpr int DEFAULT_POLL_TIMEOUT_MS { 3000 };
+    if ( timeout == -1 )
+        timeout = DEFAULT_POLL_TIMEOUT_MS;
 
     pfds[0].events = events;
-    switch ( poll( pfds, nfds, POLL_TIMEOUT_MS ) ) {
+    switch ( poll( pfds, nfds, timeout ) ) {
     case 0:
         throw std::runtime_error(
             fmt::format( "{}: poll timeout in {} ms",
-                         __PRETTY_FUNCTION__, POLL_TIMEOUT_MS ) );
+                         __PRETTY_FUNCTION__, timeout ) );
         break;
     case -1:
         throw errors::system::exception(
@@ -77,40 +81,38 @@ bool ProxyX11Server::_authenticateServerConnection(
     sbuffer.write( server_fd );
     assert( sbuffer.empty() );
 
-    {
-        try {
-            _pollSingleSocket( server_fd, POLLIN );
-        } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
-            return false;
-        }
-        sbuffer.read( server_fd );
-        using protocol::connection_setup::ServerAcceptance;
-        assert( sbuffer.size() >= sizeof( ServerAcceptance::Header ) );
-        ServerAcceptance::Header acceptance_header;
-        sbuffer.unload( &acceptance_header, sizeof( ServerAcceptance::Header ) );
-        assert( sbuffer.size() >= _pad( acceptance_header.v ) +
-                acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) +
-                sizeof( ServerAcceptance::SCREEN::Header ) );
-        if ( acceptance_header.success != protocol::connection_setup::SUCCESS )
-            return false;
-        if ( acceptance_header.protocol_major_version !=
-             init_header.protocol_major_version )
-            return false;
-        if( acceptance_header.protocol_minor_version !=
-            init_header.protocol_minor_version )
-            return false;
-        // TBD skip over vendor
-        sbuffer.unload( _pad( acceptance_header.v ) );
-        // TBD skip over pixmap-formats
-        sbuffer.unload( acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) );
-        // TBD get WINDOW for root window of first screen
-        ServerAcceptance::SCREEN::Header screen_header;
-        sbuffer.unload( &screen_header, sizeof( ServerAcceptance::SCREEN::Header ) );
-        if ( screen0_root != nullptr )
-            *screen0_root = screen_header.root;
-        sbuffer.clear();
+    try {
+        _pollSingleSocket( server_fd, POLLIN );
+    } catch ( const std::exception& e ) {
+        fmt::println( stderr, "{}", e.what() );
+        return false;
     }
+    sbuffer.read( server_fd );
+    using protocol::connection_setup::ServerAcceptance;
+    assert( sbuffer.size() >= sizeof( ServerAcceptance::Header ) );
+    ServerAcceptance::Header acceptance_header;
+    sbuffer.unload( &acceptance_header, sizeof( ServerAcceptance::Header ) );
+    assert( sbuffer.size() >= _pad( acceptance_header.v ) +
+            acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) +
+            sizeof( ServerAcceptance::SCREEN::Header ) );
+    if ( acceptance_header.success != protocol::connection_setup::SUCCESS )
+        return false;
+    if ( acceptance_header.protocol_major_version !=
+         init_header.protocol_major_version )
+        return false;
+    if( acceptance_header.protocol_minor_version !=
+        init_header.protocol_minor_version )
+        return false;
+    // TBD skip over vendor
+    sbuffer.unload( _pad( acceptance_header.v ) );
+    // TBD skip over pixmap-formats
+    sbuffer.unload( acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) );
+    // TBD get WINDOW for root window of first screen
+    ServerAcceptance::SCREEN::Header screen_header;
+    sbuffer.unload( &screen_header, sizeof( ServerAcceptance::SCREEN::Header ) );
+    if ( screen0_root != nullptr )
+        *screen0_root = screen_header.root;
+    sbuffer.clear();
     return true;
 }
 
@@ -133,7 +135,6 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     }
 
     ////// Send ChangeWindowAttributes on screen->root to toggle reporting PropertNotify events
-
     {
         using protocol::requests::ChangeWindowAttributes;
         ChangeWindowAttributes::Encoding cwa_encoding {};
@@ -158,7 +159,6 @@ void ProxyX11Server::_fetchCurrentServerTime() {
 
     ////// Send ChangeProperty with 0-length append as noop
     // TBD see https://stackoverflow.com/questions/61849695/get-current-x11-server-time
-
     {
         using protocol::requests::ChangeProperty;
         ChangeProperty::Encoding cp_encoding {};
@@ -184,7 +184,6 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     }
 
     ////// verify properly formatted PropertyNotify reply, collect timestamp
-
     {
         try {
             _pollSingleSocket( server_fd, POLLIN );
@@ -211,4 +210,98 @@ void ProxyX11Server::_fetchCurrentServerTime() {
 close_socket:
     // sends EOF
     close( server_fd );
+}
+
+
+void ProxyX11Server::_fetchInternedAtoms() {
+    const int server_fd { _connectToServer() };
+    if( server_fd < 0 ) {
+        // TBD exception
+        fmt::println(
+            stderr, "{}: failure to connect to X server for display: {}",
+            __PRETTY_FUNCTION__, _out_display.name );
+        return;
+    }
+
+    // indices start at 1
+    std::vector<std::string> fetched_atoms ( 1 );
+    using protocol::requests::GetAtomName;
+    GetAtomName::Encoding req_encoding {};
+    GetAtomName::ReplyEncoding rep_encoding {};
+    constexpr int STRINGBUF_SZ { 1000 };
+    char stringbuf[STRINGBUF_SZ];
+    constexpr int readout_int_width { 5 };
+    constexpr char CSI[sizeof("\x1b[")] { "\x1b[" };
+
+    SocketBuffer sbuffer;
+    if ( !_authenticateServerConnection( server_fd ) ) {
+        fmt::println( stderr, "{}: failed to authenticate connection to X server",
+                      __PRETTY_FUNCTION__ );
+        goto close_socket;
+    }
+    req_encoding.opcode = protocol::requests::opcodes::GETATOMNAME;
+    req_encoding.request_length = _alignedUnits( sizeof( req_encoding ) );
+    // TBD standardize which stream all non-log messages are going to
+    fmt::print( stderr, "fetching interned ATOMs: " );
+//    fmt::print( "\x1b[?25l" );  // hide cursor
+    for ( uint32_t i { 1 }; true; ++i ) {
+        req_encoding.atom.data = i;
+        sbuffer.load( &req_encoding, sizeof( req_encoding ) );
+        assert( sbuffer.size() == sizeof( req_encoding ) );
+        try {
+            _pollSingleSocket( server_fd, POLLOUT, 500 );
+        } catch ( const std::exception& e ) {
+            fmt::println( stderr, "{}", e.what() );
+            goto close_socket;
+        }
+        sbuffer.write( server_fd );
+        assert( sbuffer.empty() );
+        try {
+            _pollSingleSocket( server_fd, POLLIN, 500 );
+        } catch ( const std::exception& e ) {
+            fmt::println( stderr, "{}", e.what() );
+            goto close_socket;
+        }
+        sbuffer.read( server_fd );
+        assert( sbuffer.size() >= sizeof( rep_encoding ) );
+        if ( *sbuffer.data() == protocol::errors::PREFIX ) {
+            protocol::errors::Encoding err_encoding;
+            assert( sbuffer.size() == sizeof( err_encoding ) );
+            sbuffer.unload( &err_encoding, sizeof( err_encoding ) );
+            // expect Atom error at end of first contiguous region of server's ATOMs
+            if ( err_encoding.code == protocol::errors::codes::ATOM ) {
+                // need newline after cursor looping horizontally
+                fmt::println( stderr, "" );
+            } else {
+                fmt::println( stderr, "failed atom prefech with X error {}, "
+                              "reverting to default atom lookup",
+                              protocol::errors::names[err_encoding.code] );
+                fetched_atoms.clear();
+            }
+            break;
+        }
+        sbuffer.unload( &rep_encoding, sizeof( rep_encoding ) );
+        assert( rep_encoding.reply == protocol::requests::REPLY_PREFIX );
+        assert( rep_encoding.sequence_number == i );
+        assert( rep_encoding.reply_length == _alignedUnits( _pad( rep_encoding.n ) ) );
+        assert( sbuffer.size() < STRINGBUF_SZ );
+        assert( sbuffer.size() == _pad( rep_encoding.n ) );
+        sbuffer.unload( stringbuf, sbuffer.size() );
+        stringbuf[rep_encoding.n] = '\0';
+        fetched_atoms.emplace_back( stringbuf );
+        assert( sbuffer.empty() );
+        // \x1b[#D right # cols
+        fmt::print( stderr, "{:{}d}{}{}D",
+                    i, readout_int_width, CSI, readout_int_width );
+    }
+
+close_socket:
+    // sends EOF
+    close( server_fd );
+
+//    fmt::print( "\x1b[?25h" );  // show cursor
+    // TBD see friending issue with _pad/_ALIGN - same problem here with _prefetched_interned_atoms
+    // if ( fetched_interned_atoms.size() > 1 ) {
+    //     parser._prefetched_interned_atoms = std::move( fetched_interned_atoms );
+    // }
 }

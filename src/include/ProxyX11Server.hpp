@@ -44,8 +44,9 @@ private:
     // maximum binary tree of open file descriptors, to supply nfds to select(2)
     std::set<int, std::greater<int>>    _open_fds;
 
-    // TBD these are identical with X11ProtocolParser, and are needed for clients
-    //   run before main queue - can we be friends with X11ProtocolParser without circular include?
+    // TBD these are identical with X11ProtocolParser, and are needed for
+    //   _authenticateServerConnection, _fetchCurrentServerTime, and
+    //   _fetchInternedAtoms- can we be friends with X11ProtocolParser without circular include?
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
     static constexpr size_t _ALIGN { 4 };
@@ -79,10 +80,12 @@ private:
 
     void __debugOutput();
 
-    void _pollSingleSocket( const int socket_fd, const short events );
+    void _pollSingleSocket(
+        const int socket_fd, const short events, int timeout = -1 );
     bool _authenticateServerConnection(
         const int server_fd, protocol::WINDOW* screen0_root = nullptr );
     void _fetchCurrentServerTime();
+    void _fetchInternedAtoms();
 
 public:
     Settings settings;
