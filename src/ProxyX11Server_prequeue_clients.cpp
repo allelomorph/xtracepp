@@ -2,7 +2,10 @@
 
 #include <cassert>
 
-#include <poll.h>  // nfds_t pollfd POLL(IN|OUT|ERR|HUP|NVAL)
+#include <poll.h>    // nfds_t pollfd POLL(IN|OUT|ERR|HUP|NVAL)
+#include <unistd.h>  // STDERR_FILENO EXIT_FAILURE
+#include <signal.h>  // sigaction
+#include <stdio.h>   // write
 
 #include <fmt/format.h>
 
@@ -210,6 +213,10 @@ close_socket:
     close( server_fd );
 }
 
+void catchProcessEndingSignal( int signum ) {
+    write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
+    _exit( signum );
+}
 
 void ProxyX11Server::_fetchInternedAtoms() {
     const int server_fd { _connectToServer() };
@@ -221,6 +228,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         return;
     }
 
+    // TBD put most initializations first to avoid being crossed by goto
     // indices start at 1
     std::vector<std::string> fetched_atoms ( 1 );
     using protocol::requests::GetAtomName;
@@ -230,8 +238,9 @@ void ProxyX11Server::_fetchInternedAtoms() {
     char stringbuf[STRINGBUF_SZ];
     constexpr int readout_int_width { 5 };
     constexpr char CSI[sizeof("\x1b[")] { "\x1b[" };
-
     SocketBuffer sbuffer;
+    struct sigaction act {};
+
     if ( !_authenticateServerConnection( server_fd ) ) {
         fmt::println( stderr, "{}: failed to authenticate connection to X server",
                       __PRETTY_FUNCTION__ );
@@ -241,8 +250,18 @@ void ProxyX11Server::_fetchInternedAtoms() {
     req_encoding.request_length = parser._alignedUnits( sizeof( req_encoding ) );
     // TBD standardize which stream all non-log messages are going to
     fmt::print( stderr, "fetching interned ATOMs: " );
-    // TBD why does hide cursor not work in this context?
-    //fmt::print( "\x1b[?25l" );  // hide cursor
+    fmt::print( stderr, "{}?25l", CSI );  // hide cursor
+    // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
+    act.sa_handler = &catchProcessEndingSignal;
+    if ( sigaction( SIGABRT, &act, nullptr ) == -1 ||
+         sigaction( SIGINT, &act, nullptr ) == -1  ||
+         sigaction( SIGSEGV, &act, nullptr ) == -1 ||
+         sigaction( SIGTERM, &act, nullptr ) == -1 ) {
+        fmt::println(
+            stderr, "{}: {}", __PRETTY_FUNCTION__,
+            errors::system::message( "sigaction" ) );
+        exit( EXIT_FAILURE );
+    }
     for ( uint32_t i { 1 }; true; ++i ) {
         ////// Send InternAtom request on ATOMs starting with 1
         //////   ( expecting large contiguous region of ATOM ids )
@@ -301,8 +320,18 @@ void ProxyX11Server::_fetchInternedAtoms() {
                     i, readout_int_width, CSI, readout_int_width );
     }
 
-    // TBD deactivated until hide cursor works
-    //fmt::print( "\x1b[?25h" );  // show cursor
+    fmt::print( stderr, "{}?25h", CSI );  // show cursor
+    // restore default signal behavior
+    act.sa_handler = SIG_DFL;
+    if ( sigaction( SIGABRT, &act, nullptr ) == -1 ||
+         sigaction( SIGINT, &act, nullptr ) == -1  ||
+         sigaction( SIGSEGV, &act, nullptr ) == -1 ||
+         sigaction( SIGTERM, &act, nullptr ) == -1 ) {
+        fmt::println(
+            stderr, "{}: {}", __PRETTY_FUNCTION__,
+            errors::system::message( "sigaction" ) );
+        exit( EXIT_FAILURE );
+    }
     if ( fetched_atoms.size() > 1 ) {
         parser._prefetched_interned_atoms = std::move( fetched_atoms );
     }
