@@ -114,6 +114,12 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         case 'v':
             verbose = true;
             break;
+        case 'r':
+            relativetimestamps = true;
+            break;
+        case 'p':
+            prefetchatoms = true;
+            break;
         case '\0':
             switch( _long_only_option ) {
             case LO_HELP:

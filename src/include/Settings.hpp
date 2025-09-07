@@ -44,6 +44,8 @@ private:
         // {"interactive",          no_argument,       NULL,              'i'},
         {"multiline",            no_argument,          NULL,           'm'},
         {"verbose",              no_argument,          NULL,           'v'},
+        {"relativetimestamps",   no_argument,          NULL,           'r'},
+        {"prefetchatoms",        no_argument,          NULL,           'p'},
         {"help",                 no_argument,       &_long_only_option, LO_HELP},
         {"version",              no_argument,       &_long_only_option, LO_VERSION},
         // {"timestamps",           no_argument,       &_long_only_option, LO_TIMESTAMPS},
@@ -54,7 +56,7 @@ private:
         {NULL,                   0,                 NULL,              0}
     };
     //static constexpr std::string_view _optstring { "+d:D:f:F:cnWskiewm:o:b" };
-    static constexpr std::string_view _optstring { "+d:D:ewo:umv" };
+    static constexpr std::string_view _optstring { "+d:D:ewo:umvrp" };
 
     void _recordFileStreamBufferDefaults();
     void _restoreFileStreamBufferDefaults();
@@ -70,6 +72,8 @@ public:
     bool denyallextensions        { true };   // TBD temp while debugging core protocol
     bool multiline                { false };
     bool verbose                  { false };
+    bool relativetimestamps       { false };
+    bool prefetchatoms            { false };
     // bool interactive              { false };
     // bool print_timestamps         { false };
     // bool print_reltimestamps      { false };

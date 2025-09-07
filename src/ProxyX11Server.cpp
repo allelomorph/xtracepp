@@ -944,9 +944,10 @@ void ProxyX11Server::init( const int argc, char* const* argv ) {
 
     if ( settings.copyauth )
         _copyAuthentication();
-
-    _fetchCurrentServerTime();
-    _fetchInternedAtoms();
+    if ( settings.relativetimestamps )
+        _fetchCurrentServerTime();
+    if ( settings.prefetchatoms )
+        _fetchInternedAtoms();
 
     parser.importSettings( settings );
 }
