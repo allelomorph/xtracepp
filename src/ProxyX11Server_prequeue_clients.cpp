@@ -16,9 +16,6 @@
 #include "protocol/errors.hpp"
 
 
-// no forking or threading, want this to be completed syncronously before main queue begins
-
-
 void ProxyX11Server::_pollSingleSocket(
     const int socket_fd, const short events, int timeout/* = -1*/ ) {
     assert( events == POLLIN || events == POLLOUT ||
@@ -134,7 +131,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         goto close_socket;
     }
 
-    ////// Send ChangeWindowAttributes on screen->root to toggle reporting PropertNotify events
+    ////// Send ChangeWindowAttributes for root window on screen 0 to toggle
+    //////   reporting PropertNotify events
     {
         using protocol::requests::ChangeWindowAttributes;
         ChangeWindowAttributes::Encoding cwa_encoding {};
@@ -157,7 +155,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         assert( sbuffer.empty() );
     }
 
-    ////// Send ChangeProperty with 0-length append as noop
+    ////// Send ChangeProperty with 0-length append as no-op
     // TBD see https://stackoverflow.com/questions/61849695/get-current-x11-server-time
     {
         using protocol::requests::ChangeProperty;
@@ -183,7 +181,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         assert( sbuffer.empty() );
     }
 
-    ////// verify properly formatted PropertyNotify reply, collect timestamp
+    ////// Parse PropertyNotify event, collect reference TIMESTAMP
     {
         try {
             _pollSingleSocket( server_fd, POLLIN );
@@ -201,11 +199,11 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         assert( pn_encoding.window.data == screen0_root.data );
         assert( pn_encoding.atom.data == /*XCB_ATOM_WM_NAME 39*/0x27 );
         assert( pn_encoding.state == /*XCB_PROPERTY_NEW_VALUE*/0 );
-        // assign reference points
+
         settings.ref_TIMESTAMP = pn_encoding.time.data;
         settings.ref_unix_time = time(nullptr);
-        sbuffer.clear();
     }
+    sbuffer.clear();
 
 close_socket:
     // sends EOF
@@ -243,8 +241,11 @@ void ProxyX11Server::_fetchInternedAtoms() {
     req_encoding.request_length = parser._alignedUnits( sizeof( req_encoding ) );
     // TBD standardize which stream all non-log messages are going to
     fmt::print( stderr, "fetching interned ATOMs: " );
-//    fmt::print( "\x1b[?25l" );  // hide cursor
+    // TBD why does hide cursor not work in this context?
+    //fmt::print( "\x1b[?25l" );  // hide cursor
     for ( uint32_t i { 1 }; true; ++i ) {
+        ////// Send InternAtom request on ATOMs starting with 1
+        //////   ( expecting large contiguous region of ATOM ids )
         req_encoding.atom.data = i;
         sbuffer.load( &req_encoding, sizeof( req_encoding ) );
         assert( sbuffer.size() == sizeof( req_encoding ) );
@@ -256,6 +257,8 @@ void ProxyX11Server::_fetchInternedAtoms() {
         }
         sbuffer.write( server_fd );
 
+        ////// Parse InternAtom reply to get string interned at ATOM i
+        //////   ( or parse first error and break loop )
         assert( sbuffer.empty() );
         try {
             _pollSingleSocket( server_fd, POLLIN, 500 );
@@ -292,11 +295,13 @@ void ProxyX11Server::_fetchInternedAtoms() {
         fetched_atoms.emplace_back( stringbuf );
         assert( sbuffer.empty() );
 
+        // Update ATOM counter in place to keep user aware of progress
         // \x1b[#D right # cols
         fmt::print( stderr, "{:{}d}{}{}D",
                     i, readout_int_width, CSI, readout_int_width );
     }
 
+    // TBD deactivated until hide cursor works
     //fmt::print( "\x1b[?25h" );  // show cursor
     if ( fetched_atoms.size() > 1 ) {
         parser._prefetched_interned_atoms = std::move( fetched_atoms );

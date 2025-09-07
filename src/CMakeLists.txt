@@ -7,7 +7,7 @@ add_executable(xtracepp
   Connection.cpp
   DisplayInfo.cpp
   ProxyX11Server.cpp
-  ProxyX11Server__fetchCurrentServerTime.cpp
+  ProxyX11Server_prequeue_clients.cpp
   Settings.cpp
   SocketBuffer.cpp
   X11ProtocolParser.cpp
