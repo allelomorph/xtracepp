@@ -27,6 +27,9 @@
 #include "protocol/connection_setup.hpp"
 
 
+// TBD forward declare here to allow friending
+class ProxyX11Server;
+
 class X11ProtocolParser {
 private:
     // TBD could be reference to track changes in server.settings, but settings
@@ -140,16 +143,6 @@ private:
     inline size_t _alignedUnits( const size_t sz ) {
         return sz / _ALIGN;
     }
-    // TBD note that:
-    //   - ProxyX11Server::_authenticateServerConnection
-    //   - ProxyX11Server::_fetchCurrentServerTime
-    //   - ProxyX11Server::_fetchInternedAtoms
-    //   all need access to the above 4 private members, and we can't easily
-    //   declare them friends due to this class being a member of ProxyX11Server.
-    //   current known solutions would be to:
-    //   - forward declare ProxyX11Server in this file and make entire class a friend
-    //   - make members public
-
 
     template < typename ScalarT,
                std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
@@ -677,6 +670,18 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz ) {
         return _logListFontsRequest( conn, data, sz );
     }
+
+    // TBD would prefer to only allow
+    //   - ProxyX11Server::_authenticateServerConnection()
+    //     - _pad(), _alignedUnits()
+    //   - ProxyX11Server::_fetchCurrentServerTime()
+    //     - _pad(), _alignedUnits()
+    //   - ProxyX11Server::_fetchInternedAtoms()
+    //     - _pad(), _alignedUnits(), _prefetched_interned_atoms
+    //   but we can't make undefined class methods friends, and we can't define
+    //   ProxyX11Server as it has a X11ProtocolParser member, which would create a
+    //   circular include
+    friend ProxyX11Server;
 
 public:
     X11ProtocolParser() {}

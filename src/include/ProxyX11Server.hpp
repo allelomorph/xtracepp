@@ -44,22 +44,6 @@ private:
     // maximum binary tree of open file descriptors, to supply nfds to select(2)
     std::set<int, std::greater<int>>    _open_fds;
 
-    // TBD these are identical with X11ProtocolParser, and are needed for
-    //   _authenticateServerConnection, _fetchCurrentServerTime, and
-    //   _fetchInternedAtoms- can we be friends with X11ProtocolParser without circular include?
-    // "where E is some expression, and pad(E) is the number of bytes needed to
-    //   round E up to a multiple of four."
-    static constexpr size_t _ALIGN { 4 };
-    inline size_t _padToAlignment( const size_t n, const size_t align ) {
-        return n + ( ( align - ( n % align ) ) % align );
-    };
-    inline size_t _pad( const size_t n ) {
-        return _padToAlignment( n, _ALIGN );
-    }
-    inline size_t _alignedUnits( const size_t sz ) {
-        return sz / _ALIGN;
-    }
-
     X11ProtocolParser parser;
 
     void _parseDisplayNames();
