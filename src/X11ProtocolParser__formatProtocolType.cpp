@@ -130,15 +130,22 @@ X11ProtocolParser::_formatProtocolType(
         return _formatInteger( atom.data, enum_names );
     }
     std::string atom_string {};
-    if ( atom.data <= protocol::atoms::PREDEFINED_MAX ) {
-        atom_string = ( atom.data == 0 ) ?
-            "unrecognized atom" :
+    // TBD one of two arrays should store the ATOMs known before starting the
+    //   client queue, with a map as backup for any ATOMs identified while parsing
+    //   the queue that are not in contiguous index order with the rest
+    if ( settings.prefetchatoms &&
+         atom.data < _seq_interned_atoms.size() ) {
+        atom_string =
+            fmt::format( "\"{}\"", _seq_interned_atoms[ atom.data ] );
+    } else if ( atom.data <= protocol::atoms::PREDEFINED_MAX ) {
+        atom_string =
             fmt::format( "\"{}\"", protocol::atoms::predefined[ atom.data ] );
     } else {
-        auto interned_atom { _getInternedAtom(atom) };
-        atom_string = ( interned_atom == std::nullopt ) ?
-            "unrecognized atom" :
-            fmt::format( "\"{}\"", *interned_atom );
+        auto it { _nonseq_interned_atoms.find( atom.data ) };
+        if ( it == _nonseq_interned_atoms.end() )
+            atom_string = "unrecognized atom";
+        else
+            atom_string = it->second;
     }
     return fmt::format( "{}({})", _formatInteger( atom.data ), atom_string );
 }

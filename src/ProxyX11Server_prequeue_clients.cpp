@@ -333,7 +333,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         exit( EXIT_FAILURE );
     }
     if ( fetched_atoms.size() > 1 ) {
-        parser._prefetched_interned_atoms = std::move( fetched_atoms );
+        parser._seq_interned_atoms = std::move( fetched_atoms );
     }
 
 close_socket:

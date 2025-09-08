@@ -5,7 +5,6 @@
 #include <algorithm>     // transform min
 #include <regex>         // smatch regex regex_search
 #include <filesystem>    // remove
-//#include <optional>
 
 #include <cassert>
 #include <cstdlib>       // getenv setenv

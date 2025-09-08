@@ -182,28 +182,18 @@ X11ProtocolParser::_internStashedAtom( const _StashedAtomID sa_id,
     assert( atom.data != protocol::atoms::NONE );
     auto sa_it { _stashed_atoms.find(sa_id) };
     assert( sa_it != _stashed_atoms.end() );
-    bool intern { true };
-    if ( atom.data <= protocol::atoms::PREDEFINED_MAX ) {
-        for ( const std::string_view& pd_atom_str : protocol::atoms::predefined ) {
-            if ( sa_it->second == pd_atom_str ) {
-                intern = false;
-                break;
-            }
+    // TBD not sure if server will reuse ATOMs, so we allow for it in our
+    //   mirroring of internments
+    if ( settings.prefetchatoms ) {
+        if ( atom.data < _seq_interned_atoms.size() ) {
+            _seq_interned_atoms[ atom.data ] = sa_it->second;
+        } else if ( atom.data == _seq_interned_atoms.size() ) {
+            _seq_interned_atoms.emplace_back( sa_it->second );
+        } else {
+            _nonseq_interned_atoms[ atom.data ] = sa_it->second;
         }
-    }
-    if ( intern ) {
-        // operator[] is preferable to .emplace() here in case of server
-        //   reusing ATOMs
-        _interned_atoms[ atom.data ] = sa_it->second;
+    } else if ( atom.data > protocol::atoms::PREDEFINED_MAX ) {
+        _nonseq_interned_atoms[ atom.data ] = sa_it->second;
     }
     _stashed_atoms.erase( sa_it );
-}
-
-std::optional<std::string_view>
-X11ProtocolParser::_getInternedAtom(
-    const protocol::ATOM atom) {
-    auto ia_it { _interned_atoms.find( atom.data ) };
-    if ( ia_it == _interned_atoms.end() )
-        return std::nullopt;
-    return ia_it->second;
 }

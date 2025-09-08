@@ -9,7 +9,6 @@
 #include <vector>
 #include <algorithm>  // max
 #include <limits>
-#include <optional>
 #include <unordered_map>
 
 #include <cassert>
@@ -56,9 +55,9 @@ private:
     std::unordered_map<_StashedAtomID, std::string_view, _StashedAtomIDHash>
     _stashed_atoms;
     // TBD once InternAtom replies with server ATOM, properly map to ATOM
-    std::unordered_map<uint32_t, std::string> _interned_atoms;
+    std::unordered_map<uint32_t, std::string> _nonseq_interned_atoms;
     // TBD prefer prefetched atoms when option is turned on
-    std::vector<std::string> _prefetched_interned_atoms;
+    std::vector<std::string> _seq_interned_atoms;
 
     // only atom string known at InternAtom request parsing
     void
@@ -66,8 +65,6 @@ private:
     // when parsing InternAtom reply, then string and ATOM can be joined
     void
     _internStashedAtom( const _StashedAtomID sa_id, const protocol::ATOM atom );
-    std::optional<std::string_view>
-    _getInternedAtom(const protocol::ATOM);
 
     class _Whitespace {
     private:
@@ -690,7 +687,6 @@ public:
         const Settings& settings );
     size_t logClientPackets( Connection* conn );
     size_t logServerPackets( Connection* conn );
-
 };
 
 
