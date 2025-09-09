@@ -298,7 +298,7 @@ size_t X11ProtocolParser::_logServerReply<
               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
 
     const std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad(encoding->n);
 
     const uint32_t name_width (
@@ -306,7 +306,7 @@ size_t X11ProtocolParser::_logServerReply<
     fmt::println(
         "{{{}"
         "{}{}{}{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         !settings.verbose ? "" :
@@ -1200,7 +1200,7 @@ size_t X11ProtocolParser::_logServerReply<
                 _ROOT_WS.nested() ) };
         bytes_parsed += properties.bytes_parsed;
         const std::string_view name {
-            reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+            reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
         bytes_parsed += _pad( encoding->n );
 
         assert( encoding->reply_length ==
@@ -1218,7 +1218,7 @@ size_t X11ProtocolParser::_logServerReply<
             "{}"
             "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
             "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-            "{}{: <{}}{}\"{}\"{}"
+            "{}{: <{}}{}{:?}{}"
             "{}}}",
             _ROOT_WS.separator,
             !settings.verbose ? "" :

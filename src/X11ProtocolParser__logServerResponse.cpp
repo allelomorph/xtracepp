@@ -35,7 +35,7 @@ size_t X11ProtocolParser::_logServerRefusal(
         "{}"
         "{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -101,7 +101,7 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
         "{{{}"
         "{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -165,7 +165,7 @@ size_t X11ProtocolParser::_logServerAcceptance(
         "{}{: <{}}{}{}{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         _ROOT_WS.separator,

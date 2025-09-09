@@ -39,7 +39,7 @@ X11ProtocolParser::_parseProtocolType<
 
     // TBD leaving hard-coded singleline for now
     outputs.str += fmt::format(
-        "{{ {}name=\"{}\" }}",
+        "{{ {}name={:?} }}",
         !settings.verbose ? "" :
         fmt::format( "n={} ", _formatInteger( str.n ) ),
         name );
@@ -248,7 +248,7 @@ X11ProtocolParser::_parseProtocolType<
         outputs.str += fmt::format(
             "{{{}"
             "{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}\"{}\"{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
             "{}}}",
             ws.separator,
             !settings.verbose ? "" :

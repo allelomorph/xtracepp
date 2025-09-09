@@ -135,7 +135,7 @@ size_t X11ProtocolParser::_logListFontsRequest(
             encoding->opcode == protocol::requests::opcodes::LISTFONTSWITHINFO );
 
     std::string_view pattern {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -147,7 +147,7 @@ size_t X11ProtocolParser::_logListFontsRequest(
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -629,7 +629,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->n > 0 );
     // followed by pad(n) STRING8 name
     std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
     _stashAtom( { conn->id, conn->sequence }, name );
@@ -642,7 +642,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -1810,7 +1810,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::OPENFONT );
 
     std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -1822,7 +1822,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -3461,7 +3461,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::IMAGETEXT8 );
 
     std::string_view string {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3472,7 +3472,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -3869,7 +3869,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCNAMEDCOLOR );
 
     std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -3881,7 +3881,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -4143,7 +4143,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::STORENAMEDCOLOR );
 
     std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4157,7 +4157,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -4259,7 +4259,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::LOOKUPCOLOR );
 
     std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4271,7 +4271,7 @@ size_t X11ProtocolParser::_logClientRequest<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -4591,7 +4591,7 @@ size_t X11ProtocolParser::_logClientRequest<
     assert( encoding->opcode == protocol::requests::opcodes::QUERYEXTENSION );
 
     std::string_view name {
-        reinterpret_cast<const char*>( data + bytes_parsed ), encoding->n };
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == bytes_parsed / _ALIGN );
 
@@ -4601,7 +4601,7 @@ size_t X11ProtocolParser::_logClientRequest<
         settings.log_fs,
         "{{{}"
         "{}{}{}"
-        "{}{: <{}}{}\"{}\"{}"
+        "{}{: <{}}{}{:?}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
