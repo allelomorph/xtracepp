@@ -40,7 +40,7 @@ size_t X11ProtocolParser::_logSimpleRequest(
         protocol::requests::opcodes::GETMODIFIERMAPPING
     };
     assert( supported_opcodes.count( encoding->opcode ) != 0 );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -91,7 +91,7 @@ size_t X11ProtocolParser::_logSimpleWindowRequest(
         protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS
     };
     assert( supported_opcodes.count( encoding->opcode ) != 0 );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -137,7 +137,7 @@ size_t X11ProtocolParser::_logListFontsRequest(
     std::string_view pattern {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -220,7 +220,7 @@ size_t X11ProtocolParser::_logRequest<
     _parseLISTofVALUE(
         value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -322,7 +322,7 @@ size_t X11ProtocolParser::_logRequest<
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -369,7 +369,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ChangeSaveSet::Encoding* >( data ) };
     bytes_parsed += sizeof( ChangeSaveSet::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGESAVESET );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -416,7 +416,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ReparentWindow::Encoding* >( data ) };
     bytes_parsed += sizeof( ReparentWindow::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::REPARENTWINDOW );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -488,7 +488,7 @@ size_t X11ProtocolParser::_logRequest<
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -535,7 +535,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CirculateWindow::Encoding* >( data ) };
     bytes_parsed += sizeof( CirculateWindow::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CIRCULATEWINDOW );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -582,7 +582,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetGeometry::Encoding* >( data ) };
     bytes_parsed += sizeof( GetGeometry::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETGEOMETRY );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -631,7 +631,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
     _stashAtom( { conn->id, conn->sequence }, name );
 
     const uint32_t name_width (
@@ -684,7 +684,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetAtomName::Encoding* >( data ) };
     bytes_parsed += sizeof( GetAtomName::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETATOMNAME );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -735,7 +735,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, data_sz,
             _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     bytes_parsed += _pad(data_.bytes_parsed);
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -798,7 +798,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const DeleteProperty::Encoding* >( data ) };
     bytes_parsed += sizeof( DeleteProperty::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::DELETEPROPERTY );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -843,7 +843,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetProperty::Encoding* >( data ) };
     bytes_parsed += sizeof( GetProperty::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETPROPERTY );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -899,7 +899,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const SetSelectionOwner::Encoding* >( data ) };
     bytes_parsed += sizeof( SetSelectionOwner::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETSELECTIONOWNER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -946,7 +946,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetSelectionOwner::Encoding* >( data ) };
     bytes_parsed += sizeof( GetSelectionOwner::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETSELECTIONOWNER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -989,7 +989,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ConvertSelection::Encoding* >( data ) };
     bytes_parsed += sizeof( ConvertSelection::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CONVERTSELECTION );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1048,7 +1048,7 @@ size_t X11ProtocolParser::_logRequest<
             conn, data + bytes_parsed, protocol::events::ENCODING_SZ,
             _ROOT_WS.nested() ) };
     bytes_parsed += event.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1099,7 +1099,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GrabPointer::Encoding* >( data ) };
     bytes_parsed += sizeof( GrabPointer::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GRABPOINTER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1159,7 +1159,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const UngrabPointer::Encoding* >( data ) };
     bytes_parsed += sizeof( UngrabPointer::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABPOINTER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1202,7 +1202,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GrabButton::Encoding* >( data ) };
     bytes_parsed += sizeof( GrabButton::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GRABBUTTON );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1264,7 +1264,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const UngrabButton::Encoding* >( data ) };
     bytes_parsed += sizeof( UngrabButton::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABBUTTON );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1313,7 +1313,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ChangeActivePointerGrab::Encoding* >( data ) };
     bytes_parsed += sizeof( ChangeActivePointerGrab::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1360,7 +1360,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GrabKeyboard::Encoding* >( data ) };
     bytes_parsed += sizeof( GrabKeyboard::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GRABKEYBOARD );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1413,7 +1413,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const UngrabKeyboard::Encoding* >( data ) };
     bytes_parsed += sizeof( UngrabKeyboard::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEYBOARD );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1456,7 +1456,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GrabKey::Encoding* >( data ) };
     bytes_parsed += sizeof( GrabKey::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GRABKEY );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1509,7 +1509,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const UngrabKey::Encoding* >( data ) };
     bytes_parsed += sizeof( UngrabKey::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEY );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1558,7 +1558,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const AllowEvents::Encoding* >( data ) };
     bytes_parsed += sizeof( AllowEvents::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::ALLOWEVENTS );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1605,7 +1605,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetMotionEvents::Encoding* >( data ) };
     bytes_parsed += sizeof( GetMotionEvents::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETMOTIONEVENTS );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1652,7 +1652,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const TranslateCoordinates::Encoding* >( data ) };
     bytes_parsed += sizeof( TranslateCoordinates::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::TRANSLATECOORDINATES );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1701,7 +1701,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const WarpPointer::Encoding* >( data ) };
     bytes_parsed += sizeof( WarpPointer::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::WARPPOINTER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1759,7 +1759,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const SetInputFocus::Encoding* >( data ) };
     bytes_parsed += sizeof( SetInputFocus::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETINPUTFOCUS );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1812,7 +1812,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1864,7 +1864,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CloseFont::Encoding* >( data ) };
     bytes_parsed += sizeof( CloseFont::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CLOSEFONT );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1907,7 +1907,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const QueryFont::Encoding* >( data ) };
     bytes_parsed += sizeof( QueryFont::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::QUERYFONT );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -1977,7 +1977,7 @@ size_t X11ProtocolParser::_logRequest<
             uint16_t( c16 ), c16_hex_width );
     }
     bytes_parsed += padded_string_sz;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2035,7 +2035,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, encoding->str_ct,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( path.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2083,7 +2083,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CreatePixmap::Encoding* >( data ) };
     bytes_parsed += sizeof( CreatePixmap::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CREATEPIXMAP );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2136,7 +2136,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const FreePixmap::Encoding* >( data ) };
     bytes_parsed += sizeof( FreePixmap::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::FREEPIXMAP );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2217,7 +2217,7 @@ size_t X11ProtocolParser::_logRequest<
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2305,7 +2305,7 @@ size_t X11ProtocolParser::_logRequest<
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2353,7 +2353,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CopyGC::Encoding* >( data ) };
     bytes_parsed += sizeof( CopyGC::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::COPYGC );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2406,7 +2406,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( dashes.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2470,7 +2470,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_rectangles,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2523,7 +2523,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const FreeGC::Encoding* >( data ) };
     bytes_parsed += sizeof( FreeGC::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::FREEGC );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2566,7 +2566,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ClearArea::Encoding* >( data ) };
     bytes_parsed += sizeof( ClearArea::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CLEARAREA );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2622,7 +2622,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CopyArea::Encoding* >( data ) };
     bytes_parsed += sizeof( CopyArea::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::COPYAREA );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2683,7 +2683,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CopyPlane::Encoding* >( data ) };
     bytes_parsed += sizeof( CopyPlane::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::COPYPLANE );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2756,7 +2756,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_points,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
@@ -2817,7 +2817,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_points,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
@@ -2877,7 +2877,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_segments,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( segments.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2933,7 +2933,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_rectangles,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -2989,7 +2989,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_arcs,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3045,7 +3045,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_points,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( points.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
@@ -3106,7 +3106,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_rectangles,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( rectangles.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3162,7 +3162,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_arcs,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( arcs.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3214,7 +3214,7 @@ size_t X11ProtocolParser::_logRequest<
         ( encoding->request_length * _ALIGN ) - sizeof( PutImage::Encoding ) };
     // TBD not parsing iamge data as it is not done in xtrace
     bytes_parsed += image_data_sz;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3279,7 +3279,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetImage::Encoding* >( data ) };
     bytes_parsed += sizeof( GetImage::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETIMAGE );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3347,7 +3347,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, text_item_list_sz,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3407,7 +3407,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, text_item_list_sz,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( text_items.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3463,7 +3463,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view string {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3535,7 +3535,7 @@ size_t X11ProtocolParser::_logRequest<
             uint16_t( c16 ), c16_hex_width );
     }
     bytes_parsed += _pad( encoding->n * sizeof( protocol::CHAR2B ) );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3592,7 +3592,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CreateColormap::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateColormap::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CREATECOLORMAP );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3643,7 +3643,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const FreeColormap::Encoding* >( data ) };
     bytes_parsed += sizeof( FreeColormap::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::FREECOLORMAP );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3686,7 +3686,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CopyColormapAndFree::Encoding* >( data ) };
     bytes_parsed += sizeof( CopyColormapAndFree::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::COPYCOLORMAPANDFREE );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3732,7 +3732,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const InstallColormap::Encoding* >( data ) };
     bytes_parsed += sizeof( InstallColormap::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::INSTALLCOLORMAP );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3775,7 +3775,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const UninstallColormap::Encoding* >( data ) };
     bytes_parsed += sizeof( UninstallColormap::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::UNINSTALLCOLORMAP );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3818,7 +3818,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const AllocColor::Encoding* >( data ) };
     bytes_parsed += sizeof( AllocColor::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLOR );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3871,7 +3871,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3923,7 +3923,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const AllocColorCells::Encoding* >( data ) };
     bytes_parsed += sizeof( AllocColorCells::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORCELLS );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -3974,7 +3974,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const AllocColorPlanes::Encoding* >( data ) };
     bytes_parsed += sizeof( AllocColorPlanes::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORPLANES );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4039,7 +4039,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_pixels,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4096,7 +4096,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_items,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( items.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4145,7 +4145,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4212,7 +4212,7 @@ size_t X11ProtocolParser::_logRequest<
             data + bytes_parsed, sz - bytes_parsed, n_pixels,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( pixels.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4261,7 +4261,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4313,7 +4313,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CreateCursor::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateCursor::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CREATECURSOR );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4374,7 +4374,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const CreateGlyphCursor::Encoding* >( data ) };
     bytes_parsed += sizeof( CreateGlyphCursor::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CREATEGLYPHCURSOR );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4439,7 +4439,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const FreeCursor::Encoding* >( data ) };
     bytes_parsed += sizeof( FreeCursor::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::FREECURSOR );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4482,7 +4482,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const RecolorCursor::Encoding* >( data ) };
     bytes_parsed += sizeof( RecolorCursor::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::RECOLORCURSOR );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4538,7 +4538,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const QueryBestSize::Encoding* >( data ) };
     bytes_parsed += sizeof( QueryBestSize::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::QUERYBESTSIZE );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4593,7 +4593,7 @@ size_t X11ProtocolParser::_logRequest<
     std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
     bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4648,7 +4648,7 @@ size_t X11ProtocolParser::_logRequest<
             encoding->keycode_count * encoding->keysyms_per_keycode,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( keysyms.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
@@ -4699,7 +4699,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const GetKeyboardMapping::Encoding* >( data ) };
     bytes_parsed += sizeof( GetKeyboardMapping::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::GETKEYBOARDMAPPING );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
@@ -4769,7 +4769,7 @@ size_t X11ProtocolParser::_logRequest<
     _ParsingOutputs value_list_outputs;
     _parseLISTofVALUE( value_list_inputs, data + bytes_parsed, &value_list_outputs );
     bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4814,7 +4814,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const Bell::Encoding* >( data ) };
     bytes_parsed += sizeof( Bell::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::BELL );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -4858,7 +4858,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ChangePointerControl::Encoding* >( data ) };
     bytes_parsed += sizeof( ChangePointerControl::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEPOINTERCONTROL );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
@@ -4910,7 +4910,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const SetScreenSaver::Encoding* >( data ) };
     bytes_parsed += sizeof( SetScreenSaver::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETSCREENSAVER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "prefer-blanking" ) - 1 : 0 );
@@ -4971,7 +4971,7 @@ size_t X11ProtocolParser::_logRequest<
             encoding->length_of_address,
             _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     bytes_parsed += _pad( address.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "length of address" ) - 1 : 0 );
@@ -5031,7 +5031,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const SetAccessControl::Encoding* >( data ) };
     bytes_parsed += sizeof( SetAccessControl::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETACCESSCONTROL );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -5075,7 +5075,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const SetCloseDownMode::Encoding* >( data ) };
     bytes_parsed += sizeof( SetCloseDownMode::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SETCLOSEDOWNMODE );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -5119,7 +5119,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const KillClient::Encoding* >( data ) };
     bytes_parsed += sizeof( KillClient::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::KILLCLIENT );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -5169,7 +5169,7 @@ size_t X11ProtocolParser::_logRequest<
             encoding->number_of_properties,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( properties.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "number of properties" ) - 1 : 0 );
@@ -5223,7 +5223,7 @@ size_t X11ProtocolParser::_logRequest<
         reinterpret_cast< const ForceScreenSaver::Encoding* >( data ) };
     bytes_parsed += sizeof( ForceScreenSaver::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::FORCESCREENSAVER );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -5274,7 +5274,7 @@ size_t X11ProtocolParser::_logRequest<
             encoding->length_of_map,
             _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     bytes_parsed += _pad( map.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );
@@ -5331,7 +5331,7 @@ size_t X11ProtocolParser::_logRequest<
             8 * encoding->keycodes_per_modifier,
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad( keycodes.bytes_parsed );
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
@@ -5380,7 +5380,7 @@ size_t X11ProtocolParser::_logRequest<
     assert( encoding->opcode == protocol::requests::opcodes::NOOPERATION );
     // protocol specifies that no-op may be followed by variable length dummy data
     bytes_parsed += ( encoding->request_length - 1 ) * _ALIGN;
-    assert( encoding->request_length == bytes_parsed / _ALIGN );
+    assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "request length" ) - 1 : 0 );

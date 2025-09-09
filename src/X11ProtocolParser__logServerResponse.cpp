@@ -17,7 +17,7 @@ size_t X11ProtocolParser::_logServerRefusal(
     const ServerRefusal::Header* header {
         reinterpret_cast< const ServerRefusal::Header* >( data ) };
     bytes_parsed += sizeof( ServerRefusal::Header );
-    assert( header->reason_aligned_units == _pad( header->n ) / _ALIGN );
+    assert( header->reason_aligned_units == _alignedUnits( header->n ) );
     // STRING8 of n bytes reason
     std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ), header->n };

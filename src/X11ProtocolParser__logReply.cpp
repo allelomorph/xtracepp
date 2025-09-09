@@ -28,8 +28,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetWindowAttributes::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetWindowAttributes::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetWindowAttributes::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
@@ -109,8 +109,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetGeometry::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetGeometry::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetGeometry::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
@@ -173,15 +173,15 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryTree::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(QueryTree::ReplyEncoding) +
-              ( sizeof(protocol::WINDOW) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(QueryTree::ReplyEncoding) +
+                           ( sizeof(protocol::WINDOW) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs children {
         _parseLISTof< protocol::WINDOW >(
             data + bytes_parsed, sz - bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    assert( encoding->reply_length == children.bytes_parsed / _ALIGN );
+    assert( encoding->reply_length == _alignedUnits( children.bytes_parsed ) );
     bytes_parsed += children.bytes_parsed;
 
     const uint32_t name_width (
@@ -241,8 +241,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( InternAtom::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(InternAtom::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(InternAtom::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
     // TBD replies may be batched, so use encoding->sequence_number instead of conn->sequence
     if ( encoding->atom.data != protocol::atoms::NONE )
         _internStashedAtom( { conn->id, encoding->sequence_number }, encoding->atom );
@@ -293,9 +293,9 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetAtomName::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetAtomName::ReplyEncoding) +
-              _pad( sizeof(char) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetAtomName::ReplyEncoding) +
+                           _pad( sizeof(char) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const std::string_view name {
         reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
@@ -354,8 +354,9 @@ size_t X11ProtocolParser::_logReply<
     assert( encoding->format <= 32 && encoding->format % 8 == 0 );
     const uint32_t value_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
     assert( encoding->reply_length ==
-            ( sizeof(GetProperty::ReplyEncoding) + _pad( value_sz ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetProperty::ReplyEncoding) +
+                           _pad( value_sz ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs value {
         _parseLISTof< protocol::BYTE >(
@@ -425,9 +426,9 @@ size_t X11ProtocolParser::_logReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length == encoding->n );
     assert( encoding->reply_length ==
-            ( sizeof(ListProperties::ReplyEncoding) +
-              _pad( sizeof(protocol::ATOM) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(ListProperties::ReplyEncoding) +
+                           _pad( sizeof(protocol::ATOM) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs atoms {
         _parseLISTof< protocol::ATOM >(
@@ -486,8 +487,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetSelectionOwner::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetSelectionOwner::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetSelectionOwner::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -535,8 +536,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GrabPointer::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GrabPointer::ReplyEncoding)  -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GrabPointer::ReplyEncoding)  -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -585,8 +586,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GrabKeyboard::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GrabKeyboard::ReplyEncoding)  -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GrabKeyboard::ReplyEncoding)  -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -635,8 +636,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryPointer::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(QueryPointer::ReplyEncoding)  -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(QueryPointer::ReplyEncoding)  -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -701,9 +702,9 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetMotionEvents::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetMotionEvents::ReplyEncoding) +
-              ( sizeof(GetMotionEvents::TIMECOORD) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetMotionEvents::ReplyEncoding) +
+                           ( sizeof(GetMotionEvents::TIMECOORD) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs events {
         _parseLISTof< GetMotionEvents::TIMECOORD >(
@@ -763,8 +764,8 @@ size_t X11ProtocolParser::_logReply<
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length == 0 );
     assert( encoding->reply_length ==
-            ( sizeof(TranslateCoordinates::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(TranslateCoordinates::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -820,8 +821,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetInputFocus::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetInputFocus::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetInputFocus::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -873,8 +874,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryKeymap::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(QueryKeymap::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(QueryKeymap::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
@@ -928,10 +929,10 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryFont::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof( QueryFont::ReplyEncoding ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ +
-              ( sizeof( QueryFont::FONTPROP ) * encoding->n ) +
-              ( sizeof( QueryFont::CHARINFO ) * encoding->m ) ) / _ALIGN );
+            _alignedUnits( sizeof( QueryFont::ReplyEncoding ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ +
+                           ( sizeof( QueryFont::FONTPROP ) * encoding->n ) +
+                           ( sizeof( QueryFont::CHARINFO ) * encoding->m ) ) );
 
     const _ParsingOutputs properties {
         _parseLISTof< QueryFont::FONTPROP >(
@@ -1020,8 +1021,9 @@ size_t X11ProtocolParser::_logReply<
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
+    // TBD variable length
     assert( sz >= sizeof(
-                protocol::requests::QueryTextExtents::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryTextExtents::ReplyEncoding ) );
 
     size_t bytes_parsed {};
     using protocol::requests::QueryTextExtents;
@@ -1030,8 +1032,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryTextExtents::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof( QueryTextExtents::ReplyEncoding ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof( QueryTextExtents::ReplyEncoding ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1086,8 +1088,9 @@ size_t X11ProtocolParser::_logReply<
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
+    // TBD variable length
     assert( sz >= sizeof(
-                protocol::requests::ListFonts::ReplyEncoding ) ); // TBD
+                protocol::requests::ListFonts::ReplyEncoding ) );
 
     size_t bytes_parsed {};
     using protocol::requests::ListFonts;
@@ -1102,9 +1105,9 @@ size_t X11ProtocolParser::_logReply<
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad(names.bytes_parsed);
     assert( encoding->reply_length ==
-            ( sizeof(ListFonts::ReplyEncoding) +
-              _pad(names.bytes_parsed) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(ListFonts::ReplyEncoding) +
+                           _pad(names.bytes_parsed) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1161,8 +1164,8 @@ size_t X11ProtocolParser::_logReply<
             reinterpret_cast< const ListFontsWithInfo::FinalReplyEncoding* >( data ) };
         bytes_parsed += sizeof( ListFontsWithInfo::FinalReplyEncoding );
         assert( encoding->reply_length ==
-                ( sizeof(ListFontsWithInfo::FinalReplyEncoding) -
-                  protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+                _alignedUnits( sizeof(ListFontsWithInfo::FinalReplyEncoding) -
+                               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
         const uint32_t name_width (
             settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
         fmt::println(
@@ -1204,10 +1207,10 @@ size_t X11ProtocolParser::_logReply<
         bytes_parsed += _pad( encoding->n );
 
         assert( encoding->reply_length ==
-                ( sizeof(ListFontsWithInfo::ReplyEncoding) +
-                  _pad(encoding->n) +
-                  ( sizeof(ListFontsWithInfo::FONTPROP) * encoding->m ) -
-                  protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+                _alignedUnits( sizeof(ListFontsWithInfo::ReplyEncoding) +
+                               _pad(encoding->n) +
+                               ( sizeof(ListFontsWithInfo::FONTPROP) * encoding->m ) -
+                               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
         const uint32_t name_width (
             settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
         fmt::println(
@@ -1302,9 +1305,9 @@ size_t X11ProtocolParser::_logReply<
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad(path.bytes_parsed);
     assert( encoding->reply_length ==
-            ( sizeof(GetFontPath::ReplyEncoding) +
-              _pad(path.bytes_parsed) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetFontPath::ReplyEncoding) +
+                           _pad(path.bytes_parsed) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1356,14 +1359,15 @@ size_t X11ProtocolParser::_logReply<
         reinterpret_cast< const GetImage::ReplyEncoding* >( data ) };
     bytes_parsed += sizeof( GetImage::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    // No use in an assert on reply_length, as here it is the only way to derive
+    //   the length of LISTofBYTE `data`
 
+    const size_t data_sz { encoding->reply_length * _ALIGN };
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
             data + bytes_parsed, sz - bytes_parsed,
-            encoding->reply_length * _ALIGN, _ROOT_WS.nested() ) };
+            data_sz, _ROOT_WS.nested() ) };
     bytes_parsed += _pad(data_.bytes_parsed);
-    // TBD no assert on reply_length as in this case it is the source of the encoding
-    //   suffix length (no way to know value of p but n will always be padded)
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1417,9 +1421,9 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( ListInstalledColormaps::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(ListInstalledColormaps::ReplyEncoding) +
-              ( sizeof(protocol::COLORMAP) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(ListInstalledColormaps::ReplyEncoding) +
+                           ( sizeof(protocol::COLORMAP) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs cmaps {
         _parseLISTof< protocol::COLORMAP >(
@@ -1478,8 +1482,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( AllocColor::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(AllocColor::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(AllocColor::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1533,8 +1537,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( AllocNamedColor::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(AllocNamedColor::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(AllocNamedColor::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1595,8 +1599,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( AllocColorCells::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(AllocColorCells::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(AllocColorCells::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
@@ -1668,8 +1672,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( AllocColorPlanes::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(AllocColorPlanes::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(AllocColorPlanes::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
@@ -1734,9 +1738,9 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryColors::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(QueryColors::ReplyEncoding) +
-              ( sizeof(QueryColors::RGB) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(QueryColors::ReplyEncoding) +
+                           ( sizeof(QueryColors::RGB) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs colors {
         _parseLISTof< QueryColors::RGB >(
@@ -1795,8 +1799,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( LookupColor::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(LookupColor::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(LookupColor::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1855,8 +1859,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryBestSize::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(QueryBestSize::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(QueryBestSize::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -1890,7 +1894,6 @@ size_t X11ProtocolParser::_logReply<
     return bytes_parsed;
 }
 
-// TBD need to implement encoding->present spoofing for --denyextensions
 // TBD important for later implementation of extensions:
 //   encoding->first_event: base event code
 //   encoding->first_error: base error code
@@ -1911,8 +1914,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( QueryExtension::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(QueryExtension::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(QueryExtension::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
     if ( settings.denyallextensions )
         encoding->present.data = int(false);
 
@@ -1974,9 +1977,9 @@ size_t X11ProtocolParser::_logReply<
             _ROOT_WS.nested() ) };
     bytes_parsed += _pad(names.bytes_parsed);
     assert( encoding->reply_length ==
-            ( sizeof(ListExtensions::ReplyEncoding) +
-              _pad(names.bytes_parsed) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(ListExtensions::ReplyEncoding) +
+                           _pad(names.bytes_parsed) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -2038,9 +2041,9 @@ size_t X11ProtocolParser::_logReply<
             _ROOT_WS.nested() ) };
     bytes_parsed += keysyms.bytes_parsed;
     assert( encoding->reply_length ==
-            ( sizeof(GetKeyboardMapping::ReplyEncoding) +
-              keysyms.bytes_parsed -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetKeyboardMapping::ReplyEncoding) +
+                           keysyms.bytes_parsed -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
@@ -2093,8 +2096,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetKeyboardControl::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetKeyboardControl::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetKeyboardControl::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs auto_repeats {
         _parseLISTof< protocol::CARD8 >(
@@ -2165,8 +2168,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetPointerControl::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetPointerControl::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetPointerControl::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
@@ -2218,8 +2221,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetScreenSaver::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetScreenSaver::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetScreenSaver::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -2273,9 +2276,9 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( ListHosts::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(ListHosts::ReplyEncoding) +
-              ( sizeof(protocol::HOST) * encoding->n ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(ListHosts::ReplyEncoding) +
+                           ( sizeof(protocol::HOST) * encoding->n ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs hosts {
         _parseLISTof< protocol::HOST >(
@@ -2338,8 +2341,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( SetPointerMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(SetPointerMapping::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(SetPointerMapping::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -2388,9 +2391,9 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetPointerMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(GetPointerMapping::ReplyEncoding) +
-              _pad(encoding->n) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetPointerMapping::ReplyEncoding) +
+                           _pad(encoding->n) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
@@ -2449,8 +2452,8 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( SetModifierMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
-            ( sizeof(SetModifierMapping::ReplyEncoding) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(SetModifierMapping::ReplyEncoding) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
@@ -2501,9 +2504,9 @@ size_t X11ProtocolParser::_logReply<
     const uint32_t n_keycodes {
         GetModifierMapping::MODIFIER_CT * encoding->keycodes_per_modifier };
     assert( encoding->reply_length ==
-            ( sizeof(GetModifierMapping::ReplyEncoding) +
-              ( sizeof(protocol::KEYCODE) * n_keycodes ) -
-              protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) / _ALIGN );
+            _alignedUnits( sizeof(GetModifierMapping::ReplyEncoding) +
+                           ( sizeof(protocol::KEYCODE) * n_keycodes ) -
+                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
