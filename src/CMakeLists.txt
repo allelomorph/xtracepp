@@ -13,10 +13,10 @@ add_executable(xtracepp
   X11ProtocolParser.cpp
   X11ProtocolParser__logClientInitiation.cpp
   X11ProtocolParser__logServerResponse.cpp
-  X11ProtocolParser__logClientRequest.cpp
-  X11ProtocolParser__logServerError.cpp
-  X11ProtocolParser__logServerEvent.cpp
-  X11ProtocolParser__logServerReply.cpp
+  X11ProtocolParser__logRequest.cpp
+  X11ProtocolParser__logError.cpp
+  X11ProtocolParser__logEvent.cpp
+  X11ProtocolParser__logReply.cpp
   X11ProtocolParser__formatProtocolType.cpp
   X11ProtocolParser__parseProtocolType.cpp
   bufferHexDump.cpp

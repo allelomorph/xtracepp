@@ -1997,7 +1997,7 @@ X11ProtocolParser::_parseEvent(
 
 // logging of events implemented as wrapper around _parseEvent to accommodate
 //    logging of both normal events and those encoded by SendEvent
-size_t X11ProtocolParser::_logServerEvent(
+size_t X11ProtocolParser::_logEvent(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );

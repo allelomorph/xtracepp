@@ -588,24 +588,24 @@ private:
     size_t _logServerPacket(
         Connection* conn, uint8_t* data, const size_t sz );
 
-    size_t _logServerError(
+    size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     // TBD need data to be mutable for reply spoofing, eg QueryExtension
-    size_t _logServerReply(
+    size_t _logReply(
         Connection* conn, const uint8_t* data, const size_t sz );
     // TBD replies with modified contents
     template < typename RequestT >
-    size_t _logServerReply(
+    size_t _logReply(
         Connection* conn, uint8_t* data, const size_t sz );
     // TBD normal unmodified data
     template < typename RequestT >
-    size_t _logServerReply(
+    size_t _logReply(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     static constexpr uint8_t _GENERATED_EVENT_FLAG { 0x80 };
     static constexpr uint8_t _EVENT_CODE_MASK { uint8_t(~_GENERATED_EVENT_FLAG) };
-    size_t _logServerEvent(
+    size_t _logEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
@@ -616,7 +616,7 @@ private:
         const _Whitespace& indents );
 
 
-    size_t _logClientRequest(
+    size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     template < typename RequestT,
@@ -625,7 +625,7 @@ private:
                       std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT> ||
                       std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT> ),
                    bool> = true >
-    size_t _logClientRequest(
+    size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     // GrabServer UngrabServer GetInputFocus QueryKeymap GetFontPath
     // ListExtensions GetKeyboardControl GetPointerControl GetScreenSaver
@@ -637,7 +637,7 @@ private:
                std::enable_if_t<
                    std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT>,
                    bool> = true >
-    inline size_t _logClientRequest(
+    inline size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
         return _logSimpleRequest( conn, data, sz );
     }
@@ -651,7 +651,7 @@ private:
                std::enable_if_t<
                    std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT>,
                    bool> = true >
-    inline size_t _logClientRequest(
+    inline size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
         return _logSimpleWindowRequest( conn, data, sz );
     }
@@ -663,7 +663,7 @@ private:
                std::enable_if_t<
                    std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT>,
                    bool> = true >
-    inline size_t _logClientRequest(
+    inline size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
         return _logListFontsRequest( conn, data, sz );
     }

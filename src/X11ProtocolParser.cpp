@@ -45,7 +45,7 @@ size_t X11ProtocolParser::_logClientPacket(
         break;
     case Connection::OPEN:
         assert( sz >= 4 );  // TBD min size for Reuqests (1B opcode, 1B unused, 2B request length (with no extensions))
-        bytes_parsed = _logClientRequest( conn, data, sz );
+        bytes_parsed = _logRequest( conn, data, sz );
         //assert( bytes_parsed == 32 );
         break;
     default:
@@ -89,16 +89,16 @@ size_t X11ProtocolParser::_logServerPacket(
         assert( first_byte <= protocol::events::codes::MAX );
         switch ( first_byte ) {
         case 0:   // Error
-            bytes_parsed = _logServerError( conn, data, sz );
+            bytes_parsed = _logError( conn, data, sz );
             assert( bytes_parsed == protocol::errors::ENCODING_SZ );
             break;
         case 1:   // Reply
             // TBD modification of QueryExtension replies should happen here to filter extensions
-            bytes_parsed = _logServerReply( conn, data, sz );
+            bytes_parsed = _logReply( conn, data, sz );
             assert( bytes_parsed >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
             break;
         default:  // Event (2-35)
-            bytes_parsed = _logServerEvent( conn, data, sz );
+            bytes_parsed = _logEvent( conn, data, sz );
             assert( bytes_parsed == protocol::events::ENCODING_SZ );
             break;
         }

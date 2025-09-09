@@ -9,7 +9,7 @@
 #include "protocol/errors.hpp"
 
 
-size_t X11ProtocolParser::_logServerError(
+size_t X11ProtocolParser::_logError(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );

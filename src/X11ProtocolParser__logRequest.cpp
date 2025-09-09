@@ -176,7 +176,7 @@ size_t X11ProtocolParser::_logListFontsRequest(
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CreateWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -278,7 +278,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeWindowAttributes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -356,7 +356,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeSaveSet >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -403,7 +403,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ReparentWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -452,7 +452,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ConfigureWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -522,7 +522,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CirculateWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -569,7 +569,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetGeometry >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -613,7 +613,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::InternAtom >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -671,7 +671,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetAtomName >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -714,7 +714,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -785,7 +785,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::DeleteProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -830,7 +830,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -886,7 +886,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetSelectionOwner >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -933,7 +933,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetSelectionOwner >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -976,7 +976,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ConvertSelection >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1028,7 +1028,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SendEvent >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1086,7 +1086,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GrabPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1146,7 +1146,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::UngrabPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1189,7 +1189,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GrabButton >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1251,7 +1251,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::UngrabButton >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1300,7 +1300,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeActivePointerGrab >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1347,7 +1347,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GrabKeyboard >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1400,7 +1400,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::UngrabKeyboard >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1443,7 +1443,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GrabKey >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1496,7 +1496,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::UngrabKey >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1545,7 +1545,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::AllowEvents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1592,7 +1592,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetMotionEvents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1639,7 +1639,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::TranslateCoordinates >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1688,7 +1688,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::WarpPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1746,7 +1746,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetInputFocus >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1795,7 +1795,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::OpenFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1851,7 +1851,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CloseFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1894,7 +1894,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::QueryFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1938,7 +1938,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::QueryTextExtents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2016,7 +2016,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetFontPath >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2070,7 +2070,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CreatePixmap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2123,7 +2123,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::FreePixmap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2166,7 +2166,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CreateGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2254,7 +2254,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2340,7 +2340,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CopyGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2387,7 +2387,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetDashes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2447,7 +2447,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetClipRectangles >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2510,7 +2510,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::FreeGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2553,7 +2553,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ClearArea >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2609,7 +2609,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CopyArea >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2670,7 +2670,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CopyPlane >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2734,7 +2734,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyPoint >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2795,7 +2795,7 @@ size_t X11ProtocolParser::_logClientRequest<
 
 // TBD same encoding as PolyPoint; generalize?
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyLine >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2855,7 +2855,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolySegment >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2911,7 +2911,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyRectangle >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2967,7 +2967,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyArc >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3023,7 +3023,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::FillPoly >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3084,7 +3084,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyFillRectangle >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3140,7 +3140,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyFillArc >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3196,7 +3196,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PutImage >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3266,7 +3266,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetImage >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3326,7 +3326,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyText8 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3386,7 +3386,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::PolyText16 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3446,7 +3446,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ImageText8 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3507,7 +3507,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ImageText16 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3579,7 +3579,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CreateColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3630,7 +3630,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::FreeColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3673,7 +3673,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CopyColormapAndFree >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3719,7 +3719,7 @@ size_t X11ProtocolParser::_logClientRequest<
 
 // TBD generalize shared encoding for InstallColomap/UninstallColomap
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::InstallColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3762,7 +3762,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::UninstallColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3805,7 +3805,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::AllocColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3854,7 +3854,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::AllocNamedColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3910,7 +3910,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::AllocColorCells >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -3961,7 +3961,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::AllocColorPlanes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4017,7 +4017,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::FreeColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4074,7 +4074,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::StoreColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4128,7 +4128,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::StoreNamedColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4190,7 +4190,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::QueryColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4244,7 +4244,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::LookupColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4300,7 +4300,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CreateCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4361,7 +4361,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::CreateGlyphCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4426,7 +4426,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::FreeCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4469,7 +4469,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::RecolorCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4525,7 +4525,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::QueryBestSize >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4576,7 +4576,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::QueryExtension >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4628,7 +4628,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeKeyboardMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4686,7 +4686,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::GetKeyboardMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4731,7 +4731,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeKeyboardControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4801,7 +4801,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::Bell >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4845,7 +4845,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangePointerControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4897,7 +4897,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -4946,7 +4946,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ChangeHosts >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5018,7 +5018,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetAccessControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5062,7 +5062,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetCloseDownMode >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5106,7 +5106,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::KillClient >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5149,7 +5149,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::RotateProperties >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5210,7 +5210,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::ForceScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5254,7 +5254,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetPointerMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5308,7 +5308,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::SetModifierMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5365,7 +5365,7 @@ size_t X11ProtocolParser::_logClientRequest<
 }
 
 template <>
-size_t X11ProtocolParser::_logClientRequest<
+size_t X11ProtocolParser::_logRequest<
     protocol::requests::NoOperation >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -5406,7 +5406,7 @@ size_t X11ProtocolParser::_logClientRequest<
     return bytes_parsed;
 }
 
-size_t X11ProtocolParser::_logClientRequest(
+size_t X11ProtocolParser::_logRequest(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -5422,483 +5422,483 @@ size_t X11ProtocolParser::_logClientRequest(
                 conn->id, opcode, protocol::requests::names[ opcode ] );
     switch ( opcode ) {
     case protocol::requests::opcodes::CREATEWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CreateWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeWindowAttributes >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETWINDOWATTRIBUTES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetWindowAttributes >( conn, data, sz );
         break;
     case protocol::requests::opcodes::DESTROYWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::DestroyWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::DESTROYSUBWINDOWS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::DestroySubwindows >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGESAVESET:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeSaveSet >( conn, data, sz );
         break;
     case protocol::requests::opcodes::REPARENTWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ReparentWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::MAPWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::MapWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::MAPSUBWINDOWS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::MapSubwindows >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNMAPWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UnmapWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNMAPSUBWINDOWS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UnmapSubwindows >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CONFIGUREWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ConfigureWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CIRCULATEWINDOW:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CirculateWindow >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETGEOMETRY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetGeometry >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYTREE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryTree >( conn, data, sz );
         break;
     case protocol::requests::opcodes::INTERNATOM:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::InternAtom >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETATOMNAME:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetAtomName >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEPROPERTY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeProperty >( conn, data, sz );
         break;
     case protocol::requests::opcodes::DELETEPROPERTY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::DeleteProperty >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPROPERTY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetProperty >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTPROPERTIES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ListProperties >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETSELECTIONOWNER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetSelectionOwner >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETSELECTIONOWNER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetSelectionOwner >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CONVERTSELECTION:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ConvertSelection >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SENDEVENT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SendEvent >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABPOINTER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GrabPointer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNGRABPOINTER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UngrabPointer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABBUTTON:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GrabButton >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNGRABBUTTON:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UngrabButton >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeActivePointerGrab >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABKEYBOARD:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GrabKeyboard >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNGRABKEYBOARD:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UngrabKeyboard >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABKEY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GrabKey >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNGRABKEY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UngrabKey >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOWEVENTS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::AllowEvents >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABSERVER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GrabServer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNGRABSERVER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UngrabServer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYPOINTER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryPointer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETMOTIONEVENTS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetMotionEvents >( conn, data, sz );
         break;
     case protocol::requests::opcodes::TRANSLATECOORDINATES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::TranslateCoordinates >( conn, data, sz );
         break;
     case protocol::requests::opcodes::WARPPOINTER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::WarpPointer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETINPUTFOCUS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetInputFocus >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETINPUTFOCUS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetInputFocus >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYKEYMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryKeymap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::OPENFONT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::OpenFont >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CLOSEFONT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CloseFont >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYFONT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryFont >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYTEXTEXTENTS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryTextExtents >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTFONTS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ListFonts >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTFONTSWITHINFO:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ListFontsWithInfo >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETFONTPATH:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetFontPath >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETFONTPATH:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetFontPath >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CREATEPIXMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CreatePixmap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FREEPIXMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::FreePixmap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CREATEGC:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CreateGC >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEGC:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeGC >( conn, data, sz );
         break;
     case protocol::requests::opcodes::COPYGC:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CopyGC >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETDASHES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetDashes >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETCLIPRECTANGLES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetClipRectangles >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FREEGC:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::FreeGC >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CLEARAREA:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ClearArea >( conn, data, sz );
         break;
     case protocol::requests::opcodes::COPYAREA:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CopyArea >( conn, data, sz );
         break;
     case protocol::requests::opcodes::COPYPLANE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CopyPlane >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYPOINT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyPoint >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYLINE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyLine >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYSEGMENT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolySegment >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYRECTANGLE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyRectangle >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYARC:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyArc >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FILLPOLY:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::FillPoly >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYFILLRECTANGLE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyFillRectangle >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYFILLARC:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyFillArc >( conn, data, sz );
         break;
     case protocol::requests::opcodes::PUTIMAGE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PutImage >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETIMAGE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetImage >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYTEXT8:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyText8 >( conn, data, sz );
         break;
     case protocol::requests::opcodes::POLYTEXT16:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::PolyText16 >( conn, data, sz );
         break;
     case protocol::requests::opcodes::IMAGETEXT8:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ImageText8 >( conn, data, sz );
         break;
     case protocol::requests::opcodes::IMAGETEXT16:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ImageText16 >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CREATECOLORMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CreateColormap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FREECOLORMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::FreeColormap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::COPYCOLORMAPANDFREE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CopyColormapAndFree >( conn, data, sz );
         break;
     case protocol::requests::opcodes::INSTALLCOLORMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::InstallColormap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::UNINSTALLCOLORMAP:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::UninstallColormap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ListInstalledColormaps >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::AllocColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCNAMEDCOLOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::AllocNamedColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLORCELLS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::AllocColorCells >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLORPLANES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::AllocColorPlanes >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FREECOLORS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::FreeColors >( conn, data, sz );
         break;
     case protocol::requests::opcodes::STORECOLORS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::StoreColors >( conn, data, sz );
         break;
     case protocol::requests::opcodes::STORENAMEDCOLOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::StoreNamedColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYCOLORS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryColors >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LOOKUPCOLOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::LookupColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CREATECURSOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CreateCursor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CREATEGLYPHCURSOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::CreateGlyphCursor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FREECURSOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::FreeCursor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::RECOLORCURSOR:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::RecolorCursor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYBESTSIZE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryBestSize >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYEXTENSION:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::QueryExtension >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTEXTENSIONS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ListExtensions >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEKEYBOARDMAPPING:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeKeyboardMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETKEYBOARDMAPPING:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetKeyboardMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEKEYBOARDCONTROL:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeKeyboardControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETKEYBOARDCONTROL:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetKeyboardControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::BELL:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::Bell >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEPOINTERCONTROL:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangePointerControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPOINTERCONTROL:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetPointerControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETSCREENSAVER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetScreenSaver >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETSCREENSAVER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetScreenSaver >( conn, data, sz );
         break;
     case protocol::requests::opcodes::CHANGEHOSTS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ChangeHosts >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTHOSTS:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ListHosts >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETACCESSCONTROL:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetAccessControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETCLOSEDOWNMODE:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetCloseDownMode >( conn, data, sz );
         break;
     case protocol::requests::opcodes::KILLCLIENT:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::KillClient >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ROTATEPROPERTIES:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::RotateProperties >( conn, data, sz );
         break;
     case protocol::requests::opcodes::FORCESCREENSAVER:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::ForceScreenSaver >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETPOINTERMAPPING:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetPointerMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPOINTERMAPPING:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetPointerMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETMODIFIERMAPPING:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::SetModifierMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETMODIFIERMAPPING:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::GetModifierMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::NOOPERATION:
-        bytes_parsed = _logClientRequest<
+        bytes_parsed = _logRequest<
             protocol::requests::NoOperation >( conn, data, sz );
         break;
     default:
