@@ -1366,7 +1366,7 @@ size_t X11ProtocolParser::_logReply<
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
             data + bytes_parsed, sz - bytes_parsed,
-            data_sz, _ROOT_WS.nested() ) };
+            data_sz, _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     bytes_parsed += _pad(data_.bytes_parsed);
 
     const uint32_t name_width (
