@@ -59,12 +59,13 @@ size_t X11ProtocolParser::_logError(
     }
     fmt::println(
         settings.log_fs,
-        "{:03d}:<:server error {}({}) "
+        "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}) "
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        conn->id, protocol::errors::names[code], code,
+        conn->id, bytes_parsed, _SERVER_TO_CLIENT, encoding->sequence_number,
+        protocol::errors::names[code], code,
         _ROOT_WS.separator,
         !settings.verbose ? "" :
         fmt::format(
