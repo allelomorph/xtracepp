@@ -305,28 +305,20 @@ X11ProtocolParser::_parseProtocolType<
             ws.encl_indent
             );
     } else {
-        assert( first_byte > 0 );
         outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::TEXTELT16 );
-        std::string hex_str {};
-        for ( uint8_t i {}, m { item.text_element.m }; i < m; ++i ) {
-            // TBD treating CHAR2B as CARD16, but encoding may be more
-            //   complicated in standard
-            // TBD write a _parseLISTof<CHAR2B>?
-            const uint16_t char2b {
-                *reinterpret_cast< const uint16_t* >(
-                    data + outputs.bytes_parsed ) };
-            hex_str += fmt::format(
-                "{}{:#0{}x}", hex_str.empty() ? "" : " ",
-                char2b, _fmtHexWidth( char2b ) );
-            outputs.bytes_parsed += sizeof( protocol::CHAR2B );
-        }
+
+        const _ParsingOutputs string {
+            _parseLISTof< protocol::CHAR2B >(
+                data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                item.text_element.m, ws.nested( _Whitespace::SINGLELINE ) ) };
+        outputs.bytes_parsed += string.bytes_parsed;
 
         const uint32_t name_width (
             settings.multiline ? sizeof( "string" ) - 1 : 0 );
         outputs.str += fmt::format(
             "{{{}"
             "{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}[{}]{}"
+            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
             "{}}}",
             ws.separator,
             !settings.verbose ? "" :
@@ -337,7 +329,7 @@ X11ProtocolParser::_parseProtocolType<
             ws.memb_indent, "delta", name_width, ws.equals,
             _formatInteger( item.text_element.delta ), ws.separator,
             ws.memb_indent, "string", name_width, ws.equals,
-            hex_str, ws.separator,
+            string.str, ws.separator,
             ws.encl_indent
             );
     }
