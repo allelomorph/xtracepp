@@ -10,7 +10,6 @@
 #include "Connection.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
-#include "protocol/predefined_atoms.hpp"
 #include "protocol/requests.hpp"
 #include "protocol/connection_setup.hpp"
 

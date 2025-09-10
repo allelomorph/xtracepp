@@ -10,7 +10,7 @@
 #include "Connection.hpp"
 #include "Settings.hpp"
 #include "protocol/common_types.hpp"
-#include "protocol/predefined_atoms.hpp"
+#include "protocol/atoms.hpp"
 #include "protocol/requests.hpp"  // PolySegment::SEGMENT
 #include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
 #include "protocol/errors.hpp"  // errors::ENCODING_SZ
@@ -183,7 +183,7 @@ X11ProtocolParser::_internStashedAtom( const _StashedAtomID sa_id,
         } else {
             _nonseq_interned_atoms[ atom.data ] = sa_it->second;
         }
-    } else if ( atom.data > protocol::atoms::PREDEFINED_MAX ) {
+    } else if ( atom.data > protocol::atoms::predefined::MAX ) {
         _nonseq_interned_atoms[ atom.data ] = sa_it->second;
     }
     _stashed_atoms.erase( sa_it );

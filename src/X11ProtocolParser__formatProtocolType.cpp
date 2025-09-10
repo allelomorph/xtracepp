@@ -9,7 +9,7 @@
 #include "Connection.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
-#include "protocol/predefined_atoms.hpp"
+#include "protocol/atoms.hpp"
 #include "protocol/requests.hpp"
 #include "protocol/connection_setup.hpp"
 
@@ -137,9 +137,9 @@ X11ProtocolParser::_formatProtocolType(
          atom.data < _seq_interned_atoms.size() ) {
         atom_string =
             fmt::format( "\"{}\"", _seq_interned_atoms[ atom.data ] );
-    } else if ( atom.data <= protocol::atoms::PREDEFINED_MAX ) {
+    } else if ( atom.data <= protocol::atoms::predefined::MAX ) {
         atom_string =
-            fmt::format( "\"{}\"", protocol::atoms::predefined[ atom.data ] );
+            fmt::format( "\"{}\"", protocol::atoms::predefined::strings[ atom.data ] );
     } else {
         auto it { _nonseq_interned_atoms.find( atom.data ) };
         if ( it == _nonseq_interned_atoms.end() )

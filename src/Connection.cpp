@@ -4,7 +4,6 @@
 
 #include "Connection.hpp"
 #include "errors.hpp"
-#include "protocol/predefined_atoms.hpp"
 
 
 Connection::Connection() :

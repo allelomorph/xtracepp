@@ -9,7 +9,7 @@
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
 #include "protocol/requests.hpp"
-#include "protocol/predefined_atoms.hpp"
+#include "protocol/atoms.hpp"
 
 
 template <>
