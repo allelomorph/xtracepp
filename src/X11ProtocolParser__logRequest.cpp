@@ -1952,11 +1952,13 @@ size_t X11ProtocolParser::_logRequest<
     bytes_parsed += sizeof( QueryTextExtents::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::QUERYTEXTEXTENTS );
 
-    const auto padded_string_sz {
+    const size_t string_sz {  // (padded)
         ( encoding->request_length * _ALIGN ) - sizeof( QueryTextExtents::Encoding ) };
+    const size_t n_CHAR2B {
+        ( string_sz / sizeof( protocol::CHAR2B/*char16_t*/ ) ) -
+        ( encoding->odd_length.data ? 1 : 0 ) };
     std::u16string_view u16string {
-        reinterpret_cast<const char16_t*>( data + bytes_parsed ),
-        ( padded_string_sz / sizeof( char16_t ) ) - ( encoding->odd_length.data ? 1 : 0 ) };
+        reinterpret_cast< const char16_t* >( data + bytes_parsed ), n_CHAR2B };
     // printing char16_t vals as hex, same as xtrace
     // TBD is there a way to convert to printable UTF-8 (with c16rtomb, for example)?
     // TBD STRING16 encoding seems quite tangled, from standard:
@@ -1976,7 +1978,7 @@ size_t X11ProtocolParser::_logRequest<
             "{}{:#0{}x}", string_as_hex.empty() ? "" : " ",
             uint16_t( c16 ), c16_hex_width );
     }
-    bytes_parsed += padded_string_sz;
+    bytes_parsed += string_sz;
     assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
     const uint32_t name_width (
