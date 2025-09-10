@@ -1952,32 +1952,17 @@ size_t X11ProtocolParser::_logRequest<
     bytes_parsed += sizeof( QueryTextExtents::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::QUERYTEXTEXTENTS );
 
-    const size_t string_sz {  // (padded)
+    // first calc padded string length due to ambiguity around odd-length
+    const size_t string_sz {
         ( encoding->request_length * _ALIGN ) - sizeof( QueryTextExtents::Encoding ) };
     const size_t n_CHAR2B {
         ( string_sz / sizeof( protocol::CHAR2B/*char16_t*/ ) ) -
         ( encoding->odd_length.data ? 1 : 0 ) };
-    std::u16string_view u16string {
-        reinterpret_cast< const char16_t* >( data + bytes_parsed ), n_CHAR2B };
-    // printing char16_t vals as hex, same as xtrace
-    // TBD is there a way to convert to printable UTF-8 (with c16rtomb, for example)?
-    // TBD STRING16 encoding seems quite tangled, from standard:
-    //     "The primary interpretation of large characters in a STRING16 is that they are
-    // composed of two bytes used to index a two-dimensional matrix, hence, the use of
-    // CHAR2B rather than CARD16. This corresponds to the JIS/ISO method of indexing
-    // 2-byte characters. It is expected that most large fonts will be defined with 2-byte
-    // matrix indexing. For large fonts constructed with linear indexing, a CHAR2B can
-    // be interpreted as a 16-bit number by treating byte1 as the most significant byte.
-    // This means that clients should always transmit such 16-bit character values most
-    // significant byte first, as the server will never byte-swap CHAR2B quantities."
-    std::string string_as_hex;
-    // fmt counts "0x" as part of width when using '#'
-    const size_t c16_hex_width { ( sizeof( char16_t ) * 2 ) + 2 };
-    for ( const char16_t c16 : u16string ) {
-        string_as_hex += fmt::format(
-            "{}{:#0{}x}", string_as_hex.empty() ? "" : " ",
-            uint16_t( c16 ), c16_hex_width );
-    }
+    _ParsingOutputs string {
+        _parseLISTof< protocol::CHAR2B >(
+            data + bytes_parsed, sz - bytes_parsed, n_CHAR2B,
+            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+    // bypass normal use of _ParsingOutputs.bytes_parsed due to odd-length
     bytes_parsed += string_sz;
     assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
@@ -1988,7 +1973,7 @@ size_t X11ProtocolParser::_logRequest<
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
-        "{}{: <{}}{}[{}]{}"
+        "{}{: <{}}{}{}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -2010,7 +1995,7 @@ size_t X11ProtocolParser::_logRequest<
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
         _formatProtocolType( encoding->font.font ), _ROOT_WS.separator,
         _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
-        string_as_hex, _ROOT_WS.separator,
+        string.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
     // assert( bytes_parsed == sz );
