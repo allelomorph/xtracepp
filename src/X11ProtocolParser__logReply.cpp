@@ -352,16 +352,23 @@ size_t X11ProtocolParser::_logReply<
     bytes_parsed += sizeof( GetProperty::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->format <= 32 && encoding->format % 8 == 0 );
+    // followed by LISTofBYTE value
     const uint32_t value_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetProperty::ReplyEncoding) +
                            _pad( value_sz ) -
                            protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
-
-    const _ParsingOutputs value {
-        _parseLISTof< protocol::BYTE >(
+    _ParsingOutputs value;
+    if ( encoding->type.data == protocol::atoms::predefined::STRING ) {
+        value.str = fmt::format(
+            "{:?}", std::string_view{
+                reinterpret_cast< const char* >( data + bytes_parsed ), value_sz } );
+        value.bytes_parsed = value_sz;
+    } else {
+        value = _parseLISTof< protocol::BYTE >(
             data + bytes_parsed, sz - bytes_parsed, value_sz,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+            _ROOT_WS.nested( _Whitespace::SINGLELINE ) );
+    }
     bytes_parsed += _pad( value.bytes_parsed );
 
     const uint32_t name_width (

@@ -12,6 +12,7 @@
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
 #include "protocol/events.hpp"
+#include "protocol/atoms.hpp"
 
 
 size_t X11ProtocolParser::_logSimpleRequest(
@@ -728,12 +729,19 @@ size_t X11ProtocolParser::_logRequest<
     bytes_parsed += sizeof( ChangeProperty::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::CHANGEPROPERTY );
     assert( encoding->format <= 32 && encoding->format % 8 == 0 );
+    // followed by LISTofBYTE data
     const uint32_t data_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
-    // TBD can we modify printing based on type, or at least print as string when "STRING"?
-    const _ParsingOutputs data_ {
-        _parseLISTof< protocol::BYTE >(
+    _ParsingOutputs data_;
+    if ( encoding->type.data == protocol::atoms::predefined::STRING ) {
+        data_.str = fmt::format(
+            "{:?}", std::string_view{
+                reinterpret_cast< const char* >( data + bytes_parsed ), data_sz } );
+        data_.bytes_parsed = data_sz;
+    } else {
+        data_ = _parseLISTof< protocol::BYTE >(
             data + bytes_parsed, sz - bytes_parsed, data_sz,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+            _ROOT_WS.nested( _Whitespace::SINGLELINE ) );
+    }
     bytes_parsed += _pad(data_.bytes_parsed);
     assert( encoding->request_length == _alignedUnits( bytes_parsed ) );
 
