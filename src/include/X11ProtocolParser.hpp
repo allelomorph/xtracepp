@@ -65,6 +65,9 @@ private:
     void
     _internStashedAtom( const _StashedAtomID sa_id, const protocol::ATOM atom );
 
+    static constexpr std::string_view _CLIENT_TO_SERVER { "s<c" };
+    static constexpr std::string_view _SERVER_TO_CLIENT { "s>c" };
+
     class _Whitespace {
     private:
         static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
@@ -615,57 +618,53 @@ private:
         const _Whitespace& indents );
 
 
-    size_t _logRequest(
-        Connection* conn, const uint8_t* data, const size_t sz );
-
     template < typename RequestT,
                std::enable_if_t<
                    !( std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT> ||
                       std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT> ||
                       std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT> ),
                    bool> = true >
-    size_t _logRequest(
+    _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     // GrabServer UngrabServer GetInputFocus QueryKeymap GetFontPath
     // ListExtensions GetKeyboardControl GetPointerControl GetScreenSaver
     // ListHosts GetPointerMapping GetModifierMapping
-
-    size_t _logSimpleRequest(
+    _ParsingOutputs _parseSimpleRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     template < typename RequestT,
                std::enable_if_t<
                    std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT>,
                    bool> = true >
-    inline size_t _logRequest(
+    inline _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _logSimpleRequest( conn, data, sz );
+        return _parseSimpleRequest( conn, data, sz );
     }
-
     // GetWindowAttributes DestroyWindow DestroySubwindows MapWindow
     // MapSubwindows UnmapWindow UnmapSubwindows QueryTree ListProperties
     // QueryPointer ListInstalledColormaps
-    size_t _logSimpleWindowRequest(
+    _ParsingOutputs _parseSimpleWindowRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     template < typename RequestT,
                std::enable_if_t<
                    std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT>,
                    bool> = true >
-    inline size_t _logRequest(
+    inline _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _logSimpleWindowRequest( conn, data, sz );
+        return _parseSimpleWindowRequest( conn, data, sz );
     }
-
     // ListFonts ListFontsWithInfo
-    size_t _logListFontsRequest(
+    _ParsingOutputs _parseListFontsRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     template < typename RequestT,
                std::enable_if_t<
                    std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT>,
                    bool> = true >
-    inline size_t _logRequest(
+    inline _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _logListFontsRequest( conn, data, sz );
+        return _parseListFontsRequest( conn, data, sz );
     }
+    size_t _logRequest(
+        Connection* conn, const uint8_t* data, const size_t sz );
 
     // TBD would prefer to only allow
     //   - ProxyX11Server::_authenticateServerConnection()

@@ -119,9 +119,10 @@ public:
     }
 
     // TBD how does xtrace refer to seq nums before current one without storing anything?
-    inline void
+    inline uint16_t
     registerRequest( const uint8_t opcode ) {
         _request_opcodes_by_seq_num.emplace( ++sequence, opcode );
+        return sequence;
     }
 
     inline uint8_t
