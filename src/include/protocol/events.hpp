@@ -108,6 +108,16 @@ std::array< std::string_view, codes::MAX + 1 > names {
     "MappingNotify",     // 34
 };
 
+struct [[gnu::packed]] Header {
+    uint8_t  code;
+private:
+    // TBD to access this byte as KEYCODE/BUTTON/uint8_t `detail`, use the
+    //   correct Event class below, not this generic header
+    uint8_t _unused;
+public:
+    uint16_t sequence_number;
+};
+
 // TBD use shared type for KeyPress KeyRelease ButtonPress ButtonRelease, as all fields are same
 struct KeyPress {
     struct [[gnu::packed]] Encoding {

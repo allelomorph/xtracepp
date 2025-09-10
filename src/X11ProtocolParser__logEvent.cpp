@@ -2005,8 +2005,12 @@ size_t X11ProtocolParser::_logEvent(
 
     _ParsingOutputs event {
         _parseEvent( conn, data, sz, _ROOT_WS ) };
-    fmt::println( settings.log_fs, "{:03d}:<:server event {}",
-                  conn->id, event.str );
+    const protocol::events::Header* header {
+        reinterpret_cast< const protocol::events::Header* >( data ) };
+    fmt::println( settings.log_fs,
+                  "C{:03d}:{:04d}B:{}:S{:05d}: Event {}",
+                  conn->id, event.bytes_parsed, _SERVER_TO_CLIENT,
+                  header->sequence_number, event.str );
     assert( event.bytes_parsed == protocol::events::ENCODING_SZ );
     return event.bytes_parsed;
 }
