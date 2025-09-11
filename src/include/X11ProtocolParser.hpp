@@ -593,22 +593,19 @@ private:
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    // TBD need data to be mutable for reply spoofing, eg QueryExtension
-    size_t _logReply(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    // TBD replies with modified contents
+    // TBD replies with modified contents, eg QueryExtension
     template < typename RequestT >
-    size_t _logReply(
+    _ParsingOutputs _parseReply(
         Connection* conn, uint8_t* data, const size_t sz );
     // TBD normal unmodified data
     template < typename RequestT >
+    _ParsingOutputs _parseReply(
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logReply(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     static constexpr uint8_t _GENERATED_EVENT_FLAG { 0x80 };
     static constexpr uint8_t _EVENT_CODE_MASK { uint8_t(~_GENERATED_EVENT_FLAG) };
-    size_t _logEvent(
-        Connection* conn, const uint8_t* data, const size_t sz );
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );
@@ -616,7 +613,8 @@ private:
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );
-
+    size_t _logEvent(
+        Connection* conn, const uint8_t* data, const size_t sz );
 
     template < typename RequestT,
                std::enable_if_t<

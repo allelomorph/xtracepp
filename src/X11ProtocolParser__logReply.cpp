@@ -13,7 +13,8 @@
 
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetWindowAttributes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -21,11 +22,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetWindowAttributes::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetWindowAttributes;
     const GetWindowAttributes::ReplyEncoding* encoding {
         reinterpret_cast< const GetWindowAttributes::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetWindowAttributes::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetWindowAttributes::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetWindowAttributes::ReplyEncoding) -
@@ -33,7 +34,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -90,11 +91,12 @@ size_t X11ProtocolParser::_logReply<
         _formatProtocolType( encoding->do_not_propagate_mask ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetGeometry >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -102,11 +104,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetGeometry::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetGeometry;
     const GetGeometry::ReplyEncoding* encoding {
         reinterpret_cast< const GetGeometry::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetGeometry::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetGeometry::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetGeometry::ReplyEncoding) -
@@ -114,7 +116,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -154,11 +156,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->border_width ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryTree >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -166,11 +169,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryTree::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryTree;
     const QueryTree::ReplyEncoding* encoding {
         reinterpret_cast< const QueryTree::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryTree::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryTree::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(QueryTree::ReplyEncoding) +
@@ -179,14 +182,14 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs children {
         _parseLISTof< protocol::WINDOW >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
     assert( encoding->reply_length == _alignedUnits( children.bytes_parsed ) );
-    bytes_parsed += children.bytes_parsed;
+    reply.bytes_parsed += children.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -222,11 +225,12 @@ size_t X11ProtocolParser::_logReply<
         children.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::InternAtom >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -234,11 +238,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::InternAtom::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::InternAtom;
     const InternAtom::ReplyEncoding* encoding {
         reinterpret_cast< const InternAtom::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( InternAtom::ReplyEncoding );
+    reply.bytes_parsed += sizeof( InternAtom::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(InternAtom::ReplyEncoding) -
@@ -249,7 +253,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -274,11 +278,12 @@ size_t X11ProtocolParser::_logReply<
         _formatProtocolType( encoding->atom, InternAtom::atom_names ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetAtomName >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -286,11 +291,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetAtomName::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetAtomName;
     const GetAtomName::ReplyEncoding* encoding {
         reinterpret_cast< const GetAtomName::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetAtomName::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetAtomName::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetAtomName::ReplyEncoding) +
@@ -298,12 +303,12 @@ size_t X11ProtocolParser::_logReply<
                            protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
 
     const std::string_view name {
-        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
-    bytes_parsed += _pad(encoding->n);
+        reinterpret_cast< const char* >( data + reply.bytes_parsed ), encoding->n };
+    reply.bytes_parsed += _pad(encoding->n);
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{:?}{}"
@@ -333,11 +338,12 @@ size_t X11ProtocolParser::_logReply<
         name, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -345,11 +351,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetProperty::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetProperty;
     const GetProperty::ReplyEncoding* encoding {
         reinterpret_cast< const GetProperty::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetProperty::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetProperty::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->format <= 32 && encoding->format % 8 == 0 );
     // followed by LISTofBYTE value
@@ -362,18 +368,18 @@ size_t X11ProtocolParser::_logReply<
     if ( encoding->type.data == protocol::atoms::predefined::STRING ) {
         value.str = fmt::format(
             "{:?}", std::string_view{
-                reinterpret_cast< const char* >( data + bytes_parsed ), value_sz } );
+                reinterpret_cast< const char* >( data + reply.bytes_parsed ), value_sz } );
         value.bytes_parsed = value_sz;
     } else {
         value = _parseLISTof< protocol::BYTE >(
-            data + bytes_parsed, sz - bytes_parsed, value_sz,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, value_sz,
             _ROOT_WS.nested( _Whitespace::SINGLELINE ) );
     }
-    bytes_parsed += _pad( value.bytes_parsed );
+    reply.bytes_parsed += _pad( value.bytes_parsed );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -413,11 +419,12 @@ size_t X11ProtocolParser::_logReply<
         value.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::ListProperties >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -425,11 +432,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::ListProperties::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::ListProperties;
     const ListProperties::ReplyEncoding* encoding {
         reinterpret_cast< const ListProperties::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( ListProperties::ReplyEncoding );
+    reply.bytes_parsed += sizeof( ListProperties::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length == encoding->n );
     assert( encoding->reply_length ==
@@ -439,13 +446,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs atoms {
         _parseLISTof< protocol::ATOM >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += _pad( atoms.bytes_parsed );
+    reply.bytes_parsed += _pad( atoms.bytes_parsed );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -475,11 +482,12 @@ size_t X11ProtocolParser::_logReply<
         atoms.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetSelectionOwner >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -487,11 +495,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetSelectionOwner::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetSelectionOwner;
     const GetSelectionOwner::ReplyEncoding* encoding {
         reinterpret_cast< const GetSelectionOwner::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetSelectionOwner::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetSelectionOwner::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetSelectionOwner::ReplyEncoding) -
@@ -499,7 +507,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -524,11 +532,12 @@ size_t X11ProtocolParser::_logReply<
         _formatProtocolType( encoding->owner, GetSelectionOwner::owner_names ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GrabPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -536,11 +545,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GrabPointer::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GrabPointer;
     const GrabPointer::ReplyEncoding* encoding {
         reinterpret_cast< const GrabPointer::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GrabPointer::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GrabPointer::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GrabPointer::ReplyEncoding)  -
@@ -548,7 +557,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -574,11 +583,12 @@ size_t X11ProtocolParser::_logReply<
             _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GrabKeyboard >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -586,11 +596,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GrabKeyboard::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GrabKeyboard;
     const GrabKeyboard::ReplyEncoding* encoding {
         reinterpret_cast< const GrabKeyboard::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GrabKeyboard::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GrabKeyboard::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GrabKeyboard::ReplyEncoding)  -
@@ -598,7 +608,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -624,11 +634,12 @@ size_t X11ProtocolParser::_logReply<
             _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -636,11 +647,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryPointer::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryPointer;
     const QueryPointer::ReplyEncoding* encoding {
         reinterpret_cast< const QueryPointer::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryPointer::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryPointer::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(QueryPointer::ReplyEncoding)  -
@@ -648,7 +659,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -690,11 +701,12 @@ size_t X11ProtocolParser::_logReply<
         _formatProtocolType( encoding->mask ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetMotionEvents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -702,11 +714,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetMotionEvents::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetMotionEvents;
     const GetMotionEvents::ReplyEncoding* encoding {
         reinterpret_cast< const GetMotionEvents::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetMotionEvents::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetMotionEvents::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetMotionEvents::ReplyEncoding) +
@@ -715,13 +727,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs events {
         _parseLISTof< GetMotionEvents::TIMECOORD >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += events.bytes_parsed;
+    reply.bytes_parsed += events.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -751,11 +763,12 @@ size_t X11ProtocolParser::_logReply<
         events.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::TranslateCoordinates >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -763,11 +776,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::TranslateCoordinates::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::TranslateCoordinates;
     const TranslateCoordinates::ReplyEncoding* encoding {
         reinterpret_cast< const TranslateCoordinates::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( TranslateCoordinates::ReplyEncoding );
+    reply.bytes_parsed += sizeof( TranslateCoordinates::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length == 0 );
     assert( encoding->reply_length ==
@@ -776,7 +789,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -809,11 +822,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetInputFocus >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -821,11 +835,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetInputFocus::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetInputFocus;
     const GetInputFocus::ReplyEncoding* encoding {
         reinterpret_cast< const GetInputFocus::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetInputFocus::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetInputFocus::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetInputFocus::ReplyEncoding) -
@@ -833,7 +847,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -862,11 +876,12 @@ size_t X11ProtocolParser::_logReply<
         _formatProtocolType( encoding->focus, GetInputFocus::focus_names ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryKeymap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -874,11 +889,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryKeymap::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryKeymap;
     const QueryKeymap::ReplyEncoding* encoding {
         reinterpret_cast< const QueryKeymap::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryKeymap::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryKeymap::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(QueryKeymap::ReplyEncoding) -
@@ -892,7 +907,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -917,11 +932,12 @@ size_t X11ProtocolParser::_logReply<
         keys.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -929,11 +945,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryFont::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryFont;
     const QueryFont::ReplyEncoding* encoding {
         reinterpret_cast< const QueryFont::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryFont::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryFont::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof( QueryFont::ReplyEncoding ) -
@@ -943,18 +959,18 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs properties {
         _parseLISTof< QueryFont::FONTPROP >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += properties.bytes_parsed;
+    reply.bytes_parsed += properties.bytes_parsed;
     const _ParsingOutputs char_infos {
         _parseLISTof< QueryFont::CHARINFO >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->m,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->m,
             _ROOT_WS.nested() ) };
-    bytes_parsed += char_infos.bytes_parsed;
+    reply.bytes_parsed += char_infos.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1019,11 +1035,12 @@ size_t X11ProtocolParser::_logReply<
         char_infos.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryTextExtents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1032,11 +1049,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryTextExtents::ReplyEncoding ) );
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryTextExtents;
     const QueryTextExtents::ReplyEncoding* encoding {
         reinterpret_cast< const QueryTextExtents::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryTextExtents::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryTextExtents::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof( QueryTextExtents::ReplyEncoding ) -
@@ -1044,7 +1061,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1086,11 +1103,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->overall_right ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::ListFonts >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1099,18 +1117,18 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::ListFonts::ReplyEncoding ) );
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::ListFonts;
     const ListFonts::ReplyEncoding* encoding {
         reinterpret_cast< const ListFonts::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( ListFonts::ReplyEncoding );
+    reply.bytes_parsed += sizeof( ListFonts::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs names {
         _parseLISTof< protocol::STR >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->name_ct,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->name_ct,
             _ROOT_WS.nested() ) };
-    bytes_parsed += _pad(names.bytes_parsed);
+    reply.bytes_parsed += _pad(names.bytes_parsed);
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(ListFonts::ReplyEncoding) +
                            _pad(names.bytes_parsed) -
@@ -1118,7 +1136,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -1148,11 +1166,12 @@ size_t X11ProtocolParser::_logReply<
         names.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::ListFontsWithInfo >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1160,7 +1179,7 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::ListFontsWithInfo::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::ListFontsWithInfo;
     const ListFontsWithInfo::ReplyEncoding* encoding {
         reinterpret_cast< const ListFontsWithInfo::ReplyEncoding* >( data ) };
@@ -1169,13 +1188,13 @@ size_t X11ProtocolParser::_logReply<
     if ( encoding->n == ListFontsWithInfo::LAST_REPLY ) {
         const ListFontsWithInfo::FinalReplyEncoding* fr_encoding {
             reinterpret_cast< const ListFontsWithInfo::FinalReplyEncoding* >( data ) };
-        bytes_parsed += sizeof( ListFontsWithInfo::FinalReplyEncoding );
+        reply.bytes_parsed += sizeof( ListFontsWithInfo::FinalReplyEncoding );
         assert( encoding->reply_length ==
                 _alignedUnits( sizeof(ListFontsWithInfo::FinalReplyEncoding) -
                                protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
         const uint32_t name_width (
             settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-        fmt::println(
+        reply.str = fmt::format(
             "{{{}"
             "{}"
             "{}{: <{}}{}{}{}"
@@ -1202,16 +1221,16 @@ size_t X11ProtocolParser::_logReply<
             _ROOT_WS.encl_indent
             );
     } else {  // encoding->n != ListFontsWithInfo::LAST_REPLY
-        bytes_parsed += sizeof( ListFontsWithInfo::ReplyEncoding );
+        reply.bytes_parsed += sizeof( ListFontsWithInfo::ReplyEncoding );
 
         const _ParsingOutputs properties {
             _parseLISTof< ListFontsWithInfo::FONTPROP >(
-                data + bytes_parsed, sz - bytes_parsed, encoding->m,
+                data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->m,
                 _ROOT_WS.nested() ) };
-        bytes_parsed += properties.bytes_parsed;
+        reply.bytes_parsed += properties.bytes_parsed;
         const std::string_view name {
-            reinterpret_cast< const char* >( data + bytes_parsed ), encoding->n };
-        bytes_parsed += _pad( encoding->n );
+            reinterpret_cast< const char* >( data + reply.bytes_parsed ), encoding->n };
+        reply.bytes_parsed += _pad( encoding->n );
 
         assert( encoding->reply_length ==
                 _alignedUnits( sizeof(ListFontsWithInfo::ReplyEncoding) +
@@ -1220,7 +1239,7 @@ size_t X11ProtocolParser::_logReply<
                                protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
         const uint32_t name_width (
             settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
-        fmt::println(
+        reply.str = fmt::format(
             "{{{}"
             "{}{}{}{}"
             "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1287,11 +1306,12 @@ size_t X11ProtocolParser::_logReply<
             _ROOT_WS.encl_indent
             );
     }
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetFontPath >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1299,18 +1319,18 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetFontPath::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetFontPath;
     const GetFontPath::ReplyEncoding* encoding {
         reinterpret_cast< const GetFontPath::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetFontPath::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetFontPath::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->str_ct,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->str_ct,
             _ROOT_WS.nested() ) };
-    bytes_parsed += _pad(path.bytes_parsed);
+    reply.bytes_parsed += _pad(path.bytes_parsed);
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetFontPath::ReplyEncoding) +
                            _pad(path.bytes_parsed) -
@@ -1318,7 +1338,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -1348,11 +1368,12 @@ size_t X11ProtocolParser::_logReply<
         path.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetImage >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1360,11 +1381,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetImage::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetImage;
     const GetImage::ReplyEncoding* encoding {
         reinterpret_cast< const GetImage::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetImage::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetImage::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     // No use in an assert on reply_length, as here it is the only way to derive
     //   the length of LISTofBYTE `data`
@@ -1372,13 +1393,13 @@ size_t X11ProtocolParser::_logReply<
     const size_t data_sz { encoding->reply_length * _ALIGN };
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
-            data + bytes_parsed, sz - bytes_parsed,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
             data_sz, _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
-    bytes_parsed += _pad(data_.bytes_parsed);
+    reply.bytes_parsed += _pad(data_.bytes_parsed);
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -1409,11 +1430,12 @@ size_t X11ProtocolParser::_logReply<
         data_.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::ListInstalledColormaps >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1421,11 +1443,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::ListInstalledColormaps::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::ListInstalledColormaps;
     const ListInstalledColormaps::ReplyEncoding* encoding {
         reinterpret_cast< const ListInstalledColormaps::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( ListInstalledColormaps::ReplyEncoding );
+    reply.bytes_parsed += sizeof( ListInstalledColormaps::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(ListInstalledColormaps::ReplyEncoding) +
@@ -1434,13 +1456,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs cmaps {
         _parseLISTof< protocol::COLORMAP >(
-            data + bytes_parsed, sz- bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz- reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += cmaps.bytes_parsed;
+    reply.bytes_parsed += cmaps.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -1470,11 +1492,12 @@ size_t X11ProtocolParser::_logReply<
         cmaps.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::AllocColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1482,11 +1505,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::AllocColor::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::AllocColor;
     const AllocColor::ReplyEncoding* encoding {
         reinterpret_cast< const AllocColor::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( AllocColor::ReplyEncoding );
+    reply.bytes_parsed += sizeof( AllocColor::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(AllocColor::ReplyEncoding) -
@@ -1494,7 +1517,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1525,11 +1548,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->pixel ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::AllocNamedColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1537,11 +1561,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::AllocNamedColor::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::AllocNamedColor;
     const AllocNamedColor::ReplyEncoding* encoding {
         reinterpret_cast< const AllocNamedColor::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( AllocNamedColor::ReplyEncoding );
+    reply.bytes_parsed += sizeof( AllocNamedColor::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(AllocNamedColor::ReplyEncoding) -
@@ -1549,7 +1573,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1587,11 +1611,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->visual_blue ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::AllocColorCells >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1599,11 +1624,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::AllocColorCells::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::AllocColorCells;
     const AllocColorCells::ReplyEncoding* encoding {
         reinterpret_cast< const AllocColorCells::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( AllocColorCells::ReplyEncoding );
+    reply.bytes_parsed += sizeof( AllocColorCells::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(AllocColorCells::ReplyEncoding) -
@@ -1611,19 +1636,19 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += pixels.bytes_parsed;
+    reply.bytes_parsed += pixels.bytes_parsed;
     // TBD format as bitmasks
     const _ParsingOutputs masks {
         _parseLISTof< protocol::CARD32 >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->m,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->m,
             _ROOT_WS.nested() ) };
-    bytes_parsed += pixels.bytes_parsed;
+    reply.bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1660,11 +1685,12 @@ size_t X11ProtocolParser::_logReply<
         masks.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::AllocColorPlanes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1672,11 +1698,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::AllocColorPlanes::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::AllocColorPlanes;
     const AllocColorPlanes::ReplyEncoding* encoding {
         reinterpret_cast< const AllocColorPlanes::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( AllocColorPlanes::ReplyEncoding );
+    reply.bytes_parsed += sizeof( AllocColorPlanes::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(AllocColorPlanes::ReplyEncoding) -
@@ -1684,13 +1710,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += pixels.bytes_parsed;
+    reply.bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1726,11 +1752,12 @@ size_t X11ProtocolParser::_logReply<
         pixels.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1738,11 +1765,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryColors::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryColors;
     const QueryColors::ReplyEncoding* encoding {
         reinterpret_cast< const QueryColors::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryColors::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryColors::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(QueryColors::ReplyEncoding) +
@@ -1751,13 +1778,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs colors {
         _parseLISTof< QueryColors::RGB >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += colors.bytes_parsed;
+    reply.bytes_parsed += colors.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -1787,11 +1814,12 @@ size_t X11ProtocolParser::_logReply<
         colors.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::LookupColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1799,11 +1827,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::LookupColor::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::LookupColor;
     const LookupColor::ReplyEncoding* encoding {
         reinterpret_cast< const LookupColor::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( LookupColor::ReplyEncoding );
+    reply.bytes_parsed += sizeof( LookupColor::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(LookupColor::ReplyEncoding) -
@@ -1811,7 +1839,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1847,11 +1875,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->visual_blue ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryBestSize >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1859,11 +1888,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryBestSize::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryBestSize;
     const QueryBestSize::ReplyEncoding* encoding {
         reinterpret_cast< const QueryBestSize::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryBestSize::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryBestSize::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(QueryBestSize::ReplyEncoding) -
@@ -1871,7 +1900,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1898,14 +1927,15 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->height ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 // TBD important for later implementation of extensions:
 //   encoding->first_event: base event code
 //   encoding->first_error: base error code
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::QueryExtension >(
         Connection* conn, uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1913,12 +1943,12 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::QueryExtension::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::QueryExtension;
     // not const to allow for .present spoofing
     QueryExtension::ReplyEncoding* encoding {
         reinterpret_cast< QueryExtension::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( QueryExtension::ReplyEncoding );
+    reply.bytes_parsed += sizeof( QueryExtension::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(QueryExtension::ReplyEncoding) -
@@ -1928,7 +1958,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -1959,11 +1989,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->first_error ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::ListExtensions >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -1971,18 +2002,18 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::ListExtensions::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::ListExtensions;
     const ListExtensions::ReplyEncoding* encoding {
         reinterpret_cast< const ListExtensions::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( ListExtensions::ReplyEncoding );
+    reply.bytes_parsed += sizeof( ListExtensions::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     const _ParsingOutputs names {
         _parseLISTof< protocol::STR >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += _pad(names.bytes_parsed);
+    reply.bytes_parsed += _pad(names.bytes_parsed);
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(ListExtensions::ReplyEncoding) +
                            _pad(names.bytes_parsed) -
@@ -1990,7 +2021,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -2020,11 +2051,12 @@ size_t X11ProtocolParser::_logReply<
         names.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetKeyboardMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2032,21 +2064,21 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetKeyboardMapping::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetKeyboardMapping;
     const GetKeyboardMapping::ReplyEncoding* encoding {
         reinterpret_cast< const GetKeyboardMapping::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetKeyboardMapping::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetKeyboardMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
 
     // n_keycodes should equal `count` from the request
     const uint32_t n_keycodes { encoding->reply_length / encoding->keysyms_per_keycode };
     const _ParsingOutputs keysyms {
         _parseLISTof< protocol::KEYSYM >(
-            data + bytes_parsed, sz - bytes_parsed,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
             n_keycodes * encoding->keysyms_per_keycode,
             _ROOT_WS.nested() ) };
-    bytes_parsed += keysyms.bytes_parsed;
+    reply.bytes_parsed += keysyms.bytes_parsed;
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetKeyboardMapping::ReplyEncoding) +
                            keysyms.bytes_parsed -
@@ -2054,7 +2086,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -2084,11 +2116,12 @@ size_t X11ProtocolParser::_logReply<
         keysyms.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetKeyboardControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2096,11 +2129,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetKeyboardControl::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetKeyboardControl;
     const GetKeyboardControl::ReplyEncoding* encoding {
         reinterpret_cast< const GetKeyboardControl::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetKeyboardControl::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetKeyboardControl::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetKeyboardControl::ReplyEncoding) -
@@ -2108,7 +2141,7 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs auto_repeats {
         _parseLISTof< protocol::CARD8 >(
-            data + bytes_parsed, sz - bytes_parsed,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
             sizeof(GetKeyboardControl::ReplyEncoding::auto_repeats),
             _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
     // auto_repeats.bytes_parsed ignored, as auto-repeats is a fixed size array
@@ -2116,7 +2149,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "global-auto-repeat" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2156,11 +2189,12 @@ size_t X11ProtocolParser::_logReply<
         auto_repeats.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetPointerControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2168,11 +2202,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetPointerControl::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetPointerControl;
     const GetPointerControl::ReplyEncoding* encoding {
         reinterpret_cast< const GetPointerControl::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetPointerControl::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetPointerControl::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetPointerControl::ReplyEncoding) -
@@ -2180,7 +2214,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -2209,11 +2243,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->threshold ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2221,11 +2256,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetScreenSaver::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetScreenSaver;
     const GetScreenSaver::ReplyEncoding* encoding {
         reinterpret_cast< const GetScreenSaver::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetScreenSaver::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetScreenSaver::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetScreenSaver::ReplyEncoding) -
@@ -2233,7 +2268,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -2264,11 +2299,12 @@ size_t X11ProtocolParser::_logReply<
         _formatInteger( encoding->allow_exposures, GetScreenSaver::allow_exposures_names ), _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::ListHosts >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2276,11 +2312,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::ListHosts::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::ListHosts;
     const ListHosts::ReplyEncoding* encoding {
         reinterpret_cast< const ListHosts::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( ListHosts::ReplyEncoding );
+    reply.bytes_parsed += sizeof( ListHosts::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(ListHosts::ReplyEncoding) +
@@ -2289,13 +2325,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs hosts {
         _parseLISTof< protocol::HOST >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested() ) };
-    bytes_parsed += hosts.bytes_parsed;
+    reply.bytes_parsed += hosts.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2329,11 +2365,12 @@ size_t X11ProtocolParser::_logReply<
         hosts.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::SetPointerMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2341,11 +2378,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::SetPointerMapping::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::SetPointerMapping;
     const SetPointerMapping::ReplyEncoding* encoding {
         reinterpret_cast< const SetPointerMapping::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( SetPointerMapping::ReplyEncoding );
+    reply.bytes_parsed += sizeof( SetPointerMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(SetPointerMapping::ReplyEncoding) -
@@ -2353,7 +2390,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2379,11 +2416,12 @@ size_t X11ProtocolParser::_logReply<
             _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetPointerMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2391,11 +2429,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetPointerMapping::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetPointerMapping;
     const GetPointerMapping::ReplyEncoding* encoding {
         reinterpret_cast< const GetPointerMapping::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetPointerMapping::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetPointerMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(GetPointerMapping::ReplyEncoding) +
@@ -2404,13 +2442,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->n,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
             _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
-    bytes_parsed += _pad(map.bytes_parsed);
+    reply.bytes_parsed += _pad(map.bytes_parsed);
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -2440,11 +2478,12 @@ size_t X11ProtocolParser::_logReply<
         map.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::SetModifierMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2452,11 +2491,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::SetModifierMapping::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::SetModifierMapping;
     const SetModifierMapping::ReplyEncoding* encoding {
         reinterpret_cast< const SetModifierMapping::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( SetModifierMapping::ReplyEncoding );
+    reply.bytes_parsed += sizeof( SetModifierMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     assert( encoding->reply_length ==
             _alignedUnits( sizeof(SetModifierMapping::ReplyEncoding) -
@@ -2464,7 +2503,7 @@ size_t X11ProtocolParser::_logReply<
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2490,11 +2529,12 @@ size_t X11ProtocolParser::_logReply<
             _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 template <>
-size_t X11ProtocolParser::_logReply<
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply<
     protocol::requests::GetModifierMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
@@ -2502,11 +2542,11 @@ size_t X11ProtocolParser::_logReply<
     assert( sz >= sizeof(
                 protocol::requests::GetModifierMapping::ReplyEncoding ) ); // TBD
 
-    size_t bytes_parsed {};
+    _ParsingOutputs reply;
     using protocol::requests::GetModifierMapping;
     const GetModifierMapping::ReplyEncoding* encoding {
         reinterpret_cast< const GetModifierMapping::ReplyEncoding* >( data ) };
-    bytes_parsed += sizeof( GetModifierMapping::ReplyEncoding );
+    reply.bytes_parsed += sizeof( GetModifierMapping::ReplyEncoding );
     assert( encoding->reply == protocol::requests::REPLY_PREFIX );
     const uint32_t n_keycodes {
         GetModifierMapping::MODIFIER_CT * encoding->keycodes_per_modifier };
@@ -2517,13 +2557,13 @@ size_t X11ProtocolParser::_logReply<
 
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
-            data + bytes_parsed, sz - bytes_parsed, n_keycodes,
+            data + reply.bytes_parsed, sz - reply.bytes_parsed, n_keycodes,
             _ROOT_WS.nested() ) };
-    bytes_parsed += keycodes.bytes_parsed;
+    reply.bytes_parsed += keycodes.bytes_parsed;
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
-    fmt::println(
+    reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
@@ -2552,7 +2592,7 @@ size_t X11ProtocolParser::_logReply<
         keycodes.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );
-    return bytes_parsed;
+    return reply;
 }
 
 // TBD default to const data, since mods are the exception
@@ -2573,223 +2613,180 @@ size_t X11ProtocolParser::_logReply(
     assert( opcode >= protocol::requests::opcodes::MIN &&
             opcode <= protocol::requests::opcodes::MAX );
 
-    // static constexpr std::tuple<
-    //     protocol::requests::GetWindowAttributes,     //  3
-    //     protocol::requests::GetGeometry,             // 14
-    //     protocol::requests::QueryTree,               // 15
-    //     protocol::requests::InternAtom,              // 16
-    //     protocol::requests::GetAtomName,             // 17
-    //     protocol::requests::GetProperty,             // 20
-    //     protocol::requests::ListProperties,          // 21
-    //     protocol::requests::GetSelectionOwner,       // 23
-    //     protocol::requests::GrabPointer,             // 26
-    //     protocol::requests::GrabKeyboard,            // 31
-    //     protocol::requests::QueryPointer,            // 38
-    //     protocol::requests::GetMotionEvents,         // 39
-    //     protocol::requests::TranslateCoordinates,    // 40
-    //     protocol::requests::GetInputFocus,           // 43
-    //     protocol::requests::QueryKeymap,             // 44
-    //     protocol::requests::QueryFont,               // 47
-    //     protocol::requests::QueryTextExtents,        // 48
-    //     protocol::requests::ListFonts,               // 49
-    //     protocol::requests::ListFontsWithInfo,       // 50
-    //     protocol::requests::GetFontPath,             // 52
-    //     protocol::requests::GetImage,                // 73
-    //     protocol::requests::ListInstalledColormaps,  // 83
-    //     protocol::requests::AllocColor,              // 84
-    //     protocol::requests::AllocNamedColor,         // 85
-    //     protocol::requests::AllocColorCells,         // 86
-    //     protocol::requests::AllocColorPlanes,        // 87
-    //     protocol::requests::QueryColors,             // 91
-    //     protocol::requests::LookupColor,             // 92
-    //     protocol::requests::QueryBestSize,           // 97
-    //     protocol::requests::QueryExtension,          // 98
-    //     protocol::requests::ListExtensions,          // 99
-    //     protocol::requests::GetKeyboardMapping,      // 101
-    //     protocol::requests::GetKeyboardControl,      // 103
-    //     protocol::requests::GetPointerControl,       // 106
-    //     protocol::requests::GetScreenSaver,          // 108
-    //     protocol::requests::ListHosts,               // 110
-    //     protocol::requests::SetPointerMapping,       // 116
-    //     protocol::requests::GetPointerMapping,       // 117
-    //     protocol::requests::SetModifierMapping,      // 118
-    //     protocol::requests::GetModifierMapping       // 119
-    //     > request_types {};
-
-    size_t bytes_parsed {};
-    fmt::print( "{:03d}:>: server reply to {}({}) ",
-                conn->id, protocol::requests::names[ opcode ], opcode );
+    _ParsingOutputs reply;
     switch ( opcode ) {
     case protocol::requests::opcodes::GETWINDOWATTRIBUTES:     //  3
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetWindowAttributes >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETGEOMETRY:             // 14
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetGeometry >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYTREE:               // 15
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryTree >( conn, data, sz );
         break;
     case protocol::requests::opcodes::INTERNATOM:              // 16
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::InternAtom >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETATOMNAME:             // 17
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetAtomName >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPROPERTY:             // 20
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetProperty >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTPROPERTIES:          // 21
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::ListProperties >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETSELECTIONOWNER:       // 23
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetSelectionOwner >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABPOINTER:             // 26
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GrabPointer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GRABKEYBOARD:            // 31
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GrabKeyboard >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYPOINTER:            // 38
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryPointer >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETMOTIONEVENTS:         // 39
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetMotionEvents >( conn, data, sz );
         break;
     case protocol::requests::opcodes::TRANSLATECOORDINATES:    // 40
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::TranslateCoordinates >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETINPUTFOCUS:           // 43
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetInputFocus >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYKEYMAP:             // 44
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryKeymap >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYFONT:               // 47
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryFont >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYTEXTEXTENTS:        // 48
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryTextExtents >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTFONTS:               // 49
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::ListFonts >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTFONTSWITHINFO:       // 50
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::ListFontsWithInfo >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETFONTPATH:             // 52
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetFontPath >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETIMAGE:                // 73
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetImage >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS:  // 83
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::ListInstalledColormaps >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLOR:              // 84
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::AllocColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCNAMEDCOLOR:         // 85
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::AllocNamedColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLORCELLS:         // 86
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::AllocColorCells >( conn, data, sz );
         break;
     case protocol::requests::opcodes::ALLOCCOLORPLANES:        // 87
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::AllocColorPlanes >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYCOLORS:             // 91
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryColors >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LOOKUPCOLOR:             // 92
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::LookupColor >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYBESTSIZE:           // 97
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryBestSize >( conn, data, sz );
         break;
     case protocol::requests::opcodes::QUERYEXTENSION:          // 98
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::QueryExtension >(
                 conn, const_cast<uint8_t*>( data ), sz );
         break;
     case protocol::requests::opcodes::LISTEXTENSIONS:          // 99
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::ListExtensions >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETKEYBOARDMAPPING:      // 101
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetKeyboardMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETKEYBOARDCONTROL:      // 103
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetKeyboardControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPOINTERCONTROL:       // 106
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetPointerControl >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETSCREENSAVER:          // 108
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetScreenSaver >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTHOSTS:               // 110
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::ListHosts >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETPOINTERMAPPING:       // 116
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::SetPointerMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETPOINTERMAPPING:       // 117
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetPointerMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::SETMODIFIERMAPPING:      // 118
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::SetModifierMapping >( conn, data, sz );
         break;
     case protocol::requests::opcodes::GETMODIFIERMAPPING:      // 119
-        bytes_parsed = _logReply<
+        reply = _parseReply<
             protocol::requests::GetModifierMapping >( conn, data, sz );
         break;
     default:
         break;
     };
-    // ListFontsWithInfo is exceptional in that it triggers a series of replies
-    //   instead of one
+    fmt::println( "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}) {}",
+                  conn->id, reply.bytes_parsed, _SERVER_TO_CLIENT,
+                  header->sequence_number,
+                  protocol::requests::names[ opcode ], opcode, reply.str );
     if ( opcode != protocol::requests::opcodes::LISTFONTSWITHINFO ||
          header->last_reply == protocol::requests::ListFontsWithInfo::LAST_REPLY ) {
         conn->unregisterRequest( header->sequence_number );
     }
-    assert( bytes_parsed >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
-    return bytes_parsed;
+    assert( reply.bytes_parsed >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
+    return reply.bytes_parsed;
 }
