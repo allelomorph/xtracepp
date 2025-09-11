@@ -1946,11 +1946,11 @@ size_t X11ProtocolParser::_logEvent(
     const _ParsingOutputs event {
         _parseEvent( conn, data, sz, _ROOT_WS ) };
     fmt::println( settings.log_fs,
-                  "C{:03d}:{:04d}B:{}:S{:05d}: Event {}({}) {}{}",
+                  "C{:03d}:{:04d}B:{}:S{:05d}: Event {}({}){}: {}",
                   conn->id, event.bytes_parsed, _SERVER_TO_CLIENT,
                   header->sequence_number,
                   protocol::events::names[ code ], code,
-                  header->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
+                  header->code & _GENERATED_EVENT_FLAG ? " (generated)" : "",
                   event.str );
     assert( event.bytes_parsed == protocol::events::ENCODING_SZ );
     return event.bytes_parsed;

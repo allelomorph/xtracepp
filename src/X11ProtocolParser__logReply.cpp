@@ -2779,7 +2779,7 @@ size_t X11ProtocolParser::_logReply(
     default:
         break;
     };
-    fmt::println( "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}) {}",
+    fmt::println( "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
                   conn->id, reply.bytes_parsed, _SERVER_TO_CLIENT,
                   header->sequence_number,
                   protocol::requests::names[ opcode ], opcode, reply.str );

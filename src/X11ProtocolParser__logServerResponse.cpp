@@ -26,10 +26,9 @@ size_t X11ProtocolParser::_logServerRefusal(
     const uint32_t name_width (
         settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
 
-    fmt::print( settings.log_fs, "{:03d}:>:server refused connection ",
-                conn->id );
     fmt::println(
         settings.log_fs,
+        "C{:03d}:{:04d}B:{}: server refused connection: "
         "{{{}"
         "{}"
         "{}"
@@ -37,6 +36,7 @@ size_t X11ProtocolParser::_logServerRefusal(
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
+        conn->id, bytes_parsed, _SERVER_TO_CLIENT,
         _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
@@ -94,15 +94,15 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
     const uint32_t name_width (
         settings.multiline ? sizeof( "success" ) - 1 : 0 );
 
-    fmt::print( settings.log_fs, "{:03d}:>:server requested further authentication ",
-                conn->id );
     fmt::println(
         settings.log_fs,
+        "C{:03d}:{:04d}B:{}: server requested further authentication: "
         "{{{}"
         "{}"
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
+        conn->id, bytes_parsed, _SERVER_TO_CLIENT,
         _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(
@@ -154,10 +154,9 @@ size_t X11ProtocolParser::_logServerAcceptance(
     const uint32_t name_width (
         settings.multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
 
-    fmt::print( settings.log_fs, "{:03d}:>:server accepted connection ",
-                conn->id );
     fmt::println(
         settings.log_fs,
+        "C{:03d}:{:04d}B:{}: server accepted connection: "
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -168,6 +167,7 @@ size_t X11ProtocolParser::_logServerAcceptance(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
+        conn->id, bytes_parsed, _SERVER_TO_CLIENT,
         _ROOT_WS.separator,
         settings.verbose ?
         fmt::format(

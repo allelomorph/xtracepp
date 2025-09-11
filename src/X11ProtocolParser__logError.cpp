@@ -59,7 +59,7 @@ size_t X11ProtocolParser::_logError(
     }
     fmt::println(
         settings.log_fs,
-        "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}) "
+        "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}): "
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"

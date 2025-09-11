@@ -34,9 +34,6 @@ size_t X11ProtocolParser::_logClientInitiation(
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "authorization-protocol-data" ) - 1 : 0 );
-
-    fmt::print( settings.log_fs, "{:03d}:<:client \"{}\" requesting connection ",
-                conn->id, conn->client_desc );
     // TBD may be security concerns with logging auth data
     // std::string auth_data_hex;
     // for ( uint16_t i {}, sz { header->d }; i < sz; ++i ) {
@@ -46,6 +43,7 @@ size_t X11ProtocolParser::_logClientInitiation(
     // }
     fmt::println(
         settings.log_fs,
+        "C{:03d}:{:04d}B:{}: client \"{}\" attempting connection: "
         "{{{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -54,6 +52,7 @@ size_t X11ProtocolParser::_logClientInitiation(
         "{}"
         "{}{: <{}}{}({:d} bytes){}"
         "{}}}",
+        conn->id, bytes_parsed, _CLIENT_TO_SERVER, conn->client_desc,
         _ROOT_WS.separator,
         _ROOT_WS.memb_indent, "byte-order", name_width, _ROOT_WS.equals,
         _formatInteger( ( header->byte_order == 'l' ) ? 0 : 1,
