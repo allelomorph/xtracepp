@@ -1,8 +1,9 @@
 #include <cassert>
-#include <ctime>  // strftime gmtime
+#include <ctime>  // localtime
 #include <cstdint>
 
 #include <fmt/format.h>
+#include <fmt/chrono.h>
 
 #include "X11ProtocolParser.hpp"
 //#include "Settings.hpp"
@@ -181,27 +182,22 @@ X11ProtocolParser::_formatProtocolType(
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::time );
     }
-    // RFC 3339 UTC format:
-    // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
-    char time_str [ sizeof( "yyyy-mm-ddThh:mm:ssZ" ) ] {};
-    // TBD check return val? should == sizeof( time_str )
-    // TBD can use fmt/chrono.h to avoid strftime
-    // TBD in testing the granularity of TIMESTAMPS seems to be in millisec
-    static constexpr uint32_t TIMESTAMP_TICKS_PER_SEC { 1000 };
-    const std::time_t time_ (
-        ( ( time.data - settings.ref_TIMESTAMP ) / TIMESTAMP_TICKS_PER_SEC )
-        + settings.ref_unix_time );
-    strftime( time_str, sizeof( time_str ), "%FT%TZ",
-              gmtime( &time_ ) );
-    if ( settings.verbose ) {
-        // fmt counts "0x" as part of width when using '#'
-        static constexpr size_t hex_width { ( sizeof( time.data ) * 2 ) + 2 };
-        return fmt::format( "{:#0{}x}({})", time.data, hex_width,
-                            time.data < enum_names.size() ?
-                            enum_names[ time.data ].data() : time_str );
+    std::string fmt_str {
+        fmt::format( "{:#0{}x}", time.data, _fmtHexWidth( time.data ) ) };
+    if ( time.data < enum_names.size() ) {
+        fmt_str.append(
+            fmt::format( "({})", enum_names[ time.data ] ) );
+    } else if ( settings.relativetimestamps ) {
+        // RFC 3339 UTC format "yyyy-mm-ddThh:mm:ssZ":
+        // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
+        static constexpr uint32_t TIMESTAMP_TICKS_PER_SEC { 1000 };
+        const std::time_t time_ (
+            ( ( time.data - settings.ref_TIMESTAMP ) / TIMESTAMP_TICKS_PER_SEC )
+            + settings.ref_unix_time );
+        fmt_str.append(
+            fmt::format( "({:%FT:%TZ}UTC)", *std::localtime( &time_ ) ) );
     }
-    return time.data < enum_names.size() ?
-        enum_names[ time.data ].data() : time_str;
+    return fmt_str;
 }
 
 // TBD linker error if inline
