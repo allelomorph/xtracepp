@@ -1051,10 +1051,11 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SendEvent::Encoding* >( data ) };
     request.bytes_parsed += sizeof( SendEvent::Encoding );
     assert( encoding->opcode == protocol::requests::opcodes::SENDEVENT );
-    // TBD parse event ahead of time, can get struct type from first byte
-    // maybe events will be unlike reuests, errors, etc in that there is
-    //   both a log func and a format func?
-    _ParsingOutputs event { _parseEvent(
+
+    const uint8_t evt_code {
+        reinterpret_cast< const protocol::events::Header* >(
+            data + request.bytes_parsed )->code };
+    const _ParsingOutputs event { _parseEvent(
             conn, data + request.bytes_parsed, protocol::events::ENCODING_SZ,
             _ROOT_WS.nested() ) };
     request.bytes_parsed += event.bytes_parsed;
@@ -1067,7 +1068,8 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}({}) {}{}"
         "{}}}",
         _ROOT_WS.separator,
         settings.verbose ?
@@ -1087,6 +1089,7 @@ X11ProtocolParser::_parseRequest<
         _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
         _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
         _ROOT_WS.memb_indent, "event", name_width, _ROOT_WS.equals,
+        protocol::events::names[ evt_code ], evt_code,
         event.str, _ROOT_WS.separator,
         _ROOT_WS.encl_indent
         );

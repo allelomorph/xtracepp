@@ -29,7 +29,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -37,8 +37,6 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -99,7 +97,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -107,8 +105,6 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -168,7 +164,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -176,8 +172,6 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -238,7 +232,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -246,8 +240,6 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -307,7 +299,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -315,8 +307,6 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -375,7 +365,7 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -383,8 +373,6 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -450,7 +438,7 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -458,8 +446,6 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -524,14 +510,12 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -576,14 +560,12 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -633,12 +615,10 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "keys(0-7 omitted)" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -673,13 +653,11 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -728,14 +706,12 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -789,12 +765,10 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -838,12 +812,10 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -884,13 +856,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -943,12 +913,10 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -989,12 +957,10 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1037,12 +1003,10 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1085,12 +1049,10 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1185,14 +1147,12 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1247,7 +1207,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
@@ -1255,8 +1215,6 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1313,12 +1271,10 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1363,12 +1319,10 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1411,12 +1365,10 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1459,12 +1411,10 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1507,12 +1457,10 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1557,12 +1505,10 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1605,13 +1551,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1660,13 +1604,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1713,12 +1655,10 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1763,14 +1703,12 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -1813,12 +1751,10 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     const uint32_t name_width (
         settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
     outputs.str = fmt::format(
-        "{}({}) {}{{{}"
+        "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        protocol::events::names[code], code,
-        encoding->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
         ws.separator,
         !settings.verbose ? "" :
         fmt::format(
@@ -2003,14 +1939,19 @@ size_t X11ProtocolParser::_logEvent(
     assert( data != nullptr );
     assert( sz >= protocol::events::ENCODING_SZ ); // TBD
 
-    _ParsingOutputs event {
-        _parseEvent( conn, data, sz, _ROOT_WS ) };
     const protocol::events::Header* header {
         reinterpret_cast< const protocol::events::Header* >( data ) };
+    // event codes with msb turned on are generated by request SendEvent
+    const uint8_t code ( header->code & _EVENT_CODE_MASK );
+    const _ParsingOutputs event {
+        _parseEvent( conn, data, sz, _ROOT_WS ) };
     fmt::println( settings.log_fs,
-                  "C{:03d}:{:04d}B:{}:S{:05d}: Event {}",
+                  "C{:03d}:{:04d}B:{}:S{:05d}: Event {}({}) {}{}",
                   conn->id, event.bytes_parsed, _SERVER_TO_CLIENT,
-                  header->sequence_number, event.str );
+                  header->sequence_number,
+                  protocol::events::names[ code ], code,
+                  header->code & _GENERATED_EVENT_FLAG ? "(generated) " : "",
+                  event.str );
     assert( event.bytes_parsed == protocol::events::ENCODING_SZ );
     return event.bytes_parsed;
 }
