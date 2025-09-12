@@ -68,10 +68,10 @@ bool ProxyX11Server::_authenticateServerConnection(
     init_header.d = _AUTH_DATA_SZ;
     sbuffer.load( &init_header, sizeof(init_header) );
     // TBD padded sz will copy up to 3 junk bytes
-    sbuffer.load( _AUTH_NAME.data(), parser._pad( _AUTH_NAME.size() ) );
-    sbuffer.load( auth_data, parser._pad( _AUTH_DATA_SZ ) );
+    sbuffer.load( _AUTH_NAME.data(), _parser._pad( _AUTH_NAME.size() ) );
+    sbuffer.load( _auth_data, _parser._pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
-        sizeof(init_header) + parser._pad( _AUTH_NAME.size() ) + parser._pad( _AUTH_DATA_SZ ) );
+        sizeof(init_header) + _parser._pad( _AUTH_NAME.size() ) + _parser._pad( _AUTH_DATA_SZ ) );
     try {
         _pollSingleSocket( server_fd, POLLOUT );
     } catch ( const std::exception& e ) {
@@ -92,7 +92,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     assert( sbuffer.size() >= sizeof( ServerAcceptance::Header ) );
     ServerAcceptance::Header acceptance_header;
     sbuffer.unload( &acceptance_header, sizeof( ServerAcceptance::Header ) );
-    assert( sbuffer.size() >= parser._pad( acceptance_header.v ) +
+    assert( sbuffer.size() >= _parser._pad( acceptance_header.v ) +
             acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) +
             sizeof( ServerAcceptance::SCREEN::Header ) );
     if ( acceptance_header.success != protocol::connection_setup::SUCCESS )
@@ -104,7 +104,7 @@ bool ProxyX11Server::_authenticateServerConnection(
         init_header.protocol_minor_version )
         return false;
     // TBD skip over vendor
-    sbuffer.unload( parser._pad( acceptance_header.v ) );
+    sbuffer.unload( _parser._pad( acceptance_header.v ) );
     // TBD skip over pixmap-formats
     sbuffer.unload( acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) );
     // TBD get WINDOW for root window of first screen
@@ -140,7 +140,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         using protocol::requests::ChangeWindowAttributes;
         ChangeWindowAttributes::Encoding cwa_encoding {};
         cwa_encoding.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
-        cwa_encoding.request_length = parser._alignedUnits(
+        cwa_encoding.request_length = _parser._alignedUnits(
             sizeof( ChangeWindowAttributes::Encoding ) + sizeof( protocol::VALUE ) );
         cwa_encoding.window = screen0_root;
         cwa_encoding.value_mask = /*XCB_CW_EVENT_MASK*/ 1 << 11;
@@ -166,7 +166,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         cp_encoding.opcode = protocol::requests::opcodes::CHANGEPROPERTY;
         // TBD currenly no enum constants in procotol::, only name arrays
         cp_encoding.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
-        cp_encoding.request_length = parser._alignedUnits( sizeof( cp_encoding ) );
+        cp_encoding.request_length = _parser._alignedUnits( sizeof( cp_encoding ) );
         cp_encoding.window = screen0_root;
         cp_encoding.property.data = /*XCB_ATOM_WM_NAME 39*/0x27;
         cp_encoding.type.data = /*XCB_ATOM_STRING 31*/0x1f;
@@ -247,7 +247,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         goto close_socket;
     }
     req_encoding.opcode = protocol::requests::opcodes::GETATOMNAME;
-    req_encoding.request_length = parser._alignedUnits( sizeof( req_encoding ) );
+    req_encoding.request_length = _parser._alignedUnits( sizeof( req_encoding ) );
     // TBD standardize which stream all non-log messages are going to
     fmt::print( stderr, "fetching interned ATOMs: " );
     fmt::print( stderr, "{}?25l", CSI );  // hide cursor
@@ -306,9 +306,9 @@ void ProxyX11Server::_fetchInternedAtoms() {
         sbuffer.unload( &rep_encoding, sizeof( rep_encoding ) );
         assert( rep_encoding.reply == protocol::requests::REPLY_PREFIX );
         assert( rep_encoding.sequence_number == i );
-        assert( rep_encoding.reply_length == parser._alignedUnits( parser._pad( rep_encoding.n ) ) );
+        assert( rep_encoding.reply_length == _parser._alignedUnits( _parser._pad( rep_encoding.n ) ) );
         assert( sbuffer.size() < STRINGBUF_SZ );
-        assert( sbuffer.size() == parser._pad( rep_encoding.n ) );
+        assert( sbuffer.size() == _parser._pad( rep_encoding.n ) );
         sbuffer.unload( stringbuf, sbuffer.size() );
         stringbuf[rep_encoding.n] = '\0';
         fetched_atoms.emplace_back( stringbuf );
@@ -333,7 +333,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         exit( EXIT_FAILURE );
     }
     if ( fetched_atoms.size() > 1 ) {
-        parser._seq_interned_atoms = std::move( fetched_atoms );
+        _parser._seq_interned_atoms = std::move( fetched_atoms );
     }
 
 close_socket:

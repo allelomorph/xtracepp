@@ -1,9 +1,5 @@
-#include <iostream>  // TBD testing only
-#include <iomanip>   // TBD only if log_os remains C++ output stream
-
 #include <string>        // stoi to_string
-#include <algorithm>     // transform min
-#include <regex>         // smatch regex regex_search
+#include <string_view>
 #include <filesystem>    // remove
 
 #include <cassert>
@@ -17,16 +13,9 @@
 #include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO
 #include <sys/wait.h>    // waitpid WNOHANG WIFEXITED WEXITSTATUS WTERMSIG
 #include <signal.h>      // sigaction
-// #ifndef _GNU_SOURCE
-//   #define _GNU_SOURCE      // asprintf
-// #endif
-//#include <stdio.h>       // asprintf
-
-//#include <sys/types.h>
-#include <netdb.h> // 'struct addrinfo' getaddrinfo freeaddrinfo
+#include <netdb.h>       // 'struct addrinfo' getaddrinfo freeaddrinfo
 
 #include <fmt/format.h>
-//#include <fmt/printf.h>
 
 #include "ProxyX11Server.hpp"
 #include "Connection.hpp"
@@ -39,63 +28,30 @@ void catchSIGCHLD(int signum) {
     caught_SIGCHLD = true;
 }
 
-void ProxyX11Server::__debugOutput() {
-    std::string subcmd_argv {};
-    for (int i {}; i < settings.subcmd_argc; ++i)
-        subcmd_argv += fmt::format( R"("{}" )", settings.subcmd_argv[i] );
-    fmt::print(
-        stderr, R"(settings:
-    readwritedebug:      {}
-    stopifnoactiveconnx: {}
-    waitforclient:       {}
-    denyallextensions:   {}
-    out_displayname:     "{}"
-    in_displayname:      "{}"
-    subcmd_argc:         {}
-    subcmd_argv:         [ {}]
-)",
-        settings.readwritedebug,
-        settings.stopifnoactiveconnx,
-        settings.waitforclient,
-        settings.denyallextensions,
-        ( settings.out_displayname == nullptr ) ? "(null)" : settings.out_displayname,
-        ( settings.in_displayname == nullptr ) ? "(null)" : settings.in_displayname,
-        settings.subcmd_argc,
-        subcmd_argv );
-    fmt::print(
-        stderr, R"(_in_display:
-    name:             "{}"
-    protocol:         "{}"
-    hostname:         "{}"
-    display:          "{}"
-    screen:           {}
-    family:           {}
-    unix_socket_path: "{}"
-)",
-        _in_display.name,
-        _in_display.protocol,
-        _in_display.hostname,
-        _in_display.display,
-        _in_display.screen,
-        _in_display.family,
-        _in_display.unix_socket_path );
-    fmt::print(
-        stderr, R"(_out_display:
-    name:             "{}"
-    protocol:         "{}"
-    hostname:         "{}"
-    display:          "{}"
-    screen:           {}
-    family:           {}
-    unix_socket_path: "{}"
-)",
-        _out_display.name,
-        _out_display.protocol,
-        _out_display.hostname,
-        _out_display.display,
-        _out_display.screen,
-        _out_display.family,
-        _out_display.unix_socket_path );
+ProxyX11Server::~ProxyX11Server() {
+    close( _listener_fd );
+    if ( !_in_display.unix_socket_path.empty() )
+        unlink( _in_display.unix_socket_path.data() );
+}
+
+void ProxyX11Server::init( const int argc, char* const* argv ) {
+    settings.parseFromArgv( argc, argv );
+    _parseDisplayNames();
+
+    if ( settings.copyauth )
+        _copyAuthentication();
+    if ( settings.relativetimestamps )
+        _fetchCurrentServerTime();
+    if ( settings.prefetchatoms )
+        _fetchInternedAtoms();
+
+    _parser.importSettings( settings );
+}
+
+int ProxyX11Server::run() {
+    _listenForClients();
+    _startSubcommandClient();
+    return _processClientQueue();
 }
 
 void ProxyX11Server::_parseDisplayNames() {
@@ -140,7 +96,7 @@ void ProxyX11Server::_parseDisplayNames() {
 // 2 bytes	data length (always MSB first)
 // D bytes	authorization data string
 // """
-struct ProxyX11Server::XAuthInfo {
+struct ProxyX11Server::_XAuthInfo {
 private:
     static constexpr uint8_t _NAME_MAX { 255 };  // TBD should be same as POSIX NAME_MAX
     static constexpr uint8_t _HOST_NAME_MAX { 64 };  // TBD should be same as POSIX HOST_NAME_MAX
@@ -197,9 +153,9 @@ void ProxyX11Server::_copyAuthentication() {
         exit( EXIT_FAILURE );
     }
 
-    std::vector< XAuthInfo > xauth_entries;
+    std::vector< _XAuthInfo > xauth_entries;
     for ( ; !ifs.eof(); ifs.peek() ) {
-        XAuthInfo auth;
+        _XAuthInfo auth;
         ifs.read( (char*)&auth.family, sizeof(auth.family) );
 
         ifs.read( (char*)&auth.addr_len_nbo, sizeof(auth.addr_len_nbo) );
@@ -231,9 +187,9 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// edit auth entries
 
-    XAuthInfo* in_display_auth {};  // FAKEDISPLAY
-    XAuthInfo* out_display_auth {};  // DISPLAY
-    for ( XAuthInfo& auth : xauth_entries ) {
+    _XAuthInfo* in_display_auth {};  // FAKEDISPLAY
+    _XAuthInfo* out_display_auth {};  // DISPLAY
+    for ( _XAuthInfo& auth : xauth_entries ) {
         if ( std::strtol( auth.display, nullptr, 10 ) == _in_display.display ) {
             assert( auth.family == _in_display.family );
             assert( auth.name == _AUTH_NAME );
@@ -270,7 +226,7 @@ void ProxyX11Server::_copyAuthentication() {
     if ( in_display_auth != nullptr ) {  // revise existing FAKEDISPLAY entry
         memcpy( in_display_auth->data, out_display_auth->data, _AUTH_DATA_SZ );
     } else {                             // append new FAKEDISPLAY entry
-        XAuthInfo auth { *out_display_auth };
+        _XAuthInfo auth { *out_display_auth };
         // TBD hostname/addr may also be distinct from DISPLAY when using tcp with no ssh
         std::string display_str { fmt::format( "{}", _in_display.display ) };
         auth.display_len = display_str.size();
@@ -280,7 +236,7 @@ void ProxyX11Server::_copyAuthentication() {
         xauth_entries.emplace_back( auth );
     }
     // TBD for later use in atom prefetching
-    memcpy( this->auth_data, out_display_auth->data, _AUTH_DATA_SZ );
+    memcpy( this->_auth_data, out_display_auth->data, _AUTH_DATA_SZ );
 
     ////// write auth entries back to file
 
@@ -291,7 +247,7 @@ void ProxyX11Server::_copyAuthentication() {
             XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
         exit( EXIT_FAILURE );
     }
-    for ( const XAuthInfo& auth : xauth_entries ) {
+    for ( const _XAuthInfo& auth : xauth_entries ) {
         ofs.write( (char*)&auth.family,
                    sizeof(auth.family) );
 
@@ -390,21 +346,16 @@ void ProxyX11Server::_listenForClients() {
 void ProxyX11Server::_startSubcommandClient() {
     if ( settings.subcmd_argc == 0 )
         return;
-
-    // While `struct` can be omitted when using C structs as C++ types, here it
-    //   is necessary to disambiguate the sigaction struct and function
+    // `struct` needed to disambiguate from sigaction(2)
     struct sigaction act {};
     act.sa_handler = &catchSIGCHLD;
     if ( sigaction( SIGCHLD, &act, nullptr ) == -1 ) {
-        // TBD exception
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "sigaction" ) );
         exit( EXIT_FAILURE );
     }
-
     _child_pid = fork();
     if( _child_pid == -1 ) {  // fork failed, still in parent
-        // TBD exception
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "fork" ) );
         exit( EXIT_FAILURE );
@@ -412,14 +363,12 @@ void ProxyX11Server::_startSubcommandClient() {
     if( _child_pid == 0 ) {   // fork succeeded, in child
         if ( setenv( _OUT_DISPLAYNAME_ENV_VAR.data(),
                      _in_display.name.data(), 1 ) != 0 ) {
-            // TBD exception
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "setenv" ) );
             exit( EXIT_FAILURE );
         }
         execvp( settings.subcmd_argv[0], settings.subcmd_argv );
         // child has failed to overtake parent process
-        // TBD exception
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "execvp" ) );
         exit( EXIT_FAILURE );
@@ -562,9 +511,6 @@ void ProxyX11Server::_acceptConnection() {
     }
     assert( conn.client_fd > _listener_fd );
     assert( !conn.client_desc.empty() );
-    // TBD why is a global user setting arbitrarily set here, at every new connection?
-    //   would it not be better somewhere in mainqueue before the first call to acceptConnection?
-    settings.waitforclient = false;
     fmt::println( stderr, "Connected to client: {}",
                   conn.client_desc );
 
@@ -584,12 +530,6 @@ void ProxyX11Server::_acceptConnection() {
     _open_fds.emplace( conn.server_fd );
 }
 
-// !!! caret notation: server <> client
-//   000:<:received 48 bytes    (buffered 48 bytes from client on connection 0)
-//   000:<:wrote 48 bytes       (forwarded 48 bytes from client to x server on connection 0)
-//   000:>:received 6740 bytes  (buffered 6740 bytes from x server on connection 0)
-//   000:>:wrote 6740 bytes     (forwarded 6740 bytes from x server to client on connection 0)
-
 // returns max_fd (max_fd + 1 becomes nfds for select)
 /*
  * first loop over connections to:
@@ -602,8 +542,8 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
     assert( writefds != nullptr );
     assert( exceptfds != nullptr );
 
-    static std::vector<int> closed_connection_ids;
-    closed_connection_ids.clear();
+    // batching iqn vector prevents erasing members while iterating over map
+    std::vector<int> closed_connection_ids;
 
     // fd_sets are modified in place by select(2), and need to be zeroed out before each use
     FD_ZERO( readfds );
@@ -614,7 +554,8 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
 
     for ( auto& [ id, conn ] : _connections ) {
         if ( conn.clientSocketIsOpen() ) {
-            if ( conn.serverSocketIsClosed() && conn.server_buffer.empty() ) {
+            if ( conn.serverSocketIsClosed() ) {
+                assert( conn.server_buffer.empty() );
                 _open_fds.erase( conn.client_fd );
                 conn.closeClientSocket();
                 if ( settings.readwritedebug ) {
@@ -638,7 +579,8 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
             }
         }
         if ( conn.serverSocketIsOpen() ) {
-            if ( conn.clientSocketIsClosed() && conn.client_buffer.empty() ) {
+            if ( conn.clientSocketIsClosed() ) {
+                assert( conn.client_buffer.empty() );
                 _open_fds.erase( conn.server_fd );
                 conn.closeServerSocket();
                 if ( settings.readwritedebug ) {
@@ -659,19 +601,15 @@ int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
                 }
             }
         }
-
         if ( conn.clientSocketIsClosed() && conn.serverSocketIsClosed() ) {
             closed_connection_ids.emplace_back( conn.id );
         }
     }
-
-    // TBD assuming we cannot erase while iterating in above loop
     for ( const int id : closed_connection_ids ) {
         _connections.erase( id );
     }
-
     assert( !_open_fds.empty() );
-    return *( _open_fds.begin() );
+    return *_open_fds.begin();
 }
 
 // TBD need to incorporate read/write of 0 (EOF) into logic
@@ -753,7 +691,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 assert( !conn.client_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
-                const size_t bytes_parsed { parser.logClientPackets( &conn ) };
+                const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
                 assert( bytes_parsed == bytes_read );
             }
         }
@@ -828,7 +766,7 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
                 }
                 assert( !conn.server_buffer.empty() );
                 // TBD parse immediately after reading, as we may need to alter contents
-                const size_t bytes_parsed { parser.logServerPackets( &conn ) };
+                const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
                 assert( bytes_parsed == bytes_read );
             }
         }
@@ -846,7 +784,6 @@ void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
     }
 }
 
-// TBD mainqueue() retval is passed as retval of xtrace
 // TBD notice printing to stdout, stderr and out (may be stdout)
 int ProxyX11Server::_processClientQueue() {
     static constexpr int CHILD_EXITED { 0 };   // sentinel for child pid
@@ -926,34 +863,4 @@ int ProxyX11Server::_processClientQueue() {
     }
 
     return EXIT_SUCCESS;
-}
-
-ProxyX11Server::ProxyX11Server() {
-}
-
-ProxyX11Server::~ProxyX11Server() {
-    close( _listener_fd );
-    if ( !_in_display.unix_socket_path.empty() )
-        unlink( _in_display.unix_socket_path.data() );
-}
-
-void ProxyX11Server::init( const int argc, char* const* argv ) {
-    settings.parseFromArgv( argc, argv );
-    _parseDisplayNames();
-
-    if ( settings.copyauth )
-        _copyAuthentication();
-    if ( settings.relativetimestamps )
-        _fetchCurrentServerTime();
-    if ( settings.prefetchatoms )
-        _fetchInternedAtoms();
-
-    parser.importSettings( settings );
-}
-
-int ProxyX11Server::run() {
-    _listenForClients();
-    _startSubcommandClient();
-//    __debugOutput();
-    return _processClientQueue();
 }

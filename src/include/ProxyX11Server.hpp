@@ -6,6 +6,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <set>
+#include <functional>   // greater
 
 #include <cstdint>      // SIZE_MAX
 
@@ -20,49 +21,39 @@ extern volatile bool caught_SIGCHLD;
 void catchSIGCHLD(int signum);
 
 class ProxyX11Server {
+public:
+    Settings settings;
+
+    ProxyX11Server() {}
+    ~ProxyX11Server();
+
+    // TBD `char* const* argv` required by getopt_long in Settings
+    void init(const int argc, char* const* argv);
+    int run();
+
 private:
+    ////// Parsing display names
+
     static constexpr std::string_view _IN_DISPLAYNAME_ENV_VAR  { "PROXYDISPLAY" };
     static constexpr std::string_view _OUT_DISPLAYNAME_ENV_VAR { "DISPLAY" };
     static constexpr std::string_view _DEFAULT_IN_DISPLAYNAME  { ":9" };
 
-    static constexpr int _X_TCP_PORT { 6000 };
-    static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
+    DisplayInfo _in_display;   // used to set traits of listener socket
+    DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
+
+    void _parseDisplayNames();
+
+    ////// Ensuring auth for _out_display matches _in_display
 
     // TBD only supporting MIT-MAGIC-COOKIE-1 for now
     static constexpr std::string_view _AUTH_NAME { "MIT-MAGIC-COOKIE-1" };
     static constexpr uint16_t         _AUTH_DATA_SZ { 16 };
-    // TBD for later use in atom prefetching
-    uint8_t auth_data[ _AUTH_DATA_SZ ];
+    uint8_t _auth_data[ _AUTH_DATA_SZ ];
 
-    DisplayInfo _in_display;   // used to set traits of listener socket
-    DisplayInfo _out_display;  // used to set traits of sockets connecting to x server
-
-    int _listener_fd { -1 };  // listening for x clients to intercept comms with x server
-    pid_t _child_pid { -1 };  // cli subcmd pid
-
-    std::unordered_map<int, Connection> _connections;
-    // maximum binary tree of open file descriptors, to supply nfds to select(2)
-    std::set<int, std::greater<int>>    _open_fds;
-
-    X11ProtocolParser parser;
-
-    void _parseDisplayNames();
-
-    struct XAuthInfo;
+    struct _XAuthInfo;
     void _copyAuthentication();
 
-    void _listenForClients();
-    void _startSubcommandClient();
-    bool _acceptClient(Connection* conn);
-    int  _connectToServer();
-    void _acceptConnection();
-    int  _prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
-                                fd_set* exceptfds );
-    void _processFlaggedSockets( fd_set* readfds, fd_set* writefds,
-                                 fd_set* exceptfds );
-    int  _processClientQueue();
-
-    void __debugOutput();
+    ////// Pre-queue clients to probe for setup info
 
     void _pollSingleSocket(
         const int socket_fd, const short events, int timeout = -1 );
@@ -71,14 +62,29 @@ private:
     void _fetchCurrentServerTime();
     void _fetchInternedAtoms();
 
-public:
-    Settings settings;
+    ////// Main client queue
 
-    ProxyX11Server();
-    ~ProxyX11Server();
+    static constexpr int _X_TCP_PORT { 6000 };
+    static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
 
-    void init(const int argc, char* const* argv);
-    int run();
+    int _listener_fd { -1 };  // listening for x clients to intercept comms with x server
+    pid_t _child_pid { -1 };  // cli subcmd pid
+
+    std::unordered_map<int, Connection> _connections;
+    std::set<int, std::greater<int>>    _open_fds;
+
+    void _listenForClients();
+    void _startSubcommandClient();
+    bool _acceptClient( Connection* conn );
+    int  _connectToServer();
+    void _acceptConnection();
+    int  _prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
+                                 fd_set* exceptfds );
+    void _processFlaggedSockets( fd_set* readfds, fd_set* writefds,
+                                 fd_set* exceptfds );
+    int  _processClientQueue();
+
+    X11ProtocolParser _parser;
 };
 
 
