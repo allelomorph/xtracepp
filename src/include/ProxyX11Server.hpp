@@ -7,8 +7,12 @@
 #include <unordered_map>
 #include <set>
 #include <functional>   // greater
+#include <map>
+#include <vector>
 
 #include <cstdint>      // SIZE_MAX
+
+#include <poll.h>       // struct pollfd
 
 #include "DisplayInfo.hpp"
 #include "Settings.hpp"
@@ -72,6 +76,10 @@ private:
 
     std::unordered_map<int, Connection> _connections;
     std::set<int, std::greater<int>>    _open_fds;
+
+    // std::map to allow iteration
+    std::map< int, size_t > _pfds_i_by_fd;
+    std::vector< pollfd >   _pfds;
 
     void _listenForClients();
     void _startSubcommandClient();
