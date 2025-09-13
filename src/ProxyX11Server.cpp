@@ -582,7 +582,7 @@ void ProxyX11Server::_processFlaggedSockets() {
                 if ( settings.readwritedebug ) {
                     fmt::println(
                         settings.log_fs,
-                        "{:03d}:{}:error reading from client: {}",
+                        "C{:03d}:{}: error reading from client: {}",
                         conn.id, _parser._CLIENT_TO_SERVER, e.what() );
                 }
                 conns_to_close.emplace_back( id );
@@ -591,7 +591,7 @@ void ProxyX11Server::_processFlaggedSockets() {
             if ( bytes_read == 0 ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "{:03d}:{}:got EOF",
+                                  "C{:03d}:{}: got EOF",
                                   conn.id, _parser._CLIENT_TO_SERVER );
                 }
                 conns_to_close.emplace_back( id );
@@ -599,8 +599,8 @@ void ProxyX11Server::_processFlaggedSockets() {
             }
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
-                              "{:03d}:{}:received {:4d} bytes",
-                              conn.id, _parser._CLIENT_TO_SERVER, bytes_read );
+                              "C{:03d}:{:04d}B:{}: packet read from client into buffer",
+                              conn.id, bytes_read, _parser._CLIENT_TO_SERVER );
             }
             assert( !conn.client_buffer.empty() );
             const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
@@ -613,7 +613,7 @@ void ProxyX11Server::_processFlaggedSockets() {
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "{:03d}:{}:error writing to client: {}",
+                                  "C{:03d}:{}: error writing to client: {}",
                                   conn.id, _parser._SERVER_TO_CLIENT, e.what() );
                 }
                 fmt::println( stderr, "3" );
@@ -623,8 +623,8 @@ void ProxyX11Server::_processFlaggedSockets() {
             assert( bytes_written > 0 );
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
-                              "{:03d}:{}:wrote    {:4d} bytes",
-                              conn.id, _parser._SERVER_TO_CLIENT, bytes_written );
+                              "C{:03d}:{:04d}B:{}: wrote packet from buffer to client",
+                              conn.id, bytes_written, _parser._SERVER_TO_CLIENT );
             }
         } else if ( client_revents != 0 ){
             // TBD print errors
@@ -634,7 +634,7 @@ void ProxyX11Server::_processFlaggedSockets() {
             if ( client_revents & POLLPRI ) {
                 fmt::println(
                     settings.log_fs,
-                    "{:03d}: exceptional condition in communication with client",
+                    "C{:03d}: exceptional condition in communication with client",
                     conn.id );
             }
             conns_to_close.emplace_back( id );
@@ -650,7 +650,7 @@ void ProxyX11Server::_processFlaggedSockets() {
                 if ( settings.readwritedebug ) {
                     fmt::println(
                         settings.log_fs,
-                        "{:03d}:{}:error reading from server: {}",
+                        "C{:03d}:{}: error reading from server: {}",
                         conn.id, _parser._SERVER_TO_CLIENT, e.what() );
                 }
                 conns_to_close.emplace_back( id );
@@ -659,7 +659,7 @@ void ProxyX11Server::_processFlaggedSockets() {
             if ( bytes_read == 0 ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "{:03d}:{}:got EOF",
+                                  "C{:03d}:{}: got EOF",
                                   conn.id, _parser._SERVER_TO_CLIENT );
                 }
                 conns_to_close.emplace_back( id );
@@ -667,8 +667,8 @@ void ProxyX11Server::_processFlaggedSockets() {
             }
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
-                              "{:03d}:{}:received {:4d} bytes",
-                              conn.id, _parser._SERVER_TO_CLIENT, bytes_read );
+                              "C{:03d}:{:04d}B:{}: packet read from server into buffer",
+                              conn.id, bytes_read, _parser._SERVER_TO_CLIENT );
             }
             assert( !conn.server_buffer.empty() );
             const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
@@ -681,7 +681,7 @@ void ProxyX11Server::_processFlaggedSockets() {
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "{:03d}:{}:error writing to client: {}",
+                                  "C{:03d}:{}: error writing to server: {}",
                                   conn.id, _parser._CLIENT_TO_SERVER, e.what() );
                 }
                 conns_to_close.emplace_back( id );
@@ -690,8 +690,8 @@ void ProxyX11Server::_processFlaggedSockets() {
             assert( bytes_written > 0 );
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
-                              "{:03d}:{}:wrote    {:4d} bytes",
-                              conn.id, _parser._CLIENT_TO_SERVER, bytes_written );
+                              "C{:03d}:{:04d}B:{}: wrote packet from buffer to server",
+                              conn.id, bytes_written, _parser._CLIENT_TO_SERVER );
             }
         } else if ( server_revents != 0 ) {
             // TBD print errors
@@ -702,7 +702,7 @@ void ProxyX11Server::_processFlaggedSockets() {
             if ( server_revents & POLLPRI ) {
                 fmt::println(
                     settings.log_fs,
-                    "{:03d}: exceptional condition in communication with server",
+                    "C{:03d}: exceptional condition in communication with server",
                     conn.id );
             }
             conns_to_close.emplace_back( id );
@@ -714,14 +714,14 @@ void ProxyX11Server::_processFlaggedSockets() {
         if ( !conn.client_buffer.empty() ) {
             fmt::println(
                 settings.log_fs,
-                "{:03d}:{}: discarded {} bytes sent from client to server",
-                conn.id, _parser._CLIENT_TO_SERVER, conn.client_buffer.size() );
+                "C{:03d}:{:04d}B:{}: discarded unsent buffer",
+                conn.id, conn.client_buffer.size(), _parser._CLIENT_TO_SERVER );
         }
         if ( !conn.server_buffer.empty() ) {
             fmt::println(
                 settings.log_fs,
-                "{:03d}:{}: discarded {} bytes sent from server to client",
-                conn.id, _parser._SERVER_TO_CLIENT, conn.server_buffer.size() );
+                "C{:03d}:{:04d}B:{}: discarded unsent buffer",
+                conn.id, conn.server_buffer.size(), _parser._SERVER_TO_CLIENT );
         }
         _pfds_i_by_fd.erase( conn.client_fd );
         conn.closeClientSocket();

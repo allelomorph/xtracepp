@@ -130,8 +130,8 @@ size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
         size_t bytes_parsed {
             _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings.readwritedebug ) {
-            fmt::println( settings.log_fs, "{:03d}:<:parsed   {:4d} bytes",
-                          conn->id, bytes_parsed );
+            fmt::println( settings.log_fs, "C{:03d}:{:04d}B:{}: parsed buffer segment",
+                          conn->id, bytes_parsed, _CLIENT_TO_SERVER );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
@@ -150,8 +150,8 @@ size_t X11ProtocolParser::logServerPackets( Connection* conn ) {
         size_t bytes_parsed {
             _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
         if ( settings.readwritedebug ) {
-            fmt::println( settings.log_fs, "{:03d}:>:parsed   {:4d} bytes",
-                          conn->id, bytes_parsed );
+            fmt::println( settings.log_fs, "C{:03d}:{:04d}B:{}: parsed buffer segment",
+                          conn->id, bytes_parsed, _SERVER_TO_CLIENT );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
