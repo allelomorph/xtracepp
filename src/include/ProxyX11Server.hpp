@@ -4,6 +4,7 @@
 
 #include <string>
 #include <string_view>
+#include <optional>
 #include <unordered_map>
 #include <set>
 #include <functional>   // greater
@@ -59,8 +60,6 @@ private:
 
     ////// Pre-queue clients to probe for setup info
 
-    void _pollSingleSocket(
-        const int socket_fd, const short events, int timeout = -1 );
     bool _authenticateServerConnection(
         const int server_fd, protocol::WINDOW* screen0_root = nullptr );
     void _fetchCurrentServerTime();
@@ -77,16 +76,32 @@ private:
     std::unordered_map<int, Connection> _connections;
     std::set<int, std::greater<int>>    _open_fds;
 
+    static constexpr short _POLLNONE {};
     // std::map to allow iteration
     std::map< int, size_t > _pfds_i_by_fd;
     std::vector< pollfd >   _pfds;
+
+//    void _addConnectionToPoll( const int id );
+    void _addSocketToPoll( const int fd, const short events = _POLLNONE );
+    void _updatePollFlags();
+    //void _pollSockets();
+    void _processPolledSockets();
+    inline bool _socketReadReady( const int fd ) {
+        return ( _pfds.at( _pfds_i_by_fd.at( fd ) ).revents & POLLIN );
+    }
+    inline bool _socketWriteReady( const int fd ) {
+        return ( _pfds.at( _pfds_i_by_fd.at( fd ) ).revents & POLLOUT );
+    }
+    std::optional< std::string_view >
+    _socketPollError( const int fd );
+    void _closeConnection( const int id );
+    void _closeConnections( const std::vector< int >& ids );
 
     void _listenForClients();
     void _startSubcommandClient();
     bool _acceptClient( Connection* conn );
     int  _connectToServer();
-    void _acceptConnection();
-    void _prepareSocketFlagging();
+    void _openConnection();
     void _processFlaggedSockets();
     int  _processClientQueue();
 
