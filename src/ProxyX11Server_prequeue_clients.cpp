@@ -19,8 +19,8 @@
 #include "protocol/errors.hpp"
 
 
-void ProxyX11Server::_pollSingleSocket(
-    const int socket_fd, const short events, int timeout/* = -1*/ ) {
+static void pollSingleSocket(
+    const int socket_fd, const short events, int timeout = -1 ) {
     assert( events == POLLIN || events == POLLOUT ||
             events == POLLIN | POLLOUT );
     const      nfds_t   nfds { 1 };
@@ -73,7 +73,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     assert( sbuffer.size() ==
         sizeof(init_header) + _parser._pad( _AUTH_NAME.size() ) + _parser._pad( _AUTH_DATA_SZ ) );
     try {
-        _pollSingleSocket( server_fd, POLLOUT );
+        pollSingleSocket( server_fd, POLLOUT );
     } catch ( const std::exception& e ) {
         fmt::println( stderr, "{}", e.what() );
         return false;
@@ -82,7 +82,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     assert( sbuffer.empty() );
 
     try {
-        _pollSingleSocket( server_fd, POLLIN );
+        pollSingleSocket( server_fd, POLLIN );
     } catch ( const std::exception& e ) {
         fmt::println( stderr, "{}", e.what() );
         return false;
@@ -149,7 +149,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         sbuffer.load( value_list, sizeof( protocol::VALUE ) );
         assert( sbuffer.size() == sizeof( cwa_encoding ) + sizeof( protocol::VALUE ) );
         try {
-            _pollSingleSocket( server_fd, POLLOUT );
+            pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
             goto close_socket;
@@ -175,7 +175,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         sbuffer.load( &cp_encoding, sizeof( cp_encoding ) );
         assert( sbuffer.size() == sizeof( cp_encoding ) );
         try {
-            _pollSingleSocket( server_fd, POLLOUT );
+            pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
             goto close_socket;
@@ -187,7 +187,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     ////// Parse PropertyNotify event, collect reference TIMESTAMP
     {
         try {
-            _pollSingleSocket( server_fd, POLLIN );
+            pollSingleSocket( server_fd, POLLIN );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
             goto close_socket;
@@ -269,7 +269,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         sbuffer.load( &req_encoding, sizeof( req_encoding ) );
         assert( sbuffer.size() == sizeof( req_encoding ) );
         try {
-            _pollSingleSocket( server_fd, POLLOUT, 500 );
+            pollSingleSocket( server_fd, POLLOUT, 500 );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
             goto close_socket;
@@ -280,7 +280,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         //////   ( or parse first error and break loop )
         assert( sbuffer.empty() );
         try {
-            _pollSingleSocket( server_fd, POLLIN, 500 );
+            pollSingleSocket( server_fd, POLLIN, 500 );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
             goto close_socket;
