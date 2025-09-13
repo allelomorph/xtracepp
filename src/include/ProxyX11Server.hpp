@@ -86,10 +86,8 @@ private:
     bool _acceptClient( Connection* conn );
     int  _connectToServer();
     void _acceptConnection();
-    int  _prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
-                                 fd_set* exceptfds );
-    void _processFlaggedSockets( fd_set* readfds, fd_set* writefds,
-                                 fd_set* exceptfds );
+    void _prepareSocketFlagging();
+    void _processFlaggedSockets();
     int  _processClientQueue();
 
     X11ProtocolParser _parser;

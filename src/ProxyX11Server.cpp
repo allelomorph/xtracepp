@@ -528,265 +528,216 @@ void ProxyX11Server::_acceptConnection() {
     _connections.emplace( conn.id, conn );
     // TBD could be _addPollFD()
     assert( _pfds_i_by_fd.find( conn.client_fd ) == _pfds_i_by_fd.end() );
-    _pfds.emplace_back( pollfd{ conn.client_fd, POLLPRI | POLLIN | POLLOUT, 0 } );
+    _pfds.emplace_back( pollfd{ conn.client_fd, 0, 0 } );
     _pfds_i_by_fd.emplace( conn.client_fd, _pfds.size() - 1 );
     assert( _pfds_i_by_fd.find( conn.server_fd ) == _pfds_i_by_fd.end() );
-    _pfds.emplace_back( pollfd{ conn.server_fd, POLLPRI | POLLIN | POLLOUT, 0 } );
+    _pfds.emplace_back( pollfd{ conn.server_fd, 0, 0 } );
     _pfds_i_by_fd.emplace( conn.server_fd, _pfds.size() - 1 );
 }
 
-// returns max_fd (max_fd + 1 becomes nfds for select)
 /*
  * first loop over connections to:
- *   - set client and server sockets into readfds, writefds, exceptfds
- *   - mark closed connections for deletion
+ *   - set client and server socket poll event flags
  */
-int ProxyX11Server::_prepareSocketFlagging( fd_set* readfds, fd_set* writefds,
-                                            fd_set* exceptfds ) {
-    assert( readfds != nullptr );
-    assert( writefds != nullptr );
-    assert( exceptfds != nullptr );
-
-    // batching iqn vector prevents erasing members while iterating over map
-    std::vector<int> closed_connection_ids;
-
-    // fd_sets are modified in place by select(2), and need to be zeroed out before each use
-    FD_ZERO( readfds );
-    FD_ZERO( writefds );
-    FD_ZERO( exceptfds );
-    // monitor _listener_fd for input (read readiness)
-    FD_SET( _listener_fd, readfds );
-
+void ProxyX11Server::_prepareSocketFlagging() {
     for ( auto& [ id, conn ] : _connections ) {
-        if ( conn.clientSocketIsOpen() ) {
-            if ( conn.serverSocketIsClosed() ) {
-                assert( conn.server_buffer.empty() );
-                _open_fds.erase( conn.client_fd );
-                conn.closeClientSocket();
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "{:03d}:>:sent EOF", conn.id );
-                }
-            } else {
-                // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
-                FD_SET( conn.client_fd, exceptfds );
-
-                // TBD having SocketBuffer that is extenible and supports appending reads means that
-                //   we can always be ready to read
-                if ( conn.client_buffer.empty() ) {
-                    // monitor client socket for input (read readiness)
-                    FD_SET( conn.client_fd, readfds );
-                }
-                if ( !conn.server_buffer.empty() ) {
-                    // monitor client socket for output (write readiness)
-                    FD_SET( conn.client_fd, writefds );
-                }
-            }
+        pollfd& client_pfd {
+            _pfds.at( _pfds_i_by_fd.at( conn.client_fd ) ) };
+        pollfd& server_pfd {
+            _pfds.at( _pfds_i_by_fd.at( conn.server_fd ) ) };
+        client_pfd.events = POLLPRI;
+        server_pfd.events = POLLPRI;
+        if ( conn.client_buffer.empty() ) {
+            client_pfd.events |= POLLIN;
+        } else {
+            server_pfd.events |= POLLOUT;
         }
-        if ( conn.serverSocketIsOpen() ) {
-            if ( conn.clientSocketIsClosed() ) {
-                assert( conn.client_buffer.empty() );
-                _open_fds.erase( conn.server_fd );
-                conn.closeServerSocket();
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "{:03d}:<:sent EOF", conn.id );
-                }
-            } else {
-                // monitor client socket for exceptional conditions (see poll(2) POLLPRI)
-                FD_SET( conn.server_fd, exceptfds );
-
-                if ( conn.server_buffer.empty() ) {
-                    // monitor server socket for input (read readiness)
-                    FD_SET( conn.server_fd, readfds );
-                }
-                if ( !conn.client_buffer.empty() ) {
-                    // monitor server socket for output (write readiness)
-                    FD_SET( conn.server_fd, writefds );
-                }
-            }
-        }
-        if ( conn.clientSocketIsClosed() && conn.serverSocketIsClosed() ) {
-            closed_connection_ids.emplace_back( conn.id );
+        if ( conn.server_buffer.empty() ) {
+            server_pfd.events |= POLLIN;
+        } else {
+            client_pfd.events |= POLLOUT;
         }
     }
-    for ( const int id : closed_connection_ids ) {
-        _connections.erase( id );
-    }
-    assert( !_open_fds.empty() );
-    return *_open_fds.begin();
 }
 
-// TBD need to incorporate read/write of 0 (EOF) into logic
 /*
  * second loop over connections to:
  *   - receive new packets
  *   - parse current packets
  *   - send current packets
+ *   - close any connections that failed or detected EOF in either socket
  */
-void ProxyX11Server::_processFlaggedSockets( fd_set* readfds, fd_set* writefds,
-                                             fd_set* exceptfds ) {
-    assert( readfds != nullptr );
-    assert( writefds != nullptr );
-    assert( exceptfds != nullptr );
-
+void ProxyX11Server::_processFlaggedSockets() {
+    std::vector< int > conns_to_close;
     for ( auto& [ id, conn ] : _connections ) {
-        if ( conn.clientSocketIsOpen() ) {
-            if ( FD_ISSET( conn.client_fd, exceptfds ) ) {
-                _open_fds.erase( conn.client_fd );
-                conn.closeClientSocket();
+        assert( conn.clientSocketIsOpen() );
+        assert( conn.serverSocketIsOpen() );
+        const short client_revents {
+            _pfds.at( _pfds_i_by_fd.at( conn.client_fd ) ).revents };
+        if ( client_revents & POLLIN ) {
+            size_t bytes_read {};
+            try {
+                bytes_read = conn.bufferPacketFromClient();
+            } catch ( const std::system_error& e ) {
+                if ( settings.readwritedebug ) {
+                    fmt::println(
+                        settings.log_fs,
+                        "{:03d}:{}:error reading from client: {}",
+                        conn.id, _parser._CLIENT_TO_SERVER, e.what() );
+                }
+                conns_to_close.emplace_back( id );
+                continue;
+            }
+            if ( bytes_read == 0 ) {
+                if ( settings.readwritedebug ) {
+                    fmt::println( settings.log_fs,
+                                  "{:03d}:{}:got EOF",
+                                  conn.id, _parser._CLIENT_TO_SERVER );
+                }
+                conns_to_close.emplace_back( id );
+                continue;
+            }
+            if ( settings.readwritedebug ) {
+                fmt::println( settings.log_fs,
+                              "{:03d}:{}:received {:4d} bytes",
+                              conn.id, _parser._CLIENT_TO_SERVER, bytes_read );
+            }
+            assert( !conn.client_buffer.empty() );
+            const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
+            assert( bytes_parsed == bytes_read );
+        } else if ( client_revents & POLLOUT ) {
+            assert( !conn.server_buffer.empty() );
+            size_t bytes_written {};
+            try {
+                bytes_written = conn.forwardPacketToClient();
+            } catch ( const std::system_error& e ) {
+                if ( settings.readwritedebug ) {
+                    fmt::println( settings.log_fs,
+                                  "{:03d}:{}:error writing to client: {}",
+                                  conn.id, _parser._SERVER_TO_CLIENT, e.what() );
+                }
+                fmt::println( stderr, "3" );
+                conns_to_close.emplace_back( id );
+                continue;
+            }
+            assert( bytes_written > 0 );
+            if ( settings.readwritedebug ) {
+                fmt::println( settings.log_fs,
+                              "{:03d}:{}:wrote    {:4d} bytes",
+                              conn.id, _parser._SERVER_TO_CLIENT, bytes_written );
+            }
+        } else if ( client_revents != 0 ){
+            // TBD print errors
+            assert( !(client_revents & POLLERR) );
+            assert( !(client_revents & POLLHUP) );
+            assert( !(client_revents & POLLNVAL) );
+            if ( client_revents & POLLPRI ) {
                 fmt::println(
                     settings.log_fs,
                     "{:03d}: exceptional condition in communication with client",
                     conn.id );
+            }
+            conns_to_close.emplace_back( id );
+            continue;
+        }
+        const short server_revents {
+            _pfds.at( _pfds_i_by_fd.at( conn.server_fd ) ).revents };
+        if ( server_revents & POLLIN ) {
+            size_t bytes_read {};
+            try {
+                bytes_read = conn.bufferPacketFromServer();
+            } catch ( const std::system_error& e ) {
+                if ( settings.readwritedebug ) {
+                    fmt::println(
+                        settings.log_fs,
+                        "{:03d}:{}:error reading from server: {}",
+                        conn.id, _parser._SERVER_TO_CLIENT, e.what() );
+                }
+                conns_to_close.emplace_back( id );
                 continue;
             }
-            if ( FD_ISSET( conn.client_fd, writefds ) ) {
-                // TBD we listen for client write readiness only if server buffer is not empty
-                assert( !conn.server_buffer.empty() );
-                size_t bytes_written {};
-                try {
-                    bytes_written = conn.forwardPacketToClient();  // conn.server_buffer.write( conn.client_fd )
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                      "{:03d}:>:error writing to client: {}",
-                                      conn.id, e.what() );
-                    }
-                    _open_fds.erase( conn.client_fd );
-                    conn.closeClientSocket();
-                    continue;
-                }
-                assert( bytes_written > 0 );
-                // TBD should already be parsed, immediately after read
+            if ( bytes_read == 0 ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "{:03d}:>:wrote    {:4d} bytes",
-                                  conn.id, bytes_written );
+                                  "{:03d}:{}:got EOF",
+                                  conn.id, _parser._SERVER_TO_CLIENT );
                 }
+                conns_to_close.emplace_back( id );
+                continue;
             }
-            if ( FD_ISSET( conn.client_fd, readfds ) ) {
-                size_t bytes_read {};
-                try {
-                    bytes_read = conn.bufferPacketFromClient();  // conn.client_buffer.read( conn.client_fd )
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println(
-                            settings.log_fs,
-                            "{:03d}:<:error reading from client buffer: {}",
-                            conn.id, e.what() );
-                    }
-                    _open_fds.erase( conn.client_fd );
-                    conn.closeClientSocket();
-                    continue;
-                }
-                if ( bytes_read == 0 ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                      "{:03d}:<:got EOF", conn.id );
-                    }
-                    _open_fds.erase( conn.client_fd );
-                    conn.closeClientSocket();
-                    continue;
-                }
+            if ( settings.readwritedebug ) {
+                fmt::println( settings.log_fs,
+                              "{:03d}:{}:received {:4d} bytes",
+                              conn.id, _parser._SERVER_TO_CLIENT, bytes_read );
+            }
+            assert( !conn.server_buffer.empty() );
+            const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
+            assert( bytes_parsed == bytes_read );
+        } else if ( server_revents & POLLOUT ) {
+            assert( !conn.client_buffer.empty() );
+            size_t bytes_written {};
+            try {
+                bytes_written = conn.forwardPacketToServer();
+            } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "{:03d}:<:received {:4d} bytes",
-                                  conn.id, bytes_read );
+                                  "{:03d}:{}:error writing to client: {}",
+                                  conn.id, _parser._CLIENT_TO_SERVER, e.what() );
                 }
-                assert( !conn.client_buffer.empty() );
-                // TBD parse immediately after reading, as we may need to alter contents
-                const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
-                assert( bytes_parsed == bytes_read );
+                conns_to_close.emplace_back( id );
+                continue;
             }
-        }
-        if ( conn.clientSocketIsClosed() && !conn.server_buffer.empty() ) {
-            fmt::println(
-                settings.log_fs,
-                "{:03d}:>: discarded {} bytes sent from server to client",
-                conn.id, conn.server_buffer.size() );
-        }
-        if ( conn.serverSocketIsOpen() ) {
-            if ( FD_ISSET( conn.server_fd, exceptfds ) ) {
-                _open_fds.erase( conn.server_fd );
-                conn.closeServerSocket();
+            assert( bytes_written > 0 );
+            if ( settings.readwritedebug ) {
+                fmt::println( settings.log_fs,
+                              "{:03d}:{}:wrote    {:4d} bytes",
+                              conn.id, _parser._CLIENT_TO_SERVER, bytes_written );
+            }
+        } else if ( server_revents != 0 ) {
+            // TBD print errors
+            assert( !(server_revents & POLLERR) );
+            assert( !(server_revents & POLLHUP) );
+            assert( !(server_revents & POLLNVAL) );
+            //POLLERR/POLLHUP/POLLNVAL
+            if ( server_revents & POLLPRI ) {
                 fmt::println(
                     settings.log_fs,
                     "{:03d}: exceptional condition in communication with server",
                     conn.id );
-                continue;
             }
-            if ( FD_ISSET( conn.server_fd, writefds ) ) {
-                // TBD we listen for server write readiness only if client buffer is not empty
-                assert( !conn.client_buffer.empty() );
-                size_t bytes_written {};
-                try {
-                    bytes_written = conn.forwardPacketToServer();  // conn.client_buffer.write( conn.server_fd )
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                    "{:03d}:<:error writing to server: {}",
-                                    conn.id, e.what() );
-                    }
-                    _open_fds.erase( conn.server_fd );
-                    conn.closeServerSocket();
-                    continue;
-                }
-                assert( bytes_written > 0 );
-                // TBD should already be parsed, immediately after read
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                "{:03d}:<:wrote    {:4d} bytes",
-                                conn.id, bytes_written );
-                }
-            }
-            if ( FD_ISSET( conn.server_fd, readfds ) ) {
-                size_t bytes_read {};
-                try {
-                    bytes_read = conn.bufferPacketFromServer();  // conn.server_buffer.read( conn.server_fd )
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println(
-                            settings.log_fs,
-                            "{:03d}:>:error reading from server buffer: {}",
-                            conn.id, e.what() );
-                    }
-                    _open_fds.erase( conn.server_fd );
-                    conn.closeServerSocket();
-                    continue;
-                }
-                if ( bytes_read == 0 ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                    "{:03d}:>:got EOF", conn.id );
-                    }
-                    _open_fds.erase( conn.server_fd );
-                    conn.closeServerSocket();
-                    continue;
-                }
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                "{:03d}:>:received {:4d} bytes",
-                                conn.id, bytes_read );
-                }
-                assert( !conn.server_buffer.empty() );
-                // TBD parse immediately after reading, as we may need to alter contents
-                const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
-                assert( bytes_parsed == bytes_read );
-            }
+            conns_to_close.emplace_back( id );
+            continue;
         }
-        if ( conn.serverSocketIsClosed() && !conn.client_buffer.empty() ) {
+    }
+    for ( const int id : conns_to_close ) {
+        Connection& conn { _connections.at( id ) };
+        if ( !conn.client_buffer.empty() ) {
             fmt::println(
                 settings.log_fs,
-                "{:03d}:<: discarded {} bytes sent from client to server",
-                conn.id, conn.client_buffer.size() );
+                "{:03d}:{}: discarded {} bytes sent from client to server",
+                conn.id, _parser._CLIENT_TO_SERVER, conn.client_buffer.size() );
         }
+        if ( !conn.server_buffer.empty() ) {
+            fmt::println(
+                settings.log_fs,
+                "{:03d}:{}: discarded {} bytes sent from server to client",
+                conn.id, _parser._SERVER_TO_CLIENT, conn.server_buffer.size() );
+        }
+        _pfds_i_by_fd.erase( conn.client_fd );
+        conn.closeClientSocket();
+        _pfds_i_by_fd.erase( conn.server_fd );
+        conn.closeServerSocket();
+        _connections.erase( id );
     }
-
-    // new connections are driven by listener socket accept(2)ing clients
-    if ( FD_ISSET( _listener_fd, readfds ) ) {
-        _acceptConnection();
+    // zip _pfds array to _pfds_i_by_fd keys
+    _pfds.resize( _pfds_i_by_fd.size() );
+    int i {};
+    for ( auto& [ fd, pfds_i ] : _pfds_i_by_fd ) {
+        _pfds[i].fd = fd;
+        pfds_i = i;
+        ++i;
     }
+    assert( !_pfds_i_by_fd.empty() );
 }
 
 // TBD notice printing to stdout, stderr and out (may be stdout)
@@ -799,24 +750,11 @@ int ProxyX11Server::_processClientQueue() {
     _pfds_i_by_fd.emplace( _listener_fd, _pfds.size() - 1 );
 
     for ( int poll_ret {}; true; ) {
-        for ( auto& [ id, conn ] : _connections ) {
-            pollfd& client_pfd {
-                _pfds.at( _pfds_i_by_fd.at( conn.client_fd ) ) };
-            pollfd& server_pfd {
-                _pfds.at( _pfds_i_by_fd.at( conn.server_fd ) ) };
-            client_pfd.events = POLLPRI;
-            server_pfd.events = POLLPRI;
-            if ( conn.client_buffer.empty() ) {
-                client_pfd.events |= POLLIN;
-            } else {
-                server_pfd.events |= POLLOUT;
-            }
-            if ( conn.server_buffer.empty() ) {
-                server_pfd.events |= POLLIN;
-            } else {
-                client_pfd.events |= POLLOUT;
-            }
-        }
+        /*
+         * first loop over connections to:
+         *   - set client and server socket poll event flags
+         */
+        _prepareSocketFlagging();
 
         // If no connections left and subprocess has exited: exit
         // TBD stopifnoactiveconnx true by default, name opposite? continueifnoconnx?
@@ -879,176 +817,7 @@ int ProxyX11Server::_processClientQueue() {
          *   - send current packets
          *   - close any connections that detected EOF in either socket
          */
-        std::vector< int > conns_to_close;
-        for ( auto& [ id, conn ] : _connections ) {
-            assert( conn.clientSocketIsOpen() );
-            assert( conn.serverSocketIsOpen() );
-            const short client_revents {
-                _pfds.at( _pfds_i_by_fd.at( conn.client_fd ) ).revents };
-            if ( client_revents & POLLIN ) {
-                size_t bytes_read {};
-                try {
-                    bytes_read = conn.bufferPacketFromClient();
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println(
-                            settings.log_fs,
-                            "{:03d}:{}:error reading from client: {}",
-                            conn.id, _parser._CLIENT_TO_SERVER, e.what() );
-                    }
-                    conns_to_close.emplace_back( id );
-                    continue;
-                }
-                if ( bytes_read == 0 ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                      "{:03d}:{}:got EOF",
-                                      conn.id, _parser._CLIENT_TO_SERVER );
-                    }
-                    conns_to_close.emplace_back( id );
-                    continue;
-                }
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "{:03d}:{}:received {:4d} bytes",
-                                  conn.id, _parser._CLIENT_TO_SERVER, bytes_read );
-                }
-                assert( !conn.client_buffer.empty() );
-                const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
-                assert( bytes_parsed == bytes_read );
-            } else if ( client_revents & POLLOUT ) {
-                assert( !conn.server_buffer.empty() );
-                size_t bytes_written {};
-                try {
-                    bytes_written = conn.forwardPacketToClient();
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                      "{:03d}:{}:error writing to client: {}",
-                                      conn.id, _parser._SERVER_TO_CLIENT, e.what() );
-                    }
-                    fmt::println( stderr, "3" );
-                    conns_to_close.emplace_back( id );
-                    continue;
-                }
-                assert( bytes_written > 0 );
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "{:03d}:{}:wrote    {:4d} bytes",
-                                  conn.id, _parser._SERVER_TO_CLIENT, bytes_written );
-                }
-            } else if ( client_revents != 0 ){
-                // TBD print errors
-                assert( !(client_revents & POLLERR) );
-                assert( !(client_revents & POLLHUP) );
-                assert( !(client_revents & POLLNVAL) );
-                if ( client_revents & POLLPRI ) {
-                    fmt::println(
-                        settings.log_fs,
-                        "{:03d}: exceptional condition in communication with client",
-                        conn.id );
-                }
-                conns_to_close.emplace_back( id );
-                continue;
-            }
-            const short server_revents {
-                _pfds.at( _pfds_i_by_fd.at( conn.server_fd ) ).revents };
-            if ( server_revents & POLLIN ) {
-                size_t bytes_read {};
-                try {
-                    bytes_read = conn.bufferPacketFromServer();
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println(
-                            settings.log_fs,
-                            "{:03d}:{}:error reading from server: {}",
-                            conn.id, _parser._SERVER_TO_CLIENT, e.what() );
-                    }
-                    conns_to_close.emplace_back( id );
-                    continue;
-                }
-                if ( bytes_read == 0 ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                      "{:03d}:{}:got EOF",
-                                      conn.id, _parser._SERVER_TO_CLIENT );
-                    }
-                    conns_to_close.emplace_back( id );
-                    continue;
-                }
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "{:03d}:{}:received {:4d} bytes",
-                                  conn.id, _parser._SERVER_TO_CLIENT, bytes_read );
-                }
-                assert( !conn.server_buffer.empty() );
-                const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
-                assert( bytes_parsed == bytes_read );
-            } else if ( server_revents & POLLOUT ) {
-                assert( !conn.client_buffer.empty() );
-                size_t bytes_written {};
-                try {
-                    bytes_written = conn.forwardPacketToServer();
-                } catch ( const std::system_error& e ) {
-                    if ( settings.readwritedebug ) {
-                        fmt::println( settings.log_fs,
-                                      "{:03d}:{}:error writing to client: {}",
-                                      conn.id, _parser._CLIENT_TO_SERVER, e.what() );
-                    }
-                    conns_to_close.emplace_back( id );
-                    continue;
-                }
-                assert( bytes_written > 0 );
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "{:03d}:{}:wrote    {:4d} bytes",
-                                  conn.id, _parser._CLIENT_TO_SERVER, bytes_written );
-                }
-            } else if ( server_revents != 0 ) {
-                // TBD print errors
-                assert( !(server_revents & POLLERR) );
-                assert( !(server_revents & POLLHUP) );
-                assert( !(server_revents & POLLNVAL) );
-                //POLLERR/POLLHUP/POLLNVAL
-                if ( server_revents & POLLPRI ) {
-                    fmt::println(
-                        settings.log_fs,
-                        "{:03d}: exceptional condition in communication with server",
-                        conn.id );
-                }
-                conns_to_close.emplace_back( id );
-                continue;
-            }
-        }
-        for ( const int id : conns_to_close ) {
-            Connection& conn { _connections.at( id ) };
-            if ( !conn.client_buffer.empty() ) {
-                fmt::println(
-                    settings.log_fs,
-                    "{:03d}:{}: discarded {} bytes sent from client to server",
-                    conn.id, _parser._CLIENT_TO_SERVER, conn.client_buffer.size() );
-            }
-            if ( !conn.server_buffer.empty() ) {
-                fmt::println(
-                    settings.log_fs,
-                    "{:03d}:{}: discarded {} bytes sent from server to client",
-                    conn.id, _parser._SERVER_TO_CLIENT, conn.server_buffer.size() );
-            }
-            _pfds_i_by_fd.erase( conn.client_fd );
-            conn.closeClientSocket();
-            _pfds_i_by_fd.erase( conn.server_fd );
-            conn.closeServerSocket();
-            _connections.erase( id );
-        }
-        // zip _pfds array to _pfds_i_by_fd keys
-        _pfds.resize( _pfds_i_by_fd.size() );
-        int i {};
-        for ( auto& [ fd, pfds_i ] : _pfds_i_by_fd ) {
-            _pfds[i].fd = fd;
-            pfds_i = i;
-            ++i;
-        }
-        assert( !_pfds_i_by_fd.empty() );
+        _processFlaggedSockets();
 
         // new connections are driven by listener socket accept(2)ing clients
         const short listener_revents {
