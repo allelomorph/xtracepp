@@ -51,15 +51,9 @@ void Settings::parseFromArgv(const int argc, char* const* argv) {
         // case 'n':
         //     copyauth = false;
         //     break;
-        // case 'W':
-        //     waitforclient = true;
-        //     break;
-        // case 's':
-        //     stopifnoactiveconnx = true;
-        //     break;
-        // case 'k':
-        //     stopifnoactiveconnx = false;
-        //     break;
+        case 'k':
+            keeprunning = true;
+            break;
         case 'e':
             denyallextensions = true;
             break;

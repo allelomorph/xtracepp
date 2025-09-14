@@ -14,6 +14,7 @@
 #include <cstdint>      // SIZE_MAX
 
 #include <poll.h>       // struct pollfd
+#include <signal.h>     // siginfo_t
 
 #include "DisplayInfo.hpp"
 #include "Settings.hpp"
@@ -21,9 +22,10 @@
 #include "X11ProtocolParser.hpp"
 
 
-extern volatile bool caught_SIGCHLD;
+extern volatile bool child_running;
+extern volatile int  child_retval;
 
-void catchSIGCHLD(int signum);
+void handleSIGCHLD( int sig, siginfo_t* info, void* ucontext );
 
 class ProxyX11Server {
 public:
@@ -70,8 +72,9 @@ private:
     static constexpr int _X_TCP_PORT { 6000 };
     static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
 
-    int _listener_fd { -1 };  // listening for x clients to intercept comms with x server
-    pid_t _child_pid { -1 };  // cli subcmd pid
+    int _listener_fd  { -1 };  // listening for x clients to intercept comms with x server
+    bool  _child_used { false };
+    pid_t _child_pid  { -1 };  // cli subcmd pid
 
     std::unordered_map<int, Connection> _connections;
     std::set<int, std::greater<int>>    _open_fds;
@@ -84,7 +87,7 @@ private:
 //    void _addConnectionToPoll( const int id );
     void _addSocketToPoll( const int fd, const short events = _POLLNONE );
     void _updatePollFlags();
-    //void _pollSockets();
+//    void _pollSockets();
     void _processPolledSockets();
     inline bool _socketReadReady( const int fd ) {
         return ( _pfds.at( _pfds_i_by_fd.at( fd ) ).revents & POLLIN );

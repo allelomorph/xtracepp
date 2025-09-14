@@ -34,7 +34,7 @@ private:
         // {"nocopyauthentication", no_argument,       NULL,              'n'},
         // {"waitforclient",        no_argument,       NULL,              'w'},
         // {"stopwhendone",         no_argument,       NULL,              's'},
-        // {"keeprunning",          no_argument,       NULL,              'k'},
+        {"keeprunning",          no_argument,       NULL,              'k'},
         {"denyextensions",       no_argument,       NULL,              'e'},
         {"readwritedebug",       no_argument,       NULL,              'w'},
         // {"maxlistlength",        required_argument, NULL,              'm'},  // TBD conlfict with multiline
@@ -56,7 +56,7 @@ private:
         {NULL,                   0,                 NULL,              0}
     };
     //static constexpr std::string_view _optstring { "+d:D:f:F:cnWskiewm:o:b" };
-    static constexpr std::string_view _optstring { "+d:D:ewo:umvrp" };
+    static constexpr std::string_view _optstring { "+d:D:kewo:umvrp" };
 
     void _recordFileStreamBufferDefaults();
     void _restoreFileStreamBufferDefaults();
@@ -67,9 +67,8 @@ private:
 public:
     bool readwritedebug           { false };
     bool copyauth                 { true };
-    bool stopifnoactiveconnx      { true };   // stopwhennone
-    bool waitforclient            { false };
-    bool denyallextensions        { true };   // TBD temp while debugging core protocol
+    bool keeprunning              { false };
+    bool denyallextensions        { true };   // TBD temp default while debugging core protocol
     bool multiline                { false };
     bool verbose                  { false };
     bool relativetimestamps       { false };

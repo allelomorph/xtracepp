@@ -6,14 +6,14 @@
 #include <cassert>
 #include <cstdlib>       // getenv setenv
 #include <cstring>       // memcpy
+#include <cstdint>
 
 #include <sys/socket.h>  // 'struct sockaddr' SOCK_STREAM AF_INET AF_UNIX setsockopt SOL_SOCKET SO_KEEPALIVE 
 #include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
 #include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO
-#include <sys/wait.h>    // waitpid WNOHANG WIFEXITED WEXITSTATUS WTERMSIG
-#include <signal.h>      // sigaction
+#include <signal.h>      // sigaction sigaction() SIGCHLD CLD_EXITED siginfo_t
 #include <netdb.h>       // 'struct addrinfo' getaddrinfo freeaddrinfo
 
 #include <fmt/format.h>
@@ -23,10 +23,19 @@
 #include "errors.hpp"
 
 
-volatile bool caught_SIGCHLD { false };
+volatile bool child_running {};
+volatile int  child_retval  {};
 
-void catchSIGCHLD(int signum) {
-    caught_SIGCHLD = true;
+void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
+    assert( sig == SIGCHLD );
+    assert( info != nullptr );
+    assert( child_running == true );
+    child_running = false;
+    if ( info->si_code == CLD_EXITED ) {
+        child_retval = int8_t( info->si_status );
+    } else {  // info->si_code == CLD_KILLED, CLD_STOPPED, CLD_DUMPED, etc
+        child_retval = -int8_t( info->si_status );
+    }
 }
 
 ProxyX11Server::~ProxyX11Server() {
@@ -349,19 +358,19 @@ void ProxyX11Server::_startSubcommandClient() {
         return;
     // `struct` needed to disambiguate from sigaction(2)
     struct sigaction act {};
-    act.sa_handler = &catchSIGCHLD;
+    // registering a signal handler which should upon SIGCHLD populate its
+    //   siginfo_t* parameter with the same info as waitid()
+    act.sa_sigaction = &handleSIGCHLD;
+    // waive need to wait for child processes terminating normally or via signal
+    act.sa_flags = SA_SIGINFO | SA_NOCLDSTOP | SA_NOCLDWAIT;
     if ( sigaction( SIGCHLD, &act, nullptr ) == -1 ) {
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "sigaction" ) );
         exit( EXIT_FAILURE );
     }
     _child_pid = fork();
-    if( _child_pid == -1 ) {  // fork failed, still in parent
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
-                      errors::system::message( "fork" ) );
-        exit( EXIT_FAILURE );
-    }
-    if( _child_pid == 0 ) {   // fork succeeded, in child
+    switch ( _child_pid ) {
+    case 0:  // fork succeeded, now in child
         if ( setenv( _OUT_DISPLAYNAME_ENV_VAR.data(),
                      _in_display.name.data(), 1 ) != 0 ) {
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
@@ -373,8 +382,15 @@ void ProxyX11Server::_startSubcommandClient() {
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "execvp" ) );
         exit( EXIT_FAILURE );
+    case -1:  // still in parent, fork failed
+        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+                      errors::system::message( "fork" ) );
+        exit( EXIT_FAILURE );
+    default:  // still in parent, fork success
+        _child_used = true;
+        child_running = true;
+        break;
     }
-    assert( _child_pid != 0 );
 }
 
 // TBD this is called as part of openConnection, and effectively has two outputs:
@@ -744,58 +760,15 @@ void ProxyX11Server::_processPolledSockets() {
     }
 }
 
-// TBD notice printing to stdout, stderr and out (may be stdout)
 int ProxyX11Server::_processClientQueue() {
     _addSocketToPoll( _listener_fd, POLLPRI | POLLIN );
 
-    static constexpr int CHILD_EXITED { -2 };   // sentinel for _child_pid
-    for ( int poll_ret {}; true; ) {
+    static constexpr int NO_TIMEOUT { -1 };
+    while ( child_running || !_connections.empty() || settings.keeprunning ) {
         _updatePollFlags();
-
-        // If no connections left and subprocess has exited: exit
-        // TBD stopifnoactiveconnx true by default, name opposite? continueifnoconnx?
-        if ( _connections.empty() && settings.stopifnoactiveconnx &&
-             _child_pid == CHILD_EXITED ) {
-            break;
-        }
-
-        // TBD run in separate thread? https://stackoverflow.com/a/11679770
-        /*
-         * Check if subprocess finished (child from cli `--`)
-         */
-        // If child has not exited, and poll failed on previous loop when SIGCHLD caught
-        // TBD is checking poll_ret == -1 redundant here, as we are already catching the signal?
-        if ( _child_pid != CHILD_EXITED &&
-             ( poll_ret == -1 || caught_SIGCHLD ) ) {
-            caught_SIGCHLD = false;
-            int status;
-            // TBD consider sigaction and SA_NOCLDWAIT:
-            //   - https://unix.stackexchange.com/a/616607
-            // Check to see if child exited, but do not hang (wait until so)
-            if ( waitpid( _child_pid, &status, WNOHANG ) == _child_pid ) {
-                _child_pid = CHILD_EXITED;
-                if ( _connections.empty() && !settings.waitforclient ) {
-                    /* TODO: instead wait a bit before terminating? */
-                    // Return child exit code or number of signal that terminated
-                    // TBD why +128?
-                    if ( WIFEXITED( status ) )
-                        return WEXITSTATUS( status );
-                    else  // WIFSIGNALED( status ) == true
-                        return WTERMSIG( status ) + 128;
-                }
-            }
-        }
-
-        /*
-         * Idle until any of the fds in the provided fd_sets becomes ready for
-         *   reading, writing, or indicating errors/exceptions
-         */
-        // TBD Note that:
-        //   - poll failure only breaks loop if not by signal interruption (EINTR)
-        //   - expected signal interrupts: SIGINT (user) or SIGCHLD (child exits)
-        static constexpr int INDEFINITE_TIMEOUT { -1 };
-        if ( poll( _pfds.data(), nfds_t( _pfds.size() ),
-                   INDEFINITE_TIMEOUT ) == -1 ) {
+        // TBD hangs until polled fds have new events or interrupted by signal;
+        //   expected signals: SIGINT (user) or SIGCHLD (child exits)
+        if ( poll( _pfds.data(), nfds_t( _pfds.size() ), NO_TIMEOUT ) == -1 ) {
             if ( errno != 0 && errno != EINTR ) {
                 fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                               errors::system::message( "poll" ) );
@@ -803,9 +776,7 @@ int ProxyX11Server::_processClientQueue() {
             }
             continue;
         }
-
         _processPolledSockets();
     }
-
-    return EXIT_SUCCESS;
+    return _child_used ? child_retval : EXIT_SUCCESS;
 }
