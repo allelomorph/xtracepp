@@ -2,6 +2,7 @@
 #define PROXYX11SERVER_HPP
 
 
+#include <atomic>
 #include <string>
 #include <string_view>
 #include <optional>
@@ -22,8 +23,11 @@
 #include "X11ProtocolParser.hpp"
 
 
-extern volatile bool child_running;
-extern volatile int  child_retval;
+// TBD using lock-free std::atomic for signal handler per C++ standard
+extern std::atomic_bool child_running;
+static_assert( std::atomic_bool::is_always_lock_free );
+extern std::atomic_int  child_retval;
+static_assert( std::atomic_int::is_always_lock_free );
 
 void handleSIGCHLD( int sig, siginfo_t* info, void* ucontext );
 

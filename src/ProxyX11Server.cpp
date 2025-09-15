@@ -1,3 +1,4 @@
+#include <atomic>
 #include <string>        // stoi to_string
 #include <string_view>
 #include <optional>
@@ -23,18 +24,18 @@
 #include "errors.hpp"
 
 
-volatile bool child_running {};
-volatile int  child_retval  {};
+std::atomic_bool child_running {};
+std::atomic_int  child_retval  {};
 
 void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     assert( sig == SIGCHLD );
     assert( info != nullptr );
-    assert( child_running == true );
-    child_running = false;
+    assert( child_running.load() == true );
+    child_running.store( false );
     if ( info->si_code == CLD_EXITED ) {
-        child_retval = int8_t( info->si_status );
+        child_retval.store( int8_t( info->si_status ) );
     } else {  // info->si_code == CLD_KILLED, CLD_STOPPED, CLD_DUMPED, etc
-        child_retval = -int8_t( info->si_status );
+        child_retval.store( -int8_t( info->si_status ) );
     }
 }
 
@@ -388,7 +389,7 @@ void ProxyX11Server::_startSubcommandClient() {
         exit( EXIT_FAILURE );
     default:  // still in parent, fork success
         _child_used = true;
-        child_running = true;
+        child_running.store( true );
         break;
     }
 }
@@ -764,7 +765,7 @@ int ProxyX11Server::_processClientQueue() {
     _addSocketToPoll( _listener_fd, POLLPRI | POLLIN );
 
     static constexpr int NO_TIMEOUT { -1 };
-    while ( child_running || !_connections.empty() || settings.keeprunning ) {
+    while ( child_running.load() || !_connections.empty() || settings.keeprunning ) {
         _updatePollFlags();
         // TBD hangs until polled fds have new events or interrupted by signal;
         //   expected signals: SIGINT (user) or SIGCHLD (child exits)
@@ -778,5 +779,5 @@ int ProxyX11Server::_processClientQueue() {
         }
         _processPolledSockets();
     }
-    return _child_used ? child_retval : EXIT_SUCCESS;
+    return _child_used ? child_retval.load() : EXIT_SUCCESS;
 }
