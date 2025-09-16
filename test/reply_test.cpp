@@ -88,6 +88,8 @@ int main(const int argc, const char* const* argv) {
         const xcb_window_t      window      { screen->root };
         const uint8_t           _delete     {};
         const xcb_atom_t        property    { XCB_ATOM_WM_NAME };
+        // TBD AnyPropertyType XCB_GET_PROPERTY_TYPE_ANY will still give the prop
+        //   type atom if prop exists
         const xcb_atom_t        type        { XCB_ATOM_STRING };
         const uint32_t          long_offset {};
         // should be >= size of property value in bytes / 4 to get all of value
