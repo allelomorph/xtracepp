@@ -10,6 +10,8 @@
 #include <netdb.h>        // gai_strerror
 #include <string.h>       // strerror
 
+#include <fmt/format.h>
+
 #include "errors.hpp"
 
 
@@ -162,22 +164,21 @@ static constexpr std::array<
 
 }  // namespace detail
 
+std::string
+message( const std::string& msg/* = {}*/ ) {
+    return fmt::format( "{}{}errno {}: {}",
+                        msg, msg.empty() ? "" : ": ",
+                        detail::errno_names.at( errno ),
+                        strerror( errno ) );
+}
+
 const std::system_error
-exception( const std::string& msg ) {
+exception( const std::string& msg/* = {}*/ ) {
     assert( errno > -1 );
     assert( errno <= detail::MAX_ERRNO );
     return std::system_error(
         errno, std::generic_category(),
-        msg + ( msg.empty() ? "" : ": " ) +
-        "errno " + detail::errno_names[errno].data()
-        );
-}
-
-std::string
-message( const std::string& msg ) {
-    return msg + ( msg.empty() ? "" : ": " ) +
-        "errno " + detail::errno_names[errno].data() +
-        ": " + strerror(errno);
+        message( msg ) );
 }
 
 }  // namespace errors::system
@@ -225,22 +226,22 @@ const std::error_category& category() {
     return instance;
 }
 
-const std::system_error
-exception( const int gai_ret, const std::string& msg ) {
+std::string
+message( const int gai_ret, const std::string& msg/* = {}*/ ) {
     assert( gai_ret < 0 );
-    return std::system_error(
-        errorCode( gai_ret ),
-        msg + ( msg.empty() ? "" : ": " ) +
-        "retval " + detail::gai_error_names.at( gai_ret ).data()
-        );
+    return fmt::format( "{}: retval {}: {}",
+                        msg.empty() ? "getaddrinfo" : msg,
+                        detail::gai_error_names.at( gai_ret ),
+                        gai_strerror( gai_ret ) );
 }
 
-std::string
-message( const int gai_ret, const std::string& msg ) {
-    return msg + ( msg.empty() ? "" : ": " ) +
-        "retval " + detail::gai_error_names.at( gai_ret ).data() +
-        ": " + gai_strerror( gai_ret );
+const std::system_error
+exception( const int gai_ret, const std::string& msg/* = {}*/ ) {
+    assert( gai_ret < 0 );
+    return std::system_error(
+        errorCode( gai_ret ), message( gai_ret, msg ) );
 }
+
 
 }  // namespace errors::getaddrinfo
 

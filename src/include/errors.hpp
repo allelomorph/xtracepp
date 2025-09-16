@@ -13,11 +13,11 @@ namespace errors {
 
 namespace system {
 
-const std::system_error
-exception( const std::string& msg );
-
 std::string
-message( const std::string& msg );
+message( const std::string& msg = {} );
+
+const std::system_error
+exception( const std::string& msg = {} );
 
 }  // namespace errors::system
 
@@ -42,11 +42,11 @@ errorCode( const int e ) {
     return std::error_code{ e, category() };
 }
 
-const std::system_error
-exception( const int gai_ret, const std::string& msg );
-
 std::string
-message( const int gai_ret, const std::string& msg );
+message( const int gai_ret, const std::string& msg = {} );
+
+const std::system_error
+exception( const int gai_ret, const std::string& msg = {} );
 
 }  // namespace errors::getaddrinfo
 
