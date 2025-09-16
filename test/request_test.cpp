@@ -141,9 +141,9 @@ int main(const int argc, const char* const* argv) {
             connection, window);
     }   break;
     case INTERNATOM:               {  //  16
-        const uint8_t           only_if_exists {};
-        const uint16_t          name_len       { 10 };
-        const char*             name           { "TEST_ATOM" };
+        const uint8_t           only_if_exists { true };
+        const uint16_t          name_len       { sizeof( "TEST_ATOM\x01\x02äß水" ) - 1 };
+        const char*             name           { "TEST_ATOM\x01\x02äß水" };
         xcb_intern_atom(
             connection, only_if_exists, name_len, name);
     }   break;
