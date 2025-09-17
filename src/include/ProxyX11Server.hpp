@@ -73,6 +73,7 @@ private:
 
     ////// Main client queue
 
+    static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
     static constexpr int _X_TCP_PORT { 6000 };
     static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
 
@@ -81,8 +82,6 @@ private:
     pid_t _child_pid  { -1 };  // cli subcmd pid
 
     std::unordered_map<int, Connection> _connections;
-    std::set<int, std::greater<int>>    _open_fds;
-
     static constexpr short _POLLNONE {};
     // std::map to allow iteration
     std::map< int, size_t > _pfds_i_by_fd;

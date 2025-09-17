@@ -108,12 +108,12 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
         memcpy( unaddr.sun_path, unix_path.data(), unix_path.size() + 1 );
         unix_socket_path = { unaddr.sun_path };
 
-        fmt::println( stderr, "name {:?} protocol {:?} hostname {:?} display {} screen {} family {}",
-                      name, protocol, hostname, display, screen, family );
-        fmt::println( stderr, "unaddr {{ sun_family {} sun_path {:?} }}",
-                      unaddr.sun_family, unaddr.sun_path );
-        fmt::println( stderr, "unix_socket_path {:?}",
-                      unix_socket_path );
+        // fmt::println( stderr, "name {:?} protocol {:?} hostname {:?} display {} screen {} family {}",
+        //               name, protocol, hostname, display, screen, family );
+        // fmt::println( stderr, "unaddr {{ sun_family {} sun_path {:?} }}",
+        //               unaddr.sun_family, unaddr.sun_path );
+        // fmt::println( stderr, "unix_socket_path {:?}",
+        //               unix_socket_path );
         return;
     }
     assert( family == AF_INET );
@@ -159,10 +159,10 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
     inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
                _ipv4_addrstr_buf, INET_ADDRSTRLEN );
 
-    fmt::println( stderr, "name {:?} protocol {:?} hostname {:?} display {} screen {} family {}",
-                  name, protocol, hostname, display, screen, family );
-    fmt::println( stderr, "inaddr {{ sin_family {} sin_port {} sin_addr.s_addr {:#x} }}",
-                  inaddr.sin_family, ntohs( inaddr.sin_port ), inaddr.sin_addr.s_addr );
-    fmt::println( stderr, "ipv4_addr {:?}",
-                      ipv4_addr );
+    // fmt::println( stderr, "name {:?} protocol {:?} hostname {:?} display {} screen {} family {}",
+    //               name, protocol, hostname, display, screen, family );
+    // fmt::println( stderr, "inaddr {{ sin_family {} sin_port {} sin_addr.s_addr {:#x} }}",
+    //               inaddr.sin_family, ntohs( inaddr.sin_port ), inaddr.sin_addr.s_addr );
+    // fmt::println( stderr, "ipv4_addr {:?}",
+    //                   ipv4_addr );
 }

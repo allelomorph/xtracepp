@@ -208,14 +208,12 @@ void ProxyX11Server::_copyAuthentication() {
             in_display_auth = &auth;
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
-            // TBD DisplayInfo() will set family to 2/AF_INET even if DISPLAY starts with "localhost"
-            // TBD should we update the xtrace parsing of DISPLAY?
-            //   - localhost:n.m values should have hostname localhost, protocol local, family AF_UNIX
-            //   - will this break socket programming? theoretically ssh -X is already handling
-            //     forwarding X11 comms sent to DISPLAY to the remote server
-            // TBD X11 over TCP without ssh is deprecated, but we should update DisplayInfo() regex to
-            //   accept URIs and not just "localhost", see:
-            //   - https://github.com/mviereck/x11docker/wiki/How-to-access-X-over-TCP-IP-network
+            // TBD important to note that family in .Xauthority refers to Xlib
+            //   Family* values (eg FamilyInternet or XCB_FAMILY_INTERNET in xcb,)
+            //   and does not correspond with AF_* socket.h macros
+            // TBD strangely in local testing all .Xauthority entries have
+            //   1/FamilyDECnet for family, even though they are printed by xauth
+            //   with a single colon, and are actually tcp/inet to localhost
             //assert( auth.family == _out_display.family );
             if ( auth.name != _AUTH_NAME ) {
                 fmt::println(
@@ -285,22 +283,19 @@ void ProxyX11Server::_copyAuthentication() {
     ofs.close();
 }
 
-// TBD inaddr.sin_port never changes, can be part of DisplayInfo
-//    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
-//    (less crucial here as this will only be called once per process execution)
+// TBD return fd
 void ProxyX11Server::_listenForClients() {
-    /*struct */sockaddr* address;
-    std::size_t address_sz;
-
-    // open sequenced, reliable, two-way, connection-based byte stream
-    static constexpr int SOCKET_DEFAULT_PROTOCOL { 0 };
-    const int fd { socket( _in_display.family, SOCK_STREAM, SOCKET_DEFAULT_PROTOCOL ) };
+    // TBD TCP if AF_INET, but SOCK_STREAM still supported if AF_UNIX, see:
+    //   https://oswalt.dev/2025/08/unix-domain-sockets/
+    const int fd { socket( _in_display.family, SOCK_STREAM,
+                           _SOCKET_DEFAULT_PROTOCOL ) };
     if ( fd < 0 )  {
         // TBD exception?
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
         exit( EXIT_FAILURE );
     }
+    size_t addr_sz {};
     assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
     if ( _in_display.family == AF_INET ) {
         // At sockets API level, enable sending of keep-alive messages on
@@ -308,55 +303,31 @@ void ProxyX11Server::_listenForClients() {
         const int on { 1 };
         if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
             close( fd );
-            // TBD exception
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
             exit( EXIT_FAILURE );
         }
-        /*struct */sockaddr_in inaddr;
-        // use domain of IPv4 Internet protocol
-        inaddr.sin_family      = _in_display.family;
-        // use port 6000 + display number (network byte order)
-        inaddr.sin_port        = htons( _X_TCP_PORT + _in_display.display ); // TBD calculateTCPport();
-        // bind socket to all local interfaces (network byte order)
-        inaddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        address    = reinterpret_cast< struct sockaddr* >( &inaddr );
-        address_sz = sizeof( inaddr );
-        fmt::println( stderr, "bind inaddr {{ sin_family {} sin_port {} sin_addr.s_addr {:#x} }}",
-                      inaddr.sin_family, ntohs( inaddr.sin_port ), inaddr.sin_addr.s_addr );
+        addr_sz = sizeof( _in_display.inaddr );
     } else {  // _in_display.family == AF_UNIX
-        /*struct */sockaddr_un unaddr;
-        // Unix domain (local communication)
-        unaddr.sun_family = _in_display.family;
-        assert( !_in_display.unix_socket_path.empty() );
-        std::memcpy( unaddr.sun_path, _in_display.unix_socket_path.data(),
-                     _in_display.unix_socket_path.size() + 1 );
-        // TBD necessary if deleted as part of shutdown?
-        std::filesystem::remove( unaddr.sun_path );
-        address    = reinterpret_cast< struct sockaddr* >( &unaddr );
-        address_sz = sizeof( unaddr );
-        fmt::println( stderr, "bind unaddr {{ sun_family {} sun_path {:?} }}",
-                      unaddr.sun_family, unaddr.sun_path );
+        // TBD should be deleted as part of shutdown, here again in case of SIGKILL, etc
+        std::filesystem::remove( _in_display.unaddr.sun_path );
+        addr_sz = sizeof( _in_display.unaddr );
     }
 
-    if ( bind( fd, address, address_sz ) < 0 ) {
+    if ( bind( fd, &_in_display.addr, addr_sz ) < 0 ) {
         close( fd );
-        // TBD exception
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "bind" ) );
         exit( EXIT_FAILURE );
     }
-
     if ( listen( fd, _MAX_PENDING_CONNECTIONS ) < 0 ) {
         close( fd );
-        // TBD exception
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "listen" ) );
         exit( EXIT_FAILURE );
     }
 
     _listener_fd = fd;
-    _open_fds.emplace( _listener_fd );
 }
 
 void ProxyX11Server::_startSubcommandClient() {
@@ -453,76 +424,46 @@ bool ProxyX11Server::_acceptClient(Connection* conn) {
     return true;
 }
 
-// TBD addr.sin_port never changes, can be part of DisplayInfo or static func var
-//    (really the sockaddr_in and sockaddr_un both do not change, and can be set once only (static const set by lambda?))
-// connectToServer(out_displayname,out_family,out_hostname,out_display)
 int ProxyX11Server::_connectToServer() {
-    // TCP socket to connect to X server as client
-    int fd { socket( _out_display.family, SOCK_STREAM, 0 ) };
+    // TBD TCP if AF_INET, but SOCK_STREAM still supported if AF_UNIX, see:
+    //   https://oswalt.dev/2025/08/unix-domain-sockets/
+    int fd { socket( _out_display.family, SOCK_STREAM,
+                     _SOCKET_DEFAULT_PROTOCOL ) };
     if( fd < 0 )  {
-        // TBD exeception
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
         return -1;
     }
     assert( _out_display.family == AF_INET || _out_display.family == AF_UNIX );
-    if( _out_display.family == AF_INET ) {
-        /*struct */addrinfo    hints  {};
-        hints.ai_family   = _out_display.family;
-        hints.ai_socktype = SOCK_STREAM;
-        /*struct */addrinfo*   res    {};
-        // TBD this call to getaddrinfo only needs to happen once (?), in _out_display init
-        const int gai_ret {
-            getaddrinfo( _out_display.hostname.data(), NULL, &hints, &res ) };
-        if ( gai_ret != 0 ) {
-            close( fd );
-            // TBD exception
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
-                          errors::system::message( "getaddrinfo" ) );
-            return -1;
-        }
-        assert( res != nullptr );
-        /*struct */sockaddr_in inaddr {};
-        assert( res->ai_addrlen == sizeof( inaddr ) );
-        memcpy( &inaddr, res->ai_addr, res->ai_addrlen );
-        freeaddrinfo( res );
-        inaddr.sin_port = htons( _X_TCP_PORT + _out_display.display ); // TBD calculateTCPport();
+    size_t addr_sz {};
+    std::string connect_err;
+    if ( _out_display.family == AF_INET ) {
+        // At sockets API level, enable sending of keep-alive messages on
+        //   connection-oriented sockets.
         const int on { 1 };
-        setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof( on ) );
-        if( connect( fd, ( struct sockaddr* )&inaddr, sizeof( inaddr ) ) < 0 ) {
+        if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
             close( fd );
-            // TBD no exception? this seems like a non-fatal error to report to normal user
-            char server_addrstr[INET_ADDRSTRLEN] { 0 };
-            fmt::println(
-                stderr,
-                "{}: error connecting to '{}' (resolved to '{}') for display '{}', {}",
-                __PRETTY_FUNCTION__, _out_display.hostname,
-                inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
-                           server_addrstr, INET_ADDRSTRLEN ),
-                _out_display.name,
-                errors::system::message( "connect" ) );
+            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+                          errors::system::message( "setsockopt" ) );
             return -1;
         }
-        fmt::println( stderr, "connect inaddr {{ sin_family {} sin_port {} sin_addr.s_addr {:#x} }}",
-                      inaddr.sin_family, ntohs( inaddr.sin_port ), inaddr.sin_addr.s_addr );
-    } else {
-        /*struct */sockaddr_un unaddr;
-        // TBD no need to set unaddr.sun_family?
-        memcpy( unaddr.sun_path, _out_display.unix_socket_path.data(),
-                _out_display.unix_socket_path.size() + 1 );
-
-        if ( connect( fd, ( struct sockaddr* )&unaddr, sizeof( unaddr ) ) < 0 ) {
-            close( fd );
-            // TBD no exception? this seems like a non-fatal error to report to normal user
-            fmt::println(
-                stderr,
-                "{}: error connecting to unix socket '{}' for display '{}'), {}",
-                __PRETTY_FUNCTION__, unaddr.sun_path, _out_display.name,
-                errors::system::message( "connect" ) );
-            return -1;
-        }
-        fmt::println( stderr, "connect unaddr {{ sun_family {} sun_path {:?} }}",
-                      unaddr.sun_family, unaddr.sun_path );
+        addr_sz = sizeof( _out_display.inaddr );
+        connect_err = fmt::format(
+            "{}: error connecting to '{}' (resolved to '{}') for display '{}', {}",
+            __PRETTY_FUNCTION__, _out_display.hostname,
+            _out_display.ipv4_addr, _out_display.name,
+            errors::system::message( "connect" ) );
+    } else {  // _out_display.family == AF_UNIX
+        addr_sz = sizeof( _out_display.unaddr );
+        connect_err = fmt::format(
+            "{}: error connecting to unix socket '{}' for display '{}'), {}",
+            __PRETTY_FUNCTION__, _out_display.unaddr.sun_path,
+            _out_display.name, errors::system::message( "connect" ) );
+    }
+    if ( connect( fd, &_out_display.addr, addr_sz ) ) {
+        close( fd );
+        fmt::println( stderr, connect_err );
+        return -1;
     }
     return fd;
 }
@@ -584,7 +525,7 @@ void ProxyX11Server::_openConnection() {
     if ( !_acceptClient( &conn ) ) {
         // TBD exception
         fmt::println( stderr, "{}: failure to accept client connection",
-            __PRETTY_FUNCTION__ );
+                      __PRETTY_FUNCTION__ );
         return;
     }
     assert( conn.client_fd > _listener_fd );
@@ -593,11 +534,10 @@ void ProxyX11Server::_openConnection() {
                   conn.client_desc );
 
     conn.server_fd = _connectToServer();
-    if( conn.server_fd < 0 ) {
+    if ( conn.server_fd == -1 ) {
         // TBD exception
-        fmt::println(
-            stderr, "{}: failure to connect to X server for display: {}",
-            __PRETTY_FUNCTION__, _out_display.name );
+        fmt::println( stderr, "{}: failure to connect to X server for display: {}",
+                      __PRETTY_FUNCTION__, _out_display.name );
         conn.closeClientSocket();
         return;
     }
