@@ -73,7 +73,7 @@ void ProxyX11Server::_parseDisplayNames() {
         out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
     }
     assert( out_displayname != nullptr );
-    _out_display = DisplayInfo( out_displayname );
+    _out_display = DisplayInfo( out_displayname, DisplayInfo::Direction::OUT );
 
     const char* in_displayname { nullptr };
     if( settings.in_displayname != nullptr ) {
@@ -89,7 +89,7 @@ void ProxyX11Server::_parseDisplayNames() {
         }
     }
     assert( in_displayname != nullptr );
-    _in_display = DisplayInfo( in_displayname );
+    _in_display = DisplayInfo( in_displayname, DisplayInfo::Direction::IN );
 }
 
 // per https://gitlab.freedesktop.org/alanc/libxau/-/blob/master/README
@@ -130,8 +130,8 @@ public:
 };
 
 void ProxyX11Server::_copyAuthentication() {
-    assert( !_in_display.unparsed_name.empty() &&
-            !_out_display.unparsed_name.empty() );
+    assert( !_in_display.name.empty() &&
+            !_out_display.name.empty() );
 
     ////// get auth path
 
@@ -220,7 +220,7 @@ void ProxyX11Server::_copyAuthentication() {
             if ( auth.name != _AUTH_NAME ) {
                 fmt::println(
                     stderr, "No support for display \"{}\" auth method {} (expected {})",
-                    _out_display.unparsed_name, auth.name, _AUTH_NAME );
+                    _out_display.name, auth.name, _AUTH_NAME );
                 exit( EXIT_FAILURE );
             }
             assert( auth.data_len == _AUTH_DATA_SZ );
@@ -231,7 +231,7 @@ void ProxyX11Server::_copyAuthentication() {
     }
     if ( out_display_auth == nullptr ) {
         fmt::println( stderr, "Could not find auth data for display \"{}\"",
-                      _out_display.unparsed_name );
+                      _out_display.name );
         exit( EXIT_FAILURE );
     }
     if ( in_display_auth != nullptr ) {  // revise existing FAKEDISPLAY entry
@@ -322,16 +322,21 @@ void ProxyX11Server::_listenForClients() {
         inaddr.sin_addr.s_addr = htonl( INADDR_ANY );
         address    = reinterpret_cast< struct sockaddr* >( &inaddr );
         address_sz = sizeof( inaddr );
+        fmt::println( stderr, "bind inaddr {{ sin_family {} sin_port {} sin_addr.s_addr {:#x} }}",
+                      inaddr.sin_family, ntohs( inaddr.sin_port ), inaddr.sin_addr.s_addr );
     } else {  // _in_display.family == AF_UNIX
         /*struct */sockaddr_un unaddr;
         // Unix domain (local communication)
         unaddr.sun_family = _in_display.family;
+        assert( !_in_display.unix_socket_path.empty() );
         std::memcpy( unaddr.sun_path, _in_display.unix_socket_path.data(),
                      _in_display.unix_socket_path.size() + 1 );
         // TBD necessary if deleted as part of shutdown?
         std::filesystem::remove( unaddr.sun_path );
         address    = reinterpret_cast< struct sockaddr* >( &unaddr );
         address_sz = sizeof( unaddr );
+        fmt::println( stderr, "bind unaddr {{ sun_family {} sun_path {:?} }}",
+                      unaddr.sun_family, unaddr.sun_path );
     }
 
     if ( bind( fd, address, address_sz ) < 0 ) {
@@ -498,6 +503,8 @@ int ProxyX11Server::_connectToServer() {
                 errors::system::message( "connect" ) );
             return -1;
         }
+        fmt::println( stderr, "connect inaddr {{ sin_family {} sin_port {} sin_addr.s_addr {:#x} }}",
+                      inaddr.sin_family, ntohs( inaddr.sin_port ), inaddr.sin_addr.s_addr );
     } else {
         /*struct */sockaddr_un unaddr;
         // TBD no need to set unaddr.sun_family?
@@ -514,6 +521,8 @@ int ProxyX11Server::_connectToServer() {
                 errors::system::message( "connect" ) );
             return -1;
         }
+        fmt::println( stderr, "connect unaddr {{ sun_family {} sun_path {:?} }}",
+                      unaddr.sun_family, unaddr.sun_path );
     }
     return fd;
 }
