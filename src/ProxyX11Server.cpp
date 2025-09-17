@@ -290,14 +290,14 @@ void ProxyX11Server::_listenForClients() {
     const int fd { socket( _in_display.family, SOCK_STREAM,
                            _SOCKET_DEFAULT_PROTOCOL ) };
     if ( fd < 0 )  {
-        // TBD exception?
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
         exit( EXIT_FAILURE );
     }
-    size_t addr_sz {};
-    assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
-    if ( _in_display.family == AF_INET ) {
+    socklen_t addr_sz {};
+    switch ( _in_display.family ) {
+    case AF_INET: {
+        addr_sz = sizeof( _in_display.inaddr );
         // At sockets API level, enable sending of keep-alive messages on
         //   connection-oriented sockets.
         const int on { 1 };
@@ -307,13 +307,15 @@ void ProxyX11Server::_listenForClients() {
                           errors::system::message( "setsockopt" ) );
             exit( EXIT_FAILURE );
         }
-        addr_sz = sizeof( _in_display.inaddr );
-    } else {  // _in_display.family == AF_UNIX
+    }   break;
+    case AF_UNIX:
+        addr_sz = sizeof( _in_display.unaddr );
         // TBD should be deleted as part of shutdown, here again in case of SIGKILL, etc
         std::filesystem::remove( _in_display.unaddr.sun_path );
-        addr_sz = sizeof( _in_display.unaddr );
+        break;
+    default:
+        break;
     }
-
     if ( bind( fd, &_in_display.addr, addr_sz ) < 0 ) {
         close( fd );
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
@@ -326,7 +328,6 @@ void ProxyX11Server::_listenForClients() {
                       errors::system::message( "listen" ) );
         exit( EXIT_FAILURE );
     }
-
     _listener_fd = fd;
 }
 
@@ -370,54 +371,54 @@ void ProxyX11Server::_startSubcommandClient() {
     }
 }
 
-// TBD this is called as part of openConnection, and effectively has two outputs:
+// TBD two outputs:
 //   - fd of client at top of pending connection stack for listener (c->client_fd)
 //   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
-bool ProxyX11Server::_acceptClient(Connection* conn) {
-    int fd;
-    socklen_t len;
-    std::string client_desc;
-
+bool ProxyX11Server::_acceptClient( Connection* conn ) {
     assert( conn != nullptr );
-    assert( _in_display.family == AF_INET || _in_display.family == AF_UNIX );
-    // TBD is the name string always going to be the same for _listener_fd? Is it something
-    //   we could just get once during _in_display init? maybe getsockname on _listener_fd after successful bind?
-    if ( _in_display.family == AF_INET ) {
-        /*struct */sockaddr_in inaddr;
-        len = sizeof( inaddr );
-        fd = accept( _listener_fd,
-                     reinterpret_cast< struct sockaddr* >( &inaddr ), &len );
+    int fd;
+    std::string client_desc;
+    union {
+        sockaddr addr;
+        sockaddr_in inaddr;
+        sockaddr_un unaddr {};
+    };
+    switch ( _in_display.family ) {
+    case AF_INET: {
+        socklen_t addr_sz { sizeof( inaddr ) };
+        fd = accept( _listener_fd, &addr, &addr_sz );
         if ( fd < 0 ) {
-            // TBD exception
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "accept" ) );
             return false;
         }
-        char client_addrstr[INET_ADDRSTRLEN] { 0 };
+        assert( addr_sz == sizeof( inaddr ) );
+        char ipv4_addr[ INET_ADDRSTRLEN ] {};
         if ( inet_ntop( _in_display.family, &(inaddr.sin_addr),
-                        client_addrstr, INET_ADDRSTRLEN ) == nullptr ) {
+                        ipv4_addr, INET_ADDRSTRLEN ) == nullptr ) {
             close( fd );
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "inet_ntop" ) );
             return false;
         }
-        client_desc = std::string( client_addrstr ) + ':' +
-            std::to_string( ntohs( inaddr.sin_port ) );
-    } else {  // _in_display.family == AF_UNIX
-        /*struct */sockaddr_un unaddr;
-        len = sizeof( unaddr );
-        fd = accept( _listener_fd,
-                     reinterpret_cast< struct sockaddr* >( &unaddr ), &len );
+        client_desc = fmt::format( "{}:{}", ipv4_addr,
+                                   ntohs( inaddr.sin_port ) );
+    }   break;
+    case AF_UNIX: {
+        socklen_t addr_sz { sizeof( unaddr ) };
+        fd = accept( _listener_fd, &addr, &addr_sz );
         if ( fd < 0 ) {
-            // TBD exception
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "accept" ) );
             return false;
         }
-        if ( len > sizeof( sa_family_t ) )  // flexible array unaddr.sun_path len > 0
-            client_desc = std::string( unaddr.sun_path, len - sizeof( sa_family_t ) );
-        else
-            client_desc = std::string( "unknown(local)" );
+        const std::string_view sun_path { unaddr.sun_path };
+        assert( addr_sz == sizeof( unaddr.sun_family ) + sun_path.size() );
+        client_desc = fmt::format(
+            "{}", sun_path.empty() ? "unknown(local)" : sun_path );
+    }   break;
+    default:
+        break;
     }
     conn->client_fd   = fd;
     conn->client_desc = client_desc;
@@ -434,10 +435,10 @@ int ProxyX11Server::_connectToServer() {
                       errors::system::message( "socket" ) );
         return -1;
     }
-    assert( _out_display.family == AF_INET || _out_display.family == AF_UNIX );
-    size_t addr_sz {};
+    socklen_t addr_sz {};
     std::string connect_err;
-    if ( _out_display.family == AF_INET ) {
+    switch ( _out_display.family ) {
+    case AF_INET: {
         // At sockets API level, enable sending of keep-alive messages on
         //   connection-oriented sockets.
         const int on { 1 };
@@ -453,12 +454,16 @@ int ProxyX11Server::_connectToServer() {
             __PRETTY_FUNCTION__, _out_display.hostname,
             _out_display.ipv4_addr, _out_display.name,
             errors::system::message( "connect" ) );
-    } else {  // _out_display.family == AF_UNIX
+    }   break;
+    case AF_UNIX: {
         addr_sz = sizeof( _out_display.unaddr );
         connect_err = fmt::format(
             "{}: error connecting to unix socket '{}' for display '{}'), {}",
             __PRETTY_FUNCTION__, _out_display.unaddr.sun_path,
             _out_display.name, errors::system::message( "connect" ) );
+    }   break;
+    default:
+        break;
     }
     if ( connect( fd, &_out_display.addr, addr_sz ) ) {
         close( fd );
