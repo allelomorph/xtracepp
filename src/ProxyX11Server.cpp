@@ -39,10 +39,43 @@ void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     }
 }
 
+std::atomic<const char*> in_display_sun_path {};
+std::atomic<const char*> out_display_sun_path {};
+
+// TBD can't use std::filesystem::remove as is calls remove(3) which is not
+//   listed as signal-safe
+// TBD we could just ignore unlink errors as the process is shutting down anyway
+void handleTerminatingSignal( int sig ) {
+    assert( sig == SIGINT || sig == SIGTERM ||
+            sig == SIGABRT || sig == SIGSEGV );
+    static constexpr char errmsg_infix[] { ": unlink failure on \"" };
+    static constexpr char errmsg_suffix[] { "\"\n" };
+    if ( const char* indisp_sun_path { in_display_sun_path.load() };
+         indisp_sun_path != nullptr &&
+         unlink( indisp_sun_path ) != 0 && errno != ENOENT ) {
+        write( STDERR_FILENO, __PRETTY_FUNCTION__,
+                 sizeof( __PRETTY_FUNCTION__ ) - 1 );
+        write( STDERR_FILENO, errmsg_infix, sizeof( errmsg_infix ) - 1 );
+        write( STDERR_FILENO, indisp_sun_path, sizeof( indisp_sun_path ) - 1 );
+        write( STDERR_FILENO, errmsg_suffix, sizeof( errmsg_suffix ) - 1 );
+    }
+    if ( const char* outdisp_sun_path { out_display_sun_path.load() };
+         outdisp_sun_path != nullptr &&
+         unlink( outdisp_sun_path ) != 0 && errno != ENOENT ) {
+        write( STDERR_FILENO, __PRETTY_FUNCTION__,
+                 sizeof( __PRETTY_FUNCTION__ ) - 1 );
+        write( STDERR_FILENO, errmsg_infix, sizeof( errmsg_infix ) - 1 );
+        write( STDERR_FILENO, outdisp_sun_path, sizeof( outdisp_sun_path ) - 1 );
+        write( STDERR_FILENO, errmsg_suffix, sizeof( errmsg_suffix ) - 1 );
+    }
+}
+
 ProxyX11Server::~ProxyX11Server() {
     close( _listener_fd );
-    if ( !_in_display.unix_socket_path.empty() )
-        unlink( _in_display.unix_socket_path.data() );
+    if ( _in_display.family == AF_UNIX )
+        std::filesystem::remove( _in_display.unaddr.sun_path );
+    if ( _out_display.family == AF_UNIX )
+        std::filesystem::remove( _out_display.unaddr.sun_path );
 }
 
 void ProxyX11Server::init( const int argc, char* const* argv ) {
@@ -74,6 +107,9 @@ void ProxyX11Server::_parseDisplayNames() {
     }
     assert( out_displayname != nullptr );
     _out_display = DisplayInfo( out_displayname, DisplayInfo::Direction::OUT );
+    if ( _out_display.family == AF_UNIX ) {
+        out_display_sun_path.store( _out_display.unaddr.sun_path );
+    }
 
     const char* in_displayname { nullptr };
     if( settings.in_displayname != nullptr ) {
@@ -90,6 +126,21 @@ void ProxyX11Server::_parseDisplayNames() {
     }
     assert( in_displayname != nullptr );
     _in_display = DisplayInfo( in_displayname, DisplayInfo::Direction::IN );
+    if ( _in_display.family == AF_UNIX ) {
+        in_display_sun_path.store( _in_display.unaddr.sun_path );
+    }
+
+    // `struct` needed to disambiguate from sigaction(2)
+    struct sigaction act {};
+    act.sa_handler = &handleTerminatingSignal;
+    if ( sigaction( SIGINT, &act, nullptr ) == -1 ||
+         sigaction( SIGTERM, &act, nullptr ) == -1 ||
+         sigaction( SIGABRT, &act, nullptr ) == -1 ||
+         sigaction( SIGSEGV, &act, nullptr ) == -1 ) {
+        fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
+                      errors::system::message( "sigaction" ) );
+        exit( EXIT_FAILURE );
+    }
 }
 
 // per https://gitlab.freedesktop.org/alanc/libxau/-/blob/master/README

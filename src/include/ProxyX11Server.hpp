@@ -31,6 +31,12 @@ static_assert( std::atomic_int::is_always_lock_free );
 
 void handleSIGCHLD( int sig, siginfo_t* info, void* ucontext );
 
+extern std::atomic<const char*> in_display_sun_path;
+extern std::atomic<const char*> out_display_sun_path;
+static_assert( std::atomic<const char*>::is_always_lock_free );
+
+void handleTerminatingSignal( int sig );
+
 class ProxyX11Server {
 public:
     Settings settings;
