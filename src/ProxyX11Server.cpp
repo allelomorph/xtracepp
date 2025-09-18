@@ -2,7 +2,7 @@
 #include <string>        // stoi to_string
 #include <string_view>
 #include <optional>
-#include <filesystem>    // remove
+#include <filesystem>    // copy remove
 
 #include <cassert>
 #include <cstdlib>       // getenv setenv
@@ -256,6 +256,7 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// write auth entries back to file
 
+    std::filesystem::copy( xauth_path, xauth_path + ".bup" );
     std::ofstream ofs( xauth_path, std::ios::binary );
     if ( !ofs.good() ) {
         fmt::println(
