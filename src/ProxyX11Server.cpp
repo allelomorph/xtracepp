@@ -436,22 +436,26 @@ void ProxyX11Server::_startSubcommandClient() {
 //   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, socket file path or "unknown(local)" for AF_UNIX)
 bool ProxyX11Server::_acceptClient( Connection* conn ) {
     assert( conn != nullptr );
-    int fd;
     std::string client_desc;
     union {
         sockaddr addr;
         sockaddr_in inaddr;
         sockaddr_un unaddr {};
     };
+    socklen_t addr_sz {};
     switch ( _in_display.family ) {
+    case AF_INET: addr_sz = sizeof( inaddr ); break;
+    case AF_UNIX: addr_sz = sizeof( unaddr ); break;
+    default: break;
+    }
+    const int fd { accept( _listener_fd, &addr, &addr_sz ) };
+    if ( fd < 0 ) {
+        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+                      errors::system::message( "accept" ) );
+        return false;
+    }
+    switch ( addr.sa_family ) {
     case AF_INET: {
-        socklen_t addr_sz { sizeof( inaddr ) };
-        fd = accept( _listener_fd, &addr, &addr_sz );
-        if ( fd < 0 ) {
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
-                          errors::system::message( "accept" ) );
-            return false;
-        }
         assert( addr_sz == sizeof( inaddr ) );
         char ipv4_addr[ INET_ADDRSTRLEN ] {};
         if ( inet_ntop( _in_display.family, &(inaddr.sin_addr),
@@ -465,17 +469,13 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
                                    ntohs( inaddr.sin_port ) );
     }   break;
     case AF_UNIX: {
-        socklen_t addr_sz { sizeof( unaddr ) };
-        fd = accept( _listener_fd, &addr, &addr_sz );
-        if ( fd < 0 ) {
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
-                          errors::system::message( "accept" ) );
-            return false;
-        }
-        const std::string_view sun_path { unaddr.sun_path };
-        assert( addr_sz == sizeof( unaddr.sun_family ) + sun_path.size() );
-        client_desc = fmt::format(
-            "{}", sun_path.empty() ? "unknown(local)" : sun_path );
+        // TBD sun_path will likely always be unpopulated by connect(2), see:
+        //   - https://stackoverflow.com/q/17090043
+        //   we could call getsockname, but that would only provide the socket
+        //   path given to bind(2) before listen(2) (would be the same for all
+        //   clients connecting via _in_display, so not a great client id)
+        assert( std::string_view( unaddr.sun_path ).empty() );
+        client_desc = { "unknown(local)" };
     }   break;
     default:
         break;
