@@ -13,7 +13,7 @@
 #include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
-#include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO
+#include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO _exit
 #include <signal.h>      // sigaction sigaction() SIGCHLD CLD_EXITED siginfo_t
 #include <netdb.h>       // 'struct addrinfo' getaddrinfo freeaddrinfo
 
@@ -32,10 +32,12 @@ void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     assert( info != nullptr );
     assert( child_running.load() == true );
     child_running.store( false );
+    static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
     if ( info->si_code == CLD_EXITED ) {
-        child_retval.store( int8_t( info->si_status ) );
+        child_retval.store( info->si_status );
     } else {  // info->si_code == CLD_KILLED, CLD_STOPPED, CLD_DUMPED, etc
-        child_retval.store( -int8_t( info->si_status ) );
+        child_retval.store(
+            _SIGNAL_RETVAL_OFFSET + info->si_status );
     }
 }
 
@@ -44,30 +46,21 @@ std::atomic<const char*> out_display_sun_path {};
 
 // TBD can't use std::filesystem::remove as is calls remove(3) which is not
 //   listed as signal-safe
-// TBD we could just ignore unlink errors as the process is shutting down anyway
 void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
-    static constexpr char errmsg_infix[] { ": unlink failure on \"" };
-    static constexpr char errmsg_suffix[] { "\"\n" };
+    // No error checking on unlink as we are are about to make a sudden
+    //   _exit anyway
     if ( const char* indisp_sun_path { in_display_sun_path.load() };
-         indisp_sun_path != nullptr &&
-         unlink( indisp_sun_path ) != 0 && errno != ENOENT ) {
-        write( STDERR_FILENO, __PRETTY_FUNCTION__,
-                 sizeof( __PRETTY_FUNCTION__ ) - 1 );
-        write( STDERR_FILENO, errmsg_infix, sizeof( errmsg_infix ) - 1 );
-        write( STDERR_FILENO, indisp_sun_path, sizeof( indisp_sun_path ) - 1 );
-        write( STDERR_FILENO, errmsg_suffix, sizeof( errmsg_suffix ) - 1 );
+         indisp_sun_path != nullptr ) {
+        unlink( indisp_sun_path );
     }
     if ( const char* outdisp_sun_path { out_display_sun_path.load() };
-         outdisp_sun_path != nullptr &&
-         unlink( outdisp_sun_path ) != 0 && errno != ENOENT ) {
-        write( STDERR_FILENO, __PRETTY_FUNCTION__,
-                 sizeof( __PRETTY_FUNCTION__ ) - 1 );
-        write( STDERR_FILENO, errmsg_infix, sizeof( errmsg_infix ) - 1 );
-        write( STDERR_FILENO, outdisp_sun_path, sizeof( outdisp_sun_path ) - 1 );
-        write( STDERR_FILENO, errmsg_suffix, sizeof( errmsg_suffix ) - 1 );
+         outdisp_sun_path != nullptr ) {
+        unlink( outdisp_sun_path );
     }
+    static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
+    _exit( _SIGNAL_RETVAL_OFFSET + sig );
 }
 
 ProxyX11Server::~ProxyX11Server() {
@@ -793,5 +786,7 @@ int ProxyX11Server::_processClientQueue() {
         }
         _processPolledSockets();
     }
-    return _child_used ? child_retval.load() : EXIT_SUCCESS;
+    if ( _child_used && !settings.keeprunning )
+        return child_retval.load();
+    return EXIT_SUCCESS;
 }
