@@ -51,8 +51,6 @@ public:
         static_assert( sizeof( unaddr.sun_path ) == _UNIX_PATH_MAX );
     };
     std::string_view ipv4_addr { _ipv4_addrstr_buf, INET_ADDRSTRLEN };
-    // TBD temp?
-    std::string unix_socket_path;
 
     enum class Direction {
         IN, OUT };
