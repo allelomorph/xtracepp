@@ -32,12 +32,19 @@ void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     assert( info != nullptr );
     assert( child_running.load() == true );
     child_running.store( false );
-    static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
-    if ( info->si_code == CLD_EXITED ) {
+    switch ( info->si_code ) {
+    case CLD_EXITED:
         child_retval.store( info->si_status );
-    } else {  // info->si_code == CLD_KILLED, CLD_STOPPED, CLD_DUMPED, etc
+        break;
+    case CLD_KILLED: [[fallthrough]];
+    case CLD_DUMPED:
+        static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
         child_retval.store(
             _SIGNAL_RETVAL_OFFSET + info->si_status );
+        break;
+    default:
+        // CLD_TRAPPED CLD_STOPPED CLD_CONTINUED
+        break;
     }
 }
 
