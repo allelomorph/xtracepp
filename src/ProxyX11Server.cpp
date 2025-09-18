@@ -113,7 +113,13 @@ private:
     static constexpr uint8_t _HOST_NAME_MAX { 64 };  // TBD should be same as POSIX HOST_NAME_MAX
 public:
     // TBD nbo = network byte order (MSB first)
+    // TBD important to note that family in .Xauthority refers to Xlib Family*
+    //   values (eg FamilyInternet, see generated X.h,) and does not correspond
+    //   with AF_* socket.h macros
+    // TBD in testing xauth reads/writes family as MSB first, even if README
+    //   above is not explicit
     uint16_t family          {};
+    uint16_t family_nbo      {};
     uint16_t addr_len        {};
     uint16_t addr_len_nbo    {};
     uint16_t display_len     {};
@@ -167,7 +173,8 @@ void ProxyX11Server::_copyAuthentication() {
     std::vector< _XAuthInfo > xauth_entries;
     for ( ; !ifs.eof(); ifs.peek() ) {
         _XAuthInfo auth;
-        ifs.read( (char*)&auth.family, sizeof(auth.family) );
+        ifs.read( (char*)&auth.family_nbo, sizeof(auth.family_nbo) );
+        auth.family = ntohs( auth.family_nbo );
 
         ifs.read( (char*)&auth.addr_len_nbo, sizeof(auth.addr_len_nbo) );
         auth.addr_len = ntohs( auth.addr_len_nbo );
@@ -202,19 +209,19 @@ void ProxyX11Server::_copyAuthentication() {
     _XAuthInfo* out_display_auth {};  // DISPLAY
     for ( _XAuthInfo& auth : xauth_entries ) {
         if ( std::strtol( auth.display, nullptr, 10 ) == _in_display.display ) {
-            assert( auth.family == _in_display.family );
+            if ( _in_display.family == AF_INET )
+                assert( auth.family == 0 /* FamilyInternet */ );
+            if ( _in_display.family == AF_UNIX )
+                assert( auth.family == 256 /* FamilyLocal */ );
             assert( auth.name == _AUTH_NAME );
             assert( auth.data_len == _AUTH_DATA_SZ );
             in_display_auth = &auth;
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
-            // TBD important to note that family in .Xauthority refers to Xlib
-            //   Family* values (eg FamilyInternet or XCB_FAMILY_INTERNET in xcb,)
-            //   and does not correspond with AF_* socket.h macros
-            // TBD strangely in local testing all .Xauthority entries have
-            //   1/FamilyDECnet for family, even though they are printed by xauth
-            //   with a single colon, and are actually tcp/inet to localhost
-            //assert( auth.family == _out_display.family );
+            if ( _in_display.family == AF_INET )
+                assert( auth.family == 0 /* FamilyInternet */ );
+            if ( _in_display.family == AF_UNIX )
+                assert( auth.family == 256 /* FamilyLocal */ );
             if ( auth.name != _AUTH_NAME ) {
                 fmt::println(
                     stderr, "No support for display \"{}\" auth method {} (expected {})",
@@ -257,8 +264,8 @@ void ProxyX11Server::_copyAuthentication() {
         exit( EXIT_FAILURE );
     }
     for ( const _XAuthInfo& auth : xauth_entries ) {
-        ofs.write( (char*)&auth.family,
-                   sizeof(auth.family) );
+        ofs.write( (char*)&auth.family_nbo,
+                   sizeof(auth.family_nbo) );
 
         ofs.write( (char*)&auth.addr_len_nbo,
                    sizeof(auth.addr_len_nbo) );
