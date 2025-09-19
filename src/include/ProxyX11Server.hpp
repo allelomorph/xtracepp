@@ -8,7 +8,6 @@
 #include <optional>
 #include <unordered_map>
 #include <set>
-#include <functional>   // greater
 #include <map>
 #include <vector>
 
@@ -25,15 +24,16 @@
 
 // TBD using lock-free std::atomic for signal handler per C++ standard
 extern std::atomic_bool child_running;
-static_assert( std::atomic_bool::is_always_lock_free );
+static_assert( decltype( child_running )::is_always_lock_free );
 extern std::atomic_int  child_retval;
-static_assert( std::atomic_int::is_always_lock_free );
+static_assert( decltype( child_retval )::is_always_lock_free );
 
 void handleSIGCHLD( int sig, siginfo_t* info, void* ucontext );
 
 extern std::atomic<const char*> in_display_sun_path;
+static_assert( decltype( in_display_sun_path )::is_always_lock_free );
 extern std::atomic<const char*> out_display_sun_path;
-static_assert( std::atomic<const char*>::is_always_lock_free );
+static_assert( decltype( out_display_sun_path )::is_always_lock_free );
 
 void handleTerminatingSignal( int sig );
 
@@ -45,7 +45,7 @@ public:
     ~ProxyX11Server();
 
     // TBD `char* const* argv` required by getopt_long in Settings
-    void init(const int argc, char* const* argv);
+    void init( const int argc, char* const* argv );
     int run();
 
 private:
@@ -77,27 +77,23 @@ private:
     void _fetchCurrentServerTime();
     void _fetchInternedAtoms();
 
-    ////// Main client queue
+    ////// CLI Subcommand
 
-    static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
-    static constexpr int _X_TCP_PORT { 6000 };
-    static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
-
-    int _listener_fd  { -1 };  // listening for x clients to intercept comms with x server
     bool  _child_used { false };
-    pid_t _child_pid  { -1 };  // cli subcmd pid
+    static constexpr pid_t _UNINIT_PID { -1 };
+    pid_t _child_pid  { _UNINIT_PID };
 
-    std::unordered_map<int, Connection> _connections;
+    void _startSubcommandClient();
+
+    ////// Socket polling
+
     static constexpr short _POLLNONE {};
-    // std::map to allow iteration
+    // TBD std::map over std::unordered_map to allow iteration
     std::map< int, size_t > _pfds_i_by_fd;
     std::vector< pollfd >   _pfds;
 
-//    void _addConnectionToPoll( const int id );
     void _addSocketToPoll( const int fd, const short events = _POLLNONE );
     void _updatePollFlags();
-//    void _pollSockets();
-    void _processPolledSockets();
     inline bool _socketReadReady( const int fd ) {
         return ( _pfds.at( _pfds_i_by_fd.at( fd ) ).revents & POLLIN );
     }
@@ -106,15 +102,23 @@ private:
     }
     std::optional< std::string_view >
     _socketPollError( const int fd );
-    void _closeConnection( const int id );
-    void _closeConnections( const std::vector< int >& ids );
+    void _processPolledSockets();
+
+    ////// Main client queue
+
+    static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
+    static constexpr int _X_TCP_PORT { 6000 };
+    static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
+
+    static constexpr int _UNINIT_FD { -1 };
+    int _listener_fd  { _UNINIT_FD };
+    std::unordered_map< int, Connection > _connections;
 
     void _listenForClients();
-    void _startSubcommandClient();
     bool _acceptClient( Connection* conn );
     int  _connectToServer();
     void _openConnection();
-    void _processFlaggedSockets();
+    void _closeConnections( const std::vector< int >& ids );
     int  _processClientQueue();
 
     X11ProtocolParser _parser;
