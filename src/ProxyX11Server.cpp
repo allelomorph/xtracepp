@@ -709,7 +709,7 @@ int ProxyX11Server::_connectToServer() {
     default:
         break;
     }
-    if ( connect( fd, &_out_display.addr, addr_sz ) ) {
+    if ( connect( fd, &_out_display.addr, addr_sz ) != 0 ) {
         close( fd );
         fmt::println( stderr, connect_err );
         return -1;
