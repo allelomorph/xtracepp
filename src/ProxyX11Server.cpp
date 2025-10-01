@@ -10,6 +10,7 @@
 #include <cstdint>
 
 #include <sys/socket.h>  // 'struct sockaddr' SOCK_STREAM AF_INET AF_UNIX setsockopt SOL_SOCKET SO_KEEPALIVE 
+#include <linux/tcp.h>   // TCP_NODELAY
 #include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
 #include <netinet/in.h>  // 'struct sockaddr_in'
 #include <sys/un.h>      // 'struct sockaddr_un'
@@ -686,7 +687,8 @@ int ProxyX11Server::_connectToServer() {
         // At sockets API level, enable sending of keep-alive messages on
         //   connection-oriented sockets.
         const int on { 1 };
-        if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
+        if ( setsockopt( fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on) ) != 0 ||
+             setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
             close( fd );
             fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
