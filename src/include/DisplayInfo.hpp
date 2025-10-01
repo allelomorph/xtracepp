@@ -28,12 +28,17 @@ private:
     static constexpr int _X_TCP_PORT { 6000 };
 
     char _ipv4_addrstr_buf[ INET_ADDRSTRLEN ] {};
+    bool _unix_pattern {};
 
     // TBD regex matching groups
     enum {
+        _UNIX_PROTOCOL_GROUP_I = 1,
+        _UNIX_SOCKET_PATH_GROUP_I,
+        _UNIX_SCREEN_GROUP_I
+    };
+    enum {
         _PROTOCOL_GROUP_I = 1,
         _HOSTNAME_GROUP_I,
-        _COLON_GROUP_I,
         _DISPLAY_GROUP_I,
         _SCREEN_GROUP_I
     };
@@ -41,6 +46,7 @@ public:
     std::string name;
     std::string protocol;
     std::string hostname;
+    std::string socket_path;
     int display { _UNSET };
     int screen  { _UNSET };
     int family  { _UNSET };
