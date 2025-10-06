@@ -259,23 +259,19 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// edit auth entries
 
-    _XAuthInfo* in_display_auth {};  // PROXYDISPLAY
+    _XAuthInfo* in_display_auth {};   // PROXYDISPLAY
     _XAuthInfo* out_display_auth {};  // DISPLAY
     for ( _XAuthInfo& auth : xauth_entries ) {
         if ( std::strtol( auth.display, nullptr, 10 ) == _in_display.display ) {
-            if ( _in_display.family == AF_INET )
-                assert( auth.family == 0 /* Xlib FamilyInternet */ );
-            if ( _in_display.family == AF_UNIX )
-                assert( auth.family == 256 /* Xlib FamilyLocal */ );
+            // TBD new _in_display.family could come from PROXYDISPLAY or
+            //   --proxydisplay and not match existing Xlib Family value for display
             assert( auth.name == _AUTH_NAME );
             assert( auth.data_len == _AUTH_DATA_SZ );
             in_display_auth = &auth;
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
-            if ( _in_display.family == AF_INET )
-                assert( auth.family == 0 /* Xlib FamilyInternet */ );
-            if ( _in_display.family == AF_UNIX )
-                assert( auth.family == 256 /* Xlib FamilyLocal */ );
+            // TBD new _in_display.family could come from DISPLAY or
+            //   --display and not match existing Xlib Family value for display
             if ( auth.name != _AUTH_NAME ) {
                 fmt::println(
                     stderr, "No support for display \"{}\" auth method {} (expected {})",
