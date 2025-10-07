@@ -47,12 +47,12 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
     };
     std::regex default_regex {
         "^(?:"
-            "(?:([a-zA-Z]+)/)?"    // [ [<protocol>/]
-            "([^\\s]+?)"           // <hostname/URI> ]
+            "(?:([a-zA-Z6]+)/)?"  // [ [<protocol>/]
+            "([^\\s]+?)"          // <hostname/URI> ]
         ")?"
         "(?="
-            ":([0-9]+)"            // :<display number>
-            "(?:\\.([0-9]+))?"     // [.<screen number>]
+            ":([0-9]+)"           // :<display number>
+            "(?:\\.([0-9]+))?"    // [.<screen number>]
         "$)"
     };
     std::smatch match;
@@ -95,11 +95,14 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
             "    [[<protocol>/]<hostname>]:<display number>[.<screen number>]", name );
         exit( EXIT_FAILURE );
     }
-    // TBD later implement ipv6 support for "inet6" protocol
-    if ( protocol == _INET || protocol == _TCP ) {
-         family = AF_INET;
+    // only passing explcitly passing "inet" as protocol uses IPv4, otherwise
+    //   default to IPv6 with IPv4 support
+    if ( protocol == _INET6 || protocol == _TCP ) {
+         ai_family = AF_INET6;
+    } else if ( protocol == _INET ) {
+         ai_family = AF_INET;
     } else if ( protocol == _UNIX || protocol == _LOCAL ) {
-         family = AF_UNIX;
+         ai_family = AF_UNIX;
     } else {
         fmt::println( stderr, "Unrecognized protocol {:?} in display name {:?}",
                       protocol, name );
@@ -108,65 +111,85 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
 
     ////// Get socket info for later calls to bind(2) or connect(2)
 
-    if ( family == AF_UNIX ) {
-        unaddr.sun_family = family;
+    if ( ai_family == AF_UNIX ) {
+        ai_socktype = SOCK_STREAM;
+        ai_protocol = _SOCKET_DEFAULT_PROTOCOL;
+        ai_addrlen  = sizeof( unaddr );
+
+        unaddr.sun_family = ai_family;
         if ( socket_path.empty() ) {
             assert( !_unix_pattern );
             socket_path = fmt::format(
                 "{}{}", _UNIX_SOCKET_PATH_PREFIX,
                 match[ _DISPLAY_GROUP_I ].str() );
             assert( socket_path.size() < _UNIX_PATH_MAX );
+            assert( socket_path.size() < sizeof( unaddr.sun_path ) );
         }
         memcpy( unaddr.sun_path, socket_path.data(), socket_path.size() + 1 );
         return;
     }
-    assert( family == AF_INET );
-    // for bind(2) on listening socket
-    if ( direction == Direction::IN ) {
-        // TBD could also use getaddrinfo with NULL node and hints.ai_flags =
-        //   AI_PASSIVE, but would still need to manually assign port
-        inaddr.sin_family      = family;
-        // bind socket to all local interfaces (network byte order)
-        inaddr.sin_addr.s_addr = htonl( INADDR_ANY );
+    assert( ai_family == AF_INET || ai_family == AF_INET6 );
+    addrinfo hints  {};
+    hints.ai_flags    = ( direction == Direction::IN ) ? AI_PASSIVE : 0;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = _SOCKET_DEFAULT_PROTOCOL;
+    const char* node {
+        ( direction == Direction::IN ) ? nullptr : hostname.data() };
+    addrinfo* results {};
+    // node and service params can't both be NULL
+    if ( const int gai_ret { getaddrinfo( node, "", &hints, &results ) };
+         gai_ret != 0 ) {
+        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+                      errors::getaddrinfo::message( gai_ret ) );
+        exit( EXIT_FAILURE );
     }
-    // for connect(2) on server-facing socket
-    if ( direction == Direction::OUT ) {
-        addrinfo hints  {};
-        hints.ai_family   = family;
-        hints.ai_socktype = SOCK_STREAM;
-        addrinfo* results {};
-        // getaddrinfo with NULL service param skips setting port number
-        if ( const int gai_ret { getaddrinfo(
-                    hostname.data(), nullptr, &hints, &results ) };
-            gai_ret != 0 ) {
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
-                          errors::getaddrinfo::message( gai_ret ) );
-            exit( EXIT_FAILURE );
-        }
-        assert( results != nullptr );
-        const addrinfo* result {};
-        for ( addrinfo* addr { results };
-              addr != nullptr; addr = addr->ai_next ) {
-            reinterpret_cast< sockaddr_in* >( addr->ai_addr )->sin_port =
-                htons( _X_TCP_PORT + display );
-            if ( const int fd { socket(
-                        addr->ai_family, addr->ai_socktype, addr->ai_protocol ) };
-                connect( fd, addr->ai_addr, addr->ai_addrlen ) == 0 ) {
-                close( fd );
-                result = addr;
-                break;
+    const addrinfo* viable_result {};
+    for ( addrinfo* result { results };
+          result != nullptr; result = result->ai_next ) {
+        if ( direction == Direction::OUT ) {
+            if ( result->ai_family == AF_INET ) {
+                reinterpret_cast< sockaddr_in* >( result->ai_addr )->sin_port =
+                    htons( _X_TCP_PORT + display );
+            } else {  // result->ai_family == AF_INET6
+                reinterpret_cast< sockaddr_in6* >( result->ai_addr )->sin6_port =
+                    htons( _X_TCP_PORT + display );
             }
         }
-        if ( result == nullptr ) {
-            fmt::println( stderr, "Could not find viable address for hostname {:?} "
-                          "in display name {:?}",
-                          hostname, name );
-            exit( EXIT_FAILURE );
+        if ( const int fd { socket( result->ai_family, result->ai_socktype,
+                                    result->ai_protocol ) };
+            ( direction == Direction::IN &&
+              bind( fd, result->ai_addr, result->ai_addrlen ) == 0 ) ||
+            ( direction == Direction::OUT &&
+              connect( fd, result->ai_addr, result->ai_addrlen ) == 0 ) ) {
+                close( fd );
+                viable_result = result;
+                break;
         }
-        assert( result->ai_addrlen == sizeof( inaddr ) );
-        inaddr = *reinterpret_cast< sockaddr_in* >( result->ai_addr );
-        freeaddrinfo( results );
     }
-    inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
-               _ipv4_addrstr_buf, INET_ADDRSTRLEN );
+    if ( viable_result == nullptr ) {
+        fmt::println( stderr, "Could not find viable address for hostname {:?} "
+                      "in display name {:?}",
+                      hostname, name );
+        exit( EXIT_FAILURE );
+    }
+    ai_family   = results->ai_family;
+    ai_socktype = results->ai_socktype;
+    ai_protocol = results->ai_protocol;
+    ai_addrlen  = results->ai_addrlen;
+    if ( ai_family == AF_INET ) {
+        const sockaddr_in* inaddr_ {
+            reinterpret_cast< sockaddr_in* >( viable_result->ai_addr ) };
+        inaddr = *inaddr_;
+        assert( ai_addrlen == sizeof( inaddr ) );
+        inet_ntop( ai_family, &(inaddr.sin_addr),
+                   _addrstr_buf, INET_ADDRSTRLEN );
+    } else {  // ai_family == AF_INET6
+        const sockaddr_in6* in6addr_ {
+            reinterpret_cast< sockaddr_in6* >( viable_result->ai_addr ) };
+        in6addr = *in6addr_;
+        assert( viable_result->ai_addrlen == sizeof( in6addr ) );
+        inet_ntop( ai_family, &(in6addr.sin6_addr),
+                   _addrstr_buf, INET6_ADDRSTRLEN );
+    }
+    freeaddrinfo( results );
 }

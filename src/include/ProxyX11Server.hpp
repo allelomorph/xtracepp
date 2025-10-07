@@ -111,8 +111,6 @@ private:
 
     ////// Main client queue
 
-    static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
-    static constexpr int _X_TCP_PORT { 6000 };
     static constexpr int _MAX_PENDING_CONNECTIONS { 20 };
 
     static constexpr int _UNINIT_FD { -1 };

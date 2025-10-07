@@ -22,12 +22,14 @@ private:
     static constexpr std::string_view _TCP   { "tcp" };
     static constexpr std::string_view _LOCAL { "local" };
     static constexpr std::string_view _INET  { "inet" };
+    static constexpr std::string_view _INET6 { "inet6" };
 
     // TBD matches UNIX_PATH_MAX from <linux/un.h>
     static constexpr size_t _UNIX_PATH_MAX { 108 };
+    static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
     static constexpr int _X_TCP_PORT { 6000 };
 
-    char _ipv4_addrstr_buf[ INET_ADDRSTRLEN ] {};
+    char _addrstr_buf[ INET6_ADDRSTRLEN ] {};
     bool _unix_pattern {};
 
     // TBD regex matching groups
@@ -49,14 +51,21 @@ public:
     std::string socket_path;
     int display { _UNSET };
     int screen  { _UNSET };
-    int family  { _UNSET };
+    int ai_family   { _UNSET };
+    int ai_socktype { _UNSET };
+    int ai_protocol { _UNSET };
+    socklen_t ai_addrlen {};
     union {
-        sockaddr    addr;  // TBD inclusion in union saves us a cast when calling bind(2) or connect(2)
-        sockaddr_in inaddr;
-        sockaddr_un unaddr {};
+        sockaddr     ai_addr;  // TBD inclusion in union saves us a cast when calling bind(2) or connect(2)
+        sockaddr_in  inaddr;
+        sockaddr_in6 in6addr;
+        sockaddr_un  unaddr {};
+        static_assert( sizeof( unaddr ) > sizeof( ai_addr ) &&
+                       sizeof( unaddr ) > sizeof( inaddr ) &&
+                       sizeof( unaddr ) > sizeof( in6addr ) );
         static_assert( sizeof( unaddr.sun_path ) == _UNIX_PATH_MAX );
     };
-    std::string_view ipv4_addr { _ipv4_addrstr_buf, INET_ADDRSTRLEN };
+    std::string_view addrstr { _addrstr_buf, INET6_ADDRSTRLEN };
 
     enum class Direction {
         IN, OUT };
