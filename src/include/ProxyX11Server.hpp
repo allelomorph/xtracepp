@@ -34,6 +34,10 @@ extern std::atomic<const char*> in_display_sun_path;
 static_assert( decltype( in_display_sun_path )::is_always_lock_free );
 extern std::atomic<const char*> out_display_sun_path;
 static_assert( decltype( out_display_sun_path )::is_always_lock_free );
+extern std::atomic<const char*> xauth_path;
+static_assert( decltype( xauth_path )::is_always_lock_free );
+extern std::atomic<const char*> xauth_bup_path;
+static_assert( decltype( xauth_bup_path )::is_always_lock_free );
 
 void handleTerminatingSignal( int sig );
 
@@ -66,7 +70,8 @@ private:
     static constexpr std::string_view _AUTH_NAME { "MIT-MAGIC-COOKIE-1" };
     static constexpr uint16_t         _AUTH_DATA_SZ { 16 };
     uint8_t _auth_data[ _AUTH_DATA_SZ ];
-
+    std::string _xauth_path;
+    std::string _xauth_bup_path;
     struct _XAuthInfo;
     void _copyAuthentication();
 

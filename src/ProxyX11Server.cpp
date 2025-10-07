@@ -51,6 +51,8 @@ void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
 
 std::atomic<const char*> in_display_sun_path {};
 std::atomic<const char*> out_display_sun_path {};
+std::atomic<const char*> xauth_path {};
+std::atomic<const char*> xauth_bup_path {};
 
 // TBD can't use std::filesystem::remove as is calls remove(3) which is not
 //   listed as signal-safe
@@ -67,6 +69,12 @@ void handleTerminatingSignal( int sig ) {
          outdisp_sun_path != nullptr ) {
         unlink( outdisp_sun_path );
     }
+    // restore original xauth file
+    if ( const char* xauth_path_ { xauth_path.load() },
+         * xauth_bup_path_ { xauth_bup_path.load() };
+         xauth_path_ != nullptr && xauth_bup_path_ != nullptr ) {
+        rename( xauth_bup_path_, xauth_path_ );
+    }
     static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
     _exit( _SIGNAL_RETVAL_OFFSET + sig );
 }
@@ -77,6 +85,8 @@ ProxyX11Server::~ProxyX11Server() {
         std::filesystem::remove( _in_display.unaddr.sun_path );
     if ( _out_display.family == AF_UNIX )
         std::filesystem::remove( _out_display.unaddr.sun_path );
+    if ( !_xauth_path.empty() && !_xauth_bup_path.empty() )
+        std::filesystem::rename( _xauth_bup_path, _xauth_path );
 }
 
 void ProxyX11Server::init( const int argc, char* const* argv ) {
@@ -199,7 +209,6 @@ void ProxyX11Server::_copyAuthentication() {
     static constexpr std::string_view HOME_ENV_VAR { "HOME" };
     static constexpr std::string_view XAUTHORITY_DEFAULT_FILENAME { ".Xauthority" };
 
-    std::string xauth_path {};
     const char* xauthority_value { getenv( XAUTHORITY_ENV_VAR.data() ) };
     if ( xauthority_value == nullptr ) {
         const char* home_value { getenv( HOME_ENV_VAR.data() ) };
@@ -208,11 +217,14 @@ void ProxyX11Server::_copyAuthentication() {
                 stderr, "Could not get HOME environmental variable value to resolve auth path" );
             exit( EXIT_FAILURE );
         }
-        xauth_path =
+        _xauth_path =
             fmt::format( "{}/{}", home_value, XAUTHORITY_DEFAULT_FILENAME );
     } else {
-        xauth_path = std::string( xauthority_value );
+        _xauth_path = std::string( xauthority_value );
     }
+    xauth_path.store( _xauth_path.data() );
+    _xauth_bup_path = fmt::format( "{}.bup", _xauth_path );
+    xauth_bup_path.store( _xauth_bup_path.data() );
 
     ////// read auth entries from file
 
@@ -306,9 +318,9 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// write auth entries back to file
 
-    std::filesystem::copy( xauth_path, xauth_path + ".bup",
+    std::filesystem::copy( _xauth_path, _xauth_bup_path,
                            std::filesystem::copy_options::overwrite_existing );
-    std::ofstream ofs( xauth_path, std::ios::binary );
+    std::ofstream ofs( _xauth_path, std::ios::binary );
     if ( !ofs.good() ) {
         fmt::println(
             stderr, "Could not open auth file for writing, expected paths: ${} or ${}/{}",
