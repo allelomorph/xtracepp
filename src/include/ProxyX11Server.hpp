@@ -22,25 +22,6 @@
 #include "X11ProtocolParser.hpp"
 
 
-// TBD using lock-free std::atomic for signal handler per C++ standard
-extern std::atomic_bool child_running;
-static_assert( decltype( child_running )::is_always_lock_free );
-extern std::atomic_int  child_retval;
-static_assert( decltype( child_retval )::is_always_lock_free );
-
-void handleSIGCHLD( int sig, siginfo_t* info, void* ucontext );
-
-extern std::atomic<const char*> in_display_sun_path;
-static_assert( decltype( in_display_sun_path )::is_always_lock_free );
-extern std::atomic<const char*> out_display_sun_path;
-static_assert( decltype( out_display_sun_path )::is_always_lock_free );
-extern std::atomic<const char*> xauth_path;
-static_assert( decltype( xauth_path )::is_always_lock_free );
-extern std::atomic<const char*> xauth_bup_path;
-static_assert( decltype( xauth_bup_path )::is_always_lock_free );
-
-void handleTerminatingSignal( int sig );
-
 class ProxyX11Server {
 public:
     Settings settings;

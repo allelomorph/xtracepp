@@ -25,10 +25,13 @@
 #include "errors.hpp"
 
 
-std::atomic_bool child_running {};
-std::atomic_int  child_retval  {};
+// TBD using lock-free std::atomics for signal handlers per C++ standard
+static std::atomic_bool child_running {};
+static std::atomic_int  child_retval  {};
+static_assert( decltype( child_running )::is_always_lock_free );
+static_assert( decltype( child_retval )::is_always_lock_free );
 
-void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
+static void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     assert( sig == SIGCHLD );
     assert( info != nullptr );
     assert( child_running.load() == true );
@@ -49,14 +52,18 @@ void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     }
 }
 
-std::atomic<const char*> in_display_sun_path {};
-std::atomic<const char*> out_display_sun_path {};
-std::atomic<const char*> xauth_path {};
-std::atomic<const char*> xauth_bup_path {};
+static std::atomic<const char*> in_display_sun_path {};
+static std::atomic<const char*> out_display_sun_path {};
+static std::atomic<const char*> xauth_path {};
+static std::atomic<const char*> xauth_bup_path {};
+static_assert( decltype( in_display_sun_path )::is_always_lock_free );
+static_assert( decltype( out_display_sun_path )::is_always_lock_free );
+static_assert( decltype( xauth_path )::is_always_lock_free );
+static_assert( decltype( xauth_bup_path )::is_always_lock_free );
 
 // TBD can't use std::filesystem::remove as is calls remove(3) which is not
 //   listed as signal-safe
-void handleTerminatingSignal( int sig ) {
+static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
     // No error checking on unlink as we are are about to make a sudden

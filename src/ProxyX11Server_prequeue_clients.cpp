@@ -213,9 +213,11 @@ close_socket:
     close( server_fd );
 }
 
-void catchProcessEndingSignal( int signum ) {
+static void handleTerminatingSignal( int sig ) {
+    assert( sig == SIGINT || sig == SIGTERM ||
+            sig == SIGABRT || sig == SIGSEGV );
     write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
-    _exit( signum );
+    _exit( sig );
 }
 
 void ProxyX11Server::_fetchInternedAtoms() {
@@ -252,7 +254,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
     fmt::print( stderr, "fetching interned ATOMs: " );
     fmt::print( stderr, "{}?25l", CSI );  // hide cursor
     // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
-    act.sa_handler = &catchProcessEndingSignal;
+    act.sa_handler = &handleTerminatingSignal;
     if ( sigaction( SIGABRT, &act, nullptr ) == -1 ||
          sigaction( SIGINT, &act, nullptr ) == -1  ||
          sigaction( SIGSEGV, &act, nullptr ) == -1 ||
