@@ -271,19 +271,22 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// edit auth entries
 
+    // TBD actual DISPLAY and PROXYDISPLAY hostname(addr)/family for this run
+    //   may differ from that currently recorded in the auth file for DISPLAY,
+    //   but in testing all that really matters is that each display name has an
+    //   entry with a valid cookie (even when it is not unique, as we are here
+    //   duplicating the DISPLAY auth to use for PROXYDISPLAY)
+    // TBD if one were to validate the auth file family values, we would need to
+    //   map AF_* macros to libX11's Family* values
     _XAuthInfo* in_display_auth {};   // PROXYDISPLAY
     _XAuthInfo* out_display_auth {};  // DISPLAY
     for ( _XAuthInfo& auth : xauth_entries ) {
         if ( std::strtol( auth.display, nullptr, 10 ) == _in_display.display ) {
-            // TBD new _in_display.family could come from PROXYDISPLAY or
-            //   --proxydisplay and not match existing Xlib Family value for display
             assert( auth.name == _AUTH_NAME );
             assert( auth.data_len == _AUTH_DATA_SZ );
             in_display_auth = &auth;
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
-            // TBD new _in_display.family could come from DISPLAY or
-            //   --display and not match existing Xlib Family value for display
             if ( auth.name != _AUTH_NAME ) {
                 fmt::println(
                     stderr, "No support for display \"{}\" auth method {} (expected {})",
@@ -301,20 +304,20 @@ void ProxyX11Server::_copyAuthentication() {
                       _out_display.name );
         exit( EXIT_FAILURE );
     }
+    _XAuthInfo dup_auth { *out_display_auth };
+    const std::string display_str { fmt::format( "{}", _in_display.display ) };
+    dup_auth.display_len = display_str.size();
+    dup_auth.display_len_nbo = htons( dup_auth.display_len );
+    memcpy( dup_auth.display, display_str.data(), display_str.size() );
+    dup_auth.display[ dup_auth.display_len ] = '\0';
     if ( in_display_auth != nullptr ) {  // revise existing PROXYDISPLAY entry
-        memcpy( in_display_auth->data, out_display_auth->data, _AUTH_DATA_SZ );
+        *in_display_auth = dup_auth;
     } else {                             // append new PROXYDISPLAY entry
-        _XAuthInfo auth { *out_display_auth };
-        // TBD hostname/addr may also be distinct from DISPLAY when using tcp with no ssh
-        std::string display_str { fmt::format( "{}", _in_display.display ) };
-        auth.display_len = display_str.size();
-        auth.display_len_nbo = htons( auth.display_len );
-        memcpy( auth.display, display_str.data(), display_str.size() );
-        auth.display[auth.display_len] = '\0';
-        xauth_entries.emplace_back( auth );
+        xauth_entries.emplace_back( dup_auth );
     }
-    // TBD for later use in atom prefetching
-    memcpy( this->_auth_data, out_display_auth->data, _AUTH_DATA_SZ );
+    // Collect copy of auth data for use by setup clients run prior to main
+    //   queue (eg atom prefetching)
+    memcpy( _auth_data, out_display_auth->data, _AUTH_DATA_SZ );
 
     ////// write auth entries back to file
 
