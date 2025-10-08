@@ -1,8 +1,7 @@
 #include "ProxyX11Server.hpp"
 
-// TBD `char* const* argv` required by getopt_long in Settings
-int main(const int argc, char* const* argv) {
+int main( const int argc, const char* argv[] ) {
     ProxyX11Server server {};
-    server.init(argc, argv);
+    server.init( argc, argv );
     return server.run();
 }

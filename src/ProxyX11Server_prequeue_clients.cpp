@@ -6,6 +6,7 @@
 #include <unistd.h>  // STDERR_FILENO EXIT_FAILURE
 #include <signal.h>  // sigaction
 #include <stdio.h>   // write
+#include <time.h>    // time
 
 #include <fmt/format.h>
 

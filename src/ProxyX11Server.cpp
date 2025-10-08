@@ -3,6 +3,7 @@
 #include <string_view>
 #include <optional>
 #include <filesystem>    // copy remove
+#include <fstream>
 
 #include <cassert>
 #include <cstdlib>       // getenv setenv
@@ -96,7 +97,7 @@ ProxyX11Server::~ProxyX11Server() {
         std::filesystem::rename( _xauth_bup_path, _xauth_path );
 }
 
-void ProxyX11Server::init( const int argc, char* const* argv ) {
+void ProxyX11Server::init( const int argc, const char* argv[] ) {
     settings.parseFromArgv( argc, argv );
     _parseDisplayNames();
 
@@ -235,7 +236,7 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// read auth entries from file
 
-    std::ifstream ifs( xauth_path, std::ios::binary );
+    std::ifstream ifs( _xauth_path, std::ios::binary );
     if ( !ifs.good() ) {
         fmt::println(
             stderr, "Could not open auth file for reading, expected paths: ${} or ${}/{}",
@@ -389,7 +390,8 @@ void ProxyX11Server::_startSubcommandClient() {
                           errors::system::message( "setenv" ) );
             exit( EXIT_FAILURE );
         }
-        execvp( settings.subcmd_argv[0], settings.subcmd_argv );
+        execvp( settings.subcmd_argv[0],
+                const_cast< char* const* >( settings.subcmd_argv ) );
         // child has failed to overtake parent process
         fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "execvp" ) );

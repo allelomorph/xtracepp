@@ -29,8 +29,7 @@ public:
     ProxyX11Server() {}
     ~ProxyX11Server();
 
-    // TBD `char* const* argv` required by getopt_long in Settings
-    void init( const int argc, char* const* argv );
+    void init( const int argc, const char* argv[] );
     int run();
 
 private:
