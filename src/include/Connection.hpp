@@ -3,14 +3,11 @@
 
 
 #include <string>
-#include <string_view>
-#include <system_error>  // generic_category
+//#include <string_view>
+//#include <system_error>  // generic_category
 #include <unordered_map>
 
 #include <cstdint>
-
-#include <sys/time.h>        // 'struct timeval' gettimeofday
-#include <errno.h>
 
 #include "SocketBuffer.hpp"
 #include "protocol/common_types.hpp"
@@ -18,24 +15,18 @@
 
 class Connection {
 private:
-    static constexpr int _FD_CLOSED  { -1 };
+    static constexpr int _FD_CLOSED { -1 };
     inline static uint32_t  _next_id {};
 
-    // TBD xtrace uses static incrementing sequence number, but in testing we requests can be sent
-    //   and replied to in batches, so while replies/errors are in order by sequence number, the
-    //   number of the next reply may not be the one of the last request
-    // TBD if we store in a map, other than returning an error, how do we know when a sequence number is
-    //   no longer needed, ie will events still reference a seq num after a reply?
     std::unordered_map< uint16_t, uint8_t > _request_opcodes_by_seq_num;
 
 public:
-    const uint32_t id {};          // unique serial number
-    const uint64_t start_time;     // timestamp of connection creation (seconds since Unix Epoch)
-    // TBD from, client_fd, server_fd const and set in ctor?
-    std::string    client_desc;    // (from) allocated string describing client address (x.x.x.x:port) for AF_INET or socket file path/"unknown(local)" for AF_UNIX
-    int            client_fd { _FD_CLOSED };      // socket accept(2)ed from x client
+    const uint32_t id;           // unique serial number
+    const uint64_t start_time;   // timestamp of connection creation (seconds since Unix Epoch)
+    std::string    client_desc;  // client address (x.x.x.x:port) for AF_INET/([x:x::x]:port) for AF_INET6/socket file path/"unknown(local)" for AF_UNIX
+    int            client_fd { _FD_CLOSED };  // socket accept(2)ed from client
     SocketBuffer   client_buffer;
-    int            server_fd { _FD_CLOSED };      // socket connect(2)ed to x server
+    int            server_fd { _FD_CLOSED };  // socket connect(2)ed to server
     SocketBuffer   server_buffer;
 
     uint16_t       sequence {}; // Request sequence number, should match real server
@@ -60,11 +51,6 @@ public:
     Status status { UNESTABLISHED };
 
 //    const bool bigendian;
-
-//    enum client_state { c_start = 0, c_normal, c_amlost } client_state;
-//    enum server_state { s_start=0, s_normal, s_amlost } server_state;
-//    struct expectedreply* expectedreplies;
-//    uint64_t seq;
 //    struct usedextension* usedextensions;
 //    struct unknownextension* waiting;
 //    struct unknownextension* unknownextensions;
