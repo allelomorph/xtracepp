@@ -6,7 +6,7 @@
 #include <string>
 
 
-// TBD Create exception that inherits from std::system_error for getaddrinfo, see:
+// TBD exceptions that inherit from std::system_error, see:
 //   - https://breese.github.io/2017/05/12/customizing-error-codes.html
 
 namespace errors {

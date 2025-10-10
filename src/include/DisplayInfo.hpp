@@ -27,6 +27,9 @@ private:
     // TBD matches UNIX_PATH_MAX from <linux/un.h>
     static constexpr size_t _UNIX_PATH_MAX { 108 };
     static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
+    // "For TCP connections, displays on a given host are numbered starting from 0,
+    //   and the server for display N listens and accepts connections on port
+    //   6000 + N."
     static constexpr int _X_TCP_PORT { 6000 };
 
     char _addrstr_buf[ INET6_ADDRSTRLEN ] {};

@@ -3,8 +3,6 @@
 
 
 #include <string>
-//#include <string_view>
-//#include <system_error>  // generic_category
 #include <unordered_map>
 
 #include <cstdint>
@@ -15,8 +13,8 @@
 
 class Connection {
 private:
-    static constexpr int _FD_CLOSED { -1 };
-    inline static uint32_t  _next_id {};
+    static constexpr int   _FD_CLOSED { -1 };
+    inline static uint32_t _next_id {};
 
     std::unordered_map< uint16_t, uint8_t > _request_opcodes_by_seq_num;
 

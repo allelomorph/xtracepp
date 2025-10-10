@@ -6,11 +6,11 @@
 #include <type_traits>  // is_same_v
 
 #include <cstdint>
+#include <cassert>
 
 #include <unistd.h>     // ssize_t
 
 
-#include <cassert>
 // TBD can this be done more elegantly/idiomatically with std::streambuf
 //   or std::stringbuf? For example:
 //   - https://gist.github.com/amezin/c4bfc0dd11dd200c13b3
