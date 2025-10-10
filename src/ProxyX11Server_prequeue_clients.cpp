@@ -62,11 +62,11 @@ bool ProxyX11Server::_authenticateServerConnection(
     SocketBuffer sbuffer;
     using protocol::connection_setup::ClientInitiation;
     ClientInitiation::Header init_header;
-    init_header.byte_order = ClientInitiation::Header::LSB_FIRST;
+    init_header.byte_order = ClientInitiation::LSBFIRST;
     init_header.protocol_major_version = protocol::MAJOR_VERSION;
     init_header.protocol_minor_version = protocol::MINOR_VERSION;
-    init_header.n = _AUTH_NAME.size();
-    init_header.d = _AUTH_DATA_SZ;
+    init_header.name_len = _AUTH_NAME.size();
+    init_header.data_len = _AUTH_DATA_SZ;
     sbuffer.load( &init_header, sizeof(init_header) );
     // TBD padded sz will copy up to 3 junk bytes
     sbuffer.load( _AUTH_NAME.data(), _parser._pad( _AUTH_NAME.size() ) );
@@ -89,25 +89,27 @@ bool ProxyX11Server::_authenticateServerConnection(
         return false;
     }
     sbuffer.read( server_fd );
+    using protocol::connection_setup::ServerResponse;
     using protocol::connection_setup::ServerAcceptance;
     assert( sbuffer.size() >= sizeof( ServerAcceptance::Header ) );
-    ServerAcceptance::Header acceptance_header;
-    sbuffer.unload( &acceptance_header, sizeof( ServerAcceptance::Header ) );
-    assert( sbuffer.size() >= _parser._pad( acceptance_header.v ) +
-            acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) +
-            sizeof( ServerAcceptance::SCREEN::Header ) );
-    if ( acceptance_header.success != protocol::connection_setup::SUCCESS )
+    ServerAcceptance::Header accept_header;
+    sbuffer.unload( &accept_header, sizeof( ServerAcceptance::Header ) );
+    assert( sbuffer.size() >= _parser._alignedSize( accept_header.following_aligned_units ) );
+    if ( accept_header.success != ServerResponse::SUCCESS )
         return false;
-    if ( acceptance_header.protocol_major_version !=
+    if ( accept_header.protocol_major_version !=
          init_header.protocol_major_version )
         return false;
-    if( acceptance_header.protocol_minor_version !=
-        init_header.protocol_minor_version )
+    if ( accept_header.protocol_minor_version !=
+         init_header.protocol_minor_version )
         return false;
+    ServerAcceptance::FixedLengthEncoding accept_encoding;
+    sbuffer.unload( &accept_encoding, sizeof( ServerAcceptance::FixedLengthEncoding ) );
     // TBD skip over vendor
-    sbuffer.unload( _parser._pad( acceptance_header.v ) );
+    sbuffer.unload( _parser._pad( accept_encoding.vendor_len ) );
     // TBD skip over pixmap-formats
-    sbuffer.unload( acceptance_header.n * sizeof( ServerAcceptance::FORMAT ) );
+    sbuffer.unload( accept_encoding.pixmap_formats_ct *
+                    sizeof( ServerAcceptance::FORMAT ) );
     // TBD get WINDOW for root window of first screen
     ServerAcceptance::SCREEN::Header screen_header;
     sbuffer.unload( &screen_header, sizeof( ServerAcceptance::SCREEN::Header ) );

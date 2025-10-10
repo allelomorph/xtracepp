@@ -13,6 +13,16 @@ namespace protocol {
 
 namespace enum_names {
 
+// ServerRefusal::Header.success 1B
+// ServerRequireFurtherAuthentication::Header.success 1B
+// ServerAcceptance::Header.success 1B
+inline const
+std::vector<std::string_view> server_response_success {
+    "Failed",
+    "Success",
+    "Authenticate"
+};
+
 // TBD how to handle gap between 2 and 5?
 // HOST used in 110 ListHosts
 // HOST.family 1B
@@ -28,15 +38,14 @@ std::vector<std::string_view> host_family {
     "InternetV6"          // 6
 };
 
-// server connection success:
-// image-byte-order 1B
+// ClientInitiation::Header::byte_order 1B
 inline const
 std::vector<std::string_view> image_byte_order {
     "LSBFirst",  // 0
     "MSBFirst"   // 1
 };
 
-// bitmap-format-bit-order 1B
+// ClientInitiation::Header::bitmap_format_bit_order 1B
 inline const
 std::vector<std::string_view> bitmap_format_bit_order {
     "LeastSignificant",  // 0

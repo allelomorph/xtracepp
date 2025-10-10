@@ -13,15 +13,18 @@ size_t X11ProtocolParser::_logServerRefusal(
     assert( data != nullptr );
 
     size_t bytes_parsed {};
+    const _Whitespace& ws { _ROOT_WS };
     using namespace protocol::connection_setup;
     const ServerRefusal::Header* header {
         reinterpret_cast< const ServerRefusal::Header* >( data ) };
     bytes_parsed += sizeof( ServerRefusal::Header );
-    assert( header->reason_aligned_units == _alignedUnits( header->n ) );
-    // STRING8 of n bytes reason
+    assert( header->success == ServerResponse::FAILED );
+    // followed by STRING8 reason
     std::string_view reason {
-        reinterpret_cast< const char* >( data + bytes_parsed ), header->n };
-    bytes_parsed += _pad( header->n );
+        reinterpret_cast< const char* >( data + bytes_parsed ), header->reason_len };
+    bytes_parsed += _pad( header->reason_len );
+    assert( header->following_aligned_units ==
+            _alignedUnits( bytes_parsed - sizeof( header ) ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
@@ -30,45 +33,34 @@ size_t X11ProtocolParser::_logServerRefusal(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: server refused connection: "
         "{{{}"
-        "{}"
-        "{}"
-        "{}"
-        "{}"
-        "{}{: <{}}{}{:?}{}"
+        "{}{}"               // success, reason_len
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"                 // total_aligned_units
+        "{}{: <{}}{}{:?}{}"  // reason
         "{}}}",
         conn->id, bytes_parsed, _SERVER_TO_CLIENT,
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (status: failed){}",
-            _ROOT_WS.memb_indent, "success", name_width, _ROOT_WS.equals,
-            _formatInteger( header->success ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (length of reason in bytes){}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( header->n ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}"
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "protocol-major-version", name_width, _ROOT_WS.equals,
-            _formatInteger( header->protocol_major_version ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "protocol-minor-version", name_width, _ROOT_WS.equals,
-            _formatInteger( header->protocol_minor_version ), _ROOT_WS.separator ) :
-        fmt::format(
-            "{}{: <{}}{}{:d}.{:d}{}",
-            _ROOT_WS.memb_indent, "protocol version", name_width, _ROOT_WS.equals,
-            header->protocol_major_version,
-            header->protocol_minor_version, _ROOT_WS.separator ),
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
-            _ROOT_WS.memb_indent, "reason aligned units", name_width, _ROOT_WS.equals,
-            _formatInteger( header->reason_aligned_units ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "reason", name_width, _ROOT_WS.equals,
-        reason, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "success", name_width, ws.equals,
+            _formatInteger( header->success, ServerRefusal::success_names ),
+            ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(reason length in bytes)", name_width, ws.equals,
+            _formatInteger( header->reason_len ), ws.separator ),
+        ws.memb_indent, "protocol-major-version", name_width, ws.equals,
+        _formatInteger( header->protocol_major_version ), ws.separator,
+        ws.memb_indent, "protocol-minor-version", name_width, ws.equals,
+        _formatInteger( header->protocol_minor_version ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(message length after header in 4B units)",
+            name_width, ws.equals,
+            _formatInteger( header->following_aligned_units ), ws.separator ),
+        ws.memb_indent, "reason", name_width, ws.equals,
+        reason, ws.separator,
+        ws.encl_indent
         );
     return bytes_parsed;
 }
@@ -79,17 +71,22 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
     assert( data != nullptr );
 
     size_t bytes_parsed {};
+    const _Whitespace& ws { _ROOT_WS };
     using namespace protocol::connection_setup;
     const ServerRequireFurtherAuthentication::Header* header {
         reinterpret_cast<
         const ServerRequireFurtherAuthentication::Header* >( data ) };
     bytes_parsed += sizeof( ServerRequireFurtherAuthentication::Header );
-    const size_t reason_padded_sz { header->reason_aligned_units * _ALIGN };
-    // STRING8 of n bytes reason
+    assert( header->success == ServerResponse::AUTHENTICATE );
+    // followed by STRING8 reason
+    const size_t reason_padded_len {
+        header->following_aligned_units * _ALIGN };
     std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
-        reason_padded_sz };
-    bytes_parsed += reason_padded_sz;
+        reason_padded_len };
+    bytes_parsed += reason_padded_len;
+    assert( header->following_aligned_units ==
+            _alignedUnits( bytes_parsed - sizeof( header ) ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "success" ) - 1 : 0 );
@@ -98,25 +95,24 @@ size_t X11ProtocolParser::_logServerRequireFurtherAuthentication(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: server requested further authentication: "
         "{{{}"
-        "{}"
-        "{}"
-        "{}{: <{}}{}{:?}{}"
+        "{}{}"               // success, total_aligned_units
+        "{}{: <{}}{}{:?}{}"  // reason
         "{}}}",
         conn->id, bytes_parsed, _SERVER_TO_CLIENT,
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (status: authentication){}",
-            _ROOT_WS.memb_indent, "success", name_width, _ROOT_WS.equals,
-            _formatInteger( header->success ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (padded length of reason in 4 byte units){}",
-            _ROOT_WS.memb_indent, "reason aligned units", name_width, _ROOT_WS.equals,
-            _formatInteger( header->reason_aligned_units ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "reason", name_width, _ROOT_WS.equals,
-        reason, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "success", name_width, ws.equals,
+            _formatInteger( header->success, ServerRequireFurtherAuthentication::success_names ),
+            ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(message length after header in 4B units)",
+            name_width, ws.equals,
+            _formatInteger( header->following_aligned_units ), ws.separator ),
+        ws.memb_indent, "reason", name_width, ws.equals,
+        reason, ws.separator,
+        ws.encl_indent
         );
     return bytes_parsed;
 }
@@ -127,117 +123,115 @@ size_t X11ProtocolParser::_logServerAcceptance(
     assert( data != nullptr );
 
     size_t bytes_parsed {};
+    const _Whitespace& ws { _ROOT_WS };
     using namespace protocol::connection_setup;
     const ServerAcceptance::Header* header {
         reinterpret_cast< const ServerAcceptance::Header* >( data ) };
     bytes_parsed += sizeof( ServerAcceptance::Header );
-    // followed by STRING8 vendor of v bytes, plus p bytes to round up to multiple of 4
+    // followed by FixedLengthEncoding
+    const ServerAcceptance::FixedLengthEncoding* encoding {
+        reinterpret_cast< const ServerAcceptance::FixedLengthEncoding* >(
+            data + bytes_parsed ) };
+    bytes_parsed += sizeof( ServerAcceptance::FixedLengthEncoding );
+    // followed by STRING8 vendor
     std::string_view vendor {
-        reinterpret_cast< const char* >( data + bytes_parsed ), header->v };
-    bytes_parsed += _pad( header->v );
-
-    const uint32_t tab_ct { 0 };
-    // followed by LISTofFORMAT pixmap-formats of n * sizeof(FORMAT) bytes
+        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->vendor_len };
+    bytes_parsed += _pad( encoding->vendor_len );
+    // followed by LISTofFORMAT pixmap-formats
     _ParsingOutputs pixmap_formats_outputs {
         _parseLISTof< ServerAcceptance::FORMAT >(
-            data + bytes_parsed, sz - bytes_parsed, header->n,
-            _ROOT_WS.nested() ) };
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->pixmap_formats_ct, ws.nested() ) };
     bytes_parsed += pixmap_formats_outputs.bytes_parsed;
-
-    // followed by LISTofSCREEN roots of m bytes (m is always a multiple of 4)
+    // followed by LISTofSCREEN roots
     _ParsingOutputs roots_outputs {
-        _parseLISTof < ServerAcceptance::SCREEN >(
-            data + bytes_parsed, sz - bytes_parsed, header->r,
-            _ROOT_WS.nested() ) };
+        _parseLISTof< ServerAcceptance::SCREEN >(
+            data + bytes_parsed, sz - bytes_parsed,
+            encoding->roots_ct, ws.nested() ) };
     bytes_parsed += roots_outputs.bytes_parsed;
+    assert( header->following_aligned_units ==
+            _alignedUnits( bytes_parsed - sizeof( ServerAcceptance::Header ) ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
-
     fmt::println(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: server accepted connection: "
         "{{{}"
-        "{}{}{}"
+        "{}"                 // success
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"                 // total_aligned_units
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}"
+        "{}"                 // vendor_len
         "{}{: <{}}{}{}{}"
-        "{}{}"
+        "{}{}"               // roots_ct, pixmap_formats_ct
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{:?}{}"  // vendor
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         conn->id, bytes_parsed, _SERVER_TO_CLIENT,
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (status: accepted){}",
-            _ROOT_WS.memb_indent, "success", name_width, _ROOT_WS.equals,
-            _formatInteger( header->success ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}"
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "protocol-major-version", name_width, _ROOT_WS.equals,
-            _formatInteger( header->protocol_major_version ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "protocol-minor-version", name_width, _ROOT_WS.equals,
-            _formatInteger( header->protocol_minor_version ), _ROOT_WS.separator ) :
-        fmt::format(
-            "{}{: <{}}{}{:d}.{:d}{}",
-            _ROOT_WS.memb_indent, "protocol version", name_width, _ROOT_WS.equals,
-            header->protocol_major_version,
-            header->protocol_minor_version, _ROOT_WS.separator ),
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (length of (padded) vendor + pixmap-formats + roots, in 4-byte units){}",
-            _ROOT_WS.memb_indent, "ad", name_width, _ROOT_WS.equals,
-            _formatInteger( header->ad ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "release-number", name_width, _ROOT_WS.equals,
-        _formatInteger( header->release_number ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "resource-id-base", name_width, _ROOT_WS.equals,
-        _formatInteger( header->resource_id_base ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "resource-id-mask", name_width, _ROOT_WS.equals,
-        _formatInteger( header->resource_id_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "motion-buffer-size", name_width, _ROOT_WS.equals,
-        _formatInteger( header->motion_buffer_size ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (length of vendor in bytes){}",
-            _ROOT_WS.memb_indent, "v", name_width, _ROOT_WS.equals,
-            _formatInteger( header->v ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "maximum-request-length", name_width, _ROOT_WS.equals,
-        _formatInteger( header->maximum_request_length ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (number of SCREENs in roots){}",
-                     _ROOT_WS.memb_indent, "r", name_width, _ROOT_WS.equals,
-            _formatInteger( header->r ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{} (number of FORMATs in pixmap-formats){}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( header->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "image-byte-order", name_width, _ROOT_WS.equals,
-        _formatInteger( header->image_byte_order,
-                        ServerAcceptance::byte_order_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bitmap-format-bit-order", name_width, _ROOT_WS.equals,
-        _formatInteger( header->bitmap_format_bit_order,
-                        ServerAcceptance::bit_order_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bitmap-format-scanline-unit", name_width, _ROOT_WS.equals,
-        _formatInteger( header->bitmap_format_scanline_unit ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bitmap-format-scanline-pad", name_width, _ROOT_WS.equals,
-        _formatInteger( header->bitmap_format_scanline_pad ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "min-keycode", name_width, _ROOT_WS.equals,
-        _formatProtocolType( header->min_keycode ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "max-keycode", name_width, _ROOT_WS.equals,
-        _formatProtocolType( header->max_keycode ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "vendor", name_width, _ROOT_WS.equals,
-        vendor, _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pixmap-formats", name_width, _ROOT_WS.equals,
-        pixmap_formats_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "roots", name_width, _ROOT_WS.equals,
-        roots_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "success", name_width, ws.equals,
+            _formatInteger( header->success, ServerAcceptance::success_names ),
+            ws.separator ),
+        ws.memb_indent, "protocol-major-version", name_width, ws.equals,
+        _formatInteger( header->protocol_major_version ), ws.separator,
+        ws.memb_indent, "protocol-minor-version", name_width, ws.equals,
+        _formatInteger( header->protocol_minor_version ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(message length after header in 4B units)",
+            name_width, ws.equals,
+            _formatInteger( header->following_aligned_units ), ws.separator ),
+        ws.memb_indent, "release-number", name_width, ws.equals,
+        _formatInteger( encoding->release_number ), ws.separator,
+        ws.memb_indent, "resource-id-base", name_width, ws.equals,
+        _formatInteger( encoding->resource_id_base ), ws.separator,
+        ws.memb_indent, "resource-id-mask", name_width, ws.equals,
+        _formatInteger( encoding->resource_id_mask ), ws.separator,
+        ws.memb_indent, "motion-buffer-size", name_width, ws.equals,
+        _formatInteger( encoding->motion_buffer_size ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(vendor length in bytes)",
+            name_width, ws.equals,
+            _formatInteger( encoding->vendor_len ), ws.separator ),
+        ws.memb_indent, "maximum-request-length", name_width, ws.equals,
+        _formatInteger( encoding->maximum_request_length ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(roots length in SCREENs)",
+            name_width, ws.equals,
+            _formatInteger( encoding->roots_ct ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(pixmap-formats length in FORMATs)",
+            name_width, ws.equals,
+            _formatInteger( encoding->pixmap_formats_ct ), ws.separator ),
+        ws.memb_indent, "image-byte-order", name_width, ws.equals,
+        _formatInteger( encoding->image_byte_order,
+                        ServerAcceptance::byte_order_names ), ws.separator,
+        ws.memb_indent, "bitmap-format-bit-order", name_width, ws.equals,
+        _formatInteger( encoding->bitmap_format_bit_order,
+                        ServerAcceptance::bit_order_names ), ws.separator,
+        ws.memb_indent, "bitmap-format-scanline-unit", name_width, ws.equals,
+        _formatInteger( encoding->bitmap_format_scanline_unit ), ws.separator,
+        ws.memb_indent, "bitmap-format-scanline-pad", name_width, ws.equals,
+        _formatInteger( encoding->bitmap_format_scanline_pad ), ws.separator,
+        ws.memb_indent, "min-keycode", name_width, ws.equals,
+        _formatProtocolType( encoding->min_keycode ), ws.separator,
+        ws.memb_indent, "max-keycode", name_width, ws.equals,
+        _formatProtocolType( encoding->max_keycode ), ws.separator,
+        ws.memb_indent, "vendor", name_width, ws.equals,
+        vendor, ws.separator,
+        ws.memb_indent, "pixmap-formats", name_width, ws.equals,
+        pixmap_formats_outputs.str, ws.separator,
+        ws.memb_indent, "roots", name_width, ws.equals,
+        roots_outputs.str, ws.separator,
+        ws.encl_indent
         );
     return bytes_parsed;
 }
@@ -250,16 +244,17 @@ size_t X11ProtocolParser::_logServerResponse(
 
     const uint8_t success { *data };
     size_t bytes_parsed {};
+    using protocol::connection_setup::ServerResponse;
     switch ( success ) {
-    case protocol::connection_setup::FAILED:
+    case ServerResponse::FAILED:
         bytes_parsed = _logServerRefusal( conn, data, sz );
         conn->status = Connection::FAILED;
         break;
-    case protocol::connection_setup::AUTHENTICATE:
+    case ServerResponse::AUTHENTICATE:
         bytes_parsed = _logServerRequireFurtherAuthentication( conn, data, sz );
         conn->status = Connection::AUTHENTICATION;
         break;
-    case protocol::connection_setup::SUCCESS:
+    case ServerResponse::SUCCESS:
         bytes_parsed = _logServerAcceptance( conn, data, sz );
         conn->status = Connection::OPEN;
         break;

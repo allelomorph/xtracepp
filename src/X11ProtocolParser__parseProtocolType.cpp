@@ -96,20 +96,22 @@ X11ProtocolParser::_parseProtocolType<
     assert( sz >= sizeof( SCREEN::Header ));
     const SCREEN::Header* header { reinterpret_cast< const SCREEN::Header* >( data ) };
     outputs.bytes_parsed += sizeof( SCREEN::Header );
-
-    // followed by LISTofDEPTH allowed-depths of n bytes (n is always a multiple of 4)
+    // followed by LISTofDEPTH allowed-depths
     const _ParsingOutputs allowed_depths {
         _parseLISTof< SCREEN::DEPTH >(
-            data + outputs.bytes_parsed, sz - outputs.bytes_parsed, header->d,
-            ws.nested() ) };
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+            header->allowed_depths_ct, ws.nested() ) };
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
+    assert( outputs.bytes_parsed <= sz );
 
     outputs.str += fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"  // allowed_depths_ct
+        "{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
         ws.memb_indent, "root", name_width, ws.equals,
@@ -143,6 +145,11 @@ X11ProtocolParser::_parseProtocolType<
         _formatProtocolType( header->save_unders ), ws.separator,
         ws.memb_indent, "root-depth", name_width, ws.equals,
         _formatInteger( header->root_depth ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(allowed-depths length in DEPTHs)",
+            name_width, ws.equals,
+            _formatInteger( header->allowed_depths_ct ), ws.separator ),
         ws.memb_indent, "allowed-depths", name_width, ws.equals,
         allowed_depths.str, ws.separator,
         ws.encl_indent
@@ -166,20 +173,20 @@ X11ProtocolParser::_parseProtocolType<
     const DEPTH::Header* header {
         reinterpret_cast< const DEPTH::Header* >( data ) };
     outputs.bytes_parsed += sizeof( DEPTH::Header );
-
-    // followed by LISTofVISUALTYPE visuals of n * sizeof(VISUALTYPE) bytes
+    // followed by LISTofVISUALTYPE visuals
     const _ParsingOutputs visuals {
         _parseLISTof< DEPTH::VISUALTYPE >(
-            data + outputs.bytes_parsed, sz - outputs.bytes_parsed, header->n,
-            ws.nested() ) };
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+            header->visuals_ct, ws.nested() ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
+    assert( outputs.bytes_parsed <= sz );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
     outputs.str += fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}"
-        "{}"
+        "{}"  // visuals_ct
         "{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
@@ -188,8 +195,8 @@ X11ProtocolParser::_parseProtocolType<
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "n", name_width, ws.equals,
-            _formatInteger( header->n ), ws.separator ),
+            ws.memb_indent, "(length of visuals in VISUALs)", name_width, ws.equals,
+            _formatInteger( header->visuals_ct ), ws.separator ),
         ws.memb_indent, "visuals", name_width, ws.equals,
         visuals.str, ws.separator,
         ws.encl_indent
