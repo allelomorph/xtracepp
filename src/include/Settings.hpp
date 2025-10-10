@@ -29,7 +29,7 @@ private:
         { "unbuffered",           no_argument,       NULL,              'u' },
         { "multiline",            no_argument,       NULL,              'm' },
         { "verbose",              no_argument,       NULL,              'v' },
-        { "relative-timestamps",  no_argument,       NULL,              'r' },
+        { "relativetimestamps",   no_argument,       NULL,              'r' },
         { "prefetchatoms",        no_argument,       NULL,              'p' },
         { "help",                 no_argument,       &_long_only_option, LO_HELP },
 //        { "version",              no_argument,       &_long_only_option, LO_VERSION },

@@ -38,8 +38,8 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
     --display,            -d <display name>  : provide libX11 formatted display name of real X server
     --proxydisplay,       -D <display name>  : provide libX11 formatted display name of this proxy server
     --keeprunning,        -k                 : continue monitoring traffic after subcommand client exits
-    --denyextensions,     -e		     : disable use of all X extensions
-    --readwritedebug ,    -w		     : print amounts of data read/sent
+    --denyextensions,     -e                 : disable use of all X extensions
+    --readwritedebug,     -w                 : print amounts of data read/sent
     --outfile,            -o <file path>     : output to file instead of stdout
     --unbuffered,         -u                 : deactivate stream buffering for output
     --multiline,          -m                 : break log lines along nested groupings of data
