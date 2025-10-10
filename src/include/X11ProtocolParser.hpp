@@ -133,14 +133,14 @@ private:
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
     static constexpr size_t _ALIGN { 4 };
-    inline size_t _padToAlignment( const size_t n, const size_t align ) {
-        return n + ( ( align - ( n % align ) ) % align );
-    };
     inline size_t _pad( const size_t n ) {
-        return _padToAlignment( n, _ALIGN );
+        return n + ( ( _ALIGN - ( n % _ALIGN ) ) % _ALIGN );
     }
     inline size_t _alignedUnits( const size_t sz ) {
         return sz / _ALIGN;
+    }
+    inline size_t _alignedSize( const size_t units ) {
+        return units * _ALIGN;
     }
 
     template < typename ScalarT,
