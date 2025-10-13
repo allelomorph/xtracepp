@@ -292,18 +292,19 @@ void ProxyX11Server::_fetchInternedAtoms() {
         }
         sbuffer.read( server_fd );
         assert( sbuffer.size() >= sizeof( rep_encoding ) );
-        if ( *sbuffer.data() == protocol::errors::PREFIX ) {
-            protocol::errors::Encoding err_encoding;
-            assert( sbuffer.size() == sizeof( err_encoding ) );
+        if ( reinterpret_cast< protocol::Response::Header* >(
+                 sbuffer.data() )->prefix == protocol::errors::Error::ERROR ) {
+            assert( sbuffer.size() == protocol::errors::Error::ENCODING_SZ );
+            protocol::errors::Error::Encoding err_encoding;
             sbuffer.unload( &err_encoding, sizeof( err_encoding ) );
             // expect Atom error at end of first contiguous region of server's ATOMs
-            if ( err_encoding.code == protocol::errors::codes::ATOM ) {
+            if ( err_encoding.header.code == protocol::errors::codes::ATOM ) {
                 // need newline after cursor looping horizontally
                 fmt::println( stderr, "" );
             } else {
                 fmt::println( stderr, "failed atom prefech with X error {}, "
                               "reverting to default atom lookup",
-                              protocol::errors::names[err_encoding.code] );
+                              protocol::errors::names[ err_encoding.header.code ] );
                 fetched_atoms.clear();
             }
             break;
