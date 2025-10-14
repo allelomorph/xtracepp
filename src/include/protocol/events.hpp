@@ -5,25 +5,38 @@
 #include <cstdint>
 #include <array>
 
+#include "protocol/Response.hpp"
 #include "protocol/common_types.hpp"
 
 // https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#event_format
 // https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Events
 // https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Events
 
-// server: single byte begins all messages: errors preceeded by 0, replies by 1, events by 2+
-// TBD seems like errors and events are all 32 bytes, and since deciding code is
-//   always first byte (derefable without cast,) we could better represent the standard by
-//   including the codes in the structs
-// !!! some replies exceed 32 bytes, as defined by request in protocol
-
 namespace protocol {
 
 namespace events {
 
-namespace codes {
+struct Event : public Response {
+    struct [[gnu::packed]] Header {
+        uint8_t code;
+    private:
+        uint8_t _unused;
+    public:
+        CARD16  sequence_num;
+    };
+    struct [[gnu::packed]] Encoding {
+        Header  header;
+    private:
+        uint8_t _unused[28];
+    };
 
-//TBD need to reconcile differences between code number enum and SETof(POINTER|DEVICE)EVENT flag offsets
+    static constexpr uint32_t ENCODING_SZ { 32 };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
+
+    virtual ~Event() = 0;
+};
+
+namespace codes {
 
 enum Codes {
     KEYPRESS            =  2,
@@ -108,132 +121,146 @@ std::array< std::string_view, codes::MAX + 1 > names {
     "MappingNotify",     // 34
 };
 
-struct [[gnu::packed]] Header {
-    uint8_t  code;
-private:
-    // TBD to access this byte as KEYCODE/BUTTON/uint8_t `detail`, use the
-    //   correct Event class below, not this generic header
-    uint8_t _unused;
-public:
-    uint16_t sequence_number;
-};
+namespace impl {
 
-// TBD use shared type for KeyPress KeyRelease ButtonPress ButtonRelease, as all fields are same
-struct KeyPress {
-    struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 2
+struct InputEvent : public Event {
+    struct [[gnu::packed]] Header {
+        uint8_t         code;
         KEYCODE         detail;
-        CARD16          sequence_number;  // sequence number
+        CARD16          sequence_num;  // sequence number
+    };
+    struct [[gnu::packed]] Encoding {
+        Header          header;
         TIMESTAMP       time;
         WINDOW          root;
         WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
+        WINDOW          child;         // 0 None
+        INT16           root_x;        // root-x
+        INT16           root_y;        // root-y
+        INT16           event_x;       // event-x
+        INT16           event_y;       // event-y
         SETofKEYBUTMASK state;
         BOOL            same_screen;
     private:
         uint8_t         _unused;
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& child_names {
         protocol::enum_names::zero_none };
+
+    virtual ~InputEvent() = 0;
 };
 
-struct KeyRelease {
+struct BoundaryEvent : public Event {
+    struct [[gnu::packed]] Header {
+        uint8_t         code;
+        uint8_t         detail;        // 0 Ancestor 1 Virtual 2 Inferior 3 Nonlinear 4 NonlinearVirtual
+        CARD16          sequence_num;  // sequence number
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 3
-        KEYCODE         detail;
-        CARD16          sequence_number;  // sequence number
+        Header          header;
         TIMESTAMP       time;
         WINDOW          root;
         WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
+        WINDOW          child;         // 0 None
+        INT16           root_x;        // root-x
+        INT16           root_y;        // root-y
+        INT16           event_x;       // event-x
+        INT16           event_y;       // event-y
         SETofKEYBUTMASK state;
-        BOOL            same_screen; // same-screen
-    private:
-        uint8_t         _unused;
+        uint8_t         mode;          // 0 Normal 1 Grab 2 Ungrab
+        uint8_t         focus_same_screen_mask;
+        //   0x01: focus        // 0 False 1 True
+        //   0x02: same-screen  // 0 False 1 True
+        //   0xFC: unused
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
+    inline static const
+    std::vector< std::string_view >& detail_names {
+        protocol::enum_names::focus_detail };
+    static constexpr uint8_t MAX_DETAIL { 4 };
     inline static const
     std::vector< std::string_view >& child_names {
         protocol::enum_names::zero_none };
+    inline static const
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::focus_mode };
+    static constexpr uint8_t MAX_MODE { 2 };
+    inline static const
+    std::vector< std::string_view >& focus_same_screen_names {
+        protocol::enum_names::focus_same_screen_mask };
+
+    virtual ~BoundaryEvent() = 0;
 };
 
-struct ButtonPress {
-    struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 4
-        KEYCODE         detail;
-        CARD16          sequence_number;  // sequence number
-        TIMESTAMP       time;
-        WINDOW          root;
-        WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
-        SETofKEYBUTMASK state;
-        BOOL            same_screen; // same-screen
-    private:
-        uint8_t         _unused;
+struct FocusEvent : public Event {
+    struct [[gnu::packed]] Header {
+        uint8_t code;
+        uint8_t detail;        // 0 Ancestor 1 Virtual 2 Inferior 3 Nonlinear 4 NonlinearVirtual 5 Pointer 6 PointerRoot 7 None
+        CARD16  sequence_num;  // sequence number
     };
+    struct [[gnu::packed]] Encoding {
+        Header  header;
+        WINDOW  event;
+        uint8_t mode;  // 0 Normal 1 Grab 2 Ungrab 3 WhileGrabbed
+    private:
+        uint8_t _unused[23];
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
-    std::vector< std::string_view >& child_names {
-        protocol::enum_names::zero_none };
-};
-
-struct ButtonRelease {
-    struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 5
-        KEYCODE         detail;
-        CARD16          sequence_number;  // sequence number
-        TIMESTAMP       time;
-        WINDOW          root;
-        WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
-        SETofKEYBUTMASK state;
-        BOOL            same_screen; // same-screen
-    private:
-        uint8_t         _unused;
-    };
-
+    std::vector< std::string_view >& detail_names {
+        protocol::enum_names::focus_detail };
     inline static const
-    std::vector< std::string_view >& child_names {
-        protocol::enum_names::zero_none };
+    std::vector< std::string_view >& mode_names {
+        protocol::enum_names::focus_mode };
+
+    virtual ~FocusEvent() = 0;
 };
 
-// TBD same as events 2-5 but different use of first byte `detail`
-struct MotionNotify {
+}  // namespace impl
+
+struct KeyPress : public impl::InputEvent {
+    // Header.code 2
+};
+
+struct KeyRelease : public impl::InputEvent {
+    // Header.code 3
+};
+
+struct ButtonPress : public impl::InputEvent {
+    // Header.code 4
+};
+
+struct ButtonRelease : public impl::InputEvent {
+    // Header.code 5
+};
+
+struct MotionNotify : public Event {
+    struct [[gnu::packed]] Header {
+        uint8_t code;          // 6
+        uint8_t detail;        // 0 Normal 1 Hint
+        CARD16  sequence_num;  // sequence number
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 6
-        uint8_t         detail;  // 0 Normal 1 Hint
-        CARD16          sequence_number;  // sequence number
+        Header          header;
         TIMESTAMP       time;
         WINDOW          root;
         WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
+        WINDOW          child;         // 0 None
+        INT16           root_x;        // root-x
+        INT16           root_y;        // root-y
+        INT16           event_x;       // event-x
+        INT16           event_y;       // event-y
         SETofKEYBUTMASK state;
-        BOOL            same_screen; // same-screen
+        BOOL            same_screen;
     private:
         uint8_t         _unused;
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& detail_names {
@@ -242,346 +269,227 @@ struct MotionNotify {
     std::vector< std::string_view >& child_names {
         protocol::enum_names::zero_none };
 };
-// TBD EnterNotify and LeaveNotify share same encoding
-struct EnterNotify {
-    struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 7
-        uint8_t         detail;  // 0 Ancestor 1 Virtual 2 Inferior 3 Nonlinear 4 NonlinearVirtual
-        CARD16          sequence_number;  // sequence number
-        TIMESTAMP       time;
-        WINDOW          root;
-        WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
-        SETofKEYBUTMASK state;
-        uint8_t         mode;  // 0 Normal 1 Grab 2 Ungrab
-        uint8_t         focus_same_screen; // same-screen, focus
-        // #x01     focus (1 is True, 0 is False)
-        // #x02     same-screen (1 is True, 0 is False)
-        // #xFC     unused
-    };
 
-    inline static const
-    std::vector< std::string_view >& detail_names {
-        protocol::enum_names::focus_detail };  // TBD up to 4
-    inline static const
-    std::vector< std::string_view >& child_names {
-        protocol::enum_names::zero_none };
-    inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::focus_mode };  // TBD up to 2
-    inline static const
-    std::vector< std::string_view >& focus_same_screen_names {
-        protocol::enum_names::focus_same_screen_mask };
+struct EnterNotify : public impl::BoundaryEvent {
+    // Header.code 7
 };
 
-struct LeaveNotify {
-    struct [[gnu::packed]] Encoding {
-        uint8_t         code;  // 8
-        uint8_t         detail;  // 0 Ancestor 1 Virtual 2 Inferior 3 Nonlinear 4 NonlinearVirtual
-        CARD16          sequence_number;  // sequence number
-        TIMESTAMP       time;
-        WINDOW          root;
-        WINDOW          event;
-        WINDOW          child;  // 0 None
-        INT16           root_x;  // root-x
-        INT16           root_y;  // root-y
-        INT16           event_x;  // event-x
-        INT16           event_y;  // event-y
-        SETofKEYBUTMASK state;
-        uint8_t         mode;  // 0 Normal 1 Grab 2 Ungrab
-        // TBD make this a union? not clear on how it is used
-        uint8_t         focus_same_screen; // same-screen, focus
-        // #x01     focus (1 is True, 0 is False)
-        // #x02     same-screen (1 is True, 0 is False)
-        // #xFC     unused
-    };
-
-    inline static const
-    std::vector< std::string_view >& detail_names {
-        protocol::enum_names::focus_detail };  // TBD up to 4
-    inline static const
-    std::vector< std::string_view >& child_names {
-        protocol::enum_names::zero_none };
-    inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::focus_mode };  // TBD up to 2
-    inline static const
-    std::vector< std::string_view >& focus_same_screen_names {
-        protocol::enum_names::focus_same_screen_mask };
+struct LeaveNotify : public impl::BoundaryEvent {
+    // Header.code 8
 };
 
-// TBD FocusIn/Out share encoding
-struct FocusIn {
-    struct [[gnu::packed]] Encoding {
-        uint8_t     code;  // 9
-        uint8_t     detail;  // 0 Ancestor 1 Virtual 2 Inferior 3 Nonlinear 4 NonlinearVirtual 5 Pointer 6 PointerRoot 7 None
-        CARD16      sequence_number;  // sequence number
-        WINDOW      event;
-        uint8_t     mode;  // 0 Normal 1 Grab 2 Ungrab 3 WhileGrabbed
-    private:
-        uint8_t     _unused[23];
-    };
-
-    inline static const
-    std::vector< std::string_view >& detail_names {
-        protocol::enum_names::focus_detail };
-    inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::focus_mode };
+struct FocusIn : public impl::FocusEvent {
+    // Header.code 9
 };
 
-struct FocusOut {
-    struct [[gnu::packed]] Encoding {
-        uint8_t     code;  // 10
-        uint8_t     detail;  // 0 Ancestor 1 Virtual 2 Inferior 3 Nonlinear 4 NonlinearVirtual 5 Pointer 6 PointerRoot 7 None
-        CARD16      sequence_number;  // sequence number
-        WINDOW      event;
-        uint8_t     mode;  // 0 Normal 1 Grab 2 Ungrab 3 WhileGrabbed
-    private:
-        uint8_t     _unused[23];
-    };
-
-    inline static const
-    std::vector< std::string_view >& detail_names {
-        protocol::enum_names::focus_detail };
-    inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::focus_mode };
+struct FocusOut : public impl::FocusEvent {
+    // Header.code 10
 };
 
-struct KeymapNotify {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 11
-        CARD8      keys[31];  // LISTofCARD8 (byte for keycodes 0-7 is omitted)
+struct KeymapNotify : public Event {
+    // TBD note lack of sequence number, needs exceptional parsing
+    //   - maybe we could glean sequence from last event? "This event is
+    //   reported to clients selecting KeymapState on a window and is generated
+    //   immediately after every EnterNotify and FocusIn."
+    struct [[gnu::packed]] Header {
+        uint8_t code;     // 11
     };
+    struct [[gnu::packed]] Encoding {
+        Header header;
+        CARD8  keys[31];  // LISTofCARD8 (byte for keycodes 0-7 is omitted)
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-// TBD notice that x and y are unsigned
-struct Expose {
+struct Expose : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 12
+        Header  header;   // header.code 12
+        WINDOW  window;
+        CARD16  x;
+        CARD16  y;
+        CARD16  width;
+        CARD16  height;
+        CARD16  count;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     window;
-        CARD16     x;
-        CARD16     y;
-        CARD16     width;
-        CARD16     height;
-        CARD16     count;
-    private:
-        uint8_t    _unused2[14];
+        uint8_t _unused[14];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-// TBD notice that x and y are unsigned
-struct GraphicsExposure {
+struct GraphicsExposure : public Event {
+    // TBD major/minor opcode fields allow skipping lookup by conn id/seq
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 13
+        Header   header;        // header.code 13
+        DRAWABLE drawable;
+        CARD16   x;
+        CARD16   y;
+        CARD16   width;
+        CARD16   height;
+        CARD16   minor_opcode;  // minor-opcode
+        CARD16   count;
+        CARD8    major_opcode;  // major-opcode  // CopyArea, CopyPlane, or extension
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        DRAWABLE   drawable;
-        CARD16     x;
-        CARD16     y;
-        CARD16     width;
-        CARD16     height;
-        CARD16     minor_opcode;  // minor-opcode
-        CARD16     count;
-        CARD8      major_opcode;  // major-opcode
-    private:
-        uint8_t    _unused2[11];
+        uint8_t  _unused[11];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct NoExposure {
+struct NoExposure : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 14
+        Header   header;        // header.code 14
+        DRAWABLE drawable;
+        CARD16   minor_opcode;  // minor-opcode
+        CARD8    major_opcode;  // major-opcode  // CopyArea, CopyPlane, or extension
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        DRAWABLE   drawable;
-        CARD16     minor_opcode;  // minor-opcode
-        CARD8      major_opcode;  // major-opcode
-    private:
-        uint8_t    _unused2[21];
+        uint8_t  _unused[21];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct VisibilityNotify {
+struct VisibilityNotify : public Event {
+    // Header.code 15
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 15
+        Header  header;
+        WINDOW  window;
+        uint8_t state;  // 0 Unobscured 1 PartiallyObscured 2 FullyObscured
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     window;
-        uint8_t    state;  // 0 Unobscured 1 PartiallyObscured 2 FullyObscured
-    private:
-        uint8_t    _unused2[23];
+        uint8_t _unused[23];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& state_names {
         protocol::enum_names::visibility_state };
 };
 
-struct CreateNotify {
+struct CreateNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 16
+        Header  header;             // header.code 16
+        WINDOW  parent;
+        WINDOW  window;
+        INT16   x;
+        INT16   y;
+        CARD16  width;
+        CARD16  height;
+        CARD16  border_width;       // border-width
+        BOOL    override_redirect;  // override-redirect
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     parent;
-        WINDOW     window;
-        INT16      x;
-        INT16      y;
-        CARD16     width;
-        CARD16     height;
-        CARD16     border_width;  // border-width
-        BOOL       override_redirect;  // override-redirect
-    private:
-        uint8_t    _unused2[9];
+        uint8_t _unused[9];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct DestroyNotify {
+struct DestroyNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 17
+        Header  header;        // header.code 17
+        WINDOW  event;
+        WINDOW  window;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
-    private:
-        uint8_t    _unused2[20];
+        uint8_t _unused[20];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-// TBD UnmapNotify and MapNotify are same aside from name of BOOL
-struct UnmapNotify {
+struct UnmapNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 18
+        Header  header;          // header.code 18
+        WINDOW  event;
+        WINDOW  window;
+        BOOL    from_configure;  // from-configure
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
-        BOOL       from_configure;  // from-configure
-    private:
-        uint8_t    _unused2[19];
+        uint8_t _unused[19];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct MapNotify {
+struct MapNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 19
+        Header  header;             // header.code 19
+        WINDOW  event;
+        WINDOW  window;
+        BOOL    override_redirect;  // override-redirect
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
-        BOOL       override_redirect;  // override-redirect
-    private:
-        uint8_t    _unused2[19];
+        uint8_t _unused[19];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct MapRequest {
+struct MapRequest : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 20
+        Header  header;        // header.code 20
+        WINDOW  parent;
+        WINDOW  window;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     parent;
-        WINDOW     window;
-    private:
-        uint8_t    _unused2[20];
+        uint8_t _unused[20];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct ReparentNotify {
+struct ReparentNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 21
+        Header  header;             // header.code 21
+        WINDOW  event;
+        WINDOW  window;
+        WINDOW  parent;
+        INT16   x;
+        INT16   y;
+        BOOL    override_redirect;  // override-redirect
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
-        WINDOW     parent;
-        INT16      x;
-        INT16      y;
-        BOOL       override_redirect;  // override-redirect
-    private:
-        uint8_t    _unused2[11];
+        uint8_t _unused[11];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct ConfigureNotify {
+struct ConfigureNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 22
+        Header  header;             // header.code 22
+        WINDOW  event;
+        WINDOW  window;
+        WINDOW  above_sibling;      // above-sibling // 0 None
+        INT16   x;
+        INT16   y;
+        CARD16  width;
+        CARD16  height;
+        CARD16  border_width;       // border-width
+        BOOL    override_redirect;  // override-redirect
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
-        WINDOW     above_sibling;  // above-sibling // 0 None
-        INT16      x;
-        INT16      y;
-        CARD16     width;
-        CARD16     height;
-        CARD16     border_width;  // border-width
-        BOOL       override_redirect;  // override-redirect
-    private:
-        uint8_t    _unused2[5];
+        uint8_t _unused[5];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& above_sibling_names {
         protocol::enum_names::zero_none };
 };
 
-struct ConfigureRequest {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 23
-        uint8_t    stack_mode;  // stack-mode // 0 Above 1 Below 2 TopIf 3 BottomIf 4 Opposite
-        CARD16     sequence_number;  // sequence number
-        WINDOW     parent;
-        WINDOW     window;
-        WINDOW     sibling;  // 0 None
-        INT16      x;
-        INT16      y;
-        CARD16     width;
-        CARD16     height;
-        CARD16     border_width;  // border-width
-        // TBD what is this referring to if not request members?
-        uint16_t   value_mask;  // 2B value-mask
-        /*
-          1 << 0  #x0001     x
-          1 << 1  #x0002     y
-          1 << 2  #x0004     width
-          1 << 3  #x0008     height
-          1 << 4  #x0010     border-width
-          1 << 5  #x0020     sibling
-          1 << 6  #x0040     stack-mode
-        */
-    private:
-        uint8_t    _unused2[4];
+struct ConfigureRequest : public Event {
+    struct [[gnu::packed]] Header {
+        uint8_t code;          // 23
+        uint8_t stack_mode;    // stack-mode // 0 Above 1 Below 2 TopIf 3 BottomIf 4 Opposite
+        CARD16  sequence_num;  // sequence number
     };
+    struct [[gnu::packed]] Encoding {
+        Header   header;
+        WINDOW   parent;
+        WINDOW   window;
+        WINDOW   sibling;       // 0 None
+        INT16    x;
+        INT16    y;
+        CARD16   width;
+        CARD16   height;
+        CARD16   border_width;  // border-width
+        uint16_t value_mask;    // 2B value-mask
+        //   0x0001: x
+        //   0x0002: y
+        //   0x0004: width
+        //   0x0008: height
+        //   0x0010: border-width
+        //   0x0020: sibling
+        //   0x0040: stack-mode
+    private:
+        uint8_t  _unused[4];
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& stack_mode_names {
@@ -594,133 +502,111 @@ struct ConfigureRequest {
         protocol::enum_names::window_value_mask };
 };
 
-struct GravityNotify {
+struct GravityNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 24
+        Header  header;        // header.code 24
+        WINDOW  event;
+        WINDOW  window;
+        INT16   x;
+        INT16   y;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
-        INT16      x;
-        INT16      y;
-    private:
-        uint8_t    _unused2[16];
+        uint8_t _unused[16];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct ResizeRequest {
+struct ResizeRequest : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 25
+        Header  header;        // header.code 25
+        WINDOW  window;
+        CARD16  width;
+        CARD16  height;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     window;
-        CARD16     width;
-        CARD16     height;
-    private:
-        uint8_t    _unused2[20];
+        uint8_t _unused[20];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-// TBD functionally same as CirculateRequest
-struct CirculateNotify {
+struct CirculateNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 26
+        Header  header;        // header.code 26
+        WINDOW  event;
+        WINDOW  window;
     private:
-        uint8_t    _unused1;
+        WINDOW  _unused1;
     public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     event;
-        WINDOW     window;
+        uint8_t place;         // 0 Top 1 Bottom
     private:
-        WINDOW     _unused2;
-    public:
-        uint8_t    place;  // 0 Top 1 Bottom
-    private:
-        uint8_t    _unused3[15];
+        uint8_t _unused2[15];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& place_names {
         protocol::enum_names::circulate_place };
 };
 
-struct CirculateRequest {
+struct CirculateRequest : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 27
+        Header   header;        // header.code 27
+        WINDOW   parent;
+        WINDOW   window;
     private:
-        uint8_t    _unused1;
+        uint32_t _unused1;
     public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     parent;
-        WINDOW     window;
+        uint8_t  place;         // 0 Top 1 Bottom
     private:
-        uint32_t   _unused2;
-    public:
-        uint8_t    place;  // 0 Top 1 Bottom
-    private:
-        uint8_t    _unused3[15];
+        uint8_t  _unused2[15];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& place_names {
         protocol::enum_names::circulate_place };
 };
 
-struct PropertyNotify {
+struct PropertyNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 28
+        Header    header;        // header.code 28
+        WINDOW    window;
+        ATOM      atom;
+        TIMESTAMP time;
+        uint8_t   state;         // 0 NewValue 1 Deleted
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     window;
-        ATOM       atom;
-        TIMESTAMP  time;
-        uint8_t    state;  // 0 NewValue 1 Deleted
-    private:
-        uint8_t    _unused2[15];
+        uint8_t   _unused[15];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& state_names {
         protocol::enum_names::property_state };
 };
 
-struct SelectionClear {
+struct SelectionClear : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 29
+        Header    header;        // header.code 29
+        TIMESTAMP time;
+        WINDOW    owner;
+        ATOM      selection;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        TIMESTAMP  time;
-        WINDOW     owner;
-        ATOM       selection;
-    private:
-        uint8_t    _unused2[16];
+        uint8_t   _unused[16];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct SelectionRequest {
+struct SelectionRequest : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 30
+        Header    header;        // header.code 30
+        TIMESTAMP time;          // 0 CurrentTime
+        WINDOW    owner;
+        WINDOW    requestor;
+        ATOM      selection;
+        ATOM      target;
+        ATOM      property;      // 0 None
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        TIMESTAMP  time;  // 0 CurrentTime
-        WINDOW     owner;
-        WINDOW     requestor;
-        ATOM       selection;
-        ATOM       target;
-        ATOM       property;  // 0 None
-    private:
-        uint8_t    _unused2[4];
+        uint8_t   _unused[4];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& time_names {
@@ -730,21 +616,18 @@ struct SelectionRequest {
         protocol::enum_names::zero_none };
 };
 
-struct SelectionNotify {
+struct SelectionNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 31
+        Header    header;        // header.code 31
+        TIMESTAMP time;          // 0 CurrentTime
+        WINDOW    requestor;
+        ATOM      selection;
+        ATOM      target;
+        ATOM      property;      // 0 None
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        TIMESTAMP  time;  // 0 CurrentTime
-        WINDOW     requestor;
-        ATOM       selection;
-        ATOM       target;
-        ATOM       property;  // 0 None
-    private:
-        uint8_t    _unused2[8];
+        uint8_t   _unused[8];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& time_names {
@@ -754,20 +637,17 @@ struct SelectionNotify {
         protocol::enum_names::zero_none };
 };
 
-struct ColormapNotify {
+struct ColormapNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 32
+        Header   header;        // header.code 32
+        WINDOW   window;
+        COLORMAP colormap;      // 0 None
+        BOOL     new_;          // new
+        uint8_t  state;         // 0 Uninstalled 1 Installed
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        WINDOW     window;
-        COLORMAP   colormap;  // 0 None
-        BOOL       new_;  // new
-        uint8_t    state;  // 0 Uninstalled 1 Installed
-    private:
-        uint8_t    _unused2[18];
+        uint8_t  _unused[18];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& colormap_names {
@@ -777,70 +657,36 @@ struct ColormapNotify {
         protocol::enum_names::colormap_state };
 };
 
-struct ClientMessage {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 33
-        CARD8      format;
-        CARD16     sequence_number;  // sequence number
-        WINDOW     window;
-        ATOM       type;
-        uint8_t    data[20];
+struct ClientMessage : public Event {
+    struct [[gnu::packed]] Header {
+        uint8_t code;          // 33
+        CARD8   format;
+        CARD16  sequence_num;  // sequence number
     };
+    struct [[gnu::packed]] Encoding {
+        Header  header;
+        WINDOW  window;
+        ATOM    type;
+        uint8_t data[20];
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-struct MappingNotify {
+struct MappingNotify : public Event {
     struct [[gnu::packed]] Encoding {
-        uint8_t    code;  // 34
+        Header  header;         // header.code 34
+        uint8_t request;        // 0 Modifier 1 Keyboard 2 Pointer
+        KEYCODE first_keycode;  // first-keycode
+        CARD8   count;
     private:
-        uint8_t    _unused1;
-    public:
-        CARD16     sequence_number;  // sequence number
-        uint8_t    request;  // 0 Modifier 1 Keyboard 2 Pointer
-        KEYCODE    first_keycode;  // first-keycode
-        CARD8      count;
-    private:
-        uint8_t    _unused2[25];
+        uint8_t _unused[25];
     };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
     std::vector< std::string_view >& request_names {
         protocol::enum_names::mapping_state };
 };
-
-static constexpr uint32_t ENCODING_SZ { 32 };
-static_assert( sizeof( KeyPress::Encoding )         == ENCODING_SZ );
-static_assert( sizeof( KeyRelease::Encoding )       == ENCODING_SZ );
-static_assert( sizeof( ButtonPress::Encoding )      == ENCODING_SZ );
-static_assert( sizeof( ButtonRelease::Encoding )    == ENCODING_SZ );
-static_assert( sizeof( MotionNotify::Encoding )     == ENCODING_SZ );
-static_assert( sizeof( EnterNotify::Encoding )      == ENCODING_SZ );
-static_assert( sizeof( LeaveNotify::Encoding )      == ENCODING_SZ );
-static_assert( sizeof( FocusIn::Encoding )          == ENCODING_SZ );
-static_assert( sizeof( FocusOut::Encoding )         == ENCODING_SZ );
-static_assert( sizeof( KeymapNotify::Encoding )     == ENCODING_SZ );
-static_assert( sizeof( Expose::Encoding )           == ENCODING_SZ );
-static_assert( sizeof( GraphicsExposure::Encoding ) == ENCODING_SZ );
-static_assert( sizeof( NoExposure::Encoding )       == ENCODING_SZ );
-static_assert( sizeof( VisibilityNotify::Encoding ) == ENCODING_SZ );
-static_assert( sizeof( CreateNotify::Encoding )     == ENCODING_SZ );
-static_assert( sizeof( DestroyNotify::Encoding )    == ENCODING_SZ );
-static_assert( sizeof( UnmapNotify::Encoding )      == ENCODING_SZ );
-static_assert( sizeof( MapNotify::Encoding )        == ENCODING_SZ );
-static_assert( sizeof( MapRequest::Encoding )       == ENCODING_SZ );
-static_assert( sizeof( ReparentNotify::Encoding )   == ENCODING_SZ );
-static_assert( sizeof( ConfigureNotify::Encoding )  == ENCODING_SZ );
-static_assert( sizeof( ConfigureRequest::Encoding ) == ENCODING_SZ );
-static_assert( sizeof( GravityNotify::Encoding )    == ENCODING_SZ );
-static_assert( sizeof( ResizeRequest::Encoding )    == ENCODING_SZ );
-static_assert( sizeof( CirculateNotify::Encoding )  == ENCODING_SZ );
-static_assert( sizeof( CirculateRequest::Encoding ) == ENCODING_SZ );
-static_assert( sizeof( PropertyNotify::Encoding )   == ENCODING_SZ );
-static_assert( sizeof( SelectionClear::Encoding )   == ENCODING_SZ );
-static_assert( sizeof( SelectionRequest::Encoding ) == ENCODING_SZ );
-static_assert( sizeof( SelectionNotify::Encoding )  == ENCODING_SZ );
-static_assert( sizeof( ColormapNotify::Encoding )   == ENCODING_SZ );
-static_assert( sizeof( ClientMessage::Encoding )    == ENCODING_SZ );
-static_assert( sizeof( MappingNotify::Encoding )    == ENCODING_SZ );
 
 }  // namespace events
 

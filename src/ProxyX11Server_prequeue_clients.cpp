@@ -200,8 +200,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         PropertyNotify::Encoding pn_encoding;
         assert( sbuffer.size() == sizeof( PropertyNotify::Encoding ) );
         sbuffer.unload( &pn_encoding, sizeof( pn_encoding ) );
-        assert( pn_encoding.code == protocol::events::codes::PROPERTYNOTIFY );
-        assert( pn_encoding.sequence_number == 2 );  // event from second Request
+        assert( pn_encoding.header.code == protocol::events::codes::PROPERTYNOTIFY );
+        assert( pn_encoding.header.sequence_num == 2 );  // event from second Request
         assert( pn_encoding.window.data == screen0_root.data );
         assert( pn_encoding.atom.data == /*XCB_ATOM_WM_NAME 39*/0x27 );
         assert( pn_encoding.state == /*XCB_PROPERTY_NEW_VALUE*/0 );

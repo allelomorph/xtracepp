@@ -1053,10 +1053,10 @@ X11ProtocolParser::_parseRequest<
     assert( encoding->opcode == protocol::requests::opcodes::SENDEVENT );
 
     const uint8_t evt_code {
-        reinterpret_cast< const protocol::events::Header* >(
+        reinterpret_cast< const protocol::events::Event::Header* >(
             data + request.bytes_parsed )->code };
     const _ParsingOutputs event { _parseEvent(
-            conn, data + request.bytes_parsed, protocol::events::ENCODING_SZ,
+            conn, data + request.bytes_parsed, protocol::events::Event::ENCODING_SZ,
             _ROOT_WS.nested() ) };
     request.bytes_parsed += event.bytes_parsed;
     assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
