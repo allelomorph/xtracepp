@@ -80,11 +80,11 @@ X11ProtocolParser::_parseProtocolType<
 
 // ==============================
 
-// ServerAcceptance::SCREEN
+// ConnAcceptance::SCREEN
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
-    protocol::connection_setup::ServerAcceptance::SCREEN >(
+    protocol::connection_setup::ConnAcceptance::SCREEN >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
 
@@ -92,15 +92,17 @@ X11ProtocolParser::_parseProtocolType<
         settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
 
     _ParsingOutputs outputs;
-    using SCREEN = protocol::connection_setup::ServerAcceptance::SCREEN;
-    assert( sz >= sizeof( SCREEN::Header ));
-    const SCREEN::Header* header { reinterpret_cast< const SCREEN::Header* >( data ) };
-    outputs.bytes_parsed += sizeof( SCREEN::Header );
+    using SCREEN = protocol::connection_setup::ConnAcceptance::SCREEN;
+    assert( sz >= sizeof( SCREEN::Encoding ));
+    const SCREEN::Encoding* encoding {
+        reinterpret_cast< const SCREEN::Encoding* >( data ) };
+    outputs.bytes_parsed += sizeof( SCREEN::Encoding );
+
     // followed by LISTofDEPTH allowed-depths
     const _ParsingOutputs allowed_depths {
         _parseLISTof< SCREEN::DEPTH >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            header->allowed_depths_ct, ws.nested() ) };
+            encoding->allowed_depths_ct, ws.nested() ) };
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
@@ -115,41 +117,41 @@ X11ProtocolParser::_parseProtocolType<
         "{}}}",
         ws.separator,
         ws.memb_indent, "root", name_width, ws.equals,
-        _formatProtocolType( header->root ), ws.separator,
+        _formatProtocolType( encoding->root ), ws.separator,
         ws.memb_indent, "default-colormap", name_width, ws.equals,
-        _formatProtocolType( header->default_colormap ), ws.separator,
+        _formatProtocolType( encoding->default_colormap ), ws.separator,
         ws.memb_indent, "white-pixel", name_width, ws.equals,
-        _formatInteger( header->white_pixel ), ws.separator,
+        _formatInteger( encoding->white_pixel ), ws.separator,
         ws.memb_indent, "black-pixel", name_width, ws.equals,
-        _formatInteger( header->black_pixel ), ws.separator,
+        _formatInteger( encoding->black_pixel ), ws.separator,
         ws.memb_indent, "current-input-masks", name_width, ws.equals,
-        _formatProtocolType( header->current_input_masks ), ws.separator,
+        _formatProtocolType( encoding->current_input_masks ), ws.separator,
         ws.memb_indent, "width-in-pixels", name_width, ws.equals,
-        _formatInteger( header->width_in_pixels ), ws.separator,
+        _formatInteger( encoding->width_in_pixels ), ws.separator,
         ws.memb_indent, "height-in-pixels", name_width, ws.equals,
-        _formatInteger( header->height_in_pixels ), ws.separator,
+        _formatInteger( encoding->height_in_pixels ), ws.separator,
         ws.memb_indent, "width-in-millimeters", name_width, ws.equals,
-        _formatInteger( header->width_in_millimeters ), ws.separator,
+        _formatInteger( encoding->width_in_millimeters ), ws.separator,
         ws.memb_indent, "height-in-millimeters", name_width, ws.equals,
-        _formatInteger( header->height_in_millimeters ), ws.separator,
+        _formatInteger( encoding->height_in_millimeters ), ws.separator,
         ws.memb_indent, "min-installed-maps", name_width, ws.equals,
-        _formatInteger( header->min_installed_maps ), ws.separator,
+        _formatInteger( encoding->min_installed_maps ), ws.separator,
         ws.memb_indent, "max-installed-maps", name_width, ws.equals,
-        _formatInteger( header->max_installed_maps ), ws.separator,
+        _formatInteger( encoding->max_installed_maps ), ws.separator,
         ws.memb_indent, "root-visual", name_width, ws.equals,
-        _formatProtocolType( header->root_visual ), ws.separator,
+        _formatProtocolType( encoding->root_visual ), ws.separator,
         ws.memb_indent, "backing-stores", name_width, ws.equals,
-        _formatInteger( header->backing_stores,
+        _formatInteger( encoding->backing_stores,
                         SCREEN::backing_stores_names ), ws.separator,
         ws.memb_indent, "save-unders", name_width, ws.equals,
-        _formatProtocolType( header->save_unders ), ws.separator,
+        _formatProtocolType( encoding->save_unders ), ws.separator,
         ws.memb_indent, "root-depth", name_width, ws.equals,
-        _formatInteger( header->root_depth ), ws.separator,
+        _formatInteger( encoding->root_depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(allowed-depths length in DEPTHs)",
             name_width, ws.equals,
-            _formatInteger( header->allowed_depths_ct ), ws.separator ),
+            _formatInteger( encoding->allowed_depths_ct ), ws.separator ),
         ws.memb_indent, "allowed-depths", name_width, ws.equals,
         allowed_depths.str, ws.separator,
         ws.encl_indent
@@ -157,27 +159,27 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-// ServerAcceptance( tab_ct 0 ) _parseLISTofFORMAT( tab_ct 2 )
-// ServerAcceptance( tab_ct 0 ) _parseLISTofSCREEN( tab_ct 2 ) _parseLISTofDEPTH( tab_ct 4 ) _parseLISTofVISUALTYPE( tab_ct 6 )
-// ServerAcceptance::Screen::DEPTH
+// ConnAcceptance( tab_ct 0 ) _parseLISTofFORMAT( tab_ct 2 )
+// ConnAcceptance( tab_ct 0 ) _parseLISTofSCREEN( tab_ct 2 ) _parseLISTofDEPTH( tab_ct 4 ) _parseLISTofVISUALTYPE( tab_ct 6 )
+// ConnAcceptance::Screen::DEPTH
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
-    protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH >(
+    protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
     assert( data != nullptr );
 
     _ParsingOutputs outputs;
-    using DEPTH = protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH;
-    assert( sz >= sizeof( DEPTH::Header ));
-    const DEPTH::Header* header {
-        reinterpret_cast< const DEPTH::Header* >( data ) };
-    outputs.bytes_parsed += sizeof( DEPTH::Header );
+    using DEPTH = protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH;
+    assert( sz >= sizeof( DEPTH::Encoding ));
+    const DEPTH::Encoding* encoding {
+        reinterpret_cast< const DEPTH::Encoding* >( data ) };
+    outputs.bytes_parsed += sizeof( DEPTH::Encoding );
     // followed by LISTofVISUALTYPE visuals
     const _ParsingOutputs visuals {
         _parseLISTof< DEPTH::VISUALTYPE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            header->visuals_ct, ws.nested() ) };
+            encoding->visuals_ct, ws.nested() ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
@@ -191,12 +193,12 @@ X11ProtocolParser::_parseProtocolType<
         "{}}}",
         ws.separator,
         ws.memb_indent, "depth", name_width, ws.equals,
-        _formatInteger( header->depth ), ws.separator,
+        _formatInteger( encoding->depth ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(length of visuals in VISUALs)", name_width, ws.equals,
-            _formatInteger( header->visuals_ct ), ws.separator ),
+            _formatInteger( encoding->visuals_ct ), ws.separator ),
         ws.memb_indent, "visuals", name_width, ws.equals,
         visuals.str, ws.separator,
         ws.encl_indent

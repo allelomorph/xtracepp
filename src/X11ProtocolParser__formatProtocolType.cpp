@@ -459,11 +459,11 @@ X11ProtocolParser::_formatProtocolType(
 }
 
 // TBD belong here:
-// ServerAcceptance::Format (rename to FORMAT)
+// ConnAcceptance::Format (rename to FORMAT)
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::connection_setup::ServerAcceptance::FORMAT format,
+    const protocol::connection_setup::ConnAcceptance::FORMAT format,
     const _Whitespace&/* ws*/ ) {
     return fmt::format(
         "{{ depth={} bits-per-pixel={} scanline-pad={} }}",
@@ -472,18 +472,18 @@ X11ProtocolParser::_formatProtocolType(
         _formatInteger( format.scanline_pad ) );
 }
 
-// ServerAcceptance::Screen::Depth::VisualType (rename to VISUALTYPE)
+// ConnAcceptance::Screen::Depth::VisualType (rename to VISUALTYPE)
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE visualtype,
+    const protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE visualtype,
     const _Whitespace&/* ws*/ ) {
     return fmt::format(
         "{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}",
         "visual-id",          _formatProtocolType( visualtype.visual_id ),
         "class",              _formatInteger(
             visualtype.class_,
-            protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE::class_names ),
+            protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE::class_names ),
         "bits-per-rgb-value", _formatInteger( visualtype.bits_per_rgb_value ),
         "colormap-entries",   _formatInteger( visualtype.colormap_entries ),
         "red-mask",           _formatBitmask( visualtype.red_mask ),

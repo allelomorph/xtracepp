@@ -60,19 +60,20 @@ bool ProxyX11Server::_authenticateServerConnection(
     const int server_fd, protocol::WINDOW* screen0_root/* = nullptr*/ ) {
 
     SocketBuffer sbuffer;
-    using protocol::connection_setup::ClientInitiation;
-    ClientInitiation::Header init_header;
-    init_header.byte_order = ClientInitiation::LSBFIRST;
-    init_header.protocol_major_version = protocol::MAJOR_VERSION;
-    init_header.protocol_minor_version = protocol::MINOR_VERSION;
-    init_header.name_len = _AUTH_NAME.size();
-    init_header.data_len = _AUTH_DATA_SZ;
-    sbuffer.load( &init_header, sizeof(init_header) );
+    using protocol::connection_setup::ConnInitiation;
+    ConnInitiation::Encoding init_encoding {};
+    init_encoding.byte_order = ConnInitiation::LSBFIRST;
+    init_encoding.protocol_major_version = protocol::MAJOR_VERSION;
+    init_encoding.protocol_minor_version = protocol::MINOR_VERSION;
+    init_encoding.name_len = _AUTH_NAME.size();
+    init_encoding.data_len = _AUTH_DATA_SZ;
+    sbuffer.load( &init_encoding, sizeof(init_encoding) );
     // TBD padded sz will copy up to 3 junk bytes
     sbuffer.load( _AUTH_NAME.data(), _parser._pad( _AUTH_NAME.size() ) );
     sbuffer.load( _auth_data, _parser._pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
-        sizeof(init_header) + _parser._pad( _AUTH_NAME.size() ) + _parser._pad( _AUTH_DATA_SZ ) );
+        sizeof(init_encoding) + _parser._pad( _AUTH_NAME.size() ) +
+            _parser._pad( _AUTH_DATA_SZ ) );
     try {
         pollSingleSocket( server_fd, POLLOUT );
     } catch ( const std::exception& e ) {
@@ -89,32 +90,31 @@ bool ProxyX11Server::_authenticateServerConnection(
         return false;
     }
     sbuffer.read( server_fd );
-    using protocol::connection_setup::ServerResponse;
-    using protocol::connection_setup::ServerAcceptance;
-    assert( sbuffer.size() >= sizeof( ServerAcceptance::Header ) );
-    ServerAcceptance::Header accept_header;
-    sbuffer.unload( &accept_header, sizeof( ServerAcceptance::Header ) );
-    assert( sbuffer.size() >= _parser._alignedSize( accept_header.following_aligned_units ) );
-    if ( accept_header.success != ServerResponse::SUCCESS )
+    using protocol::connection_setup::ConnResponse;
+    using protocol::connection_setup::ConnAcceptance;
+    assert( sbuffer.size() >= sizeof( ConnAcceptance::Header ) );
+    ConnAcceptance::Encoding accept_encoding;
+    sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
+    assert( sbuffer.size() >= _parser._alignedSize(
+                accept_encoding.header.following_aligned_units ) );
+    if ( accept_encoding.header.success != ConnResponse::SUCCESS )
         return false;
-    if ( accept_header.protocol_major_version !=
-         init_header.protocol_major_version )
+    if ( accept_encoding.header.protocol_major_version !=
+         init_encoding.protocol_major_version )
         return false;
-    if ( accept_header.protocol_minor_version !=
-         init_header.protocol_minor_version )
+    if ( accept_encoding.header.protocol_minor_version !=
+         init_encoding.protocol_minor_version )
         return false;
-    ServerAcceptance::FixedLengthEncoding accept_encoding;
-    sbuffer.unload( &accept_encoding, sizeof( ServerAcceptance::FixedLengthEncoding ) );
     // TBD skip over vendor
     sbuffer.unload( _parser._pad( accept_encoding.vendor_len ) );
     // TBD skip over pixmap-formats
     sbuffer.unload( accept_encoding.pixmap_formats_ct *
-                    sizeof( ServerAcceptance::FORMAT ) );
+                    sizeof( ConnAcceptance::FORMAT ) );
     // TBD get WINDOW for root window of first screen
-    ServerAcceptance::SCREEN::Header screen_header;
-    sbuffer.unload( &screen_header, sizeof( ServerAcceptance::SCREEN::Header ) );
+    ConnAcceptance::SCREEN::Encoding screen_encoding;
+    sbuffer.unload( &screen_encoding, sizeof( ConnAcceptance::SCREEN::Encoding ) );
     if ( screen0_root != nullptr )
-        *screen0_root = screen_header.root;
+        *screen0_root = screen_encoding.root;
     sbuffer.clear();
     return true;
 }

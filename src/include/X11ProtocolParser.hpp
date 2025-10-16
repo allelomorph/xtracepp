@@ -274,8 +274,8 @@ private:
         _is_textitem_protocol_type< ProtocolT >::value ||
         std::is_same_v< ProtocolT, protocol::STR > ||
         std::is_same_v< ProtocolT, protocol::HOST > ||
-        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN > ||
-        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH > > {};
+        std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::SCREEN > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH > > {};
     template < typename ProtocolT >
     static constexpr bool _is_variable_length_struct_protocol_type_v =
         _is_variable_length_struct_protocol_type< ProtocolT >::value;
@@ -288,8 +288,8 @@ private:
         std::is_same_v< ProtocolT, protocol::POINT > ||
         std::is_same_v< ProtocolT, protocol::RECTANGLE > ||
         std::is_same_v< ProtocolT, protocol::ARC > ||
-        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::FORMAT > ||
-        std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::FORMAT > ||
+        std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE > ||
         std::is_same_v< ProtocolT, protocol::requests::GetMotionEvents::Reply::TIMECOORD > ||
         std::is_same_v< ProtocolT, protocol::requests::QueryFont::Reply::FONTPROP > ||
         std::is_same_v< ProtocolT, protocol::requests::QueryFont::Reply::CHARINFO > ||
@@ -576,15 +576,15 @@ private:
             inputs, data + sizeof( protocol::VALUE ), outputs );
     }
 
-    size_t _logClientInitiation(
+    size_t _logConnInitiation(
         const Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logServerRefusal(
+    size_t _logConnRefusal(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logServerRequireFurtherAuthentication(
+    size_t _logConnRequireFurtherAuthentication(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logServerAcceptance(
+    size_t _logConnAcceptance(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logServerResponse(
+    size_t _logConnResponse(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     size_t _logClientPacket(

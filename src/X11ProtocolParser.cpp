@@ -39,8 +39,9 @@ size_t X11ProtocolParser::_logClientPacket(
     size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
-        assert( sz >= sizeof( protocol::connection_setup::ClientInitiation::Header ) );
-        bytes_parsed = _logClientInitiation( conn, data, sz );
+        assert( sz >=
+                sizeof( protocol::connection_setup::ConnInitiation::Encoding ) );
+        bytes_parsed = _logConnInitiation( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
         // authentication negotiation
@@ -67,7 +68,7 @@ size_t X11ProtocolParser::_logServerPacket(
     size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
-        bytes_parsed = _logServerResponse( conn, data, sz );
+        bytes_parsed = _logConnResponse( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
         // TBD authentication negotiation, not sure how to parse packets

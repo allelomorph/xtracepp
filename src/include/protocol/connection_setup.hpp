@@ -8,8 +8,8 @@ namespace protocol {
 
 namespace connection_setup {
 
-struct ClientInitiation {
-    struct [[gnu::packed]] Header {
+struct ConnInitiation {
+    struct [[gnu::packed]] Encoding {
         CARD8    byte_order;              // MSBFIRST or LSBFIRST
     private:
         uint8_t  _unused1;
@@ -28,24 +28,19 @@ struct ClientInitiation {
         MSBFIRST = 'B',
         LSBFIRST = 'l'
     };
+    inline static const
+    std::vector< std::string_view >& byte_order_names {
+        protocol::enum_names::image_byte_order };
 };
 
-struct ServerResponse {
+struct ConnResponse {
     struct [[gnu::packed]] Header {
         uint8_t  success;
-        union {
-            uint8_t  reason_len;              // reason length in bytes
-            uint8_t  _unused1;
-        };
-        union {
-            CARD16   protocol_major_version;  // protocol-major-version
-            uint16_t _unused2;
-        };
-        union {
-            CARD16   protocol_minor_version;  // protocol-minor-version
-            uint16_t _unused3;
-        };
-        uint16_t following_aligned_units;     // message length after header in 4B units
+    private:
+        uint8_t  _unused1;
+        uint16_t _unused2[2];
+    public:
+        uint16_t following_aligned_units;  // message length after header in 4B units
     };
 
     enum success {
@@ -53,29 +48,41 @@ struct ServerResponse {
         SUCCESS,
         AUTHENTICATE
     };
-    inline static const std::vector< std::string_view >&
-    success_names { protocol::enum_names::server_response_success };
+    inline static const
+    std::vector< std::string_view >& success_names {
+        protocol::enum_names::server_response_success };
 
-    virtual ~ServerResponse() = 0;
+    virtual ~ConnResponse() = 0;
 };
 
-struct ServerRefusal : public ServerResponse {
-    // Header.success always 0 ServerResponse::FAILED
-    // Header uses all fields
-    // header followed by _pad(Header.reason_len * 4) STRING8 reason
+struct ConnRefusal : public ConnResponse {
+    struct [[gnu::packed]] Header {
+        uint8_t  success;                  // 0 ServerResponse::FAILED
+        uint8_t  reason_len;               // reason length in bytes
+        CARD16   protocol_major_version;   // protocol-major-version
+        CARD16   protocol_minor_version;   // protocol-minor-version
+        uint16_t following_aligned_units;  // message length after header in 4B units
+    };
+    // followed by STRING8 reason _pad(Header.reason_len * 4)
 };
 
-struct ServerRequireFurtherAuthentication : public ServerResponse {
-    // Header.success always 2 connection_setup::AUTHENTICATE
-    // Header ignores all but success and following_aligned_units
-    // header followed by (Header.following_aligned_units * 4) STRING8 reason
+struct ConnRequireFurtherAuthentication : public ConnResponse {
+    // Header.success == 2 connection_setup::AUTHENTICATE
+    // followed by STRING8 reason (Header.following_aligned_units * 4)B
 };
 
-struct ServerAcceptance : public ServerResponse {
-    // Header.success always 1 ServerResponse::SUCCESS
-    // Header ignores reason_len
-    // header followed by:
-    struct [[gnu::packed]] FixedLengthEncoding {
+struct ConnAcceptance : public ConnResponse {
+    struct [[gnu::packed]] Header {
+        uint8_t  success;                  // 1 ServerResponse::SUCCESS
+    private:
+        uint8_t  _unused;
+    public:
+        CARD16   protocol_major_version;   // protocol-major-version
+        CARD16   protocol_minor_version;   // protocol-minor-version
+        uint16_t following_aligned_units;  // message length after header in 4B units
+    };
+    struct [[gnu::packed]] Encoding {
+        Header   header;
         CARD32   release_number;               // release-number
         CARD32   resource_id_base;             // resource-id-base
         CARD32   resource_id_mask;             // resource-id-mask
@@ -93,9 +100,9 @@ struct ServerAcceptance : public ServerResponse {
     private:
         uint8_t  _unused2[4];
     };
-    // followed by pad(vendor_len) STRING8 vendor
-    // followed by pixmap_formats_ct * sizeof(FORMAT) LISTofFORMAT pixmap-formats
-    // followed by (always multiple of 4) LISTofSCREEN roots
+    // followed by STRING8 vendor pad(vendor_len)B
+    // followed by LISTofFORMAT pixmap-formats (pixmap_formats_ct * sizeof(FORMAT))B
+    // followed by LISTofSCREEN roots (always multiple of 4)B
 
     // TBD enum { LSBFIRST, MSBFIRST } for image-byte-order
     // TBD enum { LEASTSIGNIFICANT, MOSTSIGNIFICANT } for bitmap-format-bit-order
@@ -114,7 +121,7 @@ struct ServerAcceptance : public ServerResponse {
     };
 
     struct SCREEN {
-        struct [[gnu::packed]] Header {
+        struct [[gnu::packed]] Encoding {
             WINDOW     root;
             COLORMAP   default_colormap;       // default-colormap
             CARD32     white_pixel;            // white-pixel
@@ -139,7 +146,7 @@ struct ServerAcceptance : public ServerResponse {
             protocol::enum_names::screen_backing_stores };
 
         struct DEPTH {
-            struct [[gnu::packed]] Header {
+            struct [[gnu::packed]] Encoding {
                 CARD8    depth;
             private:
                 uint8_t  _unused1;
@@ -148,7 +155,7 @@ struct ServerAcceptance : public ServerResponse {
             private:
                 uint8_t  _unused2[4];
             };
-            // followed by (visuals_ct * sizeof(VISUALTYPE)) LISTofVISUALTYPE visuals
+            // followed by LISTofVISUALTYPE visuals (visuals_ct * sizeof(VISUALTYPE))B
 
             struct [[gnu::packed]] VISUALTYPE {
                 VISUALID visual_id;           // visual-id
