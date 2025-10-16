@@ -635,6 +635,9 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
     request.bytes_parsed += _pad( encoding->n );
     assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+
+    // Stash copy of atom until reply comes in - at that time we will include it
+    //   in our own internment if it isn't already
     _stashAtom( { conn->id, conn->sequence }, name );
 
     const uint32_t name_width (
@@ -883,7 +886,7 @@ X11ProtocolParser::_parseRequest<
         _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
         _formatProtocolType( encoding->property ), _ROOT_WS.separator,
         _ROOT_WS.memb_indent, "type", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->type, GetProperty::request_type_names ), _ROOT_WS.separator,
+        _formatProtocolType( encoding->type, GetProperty::type_names ), _ROOT_WS.separator,
         _ROOT_WS.memb_indent, "long-offset", name_width, _ROOT_WS.equals,
         _formatInteger( encoding->long_offset ), _ROOT_WS.separator,
         _ROOT_WS.memb_indent, "long-length", name_width, _ROOT_WS.equals,

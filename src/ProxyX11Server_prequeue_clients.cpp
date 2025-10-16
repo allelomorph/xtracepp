@@ -238,7 +238,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
     std::vector<std::string> fetched_atoms ( 1 );
     using protocol::requests::GetAtomName;
     GetAtomName::Encoding req_encoding {};
-    GetAtomName::ReplyEncoding rep_encoding {};
+    GetAtomName::Reply::Encoding rep_encoding {};
     constexpr int STRINGBUF_SZ { 1000 };
     char stringbuf[STRINGBUF_SZ];
     constexpr int readout_int_width { 5 };
@@ -310,13 +310,14 @@ void ProxyX11Server::_fetchInternedAtoms() {
             break;
         }
         sbuffer.unload( &rep_encoding, sizeof( rep_encoding ) );
-        assert( rep_encoding.reply == protocol::requests::REPLY_PREFIX );
-        assert( rep_encoding.sequence_number == i );
-        assert( rep_encoding.reply_length == _parser._alignedUnits( _parser._pad( rep_encoding.n ) ) );
+        assert( rep_encoding.header.reply == protocol::requests::Reply::REPLY );
+        assert( rep_encoding.header.sequence_num == i );
+        assert( rep_encoding.header.extra_aligned_units ==
+                _parser._alignedUnits( _parser._pad( rep_encoding.name_len ) ) );
         assert( sbuffer.size() < STRINGBUF_SZ );
-        assert( sbuffer.size() == _parser._pad( rep_encoding.n ) );
+        assert( sbuffer.size() == _parser._pad( rep_encoding.name_len ) );
         sbuffer.unload( stringbuf, sbuffer.size() );
-        stringbuf[rep_encoding.n] = '\0';
+        stringbuf[ rep_encoding.name_len ] = '\0';
         fetched_atoms.emplace_back( stringbuf );
         assert( sbuffer.empty() );
 

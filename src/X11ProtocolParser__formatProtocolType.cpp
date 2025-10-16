@@ -24,14 +24,15 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINDOW window,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange name_index_range/* = {}*/ ) {
     assert( ( window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
                 enum_names == protocol::enum_names::event_destination ||
                 enum_names == protocol::enum_names::input_focus );
     }
-    return _formatInteger( window.data );
+    return _formatInteger( window.data, enum_names, name_index_range );
 }
 
 // PIXMAP
@@ -39,7 +40,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::PIXMAP pixmap,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( pixmap.data & protocol::PIXMAP::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_copy_from_parent ||
@@ -54,7 +56,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::CURSOR cursor,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( cursor.data & protocol::CURSOR::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none );
@@ -67,7 +70,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::FONT font,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/) {
     assert( ( font.data & protocol::FONT::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none );
@@ -82,7 +86,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::GCONTEXT gcontext,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( gcontext.data & protocol::GCONTEXT::ZERO_BITS ) == 0 );
     return _formatInteger( gcontext.data );
 }
@@ -92,7 +97,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::COLORMAP colormap,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( colormap.data & protocol::COLORMAP::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -108,7 +114,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::DRAWABLE drawable,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( drawable.window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     return _formatInteger( drawable.window.data, enum_names );
 }
@@ -121,7 +128,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ATOM atom,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( atom.data & protocol::ATOM::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -156,7 +164,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::VISUALID visualid,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( visualid.data & protocol::VISUALID::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
@@ -178,7 +187,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::TIMESTAMP time,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::time );
     }
@@ -206,7 +216,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BITGRAVITY bitgravity,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     return _formatInteger( bitgravity.data,
                            protocol::BITGRAVITY::enum_names );
 }
@@ -217,7 +228,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINGRAVITY wingravity,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     return _formatInteger( wingravity.data,
                            protocol::WINGRAVITY::enum_names );
 }
@@ -228,7 +240,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BOOL bool_,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     return _formatInteger( bool_.data,
                            protocol::BOOL::enum_names );
 }
@@ -238,7 +251,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofEVENT setofevent,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( setofevent.data & protocol::SETofEVENT::ZERO_BITS ) == 0 );
     return _formatBitmask( setofevent.data,
                            protocol::SETofEVENT::flag_names );
@@ -249,7 +263,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofPOINTEREVENT setofpointerevent,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( setofpointerevent.data & protocol::SETofPOINTEREVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofpointerevent.data,
@@ -261,7 +276,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofDEVICEEVENT setofdeviceevent,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( setofdeviceevent.data & protocol::SETofDEVICEEVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatBitmask( setofdeviceevent.data,
@@ -274,7 +290,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::KEYSYM keysym,
-    const std::vector< std::string_view >&/* enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     return _formatInteger( keysym.data );
 }
 
@@ -283,7 +300,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::KEYCODE keycode,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::key );
     }
@@ -295,7 +313,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BUTTON button,
-    const std::vector< std::string_view >& enum_names ) {
+    const std::vector< std::string_view >& enum_names/* = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::button );
     }
@@ -307,7 +326,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYMASK setofkeymask,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     // TBD exception in Requests 28 GrabButton 29 UngrabButton 33 GrabKey 34 UngrabKey: 0x8000 == AnyModifier
     // TBD this breaks current code paradigm in two ways:
     //    - where to keep "AnyModifier" string in enum_names?
@@ -338,7 +358,8 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYBUTMASK setofkeybutmask,
-    const std::vector< std::string_view >& /*enum_names*/ ) {
+    const std::vector< std::string_view >&/* enum_names = _NO_NAMES*/,
+    _IndexRange/* name_index_range = {}*/ ) {
     assert( ( setofkeybutmask.data & protocol::SETofKEYBUTMASK::ZERO_BITS ) == 0 );
     return _formatBitmask( setofkeybutmask.data,
                            protocol::SETofKEYBUTMASK::flag_names );
@@ -414,7 +435,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::requests::QueryFont::CHARINFO charinfo,
+    const protocol::requests::QueryFont::Reply::CHARINFO charinfo,
     const _Whitespace&/* ws*/ ) {
     return fmt::format(
         "{{ {}={} {}={} {}={} {}={} {}={} {}={} }}",
@@ -429,7 +450,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::requests::QueryFont::FONTPROP fontprop,
+    const protocol::requests::QueryFont::Reply::FONTPROP fontprop,
     const _Whitespace&/* ws*/ ) {
     return fmt::format(
         "{{ name={} value={} }}",
@@ -504,7 +525,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::requests::GetMotionEvents::TIMECOORD timecoord,
+    const protocol::requests::GetMotionEvents::Reply::TIMECOORD timecoord,
     const _Whitespace&/* ws*/ ) {
     return fmt::format(
         " {{ time={} x={} y={} }}",
@@ -517,7 +538,7 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::requests::QueryColors::RGB rgb,
+    const protocol::requests::QueryColors::Reply::RGB rgb,
     const _Whitespace&/* ws*/ ) {
     return fmt::format(
         " {{ red={} green={} blue={} }}",

@@ -236,7 +236,8 @@ private:
     std::string
     _formatProtocolType(
         const ProtocolT value,
-        const std::vector<std::string_view>& enum_names = _NO_NAMES );
+        const std::vector<std::string_view>& enum_names = _NO_NAMES,
+        _IndexRange name_index_range = {} );
 
     template < typename ProtocolT >
     std::string
@@ -289,12 +290,12 @@ private:
         std::is_same_v< ProtocolT, protocol::ARC > ||
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::FORMAT > ||
         std::is_same_v< ProtocolT, protocol::connection_setup::ServerAcceptance::SCREEN::DEPTH::VISUALTYPE > ||
-        std::is_same_v< ProtocolT, protocol::requests::GetMotionEvents::TIMECOORD > ||
-        std::is_same_v< ProtocolT, protocol::requests::QueryFont::FONTPROP > ||
-        std::is_same_v< ProtocolT, protocol::requests::QueryFont::CHARINFO > ||
+        std::is_same_v< ProtocolT, protocol::requests::GetMotionEvents::Reply::TIMECOORD > ||
+        std::is_same_v< ProtocolT, protocol::requests::QueryFont::Reply::FONTPROP > ||
+        std::is_same_v< ProtocolT, protocol::requests::QueryFont::Reply::CHARINFO > ||
         std::is_same_v< ProtocolT, protocol::requests::PolySegment::SEGMENT > ||
         std::is_same_v< ProtocolT, protocol::requests::StoreColors::COLORITEM > ||
-        std::is_same_v< ProtocolT, protocol::requests::QueryColors::RGB > > {};
+        std::is_same_v< ProtocolT, protocol::requests::QueryColors::Reply::RGB > > {};
     template < typename ProtocolT >
     static constexpr bool _is_fixed_length_struct_protocol_type_v =
         _is_fixed_length_struct_protocol_type< ProtocolT >::value;
@@ -352,7 +353,8 @@ private:
     // TBD wrapper mainly for use with _parseLISTof<>
     // all other types, eg ATOM TIMESTAMP WINDOW
     template < typename ProtocolT,
-               std::enable_if_t< _is_integer_protocol_type_v< ProtocolT >, bool > = true>
+               std::enable_if_t<
+                   _is_integer_protocol_type_v< ProtocolT >, bool > = true>
     _ParsingOutputs
     _parseProtocolType(
         const uint8_t* data, const size_t sz,
@@ -593,11 +595,6 @@ private:
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    // TBD replies with modified contents, eg QueryExtension
-    template < typename RequestT >
-    _ParsingOutputs _parseReply(
-        Connection* conn, uint8_t* data, const size_t sz );
-    // TBD normal unmodified data
     template < typename RequestT >
     _ParsingOutputs _parseReply(
         Connection* conn, const uint8_t* data, const size_t sz );
@@ -606,10 +603,10 @@ private:
 
     static constexpr uint8_t _GENERATED_EVENT_FLAG { 0x80 };
     static constexpr uint8_t _EVENT_CODE_MASK { uint8_t(~_GENERATED_EVENT_FLAG) };
+    template < typename EventT >
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );
-    template < typename EventT >
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );

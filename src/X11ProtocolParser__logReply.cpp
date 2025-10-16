@@ -20,17 +20,18 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetWindowAttributes::ReplyEncoding ) ); // TBD
+                protocol::requests::GetWindowAttributes::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetWindowAttributes;
-    const GetWindowAttributes::ReplyEncoding* encoding {
-        reinterpret_cast< const GetWindowAttributes::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetWindowAttributes::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetWindowAttributes::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetWindowAttributes::Reply::Encoding* encoding {
+        reinterpret_cast< const GetWindowAttributes::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetWindowAttributes::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetWindowAttributes::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
@@ -44,52 +45,53 @@ X11ProtocolParser::_parseReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "backing-store", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->backing_store, GetWindowAttributes::backing_store_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "backing-store", name_width, ws.equals,
+        _formatInteger( encoding->header.backing_store,
+                        GetWindowAttributes::Reply::backing_store_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "visual", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->visual ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "class", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->class_,
-                        GetWindowAttributes::class_names, _IndexRange{ 1, 2 } ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bit-gravity", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->bit_gravity ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "win-gravity", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->win_gravity ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "backing-planes", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->backing_planes ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "backing-pixel", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->backing_pixel ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "save-under", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->save_under ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "map-is-installed", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->map_is_installed ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "map-state", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->map_state, GetWindowAttributes::map_state_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "override-redirect", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->override_redirect ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "all-event-masks", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->all_event_masks ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "your-event-mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->your_event_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "do-not-propagate-mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->do_not_propagate_mask ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "visual", name_width, ws.equals,
+        _formatProtocolType( encoding->visual ), ws.separator,
+        ws.memb_indent, "class", name_width, ws.equals,
+        _formatInteger(
+            encoding->class_, GetWindowAttributes::Reply::class_names,
+            _IndexRange( GetWindowAttributes::Reply::CLASS_ENUM_MIN,
+                         GetWindowAttributes::Reply::class_names.size() - 1 ) ), ws.separator,
+        ws.memb_indent, "bit-gravity", name_width, ws.equals,
+        _formatProtocolType( encoding->bit_gravity ), ws.separator,
+        ws.memb_indent, "win-gravity", name_width, ws.equals,
+        _formatProtocolType( encoding->win_gravity ), ws.separator,
+        ws.memb_indent, "backing-planes", name_width, ws.equals,
+        _formatInteger( encoding->backing_planes ), ws.separator,
+        ws.memb_indent, "backing-pixel", name_width, ws.equals,
+        _formatInteger( encoding->backing_pixel ), ws.separator,
+        ws.memb_indent, "save-under", name_width, ws.equals,
+        _formatProtocolType( encoding->save_under ), ws.separator,
+        ws.memb_indent, "map-is-installed", name_width, ws.equals,
+        _formatProtocolType( encoding->map_is_installed ), ws.separator,
+        ws.memb_indent, "map-state", name_width, ws.equals,
+        _formatInteger( encoding->map_state,
+                        GetWindowAttributes::Reply::map_state_names ), ws.separator,
+        ws.memb_indent, "override-redirect", name_width, ws.equals,
+        _formatProtocolType( encoding->override_redirect ), ws.separator,
+        ws.memb_indent, "all-event-masks", name_width, ws.equals,
+        _formatProtocolType( encoding->all_event_masks ), ws.separator,
+        ws.memb_indent, "your-event-mask", name_width, ws.equals,
+        _formatProtocolType( encoding->your_event_mask ), ws.separator,
+        ws.memb_indent, "do-not-propagate-mask", name_width, ws.equals,
+        _formatProtocolType( encoding->do_not_propagate_mask ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -102,20 +104,21 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetGeometry::ReplyEncoding ) ); // TBD
+                protocol::requests::GetGeometry::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetGeometry;
-    const GetGeometry::ReplyEncoding* encoding {
-        reinterpret_cast< const GetGeometry::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetGeometry::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetGeometry::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetGeometry::Reply::Encoding* encoding {
+        reinterpret_cast< const GetGeometry::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetGeometry::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetGeometry::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -124,37 +127,34 @@ X11ProtocolParser::_parseReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->depth ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "depth", name_width, ws.equals,
+        _formatInteger( encoding->header.depth ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "root", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->root ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "border-width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->border_width ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "border-width", name_width, ws.equals,
+        _formatInteger( encoding->border_width ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -167,28 +167,29 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryTree::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryTree::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryTree;
-    const QueryTree::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryTree::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryTree::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(QueryTree::ReplyEncoding) +
-                           ( sizeof(protocol::WINDOW) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const QueryTree::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryTree::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryTree::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryTree::Reply::Encoding ) +
+                           ( sizeof( protocol::WINDOW ) * encoding->children_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs children {
         _parseLISTof< protocol::WINDOW >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
-    assert( encoding->reply_length == _alignedUnits( children.bytes_parsed ) );
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->children_ct, ws.nested() ) };
+    assert( encoding->header.extra_aligned_units == _alignedUnits( children.bytes_parsed ) );
     reply.bytes_parsed += children.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -196,34 +197,31 @@ X11ProtocolParser::_parseReply<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "root", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->root ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "parent", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->parent, QueryTree::parent_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent,
+                             QueryTree::Reply::parent_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n children", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "children", name_width, _ROOT_WS.equals,
-        children.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n children)", name_width, ws.equals,
+            _formatInteger( encoding->children_ct ), ws.separator ),
+        ws.memb_indent, "children", name_width, ws.equals,
+        children.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -236,47 +234,49 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::InternAtom::ReplyEncoding ) ); // TBD
+                protocol::requests::InternAtom::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::InternAtom;
-    const InternAtom::ReplyEncoding* encoding {
-        reinterpret_cast< const InternAtom::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( InternAtom::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(InternAtom::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
-    // TBD replies may be batched, so use encoding->sequence_number instead of conn->sequence
+    const InternAtom::Reply::Encoding* encoding {
+        reinterpret_cast< const InternAtom::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( InternAtom::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof(InternAtom::Reply::Encoding) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+
+    // Intern own copy of atom if not stored already, to reduce incidence of
+    //   "(unknown atom)" in log
     if ( encoding->atom.data != protocol::atoms::NONE )
-        _internStashedAtom( { conn->id, encoding->sequence_number }, encoding->atom );
+        _internStashedAtom( { conn->id, encoding->header.sequence_num },
+                            encoding->atom );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "atom", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->atom, InternAtom::atom_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "atom", name_width, ws.equals,
+        _formatProtocolType( encoding->atom,
+                             InternAtom::Reply::atom_names ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -289,54 +289,52 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetAtomName::ReplyEncoding ) ); // TBD
+                protocol::requests::GetAtomName::Reply::Encoding ) );
 
     _ParsingOutputs reply;
     using protocol::requests::GetAtomName;
-    const GetAtomName::ReplyEncoding* encoding {
-        reinterpret_cast< const GetAtomName::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetAtomName::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetAtomName::ReplyEncoding) +
-                           _pad( sizeof(char) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetAtomName::Reply::Encoding* encoding {
+        reinterpret_cast< const GetAtomName::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetAtomName::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof(GetAtomName::Reply::Encoding) +
+                           _pad( sizeof(char) * encoding->name_len ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const std::string_view name {
-        reinterpret_cast< const char* >( data + reply.bytes_parsed ), encoding->n };
-    reply.bytes_parsed += _pad(encoding->n);
+        reinterpret_cast< const char* >( data + reply.bytes_parsed ),
+        encoding->name_len };
+    reply.bytes_parsed += _pad( encoding->name_len );
 
+    const _Whitespace& ws { _ROOT_WS };
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "name length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -349,36 +347,39 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetProperty::ReplyEncoding ) ); // TBD
+                protocol::requests::GetProperty::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetProperty;
-    const GetProperty::ReplyEncoding* encoding {
-        reinterpret_cast< const GetProperty::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetProperty::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->format <= 32 && encoding->format % 8 == 0 );
+    const GetProperty::Reply::Encoding* encoding {
+        reinterpret_cast< const GetProperty::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetProperty::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.format <= 32 && encoding->header.format % 8 == 0 );
     // followed by LISTofBYTE value
-    const uint32_t value_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetProperty::ReplyEncoding) +
-                           _pad( value_sz ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const uint32_t value_sz { encoding->value_fmt_unit_len *
+                              ( encoding->header.format / 8 ) };
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof(GetProperty::Reply::Encoding) + _pad( value_sz ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+
     _ParsingOutputs value;
     if ( encoding->type.data == protocol::atoms::predefined::STRING ) {
         value.str = fmt::format(
             "{:?}", std::string_view{
-                reinterpret_cast< const char* >( data + reply.bytes_parsed ), value_sz } );
+                reinterpret_cast< const char* >( data + reply.bytes_parsed ),
+                value_sz } );
         value.bytes_parsed = value_sz;
     } else {
         value = _parseLISTof< protocol::BYTE >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed, value_sz,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) );
+            ws.nested( _Whitespace::SINGLELINE ) );
     }
     reply.bytes_parsed += _pad( value.bytes_parsed );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(value n format units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -388,36 +389,33 @@ X11ProtocolParser::_parseReply<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->format ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "format", name_width, ws.equals,
+        _formatInteger( encoding->header.format ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "type", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->type, GetProperty::reply_type_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bytes-after", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->bytes_after ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "type", name_width, ws.equals,
+        _formatProtocolType( encoding->type,
+                             GetProperty::Reply::type_names ), ws.separator,
+        ws.memb_indent, "bytes-after", name_width, ws.equals,
+        _formatInteger( encoding->bytes_after ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n format units", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->fmt_unit_ct ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "value", name_width, _ROOT_WS.equals,
-        value.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(value n format units)", name_width, ws.equals,
+            _formatInteger( encoding->value_fmt_unit_len ), ws.separator ),
+        ws.memb_indent, "value", name_width, ws.equals,
+        value.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -430,57 +428,54 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::ListProperties::ReplyEncoding ) ); // TBD
+                protocol::requests::ListProperties::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::ListProperties;
-    const ListProperties::ReplyEncoding* encoding {
-        reinterpret_cast< const ListProperties::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( ListProperties::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length == encoding->n );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(ListProperties::ReplyEncoding) +
-                           _pad( sizeof(protocol::ATOM) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const ListProperties::Reply::Encoding* encoding {
+        reinterpret_cast< const ListProperties::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( ListProperties::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units == encoding->atoms_ct );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( ListProperties::Reply::Encoding ) +
+                           _pad( sizeof( protocol::ATOM ) * encoding->atoms_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs atoms {
         _parseLISTof< protocol::ATOM >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->atoms_ct, ws.nested() ) };
     reply.bytes_parsed += _pad( atoms.bytes_parsed );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n atoms", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "atoms", name_width, _ROOT_WS.equals,
-        atoms.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n atoms)", name_width, ws.equals,
+            _formatInteger( encoding->atoms_ct ), ws.separator ),
+        ws.memb_indent, "atoms", name_width, ws.equals,
+        atoms.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -493,44 +488,43 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetSelectionOwner::ReplyEncoding ) ); // TBD
+                protocol::requests::GetSelectionOwner::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetSelectionOwner;
-    const GetSelectionOwner::ReplyEncoding* encoding {
-        reinterpret_cast< const GetSelectionOwner::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetSelectionOwner::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetSelectionOwner::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetSelectionOwner::Reply::Encoding* encoding {
+        reinterpret_cast< const GetSelectionOwner::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetSelectionOwner::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetSelectionOwner::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "owner", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->owner, GetSelectionOwner::owner_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "owner", name_width, ws.equals,
+        _formatProtocolType( encoding->owner,
+                             GetSelectionOwner::Reply::owner_names ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -543,45 +537,44 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GrabPointer::ReplyEncoding ) ); // TBD
+                protocol::requests::GrabPointer::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GrabPointer;
-    const GrabPointer::ReplyEncoding* encoding {
-        reinterpret_cast< const GrabPointer::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GrabPointer::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GrabPointer::ReplyEncoding)  -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GrabPointer::Reply::Encoding* encoding {
+        reinterpret_cast< const GrabPointer::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GrabPointer::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GrabPointer::Reply::Encoding )  -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "status", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->status, GrabPointer::status_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "status", name_width, ws.equals,
+        _formatInteger( encoding->header.status,
+                        GrabPointer::Reply::status_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
     return reply;
 }
@@ -594,45 +587,44 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GrabKeyboard::ReplyEncoding ) ); // TBD
+                protocol::requests::GrabKeyboard::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GrabKeyboard;
-    const GrabKeyboard::ReplyEncoding* encoding {
-        reinterpret_cast< const GrabKeyboard::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GrabKeyboard::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GrabKeyboard::ReplyEncoding)  -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GrabKeyboard::Reply::Encoding* encoding {
+        reinterpret_cast< const GrabKeyboard::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GrabKeyboard::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GrabKeyboard::Reply::Encoding )  -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "status", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->status, GrabKeyboard::status_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "status", name_width, ws.equals,
+        _formatInteger( encoding->header.status,
+                        GrabKeyboard::Reply::status_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
     return reply;
 }
@@ -645,20 +637,21 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryPointer::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryPointer::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryPointer;
-    const QueryPointer::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryPointer::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryPointer::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(QueryPointer::ReplyEncoding)  -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const QueryPointer::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryPointer::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryPointer::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryPointer::Reply::Encoding )  -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -667,39 +660,37 @@ X11ProtocolParser::_parseReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "same-screen", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->same_screen ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->header.same_screen ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "root", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->root ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "child", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->child, QueryPointer::child_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "root-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->root_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "root-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->root_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "win-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->win_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "win-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->win_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->mask ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "reply length", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "root", name_width, ws.equals,
+        _formatProtocolType( encoding->root ), ws.separator,
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child,
+                             QueryPointer::Reply::child_names ), ws.separator,
+        ws.memb_indent, "root-x", name_width, ws.equals,
+        _formatInteger( encoding->root_x ), ws.separator,
+        ws.memb_indent, "root-y", name_width, ws.equals,
+        _formatInteger( encoding->root_y ), ws.separator,
+        ws.memb_indent, "win-x", name_width, ws.equals,
+        _formatInteger( encoding->win_x ), ws.separator,
+        ws.memb_indent, "win-y", name_width, ws.equals,
+        _formatInteger( encoding->win_y ), ws.separator,
+        ws.memb_indent, "mask", name_width, ws.equals,
+        _formatProtocolType( encoding->mask ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -712,56 +703,54 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetMotionEvents::ReplyEncoding ) ); // TBD
+                protocol::requests::GetMotionEvents::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetMotionEvents;
-    const GetMotionEvents::ReplyEncoding* encoding {
-        reinterpret_cast< const GetMotionEvents::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetMotionEvents::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetMotionEvents::ReplyEncoding) +
-                           ( sizeof(GetMotionEvents::TIMECOORD) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetMotionEvents::Reply::Encoding* encoding {
+        reinterpret_cast< const GetMotionEvents::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetMotionEvents::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetMotionEvents::Reply::Encoding ) +
+                           ( sizeof( GetMotionEvents::Reply::TIMECOORD ) *
+                             encoding->events_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs events {
-        _parseLISTof< GetMotionEvents::TIMECOORD >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+        _parseLISTof< GetMotionEvents::Reply::TIMECOORD >(
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->events_ct, ws.nested() ) };
     reply.bytes_parsed += events.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n events", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "events", name_width, _ROOT_WS.equals,
-        events.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n events)", name_width, ws.equals,
+            _formatInteger( encoding->events_ct ), ws.separator ),
+        ws.memb_indent, "events", name_width, ws.equals,
+        events.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -774,21 +763,22 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::TranslateCoordinates::ReplyEncoding ) ); // TBD
+                protocol::requests::TranslateCoordinates::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::TranslateCoordinates;
-    const TranslateCoordinates::ReplyEncoding* encoding {
-        reinterpret_cast< const TranslateCoordinates::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( TranslateCoordinates::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length == 0 );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(TranslateCoordinates::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const TranslateCoordinates::Reply::Encoding* encoding {
+        reinterpret_cast< const TranslateCoordinates::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( TranslateCoordinates::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units == 0 );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( TranslateCoordinates::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -796,31 +786,29 @@ X11ProtocolParser::_parseReply<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "same-screen", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->same_screen ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "same-screen", name_width, ws.equals,
+        _formatProtocolType( encoding->header.same_screen ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "child", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->child, TranslateCoordinates::child_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "child", name_width, ws.equals,
+        _formatProtocolType( encoding->child,
+                             TranslateCoordinates::Reply::child_names ), ws.separator,
+        ws.memb_indent, "dst-x", name_width, ws.equals,
+        _formatInteger( encoding->dst_x ), ws.separator,
+        ws.memb_indent, "dst-y", name_width, ws.equals,
+        _formatInteger( encoding->dst_y ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -833,20 +821,21 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetInputFocus::ReplyEncoding ) ); // TBD
+                protocol::requests::GetInputFocus::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetInputFocus;
-    const GetInputFocus::ReplyEncoding* encoding {
-        reinterpret_cast< const GetInputFocus::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetInputFocus::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetInputFocus::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetInputFocus::Reply::Encoding* encoding {
+        reinterpret_cast< const GetInputFocus::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetInputFocus::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetInputFocus::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -854,27 +843,26 @@ X11ProtocolParser::_parseReply<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "revert-to", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->revert_to, GetInputFocus::revert_to_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "revert-to", name_width, ws.equals,
+        _formatInteger( encoding->header.revert_to,
+                        GetInputFocus::Reply::revert_to_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "focus", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->focus, GetInputFocus::focus_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "focus", name_width, ws.equals,
+        _formatProtocolType( encoding->focus, GetInputFocus::Reply::focus_names,
+                             _IndexRange{ 0, GetInputFocus::Reply::FOCUS_ENUM_MAX } ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -887,50 +875,48 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryKeymap::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryKeymap::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryKeymap;
-    const QueryKeymap::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryKeymap::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryKeymap::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(QueryKeymap::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const QueryKeymap::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryKeymap::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryKeymap::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryKeymap::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
-            encoding->keys, sizeof(encoding->keys), sizeof(encoding->keys),
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+            encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
+            ws.nested( _Whitespace::SINGLELINE ) ) };
     // keys bytes already parsed as part of encoding
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "keys", name_width, _ROOT_WS.equals,
-        keys.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "keys", name_width, ws.equals,
+        keys.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -943,33 +929,37 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryFont::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryFont::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryFont;
-    const QueryFont::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryFont::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryFont::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof( QueryFont::ReplyEncoding ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ +
-                           ( sizeof( QueryFont::FONTPROP ) * encoding->n ) +
-                           ( sizeof( QueryFont::CHARINFO ) * encoding->m ) ) );
+    const QueryFont::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryFont::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryFont::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryFont::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ +
+                           ( sizeof( QueryFont::Reply::FONTPROP ) *
+                             encoding->properties_ct ) +
+                           ( sizeof( QueryFont::Reply::CHARINFO ) *
+                             encoding->char_infos_ct ) ) );
 
     const _ParsingOutputs properties {
-        _parseLISTof< QueryFont::FONTPROP >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+        _parseLISTof< QueryFont::Reply::FONTPROP >(
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->properties_ct, ws.nested() ) };
     reply.bytes_parsed += properties.bytes_parsed;
+
     const _ParsingOutputs char_infos {
-        _parseLISTof< QueryFont::CHARINFO >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->m,
-            _ROOT_WS.nested() ) };
+        _parseLISTof< QueryFont::Reply::CHARINFO >(
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->char_infos_ct, ws.nested() ) };
     reply.bytes_parsed += char_infos.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -981,59 +971,55 @@ X11ProtocolParser::_parseReply<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "min-bounds", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->min_bounds, _ROOT_WS.nested() ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "max-bounds", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->max_bounds, _ROOT_WS.nested() ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "min-char-or-byte2", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->min_char_or_byte2 ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "max-char-or-byte2", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->max_char_or_byte2 ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "default-char", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->default_char ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "min-bounds", name_width, ws.equals,
+        _formatProtocolType( encoding->min_bounds, ws.nested() ), ws.separator,
+        ws.memb_indent, "max-bounds", name_width, ws.equals,
+        _formatProtocolType( encoding->max_bounds, ws.nested() ), ws.separator,
+        ws.memb_indent, "min-char-or-byte2", name_width, ws.equals,
+        _formatInteger( encoding->min_char_or_byte2 ), ws.separator,
+        ws.memb_indent, "max-char-or-byte2", name_width, ws.equals,
+        _formatInteger( encoding->max_char_or_byte2 ), ws.separator,
+        ws.memb_indent, "default-char", name_width, ws.equals,
+        _formatInteger( encoding->default_char ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n properties", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "draw-direction", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->draw_direction, QueryFont::draw_direction_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "min-byte1", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->min_byte1 ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "max-byte1", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->max_byte1 ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "all-chars-exist", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->all_chars_exist ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "font-ascent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->font_ascent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "font-descent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->font_descent ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(n properties)", name_width, ws.equals,
+            _formatInteger( encoding->properties_ct ), ws.separator ),
+        ws.memb_indent, "draw-direction", name_width, ws.equals,
+        _formatInteger( encoding->draw_direction,
+                        QueryFont::Reply::draw_direction_names ), ws.separator,
+        ws.memb_indent, "min-byte1", name_width, ws.equals,
+        _formatInteger( encoding->min_byte1 ), ws.separator,
+        ws.memb_indent, "max-byte1", name_width, ws.equals,
+        _formatInteger( encoding->max_byte1 ), ws.separator,
+        ws.memb_indent, "all-chars-exist", name_width, ws.equals,
+        _formatProtocolType( encoding->all_chars_exist ), ws.separator,
+        ws.memb_indent, "font-ascent", name_width, ws.equals,
+        _formatInteger( encoding->font_ascent ), ws.separator,
+        ws.memb_indent, "font-descent", name_width, ws.equals,
+        _formatInteger( encoding->font_descent ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "m char-infos", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->m ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "properties", name_width, _ROOT_WS.equals,
-        properties.str, _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "char-infos", name_width, _ROOT_WS.equals,
-        char_infos.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(m char-infos)", name_width, ws.equals,
+            _formatInteger( encoding->char_infos_ct ), ws.separator ),
+        ws.memb_indent, "properties", name_width, ws.equals,
+        properties.str, ws.separator,
+        ws.memb_indent, "char-infos", name_width, ws.equals,
+        char_infos.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1045,22 +1031,22 @@ X11ProtocolParser::_parseReply<
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
-    // TBD variable length
     assert( sz >= sizeof(
-                protocol::requests::QueryTextExtents::ReplyEncoding ) );
+                protocol::requests::QueryTextExtents::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryTextExtents;
-    const QueryTextExtents::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryTextExtents::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryTextExtents::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof( QueryTextExtents::ReplyEncoding ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const QueryTextExtents::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryTextExtents::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryTextExtents::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryTextExtents::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -1069,39 +1055,37 @@ X11ProtocolParser::_parseReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "draw-direction", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->draw_direction, QueryTextExtents::draw_direction_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "draw-direction", name_width, ws.equals,
+        _formatInteger( encoding->header.draw_direction,
+                        QueryTextExtents::Reply::draw_direction_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "font-ascent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->font_ascent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "font-descent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->font_descent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "overall-ascent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->overall_ascent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "overall-descent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->overall_descent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "overall-width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->overall_width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "overall-left", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->overall_left ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "overall-right", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->overall_right ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "font-ascent", name_width, ws.equals,
+        _formatInteger( encoding->font_ascent ), ws.separator,
+        ws.memb_indent, "font-descent", name_width, ws.equals,
+        _formatInteger( encoding->font_descent ), ws.separator,
+        ws.memb_indent, "overall-ascent", name_width, ws.equals,
+        _formatInteger( encoding->overall_ascent ), ws.separator,
+        ws.memb_indent, "overall-descent", name_width, ws.equals,
+        _formatInteger( encoding->overall_descent ), ws.separator,
+        ws.memb_indent, "overall-width", name_width, ws.equals,
+        _formatInteger( encoding->overall_width ), ws.separator,
+        ws.memb_indent, "overall-left", name_width, ws.equals,
+        _formatInteger( encoding->overall_left ), ws.separator,
+        ws.memb_indent, "overall-right", name_width, ws.equals,
+        _formatInteger( encoding->overall_right ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1113,58 +1097,54 @@ X11ProtocolParser::_parseReply<
         Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
-    // TBD variable length
     assert( sz >= sizeof(
-                protocol::requests::ListFonts::ReplyEncoding ) );
+                protocol::requests::ListFonts::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::ListFonts;
-    const ListFonts::ReplyEncoding* encoding {
-        reinterpret_cast< const ListFonts::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( ListFonts::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const ListFonts::Reply::Encoding* encoding {
+        reinterpret_cast< const ListFonts::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( ListFonts::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
 
     const _ParsingOutputs names {
         _parseLISTof< protocol::STR >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->name_ct,
-            _ROOT_WS.nested() ) };
-    reply.bytes_parsed += _pad(names.bytes_parsed);
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(ListFonts::ReplyEncoding) +
-                           _pad(names.bytes_parsed) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->names_ct, ws.nested() ) };
+    reply.bytes_parsed += _pad( names.bytes_parsed );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( ListFonts::Reply::Encoding ) +
+                           _pad( names.bytes_parsed ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n names", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->name_ct ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "names", name_width, _ROOT_WS.equals,
-        names.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n names)", name_width, ws.equals,
+            _formatInteger( encoding->names_ct ), ws.separator ),
+        ws.memb_indent, "names", name_width, ws.equals,
+        names.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1177,135 +1157,129 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::ListFontsWithInfo::ReplyEncoding ) ); // TBD
+                protocol::requests::ListFontsWithInfo::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::ListFontsWithInfo;
-    const ListFontsWithInfo::ReplyEncoding* encoding {
-        reinterpret_cast< const ListFontsWithInfo::ReplyEncoding* >( data ) };
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const ListFontsWithInfo::Reply::Encoding* encoding {
+        reinterpret_cast< const ListFontsWithInfo::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( ListFontsWithInfo::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
 
-    if ( encoding->n == ListFontsWithInfo::LAST_REPLY ) {
-        const ListFontsWithInfo::FinalReplyEncoding* fr_encoding {
-            reinterpret_cast< const ListFontsWithInfo::FinalReplyEncoding* >( data ) };
-        reply.bytes_parsed += sizeof( ListFontsWithInfo::FinalReplyEncoding );
-        assert( encoding->reply_length ==
-                _alignedUnits( sizeof(ListFontsWithInfo::FinalReplyEncoding) -
-                               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    if ( encoding->header.last_reply == ListFontsWithInfo::Reply::LAST_REPLY ) {
+        assert( encoding->header.extra_aligned_units ==
+                _alignedUnits( sizeof( ListFontsWithInfo::Reply::Encoding ) -
+                               protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
         const uint32_t name_width (
-            settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+            settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
         reply.str = fmt::format(
             "{{{}"
             "{}"
             "{}{: <{}}{}{}{}"
             "{}{}"
             "{}}}",
-            _ROOT_WS.separator,
-            !settings.verbose ? "" :
-            fmt::format(
+            ws.separator,
+            !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-                _formatInteger( fr_encoding->reply ), _ROOT_WS.separator ),
-            _ROOT_WS.memb_indent, "last-reply", name_width, _ROOT_WS.equals,
-            _formatInteger( fr_encoding->last_reply ), _ROOT_WS.separator,
-            !settings.verbose ? "" :
-            fmt::format(
+                ws.memb_indent, "reply", name_width, ws.equals,
+                _formatInteger( encoding->header.reply ), ws.separator ),
+            ws.memb_indent, "last-reply", name_width, ws.equals,
+            _formatInteger( encoding->header.last_reply ), ws.separator,
+            !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-                _formatInteger( fr_encoding->sequence_number ), _ROOT_WS.separator ),
-            !settings.verbose ? "" :
-            fmt::format(
+                ws.memb_indent, "(sequence number)", name_width, ws.equals,
+                _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-                _formatInteger( fr_encoding->reply_length ), _ROOT_WS.separator ),
-            _ROOT_WS.encl_indent
+                ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+                _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            ws.encl_indent
             );
-    } else {  // encoding->n != ListFontsWithInfo::LAST_REPLY
-        reply.bytes_parsed += sizeof( ListFontsWithInfo::ReplyEncoding );
-
-        const _ParsingOutputs properties {
-            _parseLISTof< ListFontsWithInfo::FONTPROP >(
-                data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->m,
-                _ROOT_WS.nested() ) };
-        reply.bytes_parsed += properties.bytes_parsed;
-        const std::string_view name {
-            reinterpret_cast< const char* >( data + reply.bytes_parsed ), encoding->n };
-        reply.bytes_parsed += _pad( encoding->n );
-
-        assert( encoding->reply_length ==
-                _alignedUnits( sizeof(ListFontsWithInfo::ReplyEncoding) +
-                               _pad(encoding->n) +
-                               ( sizeof(ListFontsWithInfo::FONTPROP) * encoding->m ) -
-                               protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
-        const uint32_t name_width (
-            settings.multiline ? sizeof( "max-char-or-byte2" ) - 1 : 0 );
-        reply.str = fmt::format(
-            "{{{}"
-            "{}{}{}{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-            "{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-            "{}{: <{}}{}{:?}{}"
-            "{}}}",
-            _ROOT_WS.separator,
-            !settings.verbose ? "" :
-            fmt::format(
-                "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-                _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-            !settings.verbose ? "" :
-            fmt::format(
-                "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "name len", name_width, _ROOT_WS.equals,
-                _formatInteger( encoding->n ), _ROOT_WS.separator ),
-            !settings.verbose ? "" :
-            fmt::format(
-                "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-                _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-            !settings.verbose ? "" :
-            fmt::format(
-                "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-                _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-            _ROOT_WS.memb_indent, "min-bounds", name_width, _ROOT_WS.equals,
-            _formatProtocolType( encoding->min_bounds, _ROOT_WS.nested() ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "max-bounds", name_width, _ROOT_WS.equals,
-            _formatProtocolType( encoding->max_bounds, _ROOT_WS.nested() ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "min-char-or-byte2", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->min_char_or_byte2 ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "max-char-or-byte2", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->max_char_or_byte2 ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "default-char", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->default_char ), _ROOT_WS.separator,
-            !settings.verbose ? "" :
-            fmt::format(
-                "{}{: <{}}{}{}{}",
-                _ROOT_WS.memb_indent, "n properties", name_width, _ROOT_WS.equals,
-                _formatInteger( encoding->m ), _ROOT_WS.separator ),
-            _ROOT_WS.memb_indent, "draw-direction", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->draw_direction, ListFontsWithInfo::draw_direction_names ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "min-byte1", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->min_byte1 ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "max-byte1", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->max_byte1 ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "all-chars-exist", name_width, _ROOT_WS.equals,
-            _formatProtocolType( encoding->all_chars_exist ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "font-ascent", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->font_ascent ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "font-descent", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->font_descent ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "replies-hint", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->replies_hint ), _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "properties", name_width, _ROOT_WS.equals,
-            properties.str, _ROOT_WS.separator,
-            _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-            name, _ROOT_WS.separator,
-            _ROOT_WS.encl_indent
-            );
+        return reply;
     }
+
+    const _ParsingOutputs properties {
+        _parseLISTof< ListFontsWithInfo::Reply::FONTPROP >(
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->properties_ct, ws.nested() ) };
+    reply.bytes_parsed += properties.bytes_parsed;
+
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + reply.bytes_parsed ),
+        encoding->header.name_len };
+    reply.bytes_parsed += _pad( encoding->header.name_len );
+
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( ListFontsWithInfo::Reply::Encoding ) +
+                           ( sizeof( ListFontsWithInfo::Reply::FONTPROP ) *
+                             encoding->properties_ct ) +
+                           _pad( encoding->header.name_len ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+    const uint32_t name_width (
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+    reply.str = fmt::format(
+        "{{{}"
+        "{}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{:?}{}"
+        "{}}}",
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(name len)", name_width, ws.equals,
+            _formatInteger( encoding->header.name_len ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "min-bounds", name_width, ws.equals,
+        _formatProtocolType( encoding->min_bounds, ws.nested() ), ws.separator,
+        ws.memb_indent, "max-bounds", name_width, ws.equals,
+        _formatProtocolType( encoding->max_bounds, ws.nested() ), ws.separator,
+        ws.memb_indent, "min-char-or-byte2", name_width, ws.equals,
+        _formatInteger( encoding->min_char_or_byte2 ), ws.separator,
+        ws.memb_indent, "max-char-or-byte2", name_width, ws.equals,
+        _formatInteger( encoding->max_char_or_byte2 ), ws.separator,
+        ws.memb_indent, "default-char", name_width, ws.equals,
+        _formatInteger( encoding->default_char ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(n properties)", name_width, ws.equals,
+            _formatInteger( encoding->properties_ct ), ws.separator ),
+        ws.memb_indent, "draw-direction", name_width, ws.equals,
+        _formatInteger( encoding->draw_direction,
+                        ListFontsWithInfo::Reply::draw_direction_names ), ws.separator,
+        ws.memb_indent, "min-byte1", name_width, ws.equals,
+        _formatInteger( encoding->min_byte1 ), ws.separator,
+        ws.memb_indent, "max-byte1", name_width, ws.equals,
+        _formatInteger( encoding->max_byte1 ), ws.separator,
+        ws.memb_indent, "all-chars-exist", name_width, ws.equals,
+        _formatProtocolType( encoding->all_chars_exist ), ws.separator,
+        ws.memb_indent, "font-ascent", name_width, ws.equals,
+        _formatInteger( encoding->font_ascent ), ws.separator,
+        ws.memb_indent, "font-descent", name_width, ws.equals,
+        _formatInteger( encoding->font_descent ), ws.separator,
+        ws.memb_indent, "replies-hint", name_width, ws.equals,
+        _formatInteger( encoding->replies_hint ), ws.separator,
+        ws.memb_indent, "properties", name_width, ws.equals,
+        properties.str, ws.separator,
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
+        );
     return reply;
 }
 
@@ -1317,56 +1291,53 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetFontPath::ReplyEncoding ) ); // TBD
+                protocol::requests::GetFontPath::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetFontPath;
-    const GetFontPath::ReplyEncoding* encoding {
-        reinterpret_cast< const GetFontPath::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetFontPath::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const GetFontPath::Reply::Encoding* encoding {
+        reinterpret_cast< const GetFontPath::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetFontPath::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
 
     const _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->str_ct,
-            _ROOT_WS.nested() ) };
-    reply.bytes_parsed += _pad(path.bytes_parsed);
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetFontPath::ReplyEncoding) +
-                           _pad(path.bytes_parsed) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->path_ct, ws.nested() ) };
+    reply.bytes_parsed += _pad( path.bytes_parsed );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetFontPath::Reply::Encoding ) +
+                           _pad( path.bytes_parsed ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n path elems", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->str_ct ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "path", name_width, _ROOT_WS.equals,
-        path.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n path elems)", name_width, ws.equals,
+            _formatInteger( encoding->path_ct ), ws.separator ),
+        ws.memb_indent, "path", name_width, ws.equals,
+        path.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1379,26 +1350,27 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetImage::ReplyEncoding ) ); // TBD
+                protocol::requests::GetImage::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetImage;
-    const GetImage::ReplyEncoding* encoding {
-        reinterpret_cast< const GetImage::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetImage::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    // No use in an assert on reply_length, as here it is the only way to derive
+    const GetImage::Reply::Encoding* encoding {
+        reinterpret_cast< const GetImage::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetImage::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    // No use in an assert on header.extra_aligned_units, as here it is the only way to derive
     //   the length of LISTofBYTE `data`
 
-    const size_t data_sz { encoding->reply_length * _ALIGN };
+    const size_t data_sz { encoding->header.extra_aligned_units * _ALIGN };
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            data_sz, _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
-    reply.bytes_parsed += _pad(data_.bytes_parsed);
+            data_sz, ws.nested( _Whitespace::SINGLELINE ) ) };
+    reply.bytes_parsed += _pad( data_.bytes_parsed );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -1406,29 +1378,27 @@ X11ProtocolParser::_parseReply<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->depth ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "depth", name_width, ws.equals,
+        _formatInteger( encoding->header.depth ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "visual", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->visual, GetImage::visual_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "data", name_width, _ROOT_WS.equals,
-        data_.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "visual", name_width, ws.equals,
+        _formatProtocolType( encoding->visual,
+                             GetImage::Reply::visual_names ), ws.separator,
+        ws.memb_indent, "data", name_width, ws.equals,
+        data_.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1441,56 +1411,53 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::ListInstalledColormaps::ReplyEncoding ) ); // TBD
+                protocol::requests::ListInstalledColormaps::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::ListInstalledColormaps;
-    const ListInstalledColormaps::ReplyEncoding* encoding {
-        reinterpret_cast< const ListInstalledColormaps::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( ListInstalledColormaps::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(ListInstalledColormaps::ReplyEncoding) +
-                           ( sizeof(protocol::COLORMAP) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const ListInstalledColormaps::Reply::Encoding* encoding {
+        reinterpret_cast< const ListInstalledColormaps::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( ListInstalledColormaps::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( ListInstalledColormaps::Reply::Encoding ) +
+                           ( sizeof( protocol::COLORMAP ) * encoding->cmaps_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs cmaps {
         _parseLISTof< protocol::COLORMAP >(
-            data + reply.bytes_parsed, sz- reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->cmaps_ct, ws.nested() ) };
     reply.bytes_parsed += cmaps.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n cmaps", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "cmaps", name_width, _ROOT_WS.equals,
-        cmaps.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n cmaps)", name_width, ws.equals,
+            _formatInteger( encoding->cmaps_ct ), ws.separator ),
+        ws.memb_indent, "cmaps", name_width, ws.equals,
+        cmaps.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1503,50 +1470,48 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::AllocColor::ReplyEncoding ) ); // TBD
+                protocol::requests::AllocColor::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::AllocColor;
-    const AllocColor::ReplyEncoding* encoding {
-        reinterpret_cast< const AllocColor::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( AllocColor::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(AllocColor::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const AllocColor::Reply::Encoding* encoding {
+        reinterpret_cast< const AllocColor::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( AllocColor::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( AllocColor::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->blue ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pixel", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pixel ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "red", name_width, ws.equals,
+        _formatInteger( encoding->red ), ws.separator,
+        ws.memb_indent, "green", name_width, ws.equals,
+        _formatInteger( encoding->green ), ws.separator,
+        ws.memb_indent, "blue", name_width, ws.equals,
+        _formatInteger( encoding->blue ), ws.separator,
+        ws.memb_indent, "pixel", name_width, ws.equals,
+        _formatInteger( encoding->pixel ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1559,57 +1524,55 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::AllocNamedColor::ReplyEncoding ) ); // TBD
+                protocol::requests::AllocNamedColor::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::AllocNamedColor;
-    const AllocNamedColor::ReplyEncoding* encoding {
-        reinterpret_cast< const AllocNamedColor::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( AllocNamedColor::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(AllocNamedColor::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const AllocNamedColor::Reply::Encoding* encoding {
+        reinterpret_cast< const AllocNamedColor::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( AllocNamedColor::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( AllocNamedColor::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "pixel", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pixel ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "exact-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->exact_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "exact-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->exact_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "exact-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->exact_blue ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->visual_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->visual_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->visual_blue ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "pixel", name_width, ws.equals,
+        _formatInteger( encoding->pixel ), ws.separator,
+        ws.memb_indent, "exact-red", name_width, ws.equals,
+        _formatInteger( encoding->exact_red ), ws.separator,
+        ws.memb_indent, "exact-green", name_width, ws.equals,
+        _formatInteger( encoding->exact_green ), ws.separator,
+        ws.memb_indent, "exact-blue", name_width, ws.equals,
+        _formatInteger( encoding->exact_blue ), ws.separator,
+        ws.memb_indent, "visual-red", name_width, ws.equals,
+        _formatInteger( encoding->visual_red ), ws.separator,
+        ws.memb_indent, "visual-green", name_width, ws.equals,
+        _formatInteger( encoding->visual_green ), ws.separator,
+        ws.memb_indent, "visual-blue", name_width, ws.equals,
+        _formatInteger( encoding->visual_blue ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1622,68 +1585,67 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::AllocColorCells::ReplyEncoding ) ); // TBD
+                protocol::requests::AllocColorCells::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::AllocColorCells;
-    const AllocColorCells::ReplyEncoding* encoding {
-        reinterpret_cast< const AllocColorCells::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( AllocColorCells::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(AllocColorCells::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const AllocColorCells::Reply::Encoding* encoding {
+        reinterpret_cast< const AllocColorCells::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( AllocColorCells::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( AllocColorCells::Reply::Encoding ) +
+                           ( sizeof( protocol::CARD32 ) * encoding->pixels_ct ) +
+                           ( sizeof( protocol::CARD32 ) * encoding->masks_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->pixels_ct, ws.nested() ) };
     reply.bytes_parsed += pixels.bytes_parsed;
+
     // TBD format as bitmasks
     const _ParsingOutputs masks {
         _parseLISTof< protocol::CARD32 >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->m,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->masks_ct, ws.nested() ) };
     reply.bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n pixels", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(n pixels)", name_width, ws.equals,
+            _formatInteger( encoding->pixels_ct ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n masks", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->m ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "pixels", name_width, _ROOT_WS.equals,
-        pixels.str, _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "masks", name_width, _ROOT_WS.equals,
-        masks.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(m masks)", name_width, ws.equals,
+            _formatInteger( encoding->masks_ct ), ws.separator ),
+        ws.memb_indent, "pixels", name_width, ws.equals,
+        pixels.str, ws.separator,
+        ws.memb_indent, "masks", name_width, ws.equals,
+        masks.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1696,61 +1658,59 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::AllocColorPlanes::ReplyEncoding ) ); // TBD
+                protocol::requests::AllocColorPlanes::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::AllocColorPlanes;
-    const AllocColorPlanes::ReplyEncoding* encoding {
-        reinterpret_cast< const AllocColorPlanes::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( AllocColorPlanes::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(AllocColorPlanes::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const AllocColorPlanes::Reply::Encoding* encoding {
+        reinterpret_cast< const AllocColorPlanes::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( AllocColorPlanes::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( AllocColorPlanes::Reply::Encoding ) +
+                           ( sizeof( protocol::CARD32 ) * encoding->pixels_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->pixels_ct, ws.nested() ) };
     reply.bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n pixels", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "red-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->red_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "green-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->green_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "blue-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->blue_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pixels", name_width, _ROOT_WS.equals,
-        pixels.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n pixels)", name_width, ws.equals,
+            _formatInteger( encoding->pixels_ct ), ws.separator ),
+        ws.memb_indent, "red-mask", name_width, ws.equals,
+        _formatBitmask( encoding->red_mask ), ws.separator,
+        ws.memb_indent, "green-mask", name_width, ws.equals,
+        _formatBitmask( encoding->green_mask ), ws.separator,
+        ws.memb_indent, "blue-mask", name_width, ws.equals,
+        _formatBitmask( encoding->blue_mask ), ws.separator,
+        ws.memb_indent, "pixels", name_width, ws.equals,
+        pixels.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1763,56 +1723,54 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryColors::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryColors::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryColors;
-    const QueryColors::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryColors::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryColors::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(QueryColors::ReplyEncoding) +
-                           ( sizeof(QueryColors::RGB) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const QueryColors::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryColors::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryColors::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryColors::Reply::Encoding ) +
+                           ( sizeof( QueryColors::Reply::RGB ) *
+                             encoding->colors_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs colors {
-        _parseLISTof< QueryColors::RGB >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+        _parseLISTof< QueryColors::Reply::RGB >(
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->colors_ct, ws.nested() ) };
     reply.bytes_parsed += colors.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n colors", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "colors", name_width, _ROOT_WS.equals,
-        colors.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n colors)", name_width, ws.equals,
+            _formatInteger( encoding->colors_ct ), ws.separator ),
+        ws.memb_indent, "colors", name_width, ws.equals,
+        colors.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1825,55 +1783,53 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::LookupColor::ReplyEncoding ) ); // TBD
+                protocol::requests::LookupColor::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::LookupColor;
-    const LookupColor::ReplyEncoding* encoding {
-        reinterpret_cast< const LookupColor::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( LookupColor::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(LookupColor::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const LookupColor::Reply::Encoding* encoding {
+        reinterpret_cast< const LookupColor::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( LookupColor::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( LookupColor::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "exact-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->exact_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "exact-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->exact_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "exact-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->exact_blue ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->visual_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->visual_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->visual_blue ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "exact-red", name_width, ws.equals,
+        _formatInteger( encoding->exact_red ), ws.separator,
+        ws.memb_indent, "exact-green", name_width, ws.equals,
+        _formatInteger( encoding->exact_green ), ws.separator,
+        ws.memb_indent, "exact-blue", name_width, ws.equals,
+        _formatInteger( encoding->exact_blue ), ws.separator,
+        ws.memb_indent, "visual-red", name_width, ws.equals,
+        _formatInteger( encoding->visual_red ), ws.separator,
+        ws.memb_indent, "visual-green", name_width, ws.equals,
+        _formatInteger( encoding->visual_green ), ws.separator,
+        ws.memb_indent, "visual-blue", name_width, ws.equals,
+        _formatInteger( encoding->visual_blue ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1886,46 +1842,44 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryBestSize::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryBestSize::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryBestSize;
-    const QueryBestSize::ReplyEncoding* encoding {
-        reinterpret_cast< const QueryBestSize::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryBestSize::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(QueryBestSize::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const QueryBestSize::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryBestSize::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryBestSize::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryBestSize::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -1937,57 +1891,58 @@ template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryExtension >(
-        Connection* conn, uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::QueryExtension::ReplyEncoding ) ); // TBD
+                protocol::requests::QueryExtension::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::QueryExtension;
-    // not const to allow for .present spoofing
-    QueryExtension::ReplyEncoding* encoding {
-        reinterpret_cast< QueryExtension::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( QueryExtension::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(QueryExtension::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
-    if ( settings.denyallextensions )
-        encoding->present.data = int(false);
+    const QueryExtension::Reply::Encoding* encoding {
+        reinterpret_cast< const QueryExtension::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( QueryExtension::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( QueryExtension::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+
+    if ( settings.denyallextensions ) {
+        const_cast< QueryExtension::Reply::Encoding* >(
+            reinterpret_cast< const QueryExtension::Reply::Encoding* >(
+                data ) )->present.data = false;
+    }
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "present", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->present ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "major-opcode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->major_opcode ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "first-event", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->first_event ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "first-error", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->first_error ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "present", name_width, ws.equals,
+        _formatProtocolType( encoding->present ), ws.separator,
+        ws.memb_indent, "major-opcode", name_width, ws.equals,
+        _formatInteger( encoding->major_opcode ), ws.separator,
+        ws.memb_indent, "first-event", name_width, ws.equals,
+        _formatInteger( encoding->first_event ), ws.separator,
+        ws.memb_indent, "first-error", name_width, ws.equals,
+        _formatInteger( encoding->first_error ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2000,56 +1955,53 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::ListExtensions::ReplyEncoding ) ); // TBD
+                protocol::requests::ListExtensions::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::ListExtensions;
-    const ListExtensions::ReplyEncoding* encoding {
-        reinterpret_cast< const ListExtensions::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( ListExtensions::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const ListExtensions::Reply::Encoding* encoding {
+        reinterpret_cast< const ListExtensions::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( ListExtensions::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
 
     const _ParsingOutputs names {
         _parseLISTof< protocol::STR >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
-    reply.bytes_parsed += _pad(names.bytes_parsed);
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(ListExtensions::ReplyEncoding) +
-                           _pad(names.bytes_parsed) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->header.names_ct, ws.nested() ) };
+    reply.bytes_parsed += _pad( names.bytes_parsed );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( ListExtensions::Reply::Encoding ) +
+                           _pad( names.bytes_parsed ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n names", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(n names)", name_width, ws.equals,
+            _formatInteger( encoding->header.names_ct ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "names", name_width, _ROOT_WS.equals,
-        names.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "names", name_width, ws.equals,
+        names.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2062,59 +2014,56 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetKeyboardMapping::ReplyEncoding ) ); // TBD
+                protocol::requests::GetKeyboardMapping::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetKeyboardMapping;
-    const GetKeyboardMapping::ReplyEncoding* encoding {
-        reinterpret_cast< const GetKeyboardMapping::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetKeyboardMapping::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const GetKeyboardMapping::Reply::Encoding* encoding {
+        reinterpret_cast< const GetKeyboardMapping::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetKeyboardMapping::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
 
     // n_keycodes should equal `count` from the request
-    const uint32_t n_keycodes { encoding->reply_length / encoding->keysyms_per_keycode };
+    const uint32_t n_keycodes { encoding->header.extra_aligned_units /
+                                encoding->header.keysyms_per_keycode };
     const _ParsingOutputs keysyms {
         _parseLISTof< protocol::KEYSYM >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            n_keycodes * encoding->keysyms_per_keycode,
-            _ROOT_WS.nested() ) };
+            n_keycodes * encoding->header.keysyms_per_keycode, ws.nested() ) };
     reply.bytes_parsed += keysyms.bytes_parsed;
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetKeyboardMapping::ReplyEncoding) +
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetKeyboardMapping::Reply::Encoding ) +
                            keysyms.bytes_parsed -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "keysyms-per-keycode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->keysyms_per_keycode ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "keysyms-per-keycode", name_width, ws.equals,
+            _formatInteger( encoding->header.keysyms_per_keycode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "keysyms", name_width, _ROOT_WS.equals,
-        keysyms.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "keysyms", name_width, ws.equals,
+        keysyms.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2127,28 +2076,29 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetKeyboardControl::ReplyEncoding ) ); // TBD
+                protocol::requests::GetKeyboardControl::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetKeyboardControl;
-    const GetKeyboardControl::ReplyEncoding* encoding {
-        reinterpret_cast< const GetKeyboardControl::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetKeyboardControl::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetKeyboardControl::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetKeyboardControl::Reply::Encoding* encoding {
+        reinterpret_cast< const GetKeyboardControl::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetKeyboardControl::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetKeyboardControl::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs auto_repeats {
         _parseLISTof< protocol::CARD8 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            sizeof(GetKeyboardControl::ReplyEncoding::auto_repeats),
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+            sizeof( GetKeyboardControl::Reply::Encoding::auto_repeats ),
+            ws.nested( _Whitespace::SINGLELINE ) ) };
     // auto_repeats.bytes_parsed ignored, as auto-repeats is a fixed size array
-    //   member of GetKeyboardControl::ReplyEncoding
+    //   member of GetKeyboardControl::Reply::Encoding
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "global-auto-repeat" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2157,37 +2107,38 @@ X11ProtocolParser::_parseReply<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "global-auto-repeat", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->global_auto_repeat, GetKeyboardControl::global_auto_repeat_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "global-auto-repeat", name_width, ws.equals,
+        _formatInteger(
+            encoding->header.global_auto_repeat,
+            GetKeyboardControl::Reply::global_auto_repeat_names,
+            _IndexRange{ 0, GetKeyboardControl::Reply::GLOBAL_AUTO_REPREAT_ENUM_MAX } ),
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "led-mask", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->led_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "key-click-percent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->key_click_percent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bell-percent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->bell_percent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bell-pitch", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->bell_pitch ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bell-duration", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->bell_duration ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "auto-repeats", name_width, _ROOT_WS.equals,
-        auto_repeats.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "led-mask", name_width, ws.equals,
+        _formatInteger( encoding->led_mask ), ws.separator,
+        ws.memb_indent, "key-click-percent", name_width, ws.equals,
+        _formatInteger( encoding->key_click_percent ), ws.separator,
+        ws.memb_indent, "bell-percent", name_width, ws.equals,
+        _formatInteger( encoding->bell_percent ), ws.separator,
+        ws.memb_indent, "bell-pitch", name_width, ws.equals,
+        _formatInteger( encoding->bell_pitch ), ws.separator,
+        ws.memb_indent, "bell-duration", name_width, ws.equals,
+        _formatInteger( encoding->bell_duration ), ws.separator,
+        ws.memb_indent, "auto-repeats", name_width, ws.equals,
+        auto_repeats.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2200,17 +2151,18 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetPointerControl::ReplyEncoding ) ); // TBD
+                protocol::requests::GetPointerControl::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetPointerControl;
-    const GetPointerControl::ReplyEncoding* encoding {
-        reinterpret_cast< const GetPointerControl::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetPointerControl::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetPointerControl::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetPointerControl::Reply::Encoding* encoding {
+        reinterpret_cast< const GetPointerControl::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetPointerControl::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetPointerControl::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
@@ -2219,29 +2171,26 @@ X11ProtocolParser::_parseReply<
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "acceleration-numerator", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->acceleration_numerator ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "acceleration-denominator", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->acceleration_denominator ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "threshold", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->threshold ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "acceleration-numerator", name_width, ws.equals,
+        _formatInteger( encoding->acceleration_numerator ), ws.separator,
+        ws.memb_indent, "acceleration-denominator", name_width, ws.equals,
+        _formatInteger( encoding->acceleration_denominator ), ws.separator,
+        ws.memb_indent, "threshold", name_width, ws.equals,
+        _formatInteger( encoding->threshold ), ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2254,50 +2203,54 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetScreenSaver::ReplyEncoding ) ); // TBD
+                protocol::requests::GetScreenSaver::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetScreenSaver;
-    const GetScreenSaver::ReplyEncoding* encoding {
-        reinterpret_cast< const GetScreenSaver::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetScreenSaver::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetScreenSaver::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetScreenSaver::Reply::Encoding* encoding {
+        reinterpret_cast< const GetScreenSaver::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetScreenSaver::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetScreenSaver::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "timeout", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->timeout ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "interval", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->interval ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "prefer-blanking", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->prefer_blanking, GetScreenSaver::prefer_blanking_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "allow-exposures", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->allow_exposures, GetScreenSaver::allow_exposures_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "timeout", name_width, ws.equals,
+        _formatInteger( encoding->timeout ), ws.separator,
+        ws.memb_indent, "interval", name_width, ws.equals,
+        _formatInteger( encoding->interval ), ws.separator,
+        ws.memb_indent, "prefer-blanking", name_width, ws.equals,
+        _formatInteger( encoding->prefer_blanking,
+                        GetScreenSaver::Reply::prefer_blanking_names,
+                        _IndexRange{ 0, GetScreenSaver::Reply::PREFER_BLANKING_ENUM_MAX } ),
+        ws.separator,
+        ws.memb_indent, "allow-exposures", name_width, ws.equals,
+        _formatInteger( encoding->allow_exposures,
+                        GetScreenSaver::Reply::allow_exposures_names,
+                        _IndexRange{ 0, GetScreenSaver::Reply::ALLOW_EXPOSURES_ENUM_MAX } ),
+        ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2310,27 +2263,28 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::ListHosts::ReplyEncoding ) ); // TBD
+                protocol::requests::ListHosts::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::ListHosts;
-    const ListHosts::ReplyEncoding* encoding {
-        reinterpret_cast< const ListHosts::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( ListHosts::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(ListHosts::ReplyEncoding) +
-                           ( sizeof(protocol::HOST) * encoding->n ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const ListHosts::Reply::Encoding* encoding {
+        reinterpret_cast< const ListHosts::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( ListHosts::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( ListHosts::Reply::Encoding ) +
+                           ( sizeof( protocol::HOST ) * encoding->hosts_ct ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs hosts {
         _parseLISTof< protocol::HOST >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->hosts_ct, ws.nested() ) };
     reply.bytes_parsed += hosts.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2338,32 +2292,29 @@ X11ProtocolParser::_parseReply<
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, ListHosts::mode_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( encoding->header.mode,
+                        ListHosts::Reply::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n hosts", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "hosts", name_width, _ROOT_WS.equals,
-        hosts.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n hosts)", name_width, ws.equals,
+            _formatInteger( encoding->hosts_ct ), ws.separator ),
+        ws.memb_indent, "hosts", name_width, ws.equals,
+        hosts.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2376,45 +2327,46 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::SetPointerMapping::ReplyEncoding ) ); // TBD
+                protocol::requests::SetPointerMapping::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::SetPointerMapping;
-    const SetPointerMapping::ReplyEncoding* encoding {
-        reinterpret_cast< const SetPointerMapping::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( SetPointerMapping::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(SetPointerMapping::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const SetPointerMapping::Reply::Encoding* encoding {
+        reinterpret_cast< const SetPointerMapping::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( SetPointerMapping::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( SetPointerMapping::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "status", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->status, SetPointerMapping::status_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "status", name_width, ws.equals,
+        _formatInteger( encoding->header.status,
+                        SetPointerMapping::Reply::status_names,
+                        _IndexRange{ 0, SetPointerMapping::Reply::STATUS_ENUM_MAX } ),
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
     return reply;
 }
@@ -2427,56 +2379,53 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetPointerMapping::ReplyEncoding ) ); // TBD
+                protocol::requests::GetPointerMapping::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetPointerMapping;
-    const GetPointerMapping::ReplyEncoding* encoding {
-        reinterpret_cast< const GetPointerMapping::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetPointerMapping::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetPointerMapping::ReplyEncoding) +
-                           _pad(encoding->n) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const GetPointerMapping::Reply::Encoding* encoding {
+        reinterpret_cast< const GetPointerMapping::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetPointerMapping::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetPointerMapping::Reply::Encoding ) +
+                           _pad( encoding->header.map_len ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->n,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
-    reply.bytes_parsed += _pad(map.bytes_parsed);
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            encoding->header.map_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+    reply.bytes_parsed += _pad( map.bytes_parsed );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n map bytes", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(map len)", name_width, ws.equals,
+            _formatInteger( encoding->header.map_len ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "map", name_width, _ROOT_WS.equals,
-        map.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "map", name_width, ws.equals,
+        map.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
@@ -2489,45 +2438,44 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::SetModifierMapping::ReplyEncoding ) ); // TBD
+                protocol::requests::SetModifierMapping::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::SetModifierMapping;
-    const SetModifierMapping::ReplyEncoding* encoding {
-        reinterpret_cast< const SetModifierMapping::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( SetModifierMapping::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(SetModifierMapping::ReplyEncoding) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+    const SetModifierMapping::Reply::Encoding* encoding {
+        reinterpret_cast< const SetModifierMapping::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( SetModifierMapping::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( SetModifierMapping::Reply::Encoding ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "sequence number" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "status", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->status, SetModifierMapping::status_names ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "status", name_width, ws.equals,
+        _formatInteger( encoding->header.status,
+                        SetModifierMapping::Reply::status_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
     return reply;
 }
@@ -2540,29 +2488,31 @@ X11ProtocolParser::_parseReply<
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= sizeof(
-                protocol::requests::GetModifierMapping::ReplyEncoding ) ); // TBD
+                protocol::requests::GetModifierMapping::Reply::Encoding ) );
 
     _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
     using protocol::requests::GetModifierMapping;
-    const GetModifierMapping::ReplyEncoding* encoding {
-        reinterpret_cast< const GetModifierMapping::ReplyEncoding* >( data ) };
-    reply.bytes_parsed += sizeof( GetModifierMapping::ReplyEncoding );
-    assert( encoding->reply == protocol::requests::REPLY_PREFIX );
+    const GetModifierMapping::Reply::Encoding* encoding {
+        reinterpret_cast< const GetModifierMapping::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( GetModifierMapping::Reply::Encoding );
+    assert( encoding->header.reply == protocol::requests::Reply::REPLY );
     const uint32_t n_keycodes {
-        GetModifierMapping::MODIFIER_CT * encoding->keycodes_per_modifier };
-    assert( encoding->reply_length ==
-            _alignedUnits( sizeof(GetModifierMapping::ReplyEncoding) +
-                           ( sizeof(protocol::KEYCODE) * n_keycodes ) -
-                           protocol::requests::DEFAULT_REPLY_ENCODING_SZ ) );
+        GetModifierMapping::Reply::MODIFIER_CT *
+        encoding->header.keycodes_per_modifier };
+    assert( encoding->header.extra_aligned_units ==
+            _alignedUnits( sizeof( GetModifierMapping::Reply::Encoding ) +
+                           ( sizeof( protocol::KEYCODE ) * n_keycodes ) -
+                           protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed, n_keycodes,
-            _ROOT_WS.nested() ) };
+            data + reply.bytes_parsed, sz - reply.bytes_parsed,
+            n_keycodes, ws.nested() ) };
     reply.bytes_parsed += keycodes.bytes_parsed;
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2570,45 +2520,40 @@ X11ProtocolParser::_parseReply<
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "keycodes-per-modifier", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keycodes_per_modifier ), _ROOT_WS.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "reply", name_width, ws.equals,
+            _formatInteger( encoding->header.reply ), ws.separator ),
+        ws.memb_indent, "keycodes-per-modifier", name_width, ws.equals,
+        _formatInteger( encoding->header.keycodes_per_modifier ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "sequence number", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->sequence_number ), _ROOT_WS.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "reply length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->reply_length ), _ROOT_WS.separator ),
-        _ROOT_WS.memb_indent, "keycodes", name_width, _ROOT_WS.equals,
-        keycodes.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(extra aligned units)", name_width, ws.equals,
+            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+        ws.memb_indent, "keycodes", name_width, ws.equals,
+        keycodes.str, ws.separator,
+        ws.encl_indent
         );
     return reply;
 }
 
-// TBD default to const data, since mods are the exception
-// TBD need data to be mutable for reply spoofing, eg QueryExtension
 size_t X11ProtocolParser::_logReply(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
+    assert( sz >= protocol::requests::Reply::DEFAULT_ENCODING_SZ );
 
     // get request opcode via sequence number
-    using protocol::requests::ReplyHeader;
-    const ReplyHeader* header {
-        reinterpret_cast< const ReplyHeader* >( data ) };
-    assert( header->reply == protocol::requests::REPLY_PREFIX );
-    const uint8_t opcode { conn->lookupRequest( header->sequence_number ) };
+    using protocol::requests::Reply;
+    const Reply::Header* header {
+        reinterpret_cast< const Reply::Header* >( data ) };
+    assert( header->reply == protocol::requests::Reply::REPLY );
+    const uint8_t opcode { conn->lookupRequest( header->sequence_num ) };
     // TBD only before extension implementation
     assert( opcode >= protocol::requests::opcodes::MIN &&
             opcode <= protocol::requests::opcodes::MAX );
@@ -2733,8 +2678,7 @@ size_t X11ProtocolParser::_logReply(
         break;
     case protocol::requests::opcodes::QUERYEXTENSION:          // 98
         reply = _parseReply<
-            protocol::requests::QueryExtension >(
-                conn, const_cast<uint8_t*>( data ), sz );
+            protocol::requests::QueryExtension >( conn, data, sz );
         break;
     case protocol::requests::opcodes::LISTEXTENSIONS:          // 99
         reply = _parseReply<
@@ -2781,12 +2725,16 @@ size_t X11ProtocolParser::_logReply(
     };
     fmt::println( "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
                   conn->id, reply.bytes_parsed, _SERVER_TO_CLIENT,
-                  header->sequence_number,
+                  header->sequence_num,
                   protocol::requests::names[ opcode ], opcode, reply.str );
+    // ListFontsWithInfo presents edge case as it issues a series of replies
+    using protocol::requests::ListFontsWithInfo;
     if ( opcode != protocol::requests::opcodes::LISTFONTSWITHINFO ||
-         header->last_reply == protocol::requests::ListFontsWithInfo::LAST_REPLY ) {
-        conn->unregisterRequest( header->sequence_number );
+         reinterpret_cast< const ListFontsWithInfo::Reply::Header* >(
+             data )->last_reply == ListFontsWithInfo::Reply::LAST_REPLY ) {
+        conn->unregisterRequest( header->sequence_num );
     }
-    assert( reply.bytes_parsed >= protocol::requests::DEFAULT_REPLY_ENCODING_SZ );
+    assert( reply.bytes_parsed >=
+            protocol::requests::Reply::DEFAULT_ENCODING_SZ );
     return reply.bytes_parsed;
 }
