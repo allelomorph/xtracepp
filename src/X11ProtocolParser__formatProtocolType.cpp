@@ -372,7 +372,6 @@ template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::CHAR2B char2b, const _Whitespace&/* ws*/ ) {
-    // printing char16_t vals as hex, same as xtrace
     // TBD is there a way to convert to printable UTF-8 (with c16rtomb, for example)?
     // TBD STRING16 encoding seems quite tangled, from standard:
     //     "The primary interpretation of large characters in a STRING16 is that they are
@@ -383,7 +382,8 @@ X11ProtocolParser::_formatProtocolType(
     // be interpreted as a 16-bit number by treating byte1 as the most significant byte.
     // This means that clients should always transmit such 16-bit character values most
     // significant byte first, as the server will never byte-swap CHAR2B quantities."
-    return _formatInteger( *reinterpret_cast< const uint16_t* >( &char2b ) );
+    // force printing CHAR2B vals as 2B hex, same as xtrace
+    return _formatBitmask( *reinterpret_cast< const uint16_t* >( &char2b ) );
 }
 
 // POINT

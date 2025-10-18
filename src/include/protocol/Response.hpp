@@ -21,6 +21,7 @@ struct Response {
         ERROR_PREFIX,
         REPLY_PREFIX
     };
+    static constexpr uint32_t ALIGN { 4 };
 
     virtual ~Response() = 0;
 };

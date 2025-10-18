@@ -150,6 +150,49 @@ inline constexpr int MAX { NOOPERATION };
 
 }  // namespace opcodes
 
+// TBD unlike Reply/Event/Error/Conn*, encoding will not contain header
+//   (in anticipation of implementing BIG-REQUESTS)
+struct Request {
+    struct [[gnu::packed]] Header {
+        union [[gnu::packed]] {
+            uint8_t opcode;
+            uint8_t major_opcode;   // extensions
+        };
+        union [[gnu::packed]] {
+            uint8_t _unused;
+            uint8_t minor_opcode;   // extensions
+        };
+        uint16_t tl_aligned_units;  // total request length in 4B units
+    };
+    struct [[gnu::packed]] Encoding {};
+
+    static constexpr uint32_t ALIGN { 4 };
+
+    virtual ~Request() = 0;
+};
+
+struct Reply : public Response {
+    struct [[gnu::packed]] Header {
+        uint8_t  reply;
+    private:
+        uint8_t  _unused;
+    public:
+        CARD16   sequence_num;
+        uint32_t extra_aligned_units;  // (reply length - default) / 4
+    };
+    struct [[gnu::packed]] Encoding {
+        Header  header;
+    private:
+        uint8_t _unused[24];
+    };
+
+    static constexpr uint8_t  REPLY { Response::REPLY_PREFIX };
+    static constexpr uint32_t DEFAULT_ENCODING_SZ { 32 };
+    static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
+
+    virtual ~Reply() = 0;
+};
+
 inline constexpr
 std::string_view UNUSED_OPCODE_STRING { "(unused core opcode)" };
 
@@ -286,93 +329,9 @@ std::array< std::string_view, opcodes::MAX + 1 > names {
     "NoOperation"               // 127
 };
 
-// TBD request "header" in protocol refers to 4B { opcode, depth, request_length }
-
-struct Reply : public Response {
-    struct [[gnu::packed]] Header {
-        uint8_t  reply;
-    private:
-        uint8_t  _unused;
-    public:
-        CARD16   sequence_num;
-        uint32_t extra_aligned_units;  // (reply length - default size) / 4
-    };
-    struct [[gnu::packed]] Encoding {
-        Header  header;
-    private:
-        uint8_t _unused[24];
-    };
-
-    static constexpr uint8_t  REPLY { Response::REPLY_PREFIX };
-    static constexpr uint32_t DEFAULT_ENCODING_SZ { 32 };
-    static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
-    static constexpr uint32_t ALIGN { 4 };
-
-    virtual ~Reply() = 0;
-
-};
-
 namespace impl {
 
-struct SimpleRequest {
-    struct [[gnu::packed]] Encoding {
-        uint8_t  opcode;
-    private:
-        uint8_t  _unused;
-    public:
-        uint16_t request_length;  // 1
-    };
-
-    virtual ~SimpleRequest() = 0;
-};
-
-struct SimpleWindowRequest {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2
-        WINDOW     window;
-    };
-
-    virtual ~SimpleWindowRequest() = 0;
-};
-
-struct ListFontsRequest {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // request length 2+(2n+p)/4
-        CARD16     max_names;  // max-names
-        uint16_t   n;  // length of pattern
-    };
-    // followed by pad(n)B STRING8 pattern
-
-    virtual ~ListFontsRequest() = 0;
-};
-
-}  // namespace impl
-
-struct CreateWindow {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 1
-        CARD8      depth;
-        uint16_t   request_length;  // 8+n, request length
-        WINDOW     wid;
-        WINDOW     parent;
-        INT16      x;
-        INT16      y;
-        CARD16     width;
-        CARD16     height;
-        CARD16     border_width;  // border-width
-        uint16_t   class_; // class // 0 CopyFromParent 1 InputOutput 2 InputOnly
-        VISUALID   visual; // 0 CopyFromParent
-        uint32_t   value_mask; // 4B BITMASK value-mask (has n bits set to 1)
-    };
-    // followed by 4n bytes LISTofVALUE value-list
+struct WindowValueListRequest : public Request {
     inline static constexpr
     std::tuple<
         PIXMAP,            // background-pixmap // 0 None 1 ParentRelative
@@ -393,12 +352,6 @@ struct CreateWindow {
         > value_types {};
 
     inline static const
-    std::vector< std::string_view >& class_names {
-        protocol::enum_names::window_class };
-    inline static const
-    std::vector< std::string_view >& visual_names {
-        protocol::enum_names::zero_copy_from_parent };
-    inline static const
     std::vector< std::string_view >& value_names {
         protocol::enum_names::window_attribute_value_mask };
     inline static const
@@ -416,39 +369,31 @@ struct CreateWindow {
     inline static const
     std::vector< std::string_view >& cursor_names {
         protocol::enum_names::zero_none };
+
+    virtual ~WindowValueListRequest() = 0;
 };
 
-struct ChangeWindowAttributes {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 2
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+n request length
-        WINDOW     window;
-        uint32_t   value_mask;      // 4B BITMASK value-mask (has n bits set to 1) // encodings are the same as for CreateWindow
+}  // namespace impl
+
+struct CreateWindow : public impl::WindowValueListRequest {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 1
+        CARD8    depth;
+        uint16_t tl_aligned_units;  // 8+n
     };
-    // followed by 4n bytes LISTofVALUE value-list
-    // 4n     LISTofVALUE                    value-list
-    // encodings are the same as for CreateWindow
-    inline static constexpr
-    std::tuple<
-        PIXMAP,              // background-pixmap // 0 None 1 ParentRelative
-        CARD32,              // background-pixel
-        PIXMAP,              // border-pixmap // 0 CopyFromParent
-        CARD32,              // border-pixel
-        BITGRAVITY,          // bit-gravity
-        WINGRAVITY,          // win-gravity
-        uint8_t,             // backing-store // 0 NotUseful 1 WhenMapped 2 Always
-        CARD32,              // backing-planes
-        CARD32,              // backing-pixel
-        BOOL,                // override-redirect
-        BOOL,                // save-under
-        SETofEVENT,          // event-mask
-        SETofDEVICEEVENT,    // do-not-propagate-mask
-        COLORMAP,            // colormap // 0 CopyFromParent
-        CURSOR               // cursor // 0 None
-        > value_types {};
+    struct [[gnu::packed]] Encoding {
+        WINDOW   wid;
+        WINDOW   parent;
+        INT16    x;
+        INT16    y;
+        CARD16   width;
+        CARD16   height;
+        CARD16   border_width;  // border-width
+        uint16_t class_;        // class  // 0 CopyFromParent 1 InputOutput 2 InputOnly
+        VISUALID visual;        // 0 CopyFromParent
+        uint32_t value_mask;    // BITMASK value-mask 4B (has n bits set to 1)
+    };
+    // followed by LISTofVALUE value-list (4n)B
 
     inline static const
     std::vector< std::string_view >& class_names {
@@ -456,36 +401,51 @@ struct ChangeWindowAttributes {
     inline static const
     std::vector< std::string_view >& visual_names {
         protocol::enum_names::zero_copy_from_parent };
-    inline static const
-    std::vector< std::string_view >& value_names {
-        protocol::enum_names::window_attribute_value_mask };
-    inline static const
-    std::vector< std::string_view >& background_pixmap_names {
-        protocol::enum_names::window_attribute_background_pixmap };
-    inline static const
-    std::vector< std::string_view >& border_pixmap_names {
-        protocol::enum_names::zero_copy_from_parent };
-    inline static const
-    std::vector< std::string_view >& backing_store_names {
-        protocol::enum_names::window_attribute_backing_store };
-    inline static const
-    std::vector< std::string_view >& colormap_names {
-        protocol::enum_names::zero_copy_from_parent };
-    inline static const
-    std::vector< std::string_view >& cursor_names {
-        protocol::enum_names::zero_none };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
+
+struct ChangeWindowAttributes : public impl::WindowValueListRequest {
+    // Header.opcode == 2
+    // Header.tl_aligned_units == 3+n
+    struct [[gnu::packed]] Encoding {
+        WINDOW   window;
+        uint32_t value_mask;      // BITMASK value-mask 4B (has n bits set to 1)
+    };
+    // followed by LISTofVALUE value-list (4n)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+};
+
+namespace impl {
+
+struct SimpleWindowRequest : public Request {
+    // Header.tl_aligned_units == 2
+    struct [[gnu::packed]] Encoding {
+        WINDOW window;
+    };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
+    virtual ~SimpleWindowRequest() = 0;
+};
+
+}  // namespace impl
 
 struct GetWindowAttributes : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 3
-    // Encoding::request_length == 3+n
+    // Header.opcode == 3
+    // Header.tl_aligned_units == 2
+
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             uint8_t  backing_store;        // backing-store  // 0 NotUseful 1 WhenMapped 2 Always
             CARD16   sequence_num;
-            uint32_t extra_aligned_units;  // 3 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 3 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header           header;
@@ -526,92 +486,86 @@ struct GetWindowAttributes : public impl::SimpleWindowRequest {
 };
 
 struct DestroyWindow : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 4
-    // Encoding::request_length == 2
+    // Header.opcode == 4
+    // Header.tl_aligned_units == 2
 };
 
 struct DestroySubwindows : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 5
-    // Encoding::request_length == 2
+    // Header.opcode == 5
+    // Header.tl_aligned_units == 2
 };
 
-struct ChangeSaveSet {
+struct ChangeSaveSet : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 6
+        uint8_t  mode;              // 0 Insert 1 Delete
+        uint16_t tl_aligned_units;  // 2
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;   // 6
-        uint8_t    mode;     // 0 Insert 1 Delete
-        uint16_t   request_length;  // 2
-        WINDOW     window;
+        WINDOW window;
     };
 
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::change_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ReparentWindow {
+struct ReparentWindow : public Request {
+    // Header.opcode == 7
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 7
-    private:
-        uint8_t   _unused;
-    public:
-        uint16_t  request_length;  // request length 4
-        WINDOW    window;
-        WINDOW    parent;
-        INT16     x;
-        INT16     y;
+        WINDOW window;
+        WINDOW parent;
+        INT16  x;
+        INT16  y;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct MapWindow : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 8
-    // Encoding::request_length == 2
+    // Header.opcode == 8
+    // Header.tl_aligned_units == 2
 };
 
 struct MapSubwindows : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 9
-    // Encoding::request_length == 2
+    // Header.opcode == 9
+    // Header.tl_aligned_units == 2
 };
 
 struct UnmapWindow : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 10
-    // Encoding::request_length == 2
+    // Header.opcode == 10
+    // Header.tl_aligned_units == 2
 };
 
 struct UnmapSubwindows : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 11
-    // Encoding::request_length == 2
+    // Header.opcode == 11
+    // Header.tl_aligned_units == 2
 };
 
-struct ConfigureWindow {
+struct ConfigureWindow : public Request {
+    // Header.opcode == 12
+    // Header.tl_aligned_units == 3+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 12
+        WINDOW   window;
+        uint16_t value_mask;  // BITMASK value-mask 2B (has n bits set to 1)
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 3+n
-        WINDOW     window;
-        uint16_t   value_mask;  // 2B BITMASK value-mask (has n bits set to 1)
-    private:
-        uint8_t   _unused2[2];
+        uint8_t  _unused[2];
     };
-    // TBD use of n here implies only one VALUE set in list
-    // followed by
-    //     4n     LISTofVALUE                    value-list
-    // INT16     x;
-    // INT16     y;
-    // CARD16    width;
-    // CARD16    height;
-    // CARD16    border_width;  // border-width
-    // WINDOW    sibling;
-    // uint8_t   stack_mode;  // stack-mode  // 0 Above 1 Below 2 TopIf 3 BottomIf 4 Opposite
+    // followed by LISTofVALUE value-list (4n)B
+
     inline static constexpr
     std::tuple<
-        INT16,   // x;
-        INT16,   // y;
-        CARD16,  // width;
-        CARD16,  // height;
+        INT16,   // x
+        INT16,   // y
+        CARD16,  // width
+        CARD16,  // height
         CARD16,  // border-width
-        WINDOW,  // sibling;
+        WINDOW,  // sibling
         uint8_t  // stack-mode  // 0 Above 1 Below 2 TopIf 3 BottomIf 4 Opposite
         > value_types {};
 
@@ -621,37 +575,45 @@ struct ConfigureWindow {
     inline static const
     std::vector< std::string_view >& stack_mode_names {
         protocol::enum_names::window_value_stack_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CirculateWindow {
+struct CirculateWindow : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t   opcode;            // 13
+        uint8_t   direction;         // 0 RaiseLowest 1 LowerHighest
+        uint16_t  tl_aligned_units;  // 2
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 13
-        uint8_t   direction;  // 0 RaiseLowest 1 LowerHighest
-        uint16_t  request_length;  // 2
         WINDOW    window;
     };
 
     inline static const
     std::vector< std::string_view >& direction_names {
         protocol::enum_names::circulate_direction };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GetGeometry {
+struct GetGeometry : public Request {
+    // Header.opcode == 14
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 14
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2
         DRAWABLE   drawable;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             CARD8    depth;
             CARD16   sequence_num;
-            uint32_t extra_aligned_units;  // 0 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 0 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header   header;
@@ -669,10 +631,11 @@ struct GetGeometry {
 };
 
 struct QueryTree : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 15
+    // Header.opcode == 15
+    // Header.tl_aligned_units == 2
 
     struct Reply : public requests::Reply {
-        // Header.extra_aligned_units == children_ct ((reply length - default size) / 4)
+        // Header.extra_aligned_units == children_ct ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header   header;
             WINDOW   root;
@@ -690,19 +653,24 @@ struct QueryTree : public impl::SimpleWindowRequest {
     };
 };
 
-struct InternAtom {
+struct InternAtom : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t   opcode;            // 16
+        BOOL      only_if_exists;    // only-if-exists
+        uint16_t  tl_aligned_units;  // 2 + pad(name_len)/4
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 16
-        BOOL      only_if_exists;  // only-if-exists
-        uint16_t  request_length;  // 2+(n+p)/4 request length
-        uint16_t  n;  // length of name
+        uint16_t  name_len;     // length of name in bytes
     private:
         uint8_t   _unused[2];
     };
-    // followed by pad(n) STRING8 name
+    // followed by STRING8 name pad(n)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
-        // Header.extra_aligned_units == 0 ((reply length - default size) / 4)
+        // Header.extra_aligned_units == 0 ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header  header;
             ATOM    atom;          // 0 None
@@ -717,18 +685,18 @@ struct InternAtom {
     };
 };
 
-struct GetAtomName {
+struct GetAtomName : public Request {
+    // Header.opcode == 17
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 17
-    private:
-        uint8_t   _unused1;
-    public:
-        uint16_t  request_length;  // 2 request length
-        ATOM      atom;
+        ATOM atom;
     };
 
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
     struct Reply : public requests::Reply {
-        // Header.extra_aligned_units == pad(name_len)/4 ((reply length - default size) / 4)
+        // Header.extra_aligned_units == pad(name_len)/4 ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header   header;
             uint16_t name_len;    // length of name in bytes
@@ -740,70 +708,71 @@ struct GetAtomName {
     // followed by STRING8 name pad(name_len)B
 };
 
-struct ChangeProperty {
-    struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 18
-        uint8_t   mode;  // 0 Replace 1 Prepend 2 Append
-        uint16_t  request_length;  // 6+(n+p)/4 request length
-        // pad(n) == (request_length - 6) * 4
-        WINDOW    window;
-        ATOM      property;
-        ATOM      type;
-        CARD8     format;
-    private:
-        uint8_t   _unused[3];
-    public:
-        CARD32    fmt_unit_ct;  // unnamed in protocol // length of data in format units
+struct ChangeProperty : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 18
+        uint8_t  mode;              // 0 Replace 1 Prepend 2 Append
+        uint16_t tl_aligned_units;  // 6+pad(n)/4
     };
-    // format unit sz == pad(n) / fmt_unit_ct
-    /*
-      (= n for format = 8)
-      (= n/2 for format = 16)
-      (= n/4 for format = 32)
-    */
-    // followed by LISTofBYTE data (uint8_t[pad(n)])
-    //                    (n is a multiple of 2 for format = 16)
-    //                    (n is a multiple of 4 for format = 32)
+    struct [[gnu::packed]] Encoding {
+        WINDOW  window;
+        ATOM    property;
+        ATOM    type;
+        CARD8   format;             // size of format units in bits (0,8,16,32)
+    private:
+        uint8_t _unused[3];
+    public:
+        CARD32  data_fmt_unit_len;  // length of data in format units
+    };
+    // followed by LISTofBYTE data pad((format/8)*fmt_unit_len)B
 
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::change_property_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct DeleteProperty {
+struct DeleteProperty : public Request {
+    // Header.opcode == 19
+    // Header.tl_aligned_units == 3
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 19
-    private:
-        uint8_t   _unused;
-    public:
-        uint16_t  request_length;  // 3 request length
         WINDOW    window;
         ATOM      property;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GetProperty {
+struct GetProperty : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 20
+        BOOL     delete_;           // delete
+        uint16_t tl_aligned_units;  // 6
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 20
-        BOOL      delete_;  // delete
-        uint16_t  request_length;  // 6 request length
-        WINDOW    window;
-        ATOM      property;
-        ATOM      type;  // 0 AnyPropertyType
-        CARD32    long_offset;  // long-offset
-        CARD32    long_length;  // long-length
+        WINDOW window;
+        ATOM   property;
+        ATOM   type;         // 0 AnyPropertyType
+        CARD32 long_offset;  // long-offset
+        CARD32 long_length;  // long-length
     };
 
     inline static const
     std::vector< std::string_view >& type_names {
         protocol::enum_names::property_atom };
 
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             CARD8    format;               // format unit sz in bytes
             CARD16   sequence_num;         // sequence number
-            uint32_t extra_aligned_units;  // 0 (reply length - default size) / 4
+            uint32_t extra_aligned_units;  // 0 (reply length - default) / 4
         };
         struct [[gnu::packed]] Encoding {
             Header   header;
@@ -824,10 +793,11 @@ struct GetProperty {
 };
 
 struct ListProperties : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 21
+    // Header.opcode == 21
+    // Header.tl_aligned_units == 2
 
     struct Reply : public requests::Reply {
-        // header.extra_aligned_units == atoms_ct ((reply length - default size) / 4)
+        // header.extra_aligned_units == atoms_ct ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header   header;
             uint16_t atoms_ct;  // number of ATOMs in atoms
@@ -839,16 +809,13 @@ struct ListProperties : public impl::SimpleWindowRequest {
     };
 };
 
-struct SetSelectionOwner {
+struct SetSelectionOwner : public Request {
+    // Header.opcode == 22
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 22
-    private:
-        uint8_t   _unused;
-    public:
-        uint16_t  request_length;  // 2 request length
-        WINDOW    owner;  // 0 None
+        WINDOW    owner;      // 0 None
         ATOM      selection;
-        TIMESTAMP time;  // 0 CurrentTime
+        TIMESTAMP time;       // 0 CurrentTime
     };
 
     inline static const
@@ -857,20 +824,23 @@ struct SetSelectionOwner {
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GetSelectionOwner {
+struct GetSelectionOwner : public Request {
+    // Header.opcode == 23
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 23
-    private:
-        uint8_t   _unused;
-    public:
-        uint16_t  request_length;  // 2 request length
-        ATOM      selection;
+        ATOM selection;
     };
 
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
     struct Reply : public requests::Reply {
-        // header.extra_aligned_units == 0 ((reply length - default size) / 4)
+        // header.extra_aligned_units == 0 ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header  header;
             WINDOW  owner;  // 0 None
@@ -885,18 +855,15 @@ struct GetSelectionOwner {
     };
 };
 
-struct ConvertSelection {
+struct ConvertSelection : public Request {
+    // Header.opcode == 24
+    // Header.tl_aligned_units == 6
     struct [[gnu::packed]] Encoding {
-        uint8_t   opcode;  // 24
-    private:
-        uint8_t   _unused;
-    public:
-        uint16_t  request_length;  // 6 request length
         WINDOW    requestor;
         ATOM      selection;
         ATOM      target;
         ATOM      property;  // 0 None
-        TIMESTAMP time;   // 0 CurrentTime
+        TIMESTAMP time;      // 0 CurrentTime
     };
 
     inline static const
@@ -905,35 +872,45 @@ struct ConvertSelection {
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct SendEvent {
+struct SendEvent : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 25
+        BOOL     propagate;
+        uint16_t tl_aligned_units;  // 11
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 25
-        BOOL       propagate;
-        uint16_t   request_length;  // 11 request length
         WINDOW     destination;  // 0 PointerWindow 1 InputFocus
-        SETofEVENT event_mask;  // event-mask
+        SETofEVENT event_mask;   // event-mask
     };
     // followed by Event 32B
 
     inline static const
     std::vector< std::string_view >& destination_names {
         protocol::enum_names::event_destination };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GrabPointer {
+struct GrabPointer : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 26
+        BOOL     owner_events;      // owner-events
+        uint16_t tl_aligned_units;  // 6 request length
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 26
-        BOOL              owner_events;  // owner-events
-        uint16_t          request_length;  // 6 request length
-        WINDOW            grab_window;  // grab-window
-        SETofPOINTEREVENT event_mask;  // 2B event-mask
-        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
-        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
-        WINDOW            confine_to;  // confine-to 0 None
-        CURSOR            cursor; // 0 None
-        TIMESTAMP         time;  // 0 CurrentTime
+        WINDOW            grab_window;    // grab-window
+        SETofPOINTEREVENT event_mask;     // 2B event-mask
+        uint8_t           pointer_mode;   // pointer-mode  // 0 Synchronous 1 Asynchronous
+        uint8_t           keyboard_mode;  // keyboard-mode  // 0 Synchronous 1 Asynchronous
+        WINDOW            confine_to;     // confine-to  // 0 None
+        CURSOR            cursor;         // 0 None
+        TIMESTAMP         time;           // 0 CurrentTime
     };
 
     inline static const
@@ -951,13 +928,16 @@ struct GrabPointer {
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             uint8_t  status;               // 0 Success 1 AlreadyGrabbed 2 InvalidTime 3 NotViewable 4 Frozen
             CARD16   sequence_num;
-            uint32_t extra_aligned_units;  // 0 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 0 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header  header;
@@ -972,37 +952,39 @@ struct GrabPointer {
     };
 };
 
-struct UngrabPointer {
+struct UngrabPointer : public Request {
+    // Header.opcode == 27
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 27
-    private:
-        uint8_t           _unused;
-    public:
-        uint16_t          request_length;  // 2 request length
-        TIMESTAMP         time;
+        TIMESTAMP time;
     };
 
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GrabButton {
+struct GrabButton : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 28
+        BOOL     owner_events;      // owner-events
+        uint16_t tl_aligned_units;  // 6 request length
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 28
-        BOOL              owner_events;  // owner-events
-        uint16_t          request_length;  // 6 request length
-        WINDOW            grab_window;  // grab-window
-        SETofPOINTEREVENT event_mask;  // event-mask
-        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
-        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
-        WINDOW            confine_to;  // confine-to 0 None
-        CURSOR            cursor;  // 0 None
-        BUTTON            button;  // 0 AnyButton
+        WINDOW            grab_window;    // grab-window
+        SETofPOINTEREVENT event_mask;     // event-mask
+        uint8_t           pointer_mode;   // pointer-mode  // 0 Synchronous 1 Asynchronous
+        uint8_t           keyboard_mode;  // keyboard-mode  // 0 Synchronous 1 Asynchronous
+        WINDOW            confine_to;     // confine-to  // 0 None
+        CURSOR            cursor;         // 0 None
+        BUTTON            button;         // 0 AnyButton
     private:
         uint8_t           unused;
     public:
-        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+        SETofKEYMASK      modifiers;       // 2B #x8000 AnyModifier
     };
 
     inline static const
@@ -1020,36 +1002,41 @@ struct GrabButton {
     inline static const
     std::vector< std::string_view >& button_names {
         protocol::enum_names::button };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct UngrabButton {
+struct UngrabButton : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 29
+        BUTTON   button;            // 0 AnyButton
+        uint16_t tl_aligned_units;  // 3
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 29
-        BUTTON            button;  // 1B 0 AnyButton
-        uint16_t          request_length;  // 3 request length
-        WINDOW            grab_window;  // grab-window
-        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+        WINDOW       grab_window;  // grab-window
+        SETofKEYMASK modifiers;    // 2B #x8000 AnyModifier
     private:
-        uint8_t           _unused[2];
+        uint8_t      _unused[2];
     };
 
     inline static const
     std::vector< std::string_view >& button_names {
         protocol::enum_names::button };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ChangeActivePointerGrab {
+struct ChangeActivePointerGrab : public Request {
+    // Header.opcode == 30
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 30
-    private:
-        uint8_t           _unused1;
-    public:
-        uint16_t          request_length;  // 4 request length
-        CURSOR            cursor;  // 0 None
-        TIMESTAMP         time;    // 0 CurrentTime
+        CURSOR            cursor;      // 0 None
+        TIMESTAMP         time;        // 0 CurrentTime
         SETofPOINTEREVENT event_mask;  // 2B event-mask
     private:
-        uint8_t           _unused2[2];
+        uint8_t           _unused[2];
     };
 
     inline static const
@@ -1058,19 +1045,24 @@ struct ChangeActivePointerGrab {
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GrabKeyboard {
+struct GrabKeyboard : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 31
+        BOOL     owner_events;      // owner-events
+        uint16_t tl_aligned_units;  // 4
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 31
-        BOOL              owner_events;  // owner-events
-        uint16_t          request_length;  // 4 request length
-        WINDOW            grab_window;  // grab-window
-        TIMESTAMP         time;  // 0 CurrentTime
-        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
-        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
+        WINDOW    grab_window;    // grab-window
+        TIMESTAMP time;           // 0 CurrentTime
+        uint8_t   pointer_mode;   // pointer-mode  // 0 Synchronous 1 Asynchronous
+        uint8_t   keyboard_mode;  // keyboard-mode  // 0 Synchronous 1 Asynchronous
     private:
-        uint8_t           _unused[2];
+        uint8_t   _unused[2];
     };
 
     inline static const
@@ -1083,12 +1075,15 @@ struct GrabKeyboard {
     std::vector< std::string_view >& keyboard_mode_names {
         protocol::enum_names::input_mode };
 
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             uint8_t  status;               // 0 Success 1 AlreadyGrabbed 2 InvalidTime 3 NotViewable 4 Frozen
             CARD16   sequence_num;         // sequence number
-            uint32_t extra_aligned_units;  // 0 (reply length - default size) / 4
+            uint32_t extra_aligned_units;  // 0 (reply length - default) / 4
         };
         struct [[gnu::packed]] Encoding {
             Header  header;
@@ -1103,39 +1098,37 @@ struct GrabKeyboard {
     };
 };
 
-struct UngrabKeyboard {
+struct UngrabKeyboard : public Request {
+    // Header.opcode == 32
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 32
-    private:
-        uint8_t           _unused;  // 1B
-    public:
-        uint16_t          request_length;  // 2 request length
-        TIMESTAMP         time;  // 0 CurrentTime
+        TIMESTAMP time;  // 0 CurrentTime
     };
 
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GrabKey {
+struct GrabKey : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 33
+        BOOL     owner_events;      // owner-events
+        uint16_t tl_aligned_units;  // 4
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 33
-        BOOL              owner_events;  // owner-events
-        uint16_t          request_length;  // 4 request length
-        WINDOW            grab_window;  // grab-window
-        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
-        KEYCODE           key;  // 0 AnyKey
-        uint8_t           pointer_mode;  // pointer-mode 0 Synchronous 1 Asynchronous
-        uint8_t           keyboard_mode;  // keyboard-mode 0 Synchronous 1 Asynchronous
+        WINDOW       grab_window;    // grab-window
+        SETofKEYMASK modifiers;      // 2B #x8000 AnyModifier
+        KEYCODE      key;            // 0 AnyKey
+        uint8_t      pointer_mode;   // pointer-mode  // 0 Synchronous 1 Asynchronous
+        uint8_t      keyboard_mode;  // keyboard-mode  // 0 Synchronous 1 Asynchronous
     private:
-        uint8_t           _unused[3];
+        uint8_t      _unused[3];
     };
 
-    // TBD
-    // inline static const
-    // std::vector< std::string_view >& modifiers_names {
-    //     protocol::enum_names:: };
     inline static const
     std::vector< std::string_view >& key_names {
         protocol::enum_names::key };
@@ -1145,34 +1138,40 @@ struct GrabKey {
     inline static const
     std::vector< std::string_view >& keyboard_mode_names {
         protocol::enum_names::input_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct UngrabKey {
+struct UngrabKey : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 34
+        KEYCODE  key;               // 0 AnyKey
+        uint16_t tl_aligned_units;  // 3
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 34
-        KEYCODE           key;  // 0 AnyKey
-        uint16_t          request_length;  // 3 request length
-        WINDOW            grab_window;  // grab-window
-        SETofKEYMASK      modifiers;  // 2B #x8000 AnyModifier
+        WINDOW       grab_window;  // grab-window
+        SETofKEYMASK modifiers;    // 2B #x8000 AnyModifier
     private:
-        uint8_t           _unused[2];
+        uint8_t      _unused[2];
     };
 
     inline static const
     std::vector< std::string_view >& key_names {
         protocol::enum_names::key };
-    // TBD
-    // inline static const
-    // std::vector< std::string_view >& modifiers_names {
-    //     protocol::enum_names:: };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct AllowEvents {
+struct AllowEvents : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 35
+        uint8_t  mode;              // 0 AsyncPointer 1 SyncPointer 2 ReplayPointer 3 AsyncKeyboard 4 SyncKeyboard 5 ReplayKeyboard 6 AsyncBoth 7 SyncBoth
+        uint16_t tl_aligned_units;  // 2
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t           opcode;  // 35
-        uint8_t           mode;  // 0 AsyncPointer 1 SyncPointer 2 ReplayPointer 3 AsyncKeyboard 4 SyncKeyboard 5 ReplayKeyboard 6 AsyncBoth 7 SyncBoth
-        uint16_t          request_length;  // 2 request length
-        TIMESTAMP         time;  // 0 CurrentTime
+        TIMESTAMP time;  // 0 CurrentTime
     };
 
     inline static const
@@ -1181,28 +1180,43 @@ struct AllowEvents {
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
+namespace impl {
+
+struct SimpleRequest : public Request {
+    // Header.tl_aligned_units == 1
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
+    virtual ~SimpleRequest() = 0;
+};
+
+}  // namespace impl
+
 struct GrabServer : public impl::SimpleRequest {
-    // Encoding::opcode == 36
-    // Encoding::request_length == 1
+    // Header.opcode == 36
+    // Header.tl_aligned_units == 1
 };
 
 struct UngrabServer : public impl::SimpleRequest {
-    // Encoding::opcode == 37
-    // Encoding::request_length == 1
+    // Header.opcode == 37
+    // Header.tl_aligned_units == 1
 };
 
 struct QueryPointer : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 38
-    // Encoding::request_length == 1
+    // Header.opcode == 38
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             BOOL     same_screen;          // same-screen
             CARD16   sequence_num;         // sequence number
-            uint32_t extra_aligned_units;  // 0 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 0 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header          header;
@@ -1224,16 +1238,13 @@ struct QueryPointer : public impl::SimpleWindowRequest {
     };
 };
 
-struct GetMotionEvents {
+struct GetMotionEvents : public Request {
+    // Header.opcode == 39
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 39
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 4 request length
-        WINDOW           window;
-        TIMESTAMP        start;  // 0 CurrentTime
-        TIMESTAMP        stop;  // 0 CurrentTime
+        WINDOW    window;
+        TIMESTAMP start;  // 0 CurrentTime
+        TIMESTAMP stop;   // 0 CurrentTime
     };
 
     inline static const
@@ -1243,8 +1254,11 @@ struct GetMotionEvents {
     std::vector< std::string_view >& stop_names {
         protocol::enum_names::time };
 
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
     struct Reply : public requests::Reply {
-        // header.extra_aligned_units == 2 * events_ct ((reply length - default size) / 4)
+        // header.extra_aligned_units == 2 * events_ct ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header   header;
             uint32_t events_ct;  // number of TIMECOORDs in events
@@ -1262,25 +1276,25 @@ struct GetMotionEvents {
     };
 };
 
-struct TranslateCoordinates {
+struct TranslateCoordinates : public Request {
+    // Header.opcode == 40
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 40
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 4 request length
-        WINDOW           src_window;  // src-window
-        WINDOW           dst_window;  // dst-window
-        INT16            src_x;  // src-x
-        INT16            src_y;  // src-y
+        WINDOW src_window;  // src-window
+        WINDOW dst_window;  // dst-window
+        INT16  src_x;       // src-x
+        INT16  src_y;       // src-y
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             BOOL     same_screen;          // same-screen
             CARD16   sequence_num;         // sequence number
-            uint32_t extra_aligned_units;  // 0 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 0 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header  header;
@@ -1298,21 +1312,18 @@ struct TranslateCoordinates {
     };
 };
 
-struct WarpPointer {
+struct WarpPointer : public Request {
+    // Header.opcode == 41
+    // Header.tl_aligned_units == 6
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 41
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 6 request length
-        WINDOW           src_window;  // src-window 0 None
-        WINDOW           dst_window;  // dst-window 0 None
-        INT16            src_x;  // src-x
-        INT16            src_y;  // src-y
-        CARD16           src_width;  // src-width
-        CARD16           src_height;  // src-height
-        INT16            dst_x;  // dst-x
-        INT16            dst_y;  // dst-y
+        WINDOW src_window;  // src-window  // 0 None
+        WINDOW dst_window;  // dst-window  // 0 None
+        INT16  src_x;       // src-x
+        INT16  src_y;       // src-y
+        CARD16 src_width;   // src-width
+        CARD16 src_height;  // src-height
+        INT16  dst_x;       // dst-x
+        INT16  dst_y;       // dst-y
     };
 
     inline static const
@@ -1321,15 +1332,20 @@ struct WarpPointer {
     inline static const
     std::vector< std::string_view >& dst_window_names {
         protocol::enum_names::zero_none };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct SetInputFocus {
+struct SetInputFocus : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 42
+        uint8_t  revert_to;         // revert-to  // 0 None 1 PointerRoot 2 Parent
+        uint16_t tl_aligned_units;  // 3
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 42
-        uint8_t          revert_to;  // revert-to 0 None 1 PointerRoot 2 Parent
-        uint16_t         request_length;  // 3 request length
-        WINDOW           focus; // 0 None 1 PointerRoot
-        TIMESTAMP        time; // 0 CurrentTime
+        WINDOW    focus;  // 0 None 1 PointerRoot
+        TIMESTAMP time;   // 0 CurrentTime
     };
 
     inline static const
@@ -1337,22 +1353,26 @@ struct SetInputFocus {
         protocol::enum_names::input_focus };
     inline static const
     std::vector< std::string_view >& focus_names {
-        protocol::enum_names::input_focus };  // up to 1
+        protocol::enum_names::input_focus };
+    static constexpr uint8_t FOCUS_ENUM_MAX { 1 };
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct GetInputFocus : public impl::SimpleRequest {
-    // Encoding::opcode == 43
-    // Encoding::request_length == 1
+    // Header.opcode == 43
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             uint8_t  revert_to;            // revert-to  // 0 None 1 PointerRoot 2 Parent
             CARD16   sequence_num;         // sequence number
-            uint32_t extra_aligned_units;  // 0 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 0 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header  header;
@@ -1373,11 +1393,11 @@ struct GetInputFocus : public impl::SimpleRequest {
 };
 
 struct QueryKeymap : public impl::SimpleRequest {
-    // Encoding::opcode == 44
-    // Encoding::request_length == 1
+    // Header.opcode == 44
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
-        // header.extra_aligned_units == 2 ((reply length - default size) / 4)
+        // header.extra_aligned_units == 2 ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header header;
             CARD8  keys[32];  // LISTofCARD8 32B bit-vector
@@ -1387,30 +1407,30 @@ struct QueryKeymap : public impl::SimpleRequest {
     };
 };
 
-struct OpenFont {
+struct OpenFont : public Request {
+    // Header.opcode == 45
+    // Header.tl_aligned_units == 3+pad(n)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 45
+        FONT     fid;
+        uint16_t name_len;  // length of name in bytes
     private:
-        uint8_t          _unused1;
-    public:
-        uint16_t         request_length;  // 3+pad(n)/4 request length
-        FONT             fid;
-        uint16_t         n;  // length of name
-    private:
-        uint8_t          _unused2[2];
+        uint8_t  _unused[2];
     };
-    // followed by STRING8 name of pad(n) bytes
+    // followed by STRING8 name pad(n)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CloseFont {
+struct CloseFont : public Request {
+    // Header.opcode == 46
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 46
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 2 request length
-        FONT             font;
+        FONT font;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -1431,22 +1451,22 @@ struct [[gnu::packed]] CHARINFO {
 
 }  // namespace impl
 
-struct QueryFont {
+struct QueryFont : public Request {
+    // Header.opcode == 47
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t          opcode;  // 47
-    private:
-        uint8_t          _unused;
-    public:
-        uint16_t         request_length;  // 2 request length
-        FONTABLE         font;
+        FONTABLE font;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         using FONTPROP = impl::FONTPROP;
         using CHARINFO = impl::CHARINFO;
 
         // header.extra_aligned_units == 7 + 2 * properties_ct + 3 * char_infos_ct
-        //   ((reply length - default size) / 4)
+        //   ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header   header;
             CHARINFO min_bounds;         // min-bounds
@@ -1480,21 +1500,26 @@ struct QueryFont {
     };
 };
 
-struct QueryTextExtents {
+struct QueryTextExtents : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 48
+        BOOL     odd_length;        // odd length, True if padded by 2
+        uint16_t tl_aligned_units;  // 2+pad(2n)/4
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 48
-        BOOL       odd_length;  // odd length, True if p = 2
-        uint16_t   request_length;  // request length 2+(2n+p)/4
         FONTABLE   font;
     };
-    // followed by pad(2n)B STRING16 string
+    // followed by STRING16 string pad(2n)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
             uint8_t  draw_direction;       // draw-direction  // 0 LeftToRight 1 RightToLeft
             CARD16   sequence_num;         // sequence number
-            uint32_t extra_aligned_units;  // 0 ((reply length - default size) / 4)
+            uint32_t extra_aligned_units;  // 0 ((reply length - default) / 4)
         };
         struct [[gnu::packed]] Encoding {
             Header  header;
@@ -1516,13 +1541,31 @@ struct QueryTextExtents {
     };
 };
 
+namespace impl {
+
+struct ListFontsRequest : public Request {
+    // Header.tl_aligned_units == 2 + pad(pattern_len)/4
+    struct [[gnu::packed]] Encoding {
+        CARD16   max_names;    // max-names
+        uint16_t pattern_len;  // length of pattern in bytes
+    };
+    // followed by STRING8 pattern pad(pattern_len)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+
+    virtual ~ListFontsRequest() = 0;
+};
+
+}  // namespace impl
+
 struct ListFonts : public impl::ListFontsRequest {
-    // encoding.opcode == 49
-    // encoding.request_length == 2+(2n+p)/4
-    // encoding followed by pad(n)B STRING8 pattern
+    // Header.opcode == 49
+    // Header.tl_aligned_units == 2+pad(Header.pattern_len)/4
+    // Encoding followed by STRING8 pattern pad(Header.pattern_len)B
 
     struct Reply : public requests::Reply {
-        // header.extra_aligned_units == pad(n)/4 ((reply length - default size) / 4)
+        // header.extra_aligned_units == pad(n)/4 ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header  header;
             CARD16  names_ct;       // number of STRs in names
@@ -1538,15 +1581,13 @@ struct ListFonts : public impl::ListFontsRequest {
 
 struct ListFontsWithInfo : public impl::ListFontsRequest {
     // encoding.opcode == 50
-    // encoding.request_length == 2+(2n+p)/4
-    // encoding followed by pad(n)B STRING8 pattern
+    // Header.tl_aligned_units == 2+pad(Header.pattern_len)/4
+    // Encoding followed by STRING8 pattern pad(Header.pattern_len)B
 
     struct Reply : public requests::Reply {
         using FONTPROP = impl::FONTPROP;
         using CHARINFO = impl::CHARINFO;
 
-        // header.extra_aligned_units == 7 + 2 * properties_ct + 3 * char_infos_ct
-        //   ((reply length - default size) / 4)
        struct [[gnu::packed]] Header {
            uint8_t  reply;                // 1
            union [[gnu::packed]] {
@@ -1555,7 +1596,7 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
            };
            CARD16   sequence_num;         // sequence number
            uint32_t extra_aligned_units;  // 7 + 2 * properties_ct + pad(name_len) / 4
-                                          //   ((reply length - default size) / 4)
+                                          //   ((reply length - default) / 4)
        };
         static constexpr uint8_t LAST_REPLY {};
         // if header.last_reply == LAST_REPLY, then fields after header are ignored
@@ -1591,27 +1632,27 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
     };
 };
 
-struct SetFontPath {
+struct SetFontPath : public Request {
+    // Header.opcode == 51
+    // Header.tl_aligned_units == 2+pad(n)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 51
+        CARD16  path_ct;      // number of STRs in path
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // request length 2+pad(n)/4
-        CARD16     str_ct;   // unnnamed in protocol; number of STRs in path
-    private:
-        uint8_t    _unused2[2];
+        uint8_t _unused[2];
     };
-    // followed by pad(n)B LISTofSTR path
+    // followed by LISTofSTR path pad(n)B
     // TBD note use of LISTofSTR in encoding while request description uses LISTofSTRING8
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct GetFontPath : public impl::SimpleRequest {
-    // Encoding::opcode == 52
-    // Encoding::request_length == 1
+    // Header.opcode == 52
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
-        // Header.extra_aligned_units == pad(n)/4 ((reply length - default size) / 4)
+        // Header.extra_aligned_units == pad(n)/4 ((reply length - default) / 4)
         struct [[gnu::packed]] Encoding {
             Header  header;
             CARD16  path_ct;      // number of STRs in path
@@ -1624,41 +1665,37 @@ struct GetFontPath : public impl::SimpleRequest {
     };
 };
 
-struct CreatePixmap {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 53
-        CARD8      depth;
-        uint16_t   request_length;  // 4 request length?
-        PIXMAP     pid;
-        DRAWABLE   drawable;
-        CARD16     width;
-        CARD16     height;
+struct CreatePixmap : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 53
+        CARD8    depth;
+        uint16_t tl_aligned_units;  // 4
     };
+    struct [[gnu::packed]] Encoding {
+        PIXMAP   pid;
+        DRAWABLE drawable;
+        CARD16   width;
+        CARD16   height;
+    };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct FreePixmap {
+struct FreePixmap : public Request {
+    // Header.opcode == 54
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 54
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length?
         PIXMAP     pixmap;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CreateGC {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 55
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 4+n request length
-        GCONTEXT   cid;
-        DRAWABLE   drawable;
-        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
-    };
-    // followed by 4nB LISTofVALUE value-list
+namespace impl {
+
+struct GCRequest : public Request {
     inline static constexpr
     std::tuple<
         uint8_t,  // function  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
@@ -1666,24 +1703,24 @@ struct CreateGC {
         CARD32,   // foreground
         CARD32,   // background
         CARD16,   // line-width
-        uint8_t,  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
-        uint8_t,  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
-        uint8_t,  // join-style 0 Miter 1 Round 2 Bevel
-        uint8_t,  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
-        uint8_t,  // fill-rule 0 EvenOdd 1 Winding
+        uint8_t,  // line-style  // 0 Solid 1 OnOffDash 2 DoubleDash
+        uint8_t,  // cap-style  // 0 NotLast 1 Butt 2 Round 3 Projecting
+        uint8_t,  // join-style  // 0 Miter 1 Round 2 Bevel
+        uint8_t,  // fill-style  // 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
+        uint8_t,  // fill-rule  // 0 EvenOdd 1 Winding
         PIXMAP,   // tile
         PIXMAP,   // stipple
         INT16,    // tile-stipple-x-origin
         INT16,    // tile-stipple-y-origin
         FONT,     // font
-        uint8_t,  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
+        uint8_t,  // subwindow-mode  // 0 ClipByChildren 1 IncludeInferiors
         BOOL,     // graphics-exposures
         INT16,    // clip-x-origin
         INT16,    // clip-y-origin
-        PIXMAP,   // clip-mask 0 None
+        PIXMAP,   // clip-mask  // 0 None
         CARD16,   // dash-offset
         CARD8,    // dashes
-        uint8_t   // arc-mode 0 Chord 1 PieSlice
+        uint8_t   // arc-mode  // 0 Chord 1 PieSlice
         > value_types {};
 
     inline static const
@@ -1718,277 +1755,240 @@ struct CreateGC {
         protocol::enum_names::gc_value_arc_mode };
 };
 
-// TBD value encodings shared with CreateGC
-struct ChangeGC {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 56
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+n request length
-        GCONTEXT   gc;
-        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
-    };
-    // followed by 4nB LISTofVALUE value-list
-    inline static constexpr
-    std::tuple<
-        uint8_t,  // function  // 0 Clear 1 And 2 AndReverse 3 Copy 4 AndInverted 5 NoOp 6 Xor 7 Or 8 Nor 9 Equiv 10 Invert 11 OrReverse 12 CopyInverted 13 OrInverted 14 Nand 15 Set
-        CARD32,   // plane-mask
-        CARD32,   // foreground
-        CARD32,   // background
-        CARD16,   // line-width
-        uint8_t,  // line-style 0 Solid 1 OnOffDash 2 DoubleDash
-        uint8_t,  // cap-style 0 NotLast 1 Butt 2 Round 3 Projecting
-        uint8_t,  // join-style 0 Miter 1 Round 2 Bevel
-        uint8_t,  // fill-style 0 Solid 1 Tiled 2 Stippled 3 OpaqueStippled
-        uint8_t,  // fill-rule 0 EvenOdd 1 Winding
-        PIXMAP,   // tile
-        PIXMAP,   // stipple
-        INT16,    // tile-stipple-x-origin
-        INT16,    // tile-stipple-y-origin
-        FONT,     // font
-        uint8_t,  // subwindow-mode 0 ClipByChildren 1 IncludeInferiors
-        BOOL,     // graphics-exposures
-        INT16,    // clip-x-origin
-        INT16,    // clip-y-origin
-        PIXMAP,   // clip-mask 0 None
-        CARD16,   // dash-offset
-        CARD8,    // dashes  // dashes
-        uint8_t   // arc-mode 0 Chord 1 PieSlice
-        > value_types {};
+}  // namespace impl
 
-    inline static const
-    std::vector< std::string_view >& value_names {
-        protocol::enum_names::gc_value_mask };
-    inline static const
-    std::vector< std::string_view >& function_names {
-        protocol::enum_names::gc_value_function };
-    inline static const
-    std::vector< std::string_view >& line_style_names {
-        protocol::enum_names::gc_value_line_style };
-    inline static const
-    std::vector< std::string_view >& cap_style_names {
-        protocol::enum_names::gc_value_cap_style };
-    inline static const
-    std::vector< std::string_view >& join_style_names {
-        protocol::enum_names::gc_value_join_style };
-    inline static const
-    std::vector< std::string_view >& fill_style_names {
-        protocol::enum_names::gc_value_fill_style };
-    inline static const
-    std::vector< std::string_view >& fill_rule_names {
-        protocol::enum_names::gc_value_fill_rule };
-    inline static const
-    std::vector< std::string_view >& subwindow_mode_names {
-        protocol::enum_names::gc_value_subwindow_mode };
-    inline static const
-    std::vector< std::string_view >& clip_mask_names {
-        protocol::enum_names::zero_none };
-    inline static const
-    std::vector< std::string_view >& arc_mode_names {
-        protocol::enum_names::gc_value_arc_mode };
+struct CreateGC : public impl::GCRequest {
+    // Header.opcode == 55
+    // Header.tl_aligned_units == 4+n
+    struct [[gnu::packed]] Encoding {
+        GCONTEXT cid;
+        DRAWABLE drawable;
+        uint32_t value_mask;  // BITMASK value-mask 4B (has n bits set to 1)
+    };
+    // followed by LISTofVALUE value-list 4nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CopyGC {
+struct ChangeGC : public impl::GCRequest {
+    // Header.opcode == 56
+    // Header.tl_aligned_units == 3+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 57
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 4 request length
-        GCONTEXT   src_gc;  // src-gc
-        GCONTEXT   dst_gc;  // dst-gc
-        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
+        GCONTEXT gc;
+        uint32_t value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
     };
+    // followed by LISTofVALUE value-list 4nB
 
-    inline static const
-    std::vector< std::string_view >& value_names {
-        protocol::enum_names::gc_value_mask };
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct SetDashes {
+struct CopyGC : public impl::GCRequest {
+    // Header.opcode == 57
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 58
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+(n+p)/4 request length
-        GCONTEXT   gc;
-        CARD16     dash_offset;  // dash-offset
-        uint16_t   n;  // length of dashes
+        GCONTEXT src_gc;      // src-gc
+        GCONTEXT dst_gc;      // dst-gc
+        uint32_t value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
     };
-    // followed by pad(n)B LISTofCARD8 dashes
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct SetClipRectangles {
+struct SetDashes : public Request {
+    // Header.opcode == 58
+    // Header.tl_aligned_units == 3+pad(dashes_len)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 59
-        uint8_t    ordering;  // 0 UnSorted 1 YSorted 2 YXSorted 3 YXBanded
-        uint16_t   request_length;  // 3+2n request length
-        GCONTEXT   gc;
-        INT16      clip_x_origin;  // clip-x-origin
-        INT16      clip_y_origin;  // clip-y-origin
+        GCONTEXT gc;
+        CARD16   dash_offset;  // dash-offset
+        uint16_t dashes_len;   // length of dashes in bytes
     };
-    // followed by 8nB LISTofRECTANGLE rectangles n RECTANGLE
+    // followed by LISTofCARD8 dashes pad(dashes_len)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+};
+
+struct SetClipRectangles : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 59
+        uint8_t  ordering;          // 0 UnSorted 1 YSorted 2 YXSorted 3 YXBanded
+        uint16_t tl_aligned_units;  // 3+2n
+    };
+    struct [[gnu::packed]] Encoding {
+        GCONTEXT gc;
+        INT16    clip_x_origin;  // clip-x-origin
+        INT16    clip_y_origin;  // clip-y-origin
+    };
+    // followed by LISTofRECTANGLE rectangles 8nB
 
     inline static const
     std::vector< std::string_view >& ordering_names {
         protocol::enum_names::clip_rect_ordering };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct FreeGC {
+struct FreeGC : public Request {
+    // Header.opcode == 60
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 60
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length
-        GCONTEXT   gc;
+        GCONTEXT gc;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ClearArea {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 61
-        BOOL       exposures;
-        uint16_t   request_length;  // 4 request length
-        WINDOW     window;
-        INT16      x;
-        INT16      y;
-        CARD16     width;
-        CARD16     height;
+struct ClearArea : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 61
+        BOOL     exposures;
+        uint16_t tl_aligned_units;  // 4
     };
+    struct [[gnu::packed]] Encoding {
+        WINDOW window;
+        INT16  x;
+        INT16  y;
+        CARD16 width;
+        CARD16 height;
+    };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CopyArea {
+struct CopyArea : public Request {
+    // Header.opcode == 62
+    // Header.tl_aligned_units == 7
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 62
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 7 request length
-        DRAWABLE   src_drawable;  // src-drawable
-        DRAWABLE   dst_drawable;  // dst-drawable
-        GCONTEXT   gc;  // gc
-        INT16      src_x;  // src-x
-        INT16      src_y;  // src-y
-        INT16      dst_x;  // dst-x
-        INT16      dst_y;  // dst-y
-        CARD16     width;
-        CARD16     height;
+        DRAWABLE src_drawable;  // src-drawable
+        DRAWABLE dst_drawable;  // dst-drawable
+        GCONTEXT gc;            // gc
+        INT16    src_x;         // src-x
+        INT16    src_y;         // src-y
+        INT16    dst_x;         // dst-x
+        INT16    dst_y;         // dst-y
+        CARD16   width;
+        CARD16   height;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CopyPlane {
+struct CopyPlane : public Request {
+    // Header.opcode == 63
+    // Header.tl_aligned_units == 8
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 63
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 8 request length
-        DRAWABLE   src_drawable;  // src-drawable
-        DRAWABLE   dst_drawable;  // dst-drawable
-        GCONTEXT   gc;
-        INT16      src_x;  // src-x
-        INT16      src_y;  // src-y
-        INT16      dst_x;  // dst-x
-        INT16      dst_y;  // dst-y
-        CARD16     width;
-        CARD16     height;
-        CARD32     bit_plane;  // bit-plane
+        DRAWABLE src_drawable;  // src-drawable
+        DRAWABLE dst_drawable;  // dst-drawable
+        GCONTEXT gc;
+        INT16    src_x;         // src-x
+        INT16    src_y;         // src-y
+        INT16    dst_x;         // dst-x
+        INT16    dst_y;         // dst-y
+        CARD16   width;
+        CARD16   height;
+        CARD32   bit_plane;     // bit-plane
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PolyPoint {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 64
-        uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
-        uint16_t   request_length;  // 3+n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
+namespace impl {
+
+struct PolyPointRequest : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;
+        uint8_t  coordinate_mode;   // coordinate-mode  // 0 Origin 1 Previous
+        uint16_t tl_aligned_units;  // 3+n
     };
-    // followed by 4nB LISTofPOINT points
+    struct [[gnu::packed]] Encoding {
+        DRAWABLE drawable;
+        GCONTEXT gc;
+    };
+    // followed by LISTofPOINT points 4nB
 
     inline static const
     std::vector< std::string_view >& coordinate_mode_names {
         protocol::enum_names::poly_coordinate_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-// TBD same as PolyPoint other than name, use base type?
-struct PolyLine {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 65
-        uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
-        uint16_t   request_length;  // 3+n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
-    };
-    // followed by 4nB LISTofPOINT points
+}  // namespace impl
 
-    inline static const
-    std::vector< std::string_view >& coordinate_mode_names {
-        protocol::enum_names::poly_coordinate_mode };
+struct PolyPoint : public impl::PolyPointRequest {
+    // Header.opcode == 64
 };
 
-struct PolySegment {
+struct PolyLine : public impl::PolyPointRequest {
+    // Header.opcode == 65
+};
+
+// TBD PolySegment, PolyRectangle, PolyArc, PolyFillRectangle, PolyFillArc parent?
+struct PolySegment : public Request {
+    // Header.opcode == 66
+    // Header.tl_aligned_units == 3+2n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 66
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+2n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
+        DRAWABLE drawable;
+        GCONTEXT gc;
     };
-    // followed by 8nB LISTofSEGMENT segments n SEGMENT
+    // followed by LISTofSEGMENT segments 8nB
 
     struct [[gnu::packed]] SEGMENT {
-        INT16  x1, y1;
-        INT16  x2, y2;
+        INT16 x1, y1;
+        INT16 x2, y2;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PolyRectangle {
+struct PolyRectangle : public Request {
+    // Header.opcode == 67
+    // Header.tl_aligned_units == 3+2n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 67
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+2n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
+        DRAWABLE drawable;
+        GCONTEXT gc;
     };
-    // followed by 8nB LISTofRECTANGLE rectangles n RECTANGLE
+    // followed by LISTofRECTANGLE rectangles 8nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PolyArc {
+struct PolyArc : public Request {
+    // Header.opcode == 68
+    // Header.tl_aligned_units == 3+3n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 68
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+3n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
+        DRAWABLE drawable;
+        GCONTEXT gc;
     };
-    // followed by 12nB LISTofARC arcs n ARC
+    // followed by LISTofARC arcs 12nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct FillPoly {
+struct FillPoly : public Request {
+    // Header.opcode == 69
+    // Header.tl_aligned_units == 4+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 69
+        DRAWABLE drawable;
+        GCONTEXT gc;
+        uint8_t  shape;            // 0 Complex 1 Nonconvex 2 Convex
+        uint8_t  coordinate_mode;  // coordinate-mode  // 0 Origin 1 Previous
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 4+n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
-        uint8_t    shape;  // 0 Complex 1 Nonconvex 2 Convex
-        uint8_t    coordinate_mode;  // coordinate-mode 0 Origin 1 Previous
-    private:
-        uint8_t    _unused2[2];
+        uint8_t  _unused[2];
     };
-    // followed by 4nB LISTofPOINT points n POINT
+    // followed by LISTofPOINT points 4nB
 
     inline static const
     std::vector< std::string_view >& shape_names {
@@ -1996,73 +1996,87 @@ struct FillPoly {
     inline static const
     std::vector< std::string_view >& coordinate_mode_names {
         protocol::enum_names::poly_coordinate_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PolyFillRectangle {
+struct PolyFillRectangle : public Request {
+    // Header.opcode == 70
+    // Header.tl_aligned_units == 3+2n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 70
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+2n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
+        DRAWABLE drawable;
+        GCONTEXT gc;
     };
-    // followed by 8nB LISTofRECTANGLE rectangles n RECTANGLE
+    // followed by LISTofRECTANGLE rectangles 8nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PolyFillArc {
+struct PolyFillArc : public Request {
+    // Header.opcode == 71
+    // Header.tl_aligned_units == 3+3n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 71
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+3n request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
+        DRAWABLE drawable;
+        GCONTEXT gc;
     };
-    // followed by 12nB LISTofARC arcs n ARC
+    // followed by LISTofARC arcs 12nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PutImage {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 72
-        uint8_t    format;  // 0 Bitmap 1 XYPixmap 2 ZPixmap
-        uint16_t   request_length;  // 6+(n+p)/4 request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
-        CARD16     width;
-        CARD16     height;
-        INT16      dst_x;  // dst-x
-        INT16      dst_y;  // dst-y
-        CARD8      left_pad;  // left-pad
-        CARD8      depth;
-    private:
-        uint8_t    _unused[2];
+struct PutImage : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 72
+        uint8_t  format;            // 0 Bitmap 1 XYPixmap 2 ZPixmap
+        uint16_t tl_aligned_units;  // 6+pad(n)/4
     };
-    // followed by pad(n)B LISTofBYTE data
+    struct [[gnu::packed]] Encoding {
+        DRAWABLE drawable;
+        GCONTEXT gc;
+        CARD16   width;
+        CARD16   height;
+        INT16    dst_x;     // dst-x
+        INT16    dst_y;     // dst-y
+        CARD8    left_pad;  // left-pad
+        CARD8    depth;
+    private:
+        uint8_t  _unused[2];
+    };
+    // followed by LISTofBYTE data pad(n)B
 
     inline static const
     std::vector< std::string_view >& format_names {
         protocol::enum_names::image_format };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GetImage {
+struct GetImage : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 73
+        uint8_t  format;            // 1 XYPixmap 2 ZPixmap
+        uint16_t tl_aligned_units;  // 5
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 73
-        uint8_t    format;  // 1 XYPixmap 2 ZPixmap
-        uint16_t   request_length;  // 5 request length
-        DRAWABLE   drawable;
-        INT16      x;
-        INT16      y;
-        CARD16     width;
-        CARD16     height;
-        CARD32     plane_mask;  // plane-mask
+        DRAWABLE drawable;
+        INT16    x;
+        INT16    y;
+        CARD16   width;
+        CARD16   height;
+        CARD32   plane_mask;  // plane-mask
     };
 
     inline static const
-    std::vector< std::string_view >& format_names {  // TBD 1 and up
+    std::vector< std::string_view >& format_names {
         protocol::enum_names::image_format };
+    static constexpr uint8_t FORMAT_ENUM_MIN { 1 };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2086,157 +2100,169 @@ struct GetImage {
     };
 };
 
-struct PolyText8 {
+struct PolyText8 : public Request {
+    // Header.opcode == 74
+    // Header.tl_aligned_units == 4+pad(n)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 74
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 4+(n+p)/4 request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
-        INT16      x;
-        INT16      y;
+        DRAWABLE drawable;
+        GCONTEXT gc;
+        INT16    x;
+        INT16    y;
     };
-    // followed by pad(n)B LISTofTEXTITEM8 items (p is always 0 or 1)
+    // followed by LISTofTEXTITEM8 items pad(n)B
 
-    // TBD TEXTELT8 needs special parsing
-    // core X11 font storage: https://www.x.org/wiki/guide/fonts/
-    // xcb_poly_text_8() not fully documented: https://x.org/releases/current/doc/man/man3/xcb_poly_text_8.3.xhtml
+    // TBD core X11 font storage: https://www.x.org/wiki/guide/fonts/
     static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM8 {
         struct [[gnu::packed]] TEXTELT8 {
-            uint8_t   m;  // length of string (cannot be 255)
-            INT8      delta;
-            // followed by STRING8 CARD8[m]
+            uint8_t string_len;  // length in bytes (cannot be FONT_SHIFT)
+            INT8    delta;
+            // followed by STRING8 string string_lenB
         } text_element;
         struct [[gnu::packed]] FONT {
-            uint8_t   font_shift;     // 255 font-shift indicator
-            uint8_t   font_bytes[4];  // font byte 3 (most-significant) to font byte 0 (least-significant) TBD this should convert to FONT
+            uint8_t font_shift;     // font-shift FONT_SHIFT
+            uint8_t font_bytes[4];  // font byte 3 (most-significant) to
+                                    //   font byte 0 (least-significant)
+                                    //   (should convert to protocol::FONT)
         } font;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct PolyText16 {
+struct PolyText16 : public Request {
+    // Header.opcode == 75
+    // Header.tl_aligned_units == 4+pad(n)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 75
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 4+(n+p)/4 request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
-        INT16      x;
-        INT16      y;
+        DRAWABLE drawable;
+        GCONTEXT gc;
+        INT16    x;
+        INT16    y;
     };
-    // followed by pad(n)B LISTofTEXTITEM16 items (p is always 0 or 1)
+    // followed by LISTofTEXTITEM16 items pad(n)B
 
-    // TBD TEXTELT8 needs special parsing
-    // core X11 font storage: https://www.x.org/wiki/guide/fonts/
-    // xcb_poly_text_8() not fully documented: https://x.org/releases/current/doc/man/man3/xcb_poly_text_8.3.xhtml
+    // TBD core X11 font storage: https://www.x.org/wiki/guide/fonts/
     static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM16 {
         struct [[gnu::packed]] TEXTELT16 {
-            uint8_t   m;  // count of CHAR2B in string (cannot be 255)
-            INT8      delta;
-            // followed by 2m STRING16 CHAR2B[m]
+            uint8_t string_2B_len;  // length in CHAR2B (cannot be FONT_SHIFT)
+            INT8    delta;
+            // followed by STRING16 string 2string_lenB
         } text_element;
         struct [[gnu::packed]] FONT {
-            uint8_t   font_shift;     // 255 font-shift indicator
-            uint8_t   font_bytes[4];  // font byte 3 (most-significant) to font byte 0 (least-significant) TBD this should convert to FONT
+            uint8_t font_shift;     // font-shift FONT_SHIFT
+            uint8_t font_bytes[4];  // font byte 3 (most-significant) to
+                                    //   font byte 0 (least-significant)
+                                    //   (should convert to protocol::FONT)
         } font;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ImageText8 {
+struct ImageText8 : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 76
+        uint8_t  string_len;        // length of string in bytes
+        uint16_t tl_aligned_units;  // 4+(n+p)/4
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 76
-        uint8_t    n;  // length of string
-        uint16_t   request_length;  // 4+(n+p)/4 request length
+        DRAWABLE drawable;
+        GCONTEXT gc;
+        INT16    x;
+        INT16    y;
+    };
+    // followed by STRING8 string pad(n)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+};
+
+struct ImageText16 : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 77
+        uint8_t  string_2B_len;     // length of string in CHAR2B
+        uint16_t tl_aligned_units;  // 4+(2n+p)/4
+    };
+    struct [[gnu::packed]] Encoding {
         DRAWABLE   drawable;
         GCONTEXT   gc;
         INT16      x;
         INT16      y;
     };
-    // followed by pad(n)B STRING8
+    // followed by STRING16 string pad(2n)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ImageText16 {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 77
-        uint8_t    n;  // length of string in CHAR2B
-        uint16_t   request_length;  // 4+(2n+p)/4 request length
-        DRAWABLE   drawable;
-        GCONTEXT   gc;
-        INT16      x;
-        INT16      y;
+struct CreateColormap : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 78
+        uint8_t  alloc;             // 0 None 1 All
+        uint16_t tl_aligned_units;  // 4
     };
-    // followed by pad(2n)B STRING16
-};
-
-struct CreateColormap {
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 78
-        uint8_t    alloc;  // 0 None 1 All
-        uint16_t   request_length;  // 4 request length
-        COLORMAP   mid;
-        WINDOW     window;
-        VISUALID   visual;
+        COLORMAP mid;
+        WINDOW   window;
+        VISUALID visual;
     };
 
     inline static const
     std::vector< std::string_view >& alloc_names {
         protocol::enum_names::colormap_alloc };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct FreeColormap {
+namespace impl {
+
+// TBD StoreColors, QueryColors?
+struct SimpleCmapRequest : public Request {
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 79
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length
-        COLORMAP   cmap;
+        COLORMAP cmap;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CopyColormapAndFree {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 80
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3 request length
-        COLORMAP   mid;
-        COLORMAP   src_cmap;  // src-cmap
-    };
+}  // namespace impl
+
+struct FreeColormap : public impl::SimpleCmapRequest {
+    // Header.opcode == 79
+    // Header.tl_aligned_units == 2
 };
 
-struct InstallColormap {
+struct CopyColormapAndFree : public Request {
+    // Header.opcode == 80
+    // Header.tl_aligned_units == 3
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 81
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length
-        COLORMAP   cmap;
+        COLORMAP mid;
+        COLORMAP src_cmap;  // src-cmap
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct UninstallColormap {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 82
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length
-        COLORMAP   cmap;
-    };
+struct InstallColormap : public impl::SimpleCmapRequest {
+    // Header.opcode == 81
+    // Header.tl_aligned_units == 2
+};
+
+struct UninstallColormap : public impl::SimpleCmapRequest {
+    // Header.opcode == 82
+    // Header.tl_aligned_units == 2
 };
 
 struct ListInstalledColormaps : public impl::SimpleWindowRequest {
-    // Encoding::opcode == 83
-    // Encoding::request_length == 2
+    // Header.opcode == 83
+    // Header.tl_aligned_units == 2
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2256,20 +2282,20 @@ struct ListInstalledColormaps : public impl::SimpleWindowRequest {
     };
 };
 
-struct AllocColor {
+struct AllocColor : public Request {
+    // Header.opcode == 84
+    // Header.tl_aligned_units == 4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 84
+        COLORMAP cmap;
+        CARD16   red;
+        CARD16   green;
+        CARD16   blue;
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 4 request length
-        COLORMAP   cmap;
-        CARD16     red;
-        CARD16     green;
-        CARD16     blue;
-    private:
-        uint8_t    _unused2[2];
+        uint8_t  _unused[2];
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2289,19 +2315,19 @@ struct AllocColor {
     };
 };
 
-struct AllocNamedColor {
+struct AllocNamedColor : public Request {
+    // Header.opcode == 85
+    // Header.tl_aligned_units == 3+pad(name_len)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 85
+        COLORMAP cmap;
+        uint16_t name_len;  // length of name in bytes
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 3+(n+p)/4 request length
-        COLORMAP   cmap;
-        uint16_t   n;  // length of name
-    private:
-        uint8_t    _unused2[2];
+        uint8_t  _unused[2];
     };
-    // followed by STRING8 pad(n)B
+    // followed by STRING8 name pad(name_len)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2321,15 +2347,20 @@ struct AllocNamedColor {
     };
 };
 
-struct AllocColorCells {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 86
-        BOOL       contiguous;
-        uint16_t   request_length;  // 3 request length
-        COLORMAP   cmap;
-        CARD16     colors;
-        CARD16     planes;
+struct AllocColorCells : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 86
+        BOOL     contiguous;
+        uint16_t tl_aligned_units;  // 3
     };
+    struct [[gnu::packed]] Encoding {
+        COLORMAP cmap;
+        CARD16   colors;
+        CARD16   planes;
+    };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == pixels_ct + masks_ct
@@ -2346,17 +2377,22 @@ struct AllocColorCells {
     };
 };
 
-struct AllocColorPlanes {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 87
-        BOOL       contiguous;
-        uint16_t   request_length;  // 4 request length
-        COLORMAP   cmap;
-        CARD16     colors;
-        CARD16     reds;
-        CARD16     greens;
-        CARD16     blues;
+struct AllocColorPlanes : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 87
+        BOOL     contiguous;
+        uint16_t tl_aligned_units;  // 4
     };
+    struct [[gnu::packed]] Encoding {
+        COLORMAP cmap;
+        CARD16   colors;
+        CARD16   reds;
+        CARD16   greens;
+        CARD16   blues;
+    };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == pixels_ct
@@ -2377,73 +2413,75 @@ struct AllocColorPlanes {
     };
 };
 
-struct FreeColors {
+struct FreeColors : public Request {
+    // Header.opcode == 88
+    // Header.tl_aligned_units == 3+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 88
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+n request length
-        COLORMAP   cmap;
-        CARD32     plane_mask;  // plane-mask
+        COLORMAP cmap;
+        CARD32   plane_mask;  // plane-mask
     };
-    // followed by 4n LISTofCARD32 pixels
+    // followed by LISTofCARD32 pixels 4nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct StoreColors {
+struct StoreColors : public Request {
+    // Header.opcode == 89
+    // Header.tl_aligned_units == 2+3n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 89
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2+3n request length
-        COLORMAP   cmap;
+        COLORMAP cmap;
     };
-    // followed by 12n LISTofCOLORITEM items
+    // followed by LISTofCOLORITEM items 12nB
 
     struct [[gnu::packed]] COLORITEM {
-        CARD32      pixel;
-        CARD16      red;
-        CARD16      green;
-        CARD16      blue;
-        uint8_t     do_rgb_mask;  // & 0x01 do-red & 0x02 do-green & 0x04 do-blue 0xF8 unused
+        CARD32  pixel;
+        CARD16  red;
+        CARD16  green;
+        CARD16  blue;
+        uint8_t do_rgb_mask;  // 0x01 do-red 0x02 do-green 0x04 do-blue 0xF8 unused
     private:
-        uint8_t     _unused;
+        uint8_t _unused;
     };
 
     inline static const
     std::vector< std::string_view >& do_rgb_names {
         protocol::enum_names::do_rgb_mask };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct StoreNamedColor {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 90
-        uint8_t    do_rgb_mask;  // & 0x01 do-red & 0x02 do-green & 0x04 do-blue 0xF8 unused
-        uint16_t   request_length;  //  4+(n+p)/4 request length
-        COLORMAP   cmap;
-        CARD32     pixel;
-        uint16_t   n;  // length of name
-    private:
-        uint16_t   _unused;
+struct StoreNamedColor : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 90
+        uint8_t  do_rgb_mask;       // 0x01 do-red 0x02 do-green 0x04 do-blue 0xF8 unused
+        uint16_t tl_aligned_units;  // 4+pad(name_len)/4
     };
-    // followed by pad(n)STRING8 name
+    struct [[gnu::packed]] Encoding {
+        COLORMAP cmap;
+        CARD32   pixel;
+        uint16_t name_len;  // length of name in bytes
+    private:
+        uint16_t _unused;
+    };
+    // followed by STRING8 name pad(name_len)B
 
     inline static const
     std::vector< std::string_view >& do_rgb_names {
         protocol::enum_names::do_rgb_mask };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct QueryColors {
+struct QueryColors : public Request {
+    // Header.opcode == 91
+    // Header.tl_aligned_units == 2+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 91
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2+n request length
         COLORMAP   cmap;
     };
-    // followed by 4nB LISTofCARD32 pixels
+    // followed by LISTofCARD32 pixels 4nB
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 2 * colors_ct
@@ -2464,21 +2502,21 @@ struct QueryColors {
             uint8_t _unused[2];
         };
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct LookupColor {
+struct LookupColor : public Request {
+    // Header.opcode == 92
+    // Header.tl_aligned_units == 3+pad(name_len)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 92
+        COLORMAP cmap;
+        uint16_t name_len;  // length of name in bytes
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 3+(n+p)/4 request length
-        COLORMAP   cmap;
-        uint16_t   n;  // length of name
-    private:
-        uint8_t    _unused2[2];
+        uint8_t  _unused[2];
     };
-    // followed by pad(n) STRING8 name
+    // followed by STRING8 name pad(name_len)B
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2495,99 +2533,107 @@ struct LookupColor {
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CreateCursor {
+struct CreateCursor : public Request {
+    // Header.opcode == 93
+    // Header.tl_aligned_units == 8
     struct [[gnu::packed]] Encoding {
-        uint8_t     opcode;  // 93
-    private:
-        uint8_t     _unused;
-    public:
-        uint16_t    request_length;  // 8 request length
-        CURSOR      cid;
-        PIXMAP      source;
-        PIXMAP      mask;  // 0 None
-        CARD16      fore_red;  // fore-red
-        CARD16      fore_green;  // fore-green
-        CARD16      fore_blue;  // fore-blue
-        CARD16      back_red;  // back-red
-        CARD16      back_green;  // back-green
-        CARD16      back_blue;  // back-blue
-        CARD16      x;
-        CARD16      y;
+        CURSOR cid;
+        PIXMAP source;
+        PIXMAP mask;        // 0 None
+        CARD16 fore_red;    // fore-red
+        CARD16 fore_green;  // fore-green
+        CARD16 fore_blue;   // fore-blue
+        CARD16 back_red;    // back-red
+        CARD16 back_green;  // back-green
+        CARD16 back_blue;   // back-blue
+        CARD16 x;
+        CARD16 y;
     };
 
     inline static const
     std::vector< std::string_view >& mask_names {
         protocol::enum_names::zero_none };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct CreateGlyphCursor {
+struct CreateGlyphCursor : public Request {
+    // Header.opcode == 94
+    // Header.tl_aligned_units == 8
     struct [[gnu::packed]] Encoding {
-        uint8_t     opcode;  // 94
-    private:
-        uint8_t     _unused;
-    public:
-        uint16_t    request_length;  // 8 request length
-        CURSOR      cid;
-        FONT        source_font;  // source-font
-        FONT        mask_font;  // mask-font 0 None
-        CARD16      source_char;  // source-char
-        CARD16      mask_char;  // mask-char
-        CARD16      fore_red;  // fore-red
-        CARD16      fore_green;  // fore-green
-        CARD16      fore_blue;  // fore-blue
-        CARD16      back_red;  // back-red
-        CARD16      back_green;  // back-green
-        CARD16      back_blue;  // back-blue
+        CURSOR cid;
+        FONT   source_font;  // source-font
+        FONT   mask_font;    // mask-font 0 None
+        CARD16 source_char;  // source-char
+        CARD16 mask_char;    // mask-char
+        CARD16 fore_red;     // fore-red
+        CARD16 fore_green;   // fore-green
+        CARD16 fore_blue;    // fore-blue
+        CARD16 back_red;     // back-red
+        CARD16 back_green;   // back-green
+        CARD16 back_blue;    // back-blue
     };
 
     inline static const
     std::vector< std::string_view >& mask_font_names {
         protocol::enum_names::zero_none };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct FreeCursor {
+struct FreeCursor : public Request {
+    // Header.opcode == 95
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t     opcode;  // 95
-    private:
-        uint8_t     _unused;
-    public:
-        uint16_t    request_length;  // 2 request length
-        CURSOR      cursor;
+        CURSOR cursor;
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct RecolorCursor {
+struct RecolorCursor : public Request {
+    // Header.opcode == 96
+    // Header.tl_aligned_units == 5
     struct [[gnu::packed]] Encoding {
-        uint8_t     opcode;  // 96
-    private:
-        uint8_t     _unused;
-    public:
-        uint16_t    request_length;  // 5 request length
-        CURSOR      cursor;
-        CARD16      fore_red;  // fore-red
-        CARD16      fore_green;  // fore-green
-        CARD16      fore_blue;  // fore-blue
-        CARD16      back_red;  // back-red
-        CARD16      back_green;  // back-green
-        CARD16      back_blue;  // back-blue
+        CURSOR cursor;
+        CARD16 fore_red;    // fore-red
+        CARD16 fore_green;  // fore-green
+        CARD16 fore_blue;   // fore-blue
+        CARD16 back_red;    // back-red
+        CARD16 back_green;  // back-green
+        CARD16 back_blue;   // back-blue
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct QueryBestSize {
+struct QueryBestSize : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 97
+        uint8_t  class_;            // 0 Cursor 1 Tile 2 Stipple
+        uint16_t tl_aligned_units;  // 3
+    };
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 97
-        uint8_t    class_;  // 0 Cursor 1 Tile 2 Stipple
-        uint16_t   request_length;  // 3 request length
-        DRAWABLE   drawable;
-        CARD16     width;
-        CARD16     height;
+        DRAWABLE drawable;
+        CARD16   width;
+        CARD16   height;
     };
 
     inline static const
     std::vector< std::string_view >& class_names {
         protocol::enum_names::size_class };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2602,18 +2648,18 @@ struct QueryBestSize {
     };
 };
 
-struct QueryExtension {
+struct QueryExtension : public Request {
+    // Header.opcode == 98
+    // Header.tl_aligned_units == 2+pad(name_len)/4
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 98
+        uint16_t name_len;  // length of name in bytes
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 2+(n+p)/4 request length
-        uint16_t   n;  // length of name
-    private:
-        uint8_t    _unused2[2];
+        uint8_t  _unused[2];
     };
-    // followed by pad()n)B STRING8 name
+    // followed by STRING8 name pad(name_len)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2631,8 +2677,8 @@ struct QueryExtension {
 };
 
 struct ListExtensions : public impl::SimpleRequest {
-    // Encoding::opcode == 99
-    // Encoding::request_length == 1
+    // Header.opcode == 99
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2651,31 +2697,36 @@ struct ListExtensions : public impl::SimpleRequest {
     };
 };
 
-struct ChangeKeyboardMapping {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 100
-        uint8_t    keycode_count;  // n keycode-count
-        uint16_t   request_length;  // 2+nm request length
-        KEYCODE    first_keycode;  // first-keycode
-        uint8_t    keysyms_per_keycode;  // m keysyms-per-keycode
-    private:
-        uint8_t    _unused[2];
+struct ChangeKeyboardMapping : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 100
+        uint8_t  keycode_count;     // n keycode-count
+        uint16_t tl_aligned_units;  // 2+nm
     };
-    // followed by 4nmB LISTofKEYSYM keysyms
+    struct [[gnu::packed]] Encoding {
+        KEYCODE first_keycode;        // first-keycode
+        uint8_t keysyms_per_keycode;  // m keysyms-per-keycode
+    private:
+        uint8_t _unused[2];
+    };
+    // followed by LISTofKEYSYM keysyms 4nmB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct GetKeyboardMapping {
+struct GetKeyboardMapping : public Request {
+    // Header.opcode == 101
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 101
+        KEYCODE first_keycode;  // first-keycode
+        uint8_t count;          // count
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 2 request length
-        KEYCODE    first_keycode;  // first-keycode
-        uint8_t    count;  // m count
-    private:
-        uint8_t    _unused2[2];
+        uint8_t _unused[2];
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2694,16 +2745,14 @@ struct GetKeyboardMapping {
     };
 };
 
-struct ChangeKeyboardControl {
+struct ChangeKeyboardControl : public Request {
+    // Header.opcode == 102
+    // Header.tl_aligned_units == 2+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 102
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2+n request length
-        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1) #x0001 key-click-percent #x0002 bell-percent #x0004 bell-pitch #x0008 bell-duration #x0010 led #x0020 led-mode #x0040 key #x0080 auto-repeat-mode
+        uint32_t   value_mask;  // 4B BITMASK value-mask (has n bits set to 1)
     };
-    // followed by 4nB LISTofVALUE value-list
+    // followed by LISTofVALUE value-list 4nB
+
     inline static constexpr
     std::tuple<
         INT8,     // key-click-percent
@@ -2711,9 +2760,9 @@ struct ChangeKeyboardControl {
         INT16,    // bell-pitch
         INT16,    // bell-duration
         CARD8,    // led;
-        uint8_t,  // led-mode 0 Off 1 On
+        uint8_t,  // led-mode  // 0 Off 1 On
         KEYCODE,  // key;
-        uint8_t   // auto-repeat-mode 0 Off 1 On 2 Default
+        uint8_t   // auto-repeat-mode  // 0 Off 1 On 2 Default
         > value_types {};
 
     inline static const
@@ -2721,15 +2770,19 @@ struct ChangeKeyboardControl {
         protocol::enum_names::keyctl_value_mask };
     inline static const
     std::vector< std::string_view >& led_mode_names {
-        protocol::enum_names::off_on };  // up to 1
+        protocol::enum_names::off_on };
+    static constexpr CARD8 LED_MODE_ENUM_MAX { 1 };
     inline static const
     std::vector< std::string_view >& auto_repeat_mode_names {
         protocol::enum_names::off_on };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct GetKeyboardControl : public impl::SimpleRequest {
-    // Encoding::opcode == 103
-    // Encoding::request_length == 1
+    // Header.opcode == 103
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2759,32 +2812,35 @@ struct GetKeyboardControl : public impl::SimpleRequest {
     };
 };
 
-struct Bell {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 104
-        INT8       percent;
-        uint16_t   request_length;  // 1 request length
+struct Bell : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 104
+        INT8     percent;
+        uint16_t tl_aligned_units;  // 1
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ChangePointerControl {
+struct ChangePointerControl : public Request {
+    // Header.opcode == 105
+    // Header.tl_aligned_units == 3
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 105
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3 request length
-        INT16      acceleration_numerator;  // acceleration-numerator
-        INT16      acceleration_denominator;  // acceleration-denominator
-        INT16      threshold;
-        BOOL       do_acceleration;  // do-acceleration
-        BOOL       do_threshold;  // do-threshold
+        INT16 acceleration_numerator;    // acceleration-numerator
+        INT16 acceleration_denominator;  // acceleration-denominator
+        INT16 threshold;
+        BOOL  do_acceleration;           // do-acceleration
+        BOOL  do_threshold;              // do-threshold
     };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct GetPointerControl : public impl::SimpleRequest {
-    // Encoding::opcode == 106
-    // Encoding::request_length == 1
+    // Header.opcode == 106
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2799,19 +2855,16 @@ struct GetPointerControl : public impl::SimpleRequest {
     };
 };
 
-struct SetScreenSaver {
+struct SetScreenSaver : public Request {
+    // Header.opcode == 107
+    // Header.tl_aligned_units == 3
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 107
+        INT16   timeout;
+        INT16   interval;
+        uint8_t prefer_blanking;  // prefer-blanking  // 0 No 1 Yes 2 Default
+        uint8_t allow_exposures;  // allow-exposures  // 0 No 1 Yes 2 Default
     private:
-        uint8_t    _unused1;
-    public:
-        uint16_t   request_length;  // 3 request length
-        INT16      timeout;
-        INT16      interval;
-        uint8_t    prefer_blanking;  // prefer-blanking 0 No 1 Yes 2 Default
-        uint8_t    allow_exposures;  // allow-exposures 0 No 1 Yes 2 Default
-    private:
-        uint8_t    _unused2[2];
+        uint8_t _unused[2];
     };
 
     inline static const
@@ -2820,11 +2873,14 @@ struct SetScreenSaver {
     inline static const
     std::vector< std::string_view >& allow_exposures_names {
         protocol::enum_names::no_yes };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct GetScreenSaver : public impl::SimpleRequest {
-    // Encoding::opcode == 108
-    // Encoding::request_length == 1
+    // Header.opcode == 108
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         // Header.extra_aligned_units == 0
@@ -2850,30 +2906,36 @@ struct GetScreenSaver : public impl::SimpleRequest {
     };
 };
 
-struct ChangeHosts {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 109
-        uint8_t    mode;  // 0 Insert 1 Delete
-        uint16_t   request_length;  // 2+(n+p)/4 request length
-        uint8_t    family;  // 0 Internet 1 DECnet 2 Chaos
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   length_of_address;  // n length of address
+struct ChangeHosts : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;             // 109
+        uint8_t  mode;              // 0 Insert 1 Delete
+        uint16_t tl_aligned_units;  // 2+pad(address_len)/4
     };
-    // pad(n)B LISTofCARD8 address
+    struct [[gnu::packed]] Encoding {
+        uint8_t  family;       // 0 Internet 1 DECnet 2 Chaos
+    private:
+        uint8_t  _unused;
+    public:
+        uint16_t address_len;  // length of address in bytes
+    };
+    // followed by LISTofCARD8 address pad(address_len)B
 
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::change_mode };
     inline static const
     std::vector< std::string_view >& family_names {
-        protocol::enum_names::host_family };  // up to 2
+        protocol::enum_names::host_family };
+    static constexpr uint8_t FAMILY_ENUM_MAX { 2 };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
 struct ListHosts : public impl::SimpleRequest {
-    // Encoding::opcode == 110
-    // Encoding::request_length == 1
+    // Header.opcode == 110
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2897,78 +2959,90 @@ struct ListHosts : public impl::SimpleRequest {
     };
 };
 
-struct SetAccessControl {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 111
-        uint8_t    mode;  // 0 Disable 1 Enable
-        uint16_t   request_length;  // 1 request length
+struct SetAccessControl : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t    opcode;            // 111
+        uint8_t    mode;              // 0 Disable 1 Enable
+        uint16_t   tl_aligned_units;  // 1
     };
 
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::access_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct SetCloseDownMode {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 112
-        uint8_t    mode;  // 0 Destroy 1 RetainPermanent 2 RetainTemporary
-        uint16_t   request_length;  // 1 request length
+struct SetCloseDownMode : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t    opcode;            // 112
+        uint8_t    mode;              // 0 Destroy 1 RetainPermanent 2 RetainTemporary
+        uint16_t   tl_aligned_units;  // 1
     };
 
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::close_down_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct KillClient {
+struct KillClient : public Request {
+    // Header.opcode == 113
+    // Header.tl_aligned_units == 2
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 113
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 2 request length
-        CARD32     resource;  // 0 AllTemporary
+        CARD32 resource;  // 0 AllTemporary
     };
 
     inline static const
     std::vector< std::string_view >& resource_names {
         protocol::enum_names::client_resource };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct RotateProperties {
+struct RotateProperties : public Request {
+    // Header.opcode == 114
+    // Header.tl_aligned_units == 3+n
     struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 114
-    private:
-        uint8_t    _unused;
-    public:
-        uint16_t   request_length;  // 3+n request length
-        WINDOW     window;
-        uint16_t   number_of_properties;  // n number of properties
-        INT16      delta;
+        WINDOW   window;
+        uint16_t properties_ct;  // n properties
+        INT16    delta;
     };
-    // 4nB LISTofATOM properties 4 ATOMs
+    // followed by LISTofATOM properties 4nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct ForceScreenSaver {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 115
-        uint8_t    mode;  // 0 Reset 1 Activate
-        uint16_t   request_length;  // 1 request length
+struct ForceScreenSaver : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 115
+        uint8_t  mode;              // 0 Reset 1 Activate
+        uint16_t tl_aligned_units;  // 1
     };
 
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::screen_saver_set_mode };
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 };
 
-struct SetPointerMapping {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 116
-        uint8_t    length_of_map;  // n length of map
-        uint16_t   request_length;  // 1+(n+p)/4 request length
+struct SetPointerMapping : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;            // 116
+        uint8_t  map_len;           // length of map in bytes
+        uint16_t tl_aligned_units;  // 1+pad(map_len)/4
     };
-    // followed by pad(n)B LISTofCARD8 map
+    // followed by LISTofCARD8 map pad(map_len)B
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -2992,8 +3066,8 @@ struct SetPointerMapping {
 };
 
 struct GetPointerMapping : public impl::SimpleRequest {
-    // Encoding::opcode == 117
-    // Encoding::request_length == 1
+    // Header.opcode == 117
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -3012,13 +3086,19 @@ struct GetPointerMapping : public impl::SimpleRequest {
     };
 };
 
-struct SetModifierMapping {
-    struct [[gnu::packed]] Encoding {
-        uint8_t    opcode;  // 118
-        uint8_t    keycodes_per_modifier;  // n keycodes-per-modifier
-        uint16_t   request_length;  // 1+2n request length
+struct SetModifierMapping : public Request {
+    struct [[gnu::packed]] Header {
+        uint8_t  opcode;                 // 118
+        uint8_t  keycodes_per_modifier;  // n keycodes-per-modifier
+        uint16_t tl_aligned_units;       // 1+2n
     };
-    // followed by 8nB LISTofKEYCODE keycodes n KEYCODEs
+    // followed by LISTofKEYCODE keycodes 8nB
+
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Header ) + sizeof( Encoding ) };
+    // https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:SetModifierMapping
+    //   "number of keycodes in the list must be 8*keycodes-per-modifier"
+    static constexpr uint8_t MODIFIER_CT { 8 };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -3041,8 +3121,8 @@ struct SetModifierMapping {
 };
 
 struct GetModifierMapping : public impl::SimpleRequest {
-    // Encoding::opcode == 119
-    // Encoding::request_length == 1
+    // Header.opcode == 119
+    // Header.tl_aligned_units == 1
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -3064,8 +3144,8 @@ struct GetModifierMapping : public impl::SimpleRequest {
 };
 
 struct NoOperation : public impl::SimpleRequest {
-    // Encoding::opcode == 127
-    // Encoding::request_length == 1+n
+    // Header.opcode == 127
+    // Header.tl_aligned_units == 1+n
     // followed by uint8_t unused[4n]
 };
 

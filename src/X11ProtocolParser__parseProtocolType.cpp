@@ -244,12 +244,12 @@ X11ProtocolParser::_parseProtocolType<
             ws.encl_indent
             );
     } else {
-        assert( item.text_element.m > 0 );
+        assert( item.text_element.string_len > 0 );
         outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::TEXTELT8 );
         std::string_view string {
             reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
-            item.text_element.m };
-        outputs.bytes_parsed += item.text_element.m;
+            item.text_element.string_len };
+        outputs.bytes_parsed += item.text_element.string_len;
 
         const uint32_t name_width (
             settings.multiline ? sizeof( "string" ) - 1 : 0 );
@@ -259,11 +259,10 @@ X11ProtocolParser::_parseProtocolType<
             "{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
             "{}}}",
             ws.separator,
-            !settings.verbose ? "" :
-            fmt::format(
+            !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
-                ws.memb_indent, "m", name_width, ws.equals,
-                _formatInteger( item.text_element.m ), ws.separator ),
+                ws.memb_indent, "(string len)", name_width, ws.equals,
+                _formatInteger( item.text_element.string_len ), ws.separator ),
             ws.memb_indent, "delta", name_width, ws.equals,
             _formatInteger( item.text_element.delta ), ws.separator,
             ws.memb_indent, "string", name_width, ws.equals,
@@ -318,7 +317,7 @@ X11ProtocolParser::_parseProtocolType<
         const _ParsingOutputs string {
             _parseLISTof< protocol::CHAR2B >(
                 data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                item.text_element.m, ws.nested( _Whitespace::SINGLELINE ) ) };
+                item.text_element.string_2B_len, ws.nested( _Whitespace::SINGLELINE ) ) };
         outputs.bytes_parsed += string.bytes_parsed;
 
         const uint32_t name_width (
@@ -329,11 +328,10 @@ X11ProtocolParser::_parseProtocolType<
             "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
             "{}}}",
             ws.separator,
-            !settings.verbose ? "" :
-            fmt::format(
+            !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
-                ws.memb_indent, "m", name_width, ws.equals,
-                _formatInteger( item.text_element.m ), ws.separator ),
+                ws.memb_indent, "(string length (CHAR2B))", name_width, ws.equals,
+                _formatInteger( item.text_element.string_2B_len ), ws.separator ),
             ws.memb_indent, "delta", name_width, ws.equals,
             _formatInteger( item.text_element.delta ), ws.separator,
             ws.memb_indent, "string", name_width, ws.equals,

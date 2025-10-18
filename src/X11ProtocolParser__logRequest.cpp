@@ -8,142 +8,125 @@
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
-//#include "Settings.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
 #include "protocol/events.hpp"
 #include "protocol/atoms.hpp"
 
 
+template <>
 X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseSimpleRequest(
+X11ProtocolParser::_parseRequest<
+    protocol::requests::impl::SimpleRequest >(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::impl::SimpleRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SimpleRequest::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::impl::SimpleRequest;
-    const SimpleRequest::Encoding* encoding {
-        reinterpret_cast< const SimpleRequest::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( SimpleRequest::Encoding );
-    static const std::unordered_set<uint8_t> supported_opcodes {
-        protocol::requests::opcodes::GRABSERVER,
-        protocol::requests::opcodes::UNGRABSERVER,
-        protocol::requests::opcodes::GETINPUTFOCUS,
-        protocol::requests::opcodes::QUERYKEYMAP,
-        protocol::requests::opcodes::GETFONTPATH,
-        protocol::requests::opcodes::LISTEXTENSIONS,
-        protocol::requests::opcodes::GETKEYBOARDCONTROL,
-        protocol::requests::opcodes::GETPOINTERCONTROL,
-        protocol::requests::opcodes::GETSCREENSAVER,
-        protocol::requests::opcodes::LISTHOSTS,
-        protocol::requests::opcodes::GETPOINTERMAPPING,
-        protocol::requests::opcodes::GETMODIFIERMAPPING
-    };
-    assert( supported_opcodes.count( encoding->opcode ) != 0 );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    const _Whitespace& ws { _ROOT_WS };
+    const SimpleRequest::Header* header {
+        reinterpret_cast< const SimpleRequest::Header* >( data ) };
+    request.bytes_parsed += sizeof( SimpleRequest::Header );
+    // TBD opcode assert?
+    // SimpleRequest is header-only
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
+template <>
 X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseSimpleWindowRequest(
+X11ProtocolParser::_parseRequest<
+    protocol::requests::impl::SimpleWindowRequest >(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::impl::SimpleWindowRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SimpleWindowRequest::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::impl::SimpleWindowRequest;
+    const _Whitespace& ws { _ROOT_WS };
+    const SimpleWindowRequest::Header* header {
+        reinterpret_cast< const SimpleWindowRequest::Header* >( data ) };
+    request.bytes_parsed += sizeof( SimpleWindowRequest::Header );
+    // TBD opcode assert?
     const SimpleWindowRequest::Encoding* encoding {
-        reinterpret_cast< const SimpleWindowRequest::Encoding* >( data ) };
+        reinterpret_cast< const SimpleWindowRequest::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SimpleWindowRequest::Encoding );
-    static const std::unordered_set<uint8_t> supported_opcodes {
-        protocol::requests::opcodes::GETWINDOWATTRIBUTES,
-        protocol::requests::opcodes::DESTROYWINDOW,
-        protocol::requests::opcodes::DESTROYSUBWINDOWS,
-        protocol::requests::opcodes::MAPWINDOW,
-        protocol::requests::opcodes::MAPSUBWINDOWS,
-        protocol::requests::opcodes::UNMAPWINDOW,
-        protocol::requests::opcodes::UNMAPSUBWINDOWS,
-        protocol::requests::opcodes::QUERYTREE,
-        protocol::requests::opcodes::LISTPROPERTIES,
-        protocol::requests::opcodes::QUERYPOINTER,
-        protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS
-    };
-    assert( supported_opcodes.count( encoding->opcode ) != 0 );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.encl_indent
         );
-    // assert( bytes_parsed == sz );
     return request;
 }
 
+template <>
 X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseListFontsRequest(
+X11ProtocolParser::_parseRequest<
+    protocol::requests::impl::ListFontsRequest >(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::impl::ListFontsRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ListFontsRequest::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ListFonts;
-    const ListFonts::Encoding* encoding {
-        reinterpret_cast< const ListFonts::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( ListFonts::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::LISTFONTS ||
-            encoding->opcode == protocol::requests::opcodes::LISTFONTSWITHINFO );
-
+    const _Whitespace& ws { _ROOT_WS };
+    const ListFontsRequest::Header* header {
+        reinterpret_cast< const ListFontsRequest::Header* >( data ) };
+    request.bytes_parsed += sizeof( ListFontsRequest::Header );
+    // TBD opcode assert?
+    const ListFontsRequest::Encoding* encoding {
+        reinterpret_cast< const ListFontsRequest::Encoding* >(
+            data + request.bytes_parsed ) };
+    request.bytes_parsed += sizeof( ListFontsRequest::Encoding );
+    // followed by STRING8 pattern
     std::string_view pattern {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
-        encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+        encoding->pattern_len };
+    request.bytes_parsed += _pad( encoding->pattern_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -151,29 +134,133 @@ X11ProtocolParser::_parseListFontsRequest(
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "max-names", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->max_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "max-names", name_width, ws.equals,
+        _formatInteger( encoding->max_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "pattern", name_width, _ROOT_WS.equals,
-        pattern, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(pattern length)", name_width, ws.equals,
+            _formatInteger( encoding->pattern_len ), ws.separator ),
+        ws.memb_indent, "pattern", name_width, ws.equals,
+        pattern, ws.separator,
+        ws.encl_indent
         );
-    // assert( bytes_parsed == sz );
+    return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::impl::PolyPointRequest >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::impl::PolyPointRequest;
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= PolyPointRequest::BASE_ENCODING_SZ );
+
+    _ParsingOutputs request {};
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyPointRequest::Header* header {
+        reinterpret_cast< const PolyPointRequest::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyPointRequest::Header );
+    // TBD opcode assert?
+    const PolyPointRequest::Encoding* encoding {
+        reinterpret_cast< const PolyPointRequest::Encoding* >(
+            data + request.bytes_parsed ) };
+    request.bytes_parsed += sizeof( PolyPointRequest::Encoding );
+    // followed by LISTofPOINT points
+    const size_t points_sz {
+        ( header->tl_aligned_units * PolyPointRequest::ALIGN ) -
+        PolyPointRequest::BASE_ENCODING_SZ };
+    const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
+    _ParsingOutputs points {
+        _parseLISTof< protocol::POINT >(
+            data + request.bytes_parsed, points_sz, points_ct, ws.nested() ) };
+    request.bytes_parsed += _pad( points.bytes_parsed );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
+
+    const uint32_t name_width (
+        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+    request.str = fmt::format(
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "coordinate-mode", name_width, ws.equals,
+        _formatInteger( header->coordinate_mode,
+                        PolyPointRequest::coordinate_mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "points", name_width, ws.equals,
+        points.str, ws.separator,
+        ws.encl_indent
+        );
+    return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::impl::SimpleCmapRequest >(
+    Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::impl::SimpleCmapRequest;
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= SimpleCmapRequest::BASE_ENCODING_SZ );
+
+    _ParsingOutputs request {};
+    const _Whitespace& ws { _ROOT_WS };
+    const SimpleCmapRequest::Header* header {
+        reinterpret_cast< const SimpleCmapRequest::Header* >( data ) };
+    request.bytes_parsed += sizeof( SimpleCmapRequest::Header );
+    assert( header->opcode == protocol::requests::opcodes::FREECOLORMAP );
+    const SimpleCmapRequest::Encoding* encoding {
+        reinterpret_cast< const SimpleCmapRequest::Encoding* >(
+            data + request.bytes_parsed ) };
+    request.bytes_parsed += sizeof( SimpleCmapRequest::Encoding );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
+
+    const uint32_t name_width (
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+    request.str = fmt::format(
+        "{{{}"
+        "{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.encl_indent
+        );
     return request;
 }
 
@@ -182,19 +269,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CreateWindow;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CreateWindow::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CreateWindow;
+    const _Whitespace& ws { _ROOT_WS };
+    const CreateWindow::Header* header {
+        reinterpret_cast< const CreateWindow::Header* >( data ) };
+    request.bytes_parsed += sizeof( CreateWindow::Header );
+    assert( header->opcode == protocol::requests::opcodes::CREATEWINDOW );
     const CreateWindow::Encoding* encoding {
-        reinterpret_cast< const CreateWindow::Encoding* >( data ) };
+        reinterpret_cast< const CreateWindow::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateWindow::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CREATEWINDOW );
-
-    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
-    //   nested in value_list_inputs initializer
+    // followed by LISTofVALUE value-list
     const std::vector< _VALUETraits > value_traits {
         /* background-pixmap     */ { CreateWindow::background_pixmap_names },
         /* background-pixel      */ {},
@@ -213,20 +303,16 @@ X11ProtocolParser::_parseRequest<
         /* cursor                */ { CreateWindow::cursor_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
-        encoding->value_mask,
-        CreateWindow::value_types,
-        CreateWindow::value_names,
-        value_traits,
-        _ROOT_WS.nested()
-    };
-    _ParsingOutputs value_list_outputs;
+        encoding->value_mask, CreateWindow::value_types,
+        CreateWindow::value_names, value_traits, ws.nested() };
+    _ParsingOutputs value_list;
     _parseLISTofVALUE(
-        value_list_inputs, data + request.bytes_parsed, &value_list_outputs );
-    request.bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+        value_list_inputs, data + request.bytes_parsed, &value_list );
+    request.bytes_parsed += value_list.bytes_parsed;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -236,46 +322,44 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->depth ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "depth", name_width, ws.equals,
+        _formatInteger( header->depth ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "wid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->wid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "parent", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->parent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "border-width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->border_width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "class", name_width, _ROOT_WS.equals,
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "wid", name_width, ws.equals,
+        _formatProtocolType( encoding->wid ), ws.separator,
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->parent ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "border-width", name_width, ws.equals,
+        _formatInteger( encoding->border_width ), ws.separator,
+        ws.memb_indent, "class", name_width, ws.equals,
         _formatInteger( encoding->class_,
-                        protocol::enum_names::window_class ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual", name_width, _ROOT_WS.equals,
+                        protocol::enum_names::window_class ), ws.separator,
+        ws.memb_indent, "visual", name_width, ws.equals,
         _formatProtocolType( encoding->visual,
-                           protocol::enum_names::zero_copy_from_parent ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
-        value_list_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+                             protocol::enum_names::zero_copy_from_parent ),
+        ws.separator,
+        ws.memb_indent, "value-mask", name_width, ws.equals,
+        _formatBitmask( encoding->value_mask ), ws.separator,
+        ws.memb_indent, "value-list", name_width, ws.equals,
+        value_list.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -284,20 +368,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeWindowAttributes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeWindowAttributes;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeWindowAttributes::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeWindowAttributes;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeWindowAttributes::Header* header {
+        reinterpret_cast< const ChangeWindowAttributes::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeWindowAttributes::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES );
     const ChangeWindowAttributes::Encoding* encoding {
-        reinterpret_cast< const ChangeWindowAttributes::Encoding* >( data ) };
+        reinterpret_cast< const ChangeWindowAttributes::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeWindowAttributes::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES );
-
-    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
-    //   nested in value_list_inputs initializer
-    // VALUE list encoding same as CreateWindow
+    // followed by LISTofVALUE value-list
     const std::vector< _VALUETraits > value_traits {
         /* background-pixmap     */ { ChangeWindowAttributes::background_pixmap_names },
         /* background-pixel      */ {},
@@ -316,44 +402,38 @@ X11ProtocolParser::_parseRequest<
         /* cursor                */ { ChangeWindowAttributes::cursor_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
-        encoding->value_mask,
-        ChangeWindowAttributes::value_types,
-        ChangeWindowAttributes::value_names,
-        value_traits,
-        _ROOT_WS.nested()
-    };
-    _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed, &value_list_outputs );
-    request.bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+        encoding->value_mask, ChangeWindowAttributes::value_types,
+        ChangeWindowAttributes::value_names, value_traits, ws.nested() };
+    _ParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
+                       &value_list );
+    request.bytes_parsed += value_list.bytes_parsed;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
-        value_list_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "value-mask", name_width, ws.equals,
+        _formatBitmask( encoding->value_mask ), ws.separator,
+        ws.memb_indent, "value-list", name_width, ws.equals,
+        value_list.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -362,20 +442,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeSaveSet >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeSaveSet;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeSaveSet::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeSaveSet;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeSaveSet::Header* header {
+        reinterpret_cast< const ChangeSaveSet::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeSaveSet::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGESAVESET );
     const ChangeSaveSet::Encoding* encoding {
-        reinterpret_cast< const ChangeSaveSet::Encoding* >( data ) };
+        reinterpret_cast< const ChangeSaveSet::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeSaveSet::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGESAVESET );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -383,24 +468,22 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, ChangeSaveSet::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode,
+                        ChangeSaveSet::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -409,47 +492,49 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ReparentWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ReparentWindow;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ReparentWindow::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ReparentWindow;
+    const _Whitespace& ws { _ROOT_WS };
+    const ReparentWindow::Header* header {
+        reinterpret_cast< const ReparentWindow::Header* >( data ) };
+    request.bytes_parsed += sizeof( ReparentWindow::Header );
+    assert( header->opcode == protocol::requests::opcodes::REPARENTWINDOW );
     const ReparentWindow::Encoding* encoding {
-        reinterpret_cast< const ReparentWindow::Encoding* >( data ) };
+        reinterpret_cast< const ReparentWindow::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ReparentWindow::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::REPARENTWINDOW );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "parent", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "parent", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -458,20 +543,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ConfigureWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ConfigureWindow;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ConfigureWindow::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ConfigureWindow;
+    const _Whitespace& ws { _ROOT_WS };
+    const ConfigureWindow::Header* header {
+        reinterpret_cast< const ConfigureWindow::Header* >( data ) };
+    request.bytes_parsed += sizeof( ConfigureWindow::Header );
+    assert( header->opcode == protocol::requests::opcodes::CONFIGUREWINDOW );
     const ConfigureWindow::Encoding* encoding {
-        reinterpret_cast< const ConfigureWindow::Encoding* >( data ) };
+        reinterpret_cast< const ConfigureWindow::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ConfigureWindow::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CONFIGUREWINDOW );
-
-    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
-    //   nested in value_list_inputs initializer
-    // VALUE list encoding same as CreateWindow
+    // followed by LISTofVALUE value-list
     const std::vector< _VALUETraits > value_traits {
         /* x            */ {},
         /* y            */ {},
@@ -482,44 +569,38 @@ X11ProtocolParser::_parseRequest<
         /* stack-mode   */ { ConfigureWindow::stack_mode_names },
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
-        encoding->value_mask,
-        ConfigureWindow::value_types,
-        ConfigureWindow::value_names,
-        value_traits,
-        _ROOT_WS.nested()
-    };
-    _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed, &value_list_outputs );
-    request.bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+        encoding->value_mask, ConfigureWindow::value_types,
+        ConfigureWindow::value_names, value_traits, ws.nested() };
+    _ParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
+                       &value_list );
+    request.bytes_parsed += value_list.bytes_parsed;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
-        value_list_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "value-mask", name_width, ws.equals,
+        _formatBitmask( encoding->value_mask ), ws.separator,
+        ws.memb_indent, "value-list", name_width, ws.equals,
+        value_list.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -528,20 +609,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CirculateWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CirculateWindow;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CirculateWindow::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CirculateWindow;
+    const _Whitespace& ws { _ROOT_WS };
+    const CirculateWindow::Header* header {
+        reinterpret_cast< const CirculateWindow::Header* >( data ) };
+    request.bytes_parsed += sizeof( CirculateWindow::Header );
+    assert( header->opcode == protocol::requests::opcodes::CIRCULATEWINDOW );
     const CirculateWindow::Encoding* encoding {
-        reinterpret_cast< const CirculateWindow::Encoding* >( data ) };
+        reinterpret_cast< const CirculateWindow::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CirculateWindow::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CIRCULATEWINDOW );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -549,24 +635,22 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "direction", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->direction, CirculateWindow::direction_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "direction", name_width, ws.equals,
+        _formatInteger( header->direction,
+                        CirculateWindow::direction_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -575,42 +659,44 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetGeometry >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetGeometry;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetGeometry::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetGeometry;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetGeometry::Header* header {
+        reinterpret_cast< const GetGeometry::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetGeometry::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETGEOMETRY );
     const GetGeometry::Encoding* encoding {
-        reinterpret_cast< const GetGeometry::Encoding* >( data ) };
+        reinterpret_cast< const GetGeometry::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetGeometry::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETGEOMETRY );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -619,29 +705,34 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::InternAtom >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::InternAtom;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= InternAtom::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::InternAtom;
+    const _Whitespace& ws { _ROOT_WS };
+    const InternAtom::Header* header {
+        reinterpret_cast< const InternAtom::Header* >( data ) };
+    request.bytes_parsed += sizeof( InternAtom::Header );
+    assert( header->opcode == protocol::requests::opcodes::INTERNATOM );
     const InternAtom::Encoding* encoding {
-        reinterpret_cast< const InternAtom::Encoding* >( data ) };
+        reinterpret_cast< const InternAtom::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( InternAtom::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::INTERNATOM );
-    assert( encoding->n > 0 );
-    // followed by pad(n) STRING8 name
-    std::string_view name {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 name
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        encoding->name_len };
+    request.bytes_parsed += _pad( encoding->name_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     // Stash copy of atom until reply comes in - at that time we will include it
     //   in our own internment if it isn't already
     _stashAtom( { conn->id, conn->sequence }, name );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -649,29 +740,25 @@ X11ProtocolParser::_parseRequest<
         "{}{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "only-if-exists", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->only_if_exists ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "only-if-exists", name_width, ws.equals,
+        _formatProtocolType( header->only_if_exists ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -680,41 +767,43 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetAtomName >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetAtomName;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetAtomName::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetAtomName;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetAtomName::Header* header {
+        reinterpret_cast< const GetAtomName::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetAtomName::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETATOMNAME );
     const GetAtomName::Encoding* encoding {
-        reinterpret_cast< const GetAtomName::Encoding* >( data ) };
+        reinterpret_cast< const GetAtomName::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetAtomName::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETATOMNAME );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "atom", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->atom ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "atom", name_width, ws.equals,
+        _formatProtocolType( encoding->atom ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -723,35 +812,42 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeProperty;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeProperty::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeProperty;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeProperty::Header* header {
+        reinterpret_cast< const ChangeProperty::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeProperty::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEPROPERTY );
     const ChangeProperty::Encoding* encoding {
-        reinterpret_cast< const ChangeProperty::Encoding* >( data ) };
+        reinterpret_cast< const ChangeProperty::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeProperty::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEPROPERTY );
     assert( encoding->format <= 32 && encoding->format % 8 == 0 );
     // followed by LISTofBYTE data
-    const uint32_t data_sz { encoding->fmt_unit_ct * ( encoding->format / 8 ) };
+    const uint32_t data_len { encoding->data_fmt_unit_len *
+                              ( encoding->format / 8 ) };
     _ParsingOutputs data_;
     if ( encoding->type.data == protocol::atoms::predefined::STRING ) {
         data_.str = fmt::format(
             "{:?}", std::string_view{
-                reinterpret_cast< const char* >( data + request.bytes_parsed ), data_sz } );
-        data_.bytes_parsed = data_sz;
+                reinterpret_cast< const char* >(
+                    data + request.bytes_parsed ), data_len } );
+        data_.bytes_parsed = data_len;
     } else {
         data_ = _parseLISTof< protocol::BYTE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, data_sz,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) );
+            data + request.bytes_parsed, sz - request.bytes_parsed,
+            data_len, ws.nested( _Whitespace::SINGLELINE ) );
     }
-    request.bytes_parsed += _pad(data_.bytes_parsed);
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    request.bytes_parsed += _pad( data_.bytes_parsed );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(data length (format units))" ) - 1 : 0 );
 
     request.str = fmt::format(
         "{{{}"
@@ -762,37 +858,33 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, ChangeProperty::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode, ChangeProperty::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->property ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "type", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->type ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->format ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "property", name_width, ws.equals,
+        _formatProtocolType( encoding->property ), ws.separator,
+        ws.memb_indent, "type", name_width, ws.equals,
+        _formatProtocolType( encoding->type ), ws.separator,
+        ws.memb_indent, "format", name_width, ws.equals,
+        _formatInteger( encoding->format ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "format units", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->fmt_unit_ct ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "data", name_width, _ROOT_WS.equals,
-        data_.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(data length (format units))", name_width, ws.equals,
+            _formatInteger( encoding->data_fmt_unit_len ), ws.separator ),
+        ws.memb_indent, "data", name_width, ws.equals,
+        data_.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -801,43 +893,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::DeleteProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::DeleteProperty;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= DeleteProperty::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::DeleteProperty;
+    const _Whitespace& ws { _ROOT_WS };
+    const DeleteProperty::Header* header {
+        reinterpret_cast< const DeleteProperty::Header* >( data ) };
+    request.bytes_parsed += sizeof( DeleteProperty::Header );
+    assert( header->opcode == protocol::requests::opcodes::DELETEPROPERTY );
     const DeleteProperty::Encoding* encoding {
-        reinterpret_cast< const DeleteProperty::Encoding* >( data ) };
+        reinterpret_cast< const DeleteProperty::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( DeleteProperty::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::DELETEPROPERTY );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->property ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "property", name_width, ws.equals,
+        _formatProtocolType( encoding->property ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -846,20 +940,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetProperty >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetProperty;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetProperty::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetProperty;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetProperty::Header* header {
+        reinterpret_cast< const GetProperty::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetProperty::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETPROPERTY );
     const GetProperty::Encoding* encoding {
-        reinterpret_cast< const GetProperty::Encoding* >( data ) };
+        reinterpret_cast< const GetProperty::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetProperty::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETPROPERTY );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -868,32 +967,29 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "delete", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->delete_ ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "delete", name_width, ws.equals,
+        _formatProtocolType( header->delete_ ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->property ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "type", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->type, GetProperty::type_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "long-offset", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->long_offset ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "long-length", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->long_length ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "property", name_width, ws.equals,
+        _formatProtocolType( encoding->property ), ws.separator,
+        ws.memb_indent, "type", name_width, ws.equals,
+        _formatProtocolType( encoding->type, GetProperty::type_names ), ws.separator,
+        ws.memb_indent, "long-offset", name_width, ws.equals,
+        _formatInteger( encoding->long_offset ), ws.separator,
+        ws.memb_indent, "long-length", name_width, ws.equals,
+        _formatInteger( encoding->long_length ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -902,45 +998,47 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetSelectionOwner >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetSelectionOwner;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetSelectionOwner::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetSelectionOwner;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetSelectionOwner::Header* header {
+        reinterpret_cast< const SetSelectionOwner::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetSelectionOwner::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETSELECTIONOWNER );
     const SetSelectionOwner::Encoding* encoding {
-        reinterpret_cast< const SetSelectionOwner::Encoding* >( data ) };
+        reinterpret_cast< const SetSelectionOwner::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetSelectionOwner::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETSELECTIONOWNER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "owner", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->owner, SetSelectionOwner::owner_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "selection", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->selection ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, SetSelectionOwner::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "owner", name_width, ws.equals,
+        _formatProtocolType( encoding->owner, SetSelectionOwner::owner_names ), ws.separator,
+        ws.memb_indent, "selection", name_width, ws.equals,
+        _formatProtocolType( encoding->selection ), ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time, SetSelectionOwner::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -949,41 +1047,43 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetSelectionOwner >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetSelectionOwner;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetSelectionOwner::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetSelectionOwner;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetSelectionOwner::Header* header {
+        reinterpret_cast< const GetSelectionOwner::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetSelectionOwner::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETSELECTIONOWNER );
     const GetSelectionOwner::Encoding* encoding {
-        reinterpret_cast< const GetSelectionOwner::Encoding* >( data ) };
+        reinterpret_cast< const GetSelectionOwner::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetSelectionOwner::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETSELECTIONOWNER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "selection", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->selection ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "selection", name_width, ws.equals,
+        _formatProtocolType( encoding->selection ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -992,50 +1092,54 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ConvertSelection >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ConvertSelection;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ConvertSelection::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ConvertSelection;
+    const _Whitespace& ws { _ROOT_WS };
+    const ConvertSelection::Header* header {
+        reinterpret_cast< const ConvertSelection::Header* >( data ) };
+    request.bytes_parsed += sizeof( ConvertSelection::Header );
+    assert( header->opcode == protocol::requests::opcodes::CONVERTSELECTION );
     const ConvertSelection::Encoding* encoding {
-        reinterpret_cast< const ConvertSelection::Encoding* >( data ) };
+        reinterpret_cast< const ConvertSelection::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ConvertSelection::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CONVERTSELECTION );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "requestor", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->requestor ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "selection", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->selection ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "target", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->target ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "property", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->property, ConvertSelection::property_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, ConvertSelection::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "requestor", name_width, ws.equals,
+        _formatProtocolType( encoding->requestor ), ws.separator,
+        ws.memb_indent, "selection", name_width, ws.equals,
+        _formatProtocolType( encoding->selection ), ws.separator,
+        ws.memb_indent, "target", name_width, ws.equals,
+        _formatProtocolType( encoding->target ), ws.separator,
+        ws.memb_indent, "property", name_width, ws.equals,
+        _formatProtocolType( encoding->property,
+                             ConvertSelection::property_names ), ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             ConvertSelection::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1044,28 +1148,33 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SendEvent >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SendEvent;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SendEvent::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SendEvent;
+    const _Whitespace& ws { _ROOT_WS };
+    const SendEvent::Header* header {
+        reinterpret_cast< const SendEvent::Header* >( data ) };
+    request.bytes_parsed += sizeof( SendEvent::Header );
+    assert( header->opcode == protocol::requests::opcodes::SENDEVENT );
     const SendEvent::Encoding* encoding {
-        reinterpret_cast< const SendEvent::Encoding* >( data ) };
+        reinterpret_cast< const SendEvent::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SendEvent::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SENDEVENT );
-
+    // followed by Event
     const uint8_t evt_code {
         reinterpret_cast< const protocol::events::Event::Header* >(
             data + request.bytes_parsed )->code };
     const _ParsingOutputs event { _parseEvent(
-            conn, data + request.bytes_parsed, protocol::events::Event::ENCODING_SZ,
-            _ROOT_WS.nested() ) };
+            conn, data + request.bytes_parsed,
+            protocol::events::Event::ENCODING_SZ, ws.nested() ) };
     request.bytes_parsed += event.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1074,29 +1183,27 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}({}) {}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "propagate", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->propagate ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "propagate", name_width, ws.equals,
+        _formatProtocolType( header->propagate ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "destination", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->destination, SendEvent::destination_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "event", name_width, _ROOT_WS.equals,
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "destination", name_width, ws.equals,
+        _formatProtocolType( encoding->destination,
+                             SendEvent::destination_names ), ws.separator,
+        ws.memb_indent, "event-mask", name_width, ws.equals,
+        _formatProtocolType( encoding->event_mask ), ws.separator,
+        ws.memb_indent, "event", name_width, ws.equals,
         protocol::events::names[ evt_code ], evt_code,
-        event.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+        event.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1105,20 +1212,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GrabPointer;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GrabPointer::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GrabPointer;
+    const _Whitespace& ws { _ROOT_WS };
+    const GrabPointer::Header* header {
+        reinterpret_cast< const GrabPointer::Header* >( data ) };
+    request.bytes_parsed += sizeof( GrabPointer::Header );
+    assert( header->opcode == protocol::requests::opcodes::GRABPOINTER );
     const GrabPointer::Encoding* encoding {
-        reinterpret_cast< const GrabPointer::Encoding* >( data ) };
+        reinterpret_cast< const GrabPointer::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabPointer::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GRABPOINTER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1127,36 +1239,38 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "owner-events", name_width, ws.equals,
+        _formatProtocolType( header->owner_events ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pointer_mode, GrabPointer::pointer_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keyboard_mode, GrabPointer::keyboard_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "confine-to", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->confine_to, GrabPointer::confine_to_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cursor, GrabPointer::cursor_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, GrabPointer::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "grab-window", name_width, ws.equals,
+        _formatProtocolType( encoding->grab_window ), ws.separator,
+        ws.memb_indent, "event-mask", name_width, ws.equals,
+        _formatProtocolType( encoding->event_mask ), ws.separator,
+        ws.memb_indent, "pointer-mode", name_width, ws.equals,
+        _formatInteger( encoding->pointer_mode,
+                        GrabPointer::pointer_mode_names ), ws.separator,
+        ws.memb_indent, "keyboard-mode", name_width, ws.equals,
+        _formatInteger( encoding->keyboard_mode,
+                        GrabPointer::keyboard_mode_names ), ws.separator,
+        ws.memb_indent, "confine-to", name_width, ws.equals,
+        _formatProtocolType( encoding->confine_to,
+                             GrabPointer::confine_to_names ), ws.separator,
+        ws.memb_indent, "cursor", name_width, ws.equals,
+        _formatProtocolType( encoding->cursor,
+                             GrabPointer::cursor_names ), ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             GrabPointer::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1165,41 +1279,44 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::UngrabPointer;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= UngrabPointer::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::UngrabPointer;
+    const _Whitespace& ws { _ROOT_WS };
+    const UngrabPointer::Header* header {
+        reinterpret_cast< const UngrabPointer::Header* >( data ) };
+    request.bytes_parsed += sizeof( UngrabPointer::Header );
+    assert( header->opcode == protocol::requests::opcodes::UNGRABPOINTER );
     const UngrabPointer::Encoding* encoding {
-        reinterpret_cast< const UngrabPointer::Encoding* >( data ) };
+        reinterpret_cast< const UngrabPointer::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabPointer::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::UNGRABPOINTER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, UngrabPointer::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             UngrabPointer::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1208,20 +1325,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabButton >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GrabButton;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GrabButton::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GrabButton;
+    const _Whitespace& ws { _ROOT_WS };
+    const GrabButton::Header* header {
+        reinterpret_cast< const GrabButton::Header* >( data ) };
+    request.bytes_parsed += sizeof( GrabButton::Header );
+    assert( header->opcode == protocol::requests::opcodes::GRABBUTTON );
     const GrabButton::Encoding* encoding {
-        reinterpret_cast< const GrabButton::Encoding* >( data ) };
+        reinterpret_cast< const GrabButton::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabButton::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GRABBUTTON );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1230,38 +1352,40 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "owner-events", name_width, ws.equals,
+        _formatProtocolType( header->owner_events ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pointer_mode, GrabButton::pointer_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keyboard_mode, GrabButton::keyboard_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "confine-to", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->confine_to, GrabButton::confine_to_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cursor, GrabButton::cursor_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "button", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->button, GrabButton::button_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "grab-window", name_width, ws.equals,
+        _formatProtocolType( encoding->grab_window ), ws.separator,
+        ws.memb_indent, "event-mask", name_width, ws.equals,
+        _formatProtocolType( encoding->event_mask ), ws.separator,
+        ws.memb_indent, "pointer-mode", name_width, ws.equals,
+        _formatInteger( encoding->pointer_mode,
+                        GrabButton::pointer_mode_names ), ws.separator,
+        ws.memb_indent, "keyboard-mode", name_width, ws.equals,
+        _formatInteger( encoding->keyboard_mode,
+                        GrabButton::keyboard_mode_names ), ws.separator,
+        ws.memb_indent, "confine-to", name_width, ws.equals,
+        _formatProtocolType( encoding->confine_to,
+                             GrabButton::confine_to_names ), ws.separator,
+        ws.memb_indent, "cursor", name_width, ws.equals,
+        _formatProtocolType( encoding->cursor,
+                             GrabButton::cursor_names ), ws.separator,
+        ws.memb_indent, "button", name_width, ws.equals,
+        _formatProtocolType( encoding->button,
+                             GrabButton::button_names ), ws.separator,
+        ws.memb_indent, "modifiers", name_width, ws.equals,
+        _formatProtocolType( encoding->modifiers ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1270,20 +1394,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabButton >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::UngrabButton;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= UngrabButton::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::UngrabButton;
+    const _Whitespace& ws { _ROOT_WS };
+    const UngrabButton::Header* header {
+        reinterpret_cast< const UngrabButton::Header* >( data ) };
+    request.bytes_parsed += sizeof( UngrabButton::Header );
+    assert( header->opcode == protocol::requests::opcodes::UNGRABBUTTON );
     const UngrabButton::Encoding* encoding {
-        reinterpret_cast< const UngrabButton::Encoding* >( data ) };
+        reinterpret_cast< const UngrabButton::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabButton::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::UNGRABBUTTON );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1291,26 +1420,24 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "button", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->button, UngrabButton::button_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "button", name_width, ws.equals,
+        _formatProtocolType( header->button,
+                             UngrabButton::button_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "grab-window", name_width, ws.equals,
+        _formatProtocolType( encoding->grab_window ), ws.separator,
+        ws.memb_indent, "modifiers", name_width, ws.equals,
+        _formatProtocolType( encoding->modifiers ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1319,45 +1446,49 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeActivePointerGrab >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeActivePointerGrab;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeActivePointerGrab::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeActivePointerGrab;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeActivePointerGrab::Header* header {
+        reinterpret_cast< const ChangeActivePointerGrab::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeActivePointerGrab::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB );
     const ChangeActivePointerGrab::Encoding* encoding {
-        reinterpret_cast< const ChangeActivePointerGrab::Encoding* >( data ) };
+        reinterpret_cast< const ChangeActivePointerGrab::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeActivePointerGrab::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cursor, ChangeActivePointerGrab::cursor_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, ChangeActivePointerGrab::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "event-mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->event_mask ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cursor", name_width, ws.equals,
+        _formatProtocolType( encoding->cursor,
+                             ChangeActivePointerGrab::cursor_names ), ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             ChangeActivePointerGrab::time_names ), ws.separator,
+        ws.memb_indent, "event-mask", name_width, ws.equals,
+        _formatProtocolType( encoding->event_mask ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1366,20 +1497,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabKeyboard >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GrabKeyboard;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GrabKeyboard::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GrabKeyboard;
+    const _Whitespace& ws { _ROOT_WS };
+    const GrabKeyboard::Header* header {
+        reinterpret_cast< const GrabKeyboard::Header* >( data ) };
+    request.bytes_parsed += sizeof( GrabKeyboard::Header );
+    assert( header->opcode == protocol::requests::opcodes::GRABKEYBOARD );
     const GrabKeyboard::Encoding* encoding {
-        reinterpret_cast< const GrabKeyboard::Encoding* >( data ) };
+        reinterpret_cast< const GrabKeyboard::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabKeyboard::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GRABKEYBOARD );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1387,30 +1523,30 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "owner-events", name_width, ws.equals,
+        _formatProtocolType( header->owner_events ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, GrabKeyboard::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pointer_mode, GrabKeyboard::pointer_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keyboard_mode, GrabKeyboard::keyboard_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "grab-window", name_width, ws.equals,
+        _formatProtocolType( encoding->grab_window ), ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             GrabKeyboard::time_names ), ws.separator,
+        ws.memb_indent, "pointer-mode", name_width, ws.equals,
+        _formatInteger( encoding->pointer_mode,
+                        GrabKeyboard::pointer_mode_names ), ws.separator,
+        ws.memb_indent, "keyboard-mode", name_width, ws.equals,
+        _formatInteger( encoding->keyboard_mode,
+                        GrabKeyboard::keyboard_mode_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1419,41 +1555,44 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabKeyboard >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::UngrabKeyboard;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= UngrabKeyboard::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::UngrabKeyboard;
+    const _Whitespace& ws { _ROOT_WS };
+    const UngrabKeyboard::Header* header {
+        reinterpret_cast< const UngrabKeyboard::Header* >( data ) };
+    request.bytes_parsed += sizeof( UngrabKeyboard::Header );
+    assert( header->opcode == protocol::requests::opcodes::UNGRABKEYBOARD );
     const UngrabKeyboard::Encoding* encoding {
-        reinterpret_cast< const UngrabKeyboard::Encoding* >( data ) };
+        reinterpret_cast< const UngrabKeyboard::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabKeyboard::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEYBOARD );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, UngrabKeyboard::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             UngrabKeyboard::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1462,20 +1601,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabKey >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GrabKey;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GrabKey::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GrabKey;
+    const _Whitespace& ws { _ROOT_WS };
+    const GrabKey::Header* header {
+        reinterpret_cast< const GrabKey::Header* >( data ) };
+    request.bytes_parsed += sizeof( GrabKey::Header );
+    assert( header->opcode == protocol::requests::opcodes::GRABKEY );
     const GrabKey::Encoding* encoding {
-        reinterpret_cast< const GrabKey::Encoding* >( data ) };
+        reinterpret_cast< const GrabKey::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabKey::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GRABKEY );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1483,30 +1627,30 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "owner-events", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->owner_events ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "owner-events", name_width, ws.equals,
+        _formatProtocolType( header->owner_events ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "key", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->key, GrabKey::key_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pointer-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pointer_mode, GrabKey::pointer_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "keyboard-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keyboard_mode, GrabKey::keyboard_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "modifiers", name_width, ws.equals,
+        _formatProtocolType( encoding->modifiers ), ws.separator,
+        ws.memb_indent, "key", name_width, ws.equals,
+        _formatProtocolType( encoding->key,
+                             GrabKey::key_names ), ws.separator,
+        ws.memb_indent, "pointer-mode", name_width, ws.equals,
+        _formatInteger( encoding->pointer_mode,
+                        GrabKey::pointer_mode_names ), ws.separator,
+        ws.memb_indent, "keyboard-mode", name_width, ws.equals,
+        _formatInteger( encoding->keyboard_mode,
+                        GrabKey::keyboard_mode_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1515,20 +1659,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabKey >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::UngrabKey;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= UngrabKey::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::UngrabKey;
+    const _Whitespace& ws { _ROOT_WS };
+    const UngrabKey::Header* header {
+        reinterpret_cast< const UngrabKey::Header* >( data ) };
+    request.bytes_parsed += sizeof( UngrabKey::Header );
+    assert( header->opcode == protocol::requests::opcodes::UNGRABKEY );
     const UngrabKey::Encoding* encoding {
-        reinterpret_cast< const UngrabKey::Encoding* >( data ) };
+        reinterpret_cast< const UngrabKey::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabKey::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::UNGRABKEY );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1536,26 +1685,24 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "key", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->key, UngrabKey::key_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "key", name_width, ws.equals,
+        _formatProtocolType( header->key,
+                             UngrabKey::key_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "grab-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->grab_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "modifiers", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->modifiers ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "grab-window", name_width, ws.equals,
+        _formatProtocolType( encoding->grab_window ), ws.separator,
+        ws.memb_indent, "modifiers", name_width, ws.equals,
+        _formatProtocolType( encoding->modifiers ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1564,20 +1711,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllowEvents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::AllowEvents;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= AllowEvents::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::AllowEvents;
+    const _Whitespace& ws { _ROOT_WS };
+    const AllowEvents::Header* header {
+        reinterpret_cast< const AllowEvents::Header* >( data ) };
+    request.bytes_parsed += sizeof( AllowEvents::Header );
+    assert( header->opcode == protocol::requests::opcodes::ALLOWEVENTS );
     const AllowEvents::Encoding* encoding {
-        reinterpret_cast< const AllowEvents::Encoding* >( data ) };
+        reinterpret_cast< const AllowEvents::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllowEvents::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::ALLOWEVENTS );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1585,24 +1737,23 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, AllowEvents::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode,
+                        AllowEvents::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, AllowEvents::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             AllowEvents::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1611,45 +1762,49 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetMotionEvents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetMotionEvents;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetMotionEvents::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetMotionEvents;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetMotionEvents::Header* header {
+        reinterpret_cast< const GetMotionEvents::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetMotionEvents::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETMOTIONEVENTS );
     const GetMotionEvents::Encoding* encoding {
-        reinterpret_cast< const GetMotionEvents::Encoding* >( data ) };
+        reinterpret_cast< const GetMotionEvents::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetMotionEvents::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETMOTIONEVENTS );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "start", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->start, GetMotionEvents::start_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "stop", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->stop, GetMotionEvents::stop_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "start", name_width, ws.equals,
+        _formatProtocolType( encoding->start,
+                             GetMotionEvents::start_names ), ws.separator,
+        ws.memb_indent, "stop", name_width, ws.equals,
+        _formatProtocolType( encoding->stop,
+                             GetMotionEvents::stop_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1658,47 +1813,49 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::TranslateCoordinates >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::TranslateCoordinates;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= TranslateCoordinates::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::TranslateCoordinates;
+    const _Whitespace& ws { _ROOT_WS };
+    const TranslateCoordinates::Header* header {
+        reinterpret_cast< const TranslateCoordinates::Header* >( data ) };
+    request.bytes_parsed += sizeof( TranslateCoordinates::Header );
+    assert( header->opcode == protocol::requests::opcodes::TRANSLATECOORDINATES );
     const TranslateCoordinates::Encoding* encoding {
-        reinterpret_cast< const TranslateCoordinates::Encoding* >( data ) };
+        reinterpret_cast< const TranslateCoordinates::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( TranslateCoordinates::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::TRANSLATECOORDINATES );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "src-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->src_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->dst_window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "src-window", name_width, ws.equals,
+        _formatProtocolType( encoding->src_window ), ws.separator,
+        ws.memb_indent, "dst-window", name_width, ws.equals,
+        _formatProtocolType( encoding->dst_window ), ws.separator,
+        ws.memb_indent, "src-x", name_width, ws.equals,
+        _formatInteger( encoding->src_x ), ws.separator,
+        ws.memb_indent, "src-y", name_width, ws.equals,
+        _formatInteger( encoding->src_y ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1707,56 +1864,60 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::WarpPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::WarpPointer;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= WarpPointer::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::WarpPointer;
+    const _Whitespace& ws { _ROOT_WS };
+    const WarpPointer::Header* header {
+        reinterpret_cast< const WarpPointer::Header* >( data ) };
+    request.bytes_parsed += sizeof( WarpPointer::Header );
+    assert( header->opcode == protocol::requests::opcodes::WARPPOINTER );
     const WarpPointer::Encoding* encoding {
-        reinterpret_cast< const WarpPointer::Encoding* >( data ) };
+        reinterpret_cast< const WarpPointer::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( WarpPointer::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::WARPPOINTER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "src-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->src_window, WarpPointer::src_window_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->dst_window, WarpPointer::dst_window_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_height ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "src-window", name_width, ws.equals,
+        _formatProtocolType( encoding->src_window,
+                             WarpPointer::src_window_names ), ws.separator,
+        ws.memb_indent, "dst-window", name_width, ws.equals,
+        _formatProtocolType( encoding->dst_window,
+                             WarpPointer::dst_window_names ), ws.separator,
+        ws.memb_indent, "src-x", name_width, ws.equals,
+        _formatInteger( encoding->src_x ), ws.separator,
+        ws.memb_indent, "src-y", name_width, ws.equals,
+        _formatInteger( encoding->src_y ), ws.separator,
+        ws.memb_indent, "src-width", name_width, ws.equals,
+        _formatInteger( encoding->src_width ), ws.separator,
+        ws.memb_indent, "src-height", name_width, ws.equals,
+        _formatInteger( encoding->src_height ), ws.separator,
+        ws.memb_indent, "dst-x", name_width, ws.equals,
+        _formatInteger( encoding->dst_x ), ws.separator,
+        ws.memb_indent, "dst-y", name_width, ws.equals,
+        _formatInteger( encoding->dst_y ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1765,20 +1926,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetInputFocus >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetInputFocus;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetInputFocus::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetInputFocus;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetInputFocus::Header* header {
+        reinterpret_cast< const SetInputFocus::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetInputFocus::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETINPUTFOCUS );
     const SetInputFocus::Encoding* encoding {
-        reinterpret_cast< const SetInputFocus::Encoding* >( data ) };
+        reinterpret_cast< const SetInputFocus::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetInputFocus::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETINPUTFOCUS );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1786,26 +1952,27 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "revert-to", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->revert_to, SetInputFocus::revert_to_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "revert-to", name_width, ws.equals,
+        _formatInteger( header->revert_to,
+                        SetInputFocus::revert_to_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "focus", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->focus, SetInputFocus::focus_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "time", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->time, SetInputFocus::time_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "focus", name_width, ws.equals,
+        _formatProtocolType( encoding->focus, SetInputFocus::focus_names,
+                             _IndexRange{ 0, SetInputFocus::FOCUS_ENUM_MAX } ),
+        ws.separator,
+        ws.memb_indent, "time", name_width, ws.equals,
+        _formatProtocolType( encoding->time,
+                             SetInputFocus::time_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1814,24 +1981,30 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::OpenFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::OpenFont;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= OpenFont::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::OpenFont;
+    const _Whitespace& ws { _ROOT_WS };
+    const OpenFont::Header* header {
+        reinterpret_cast< const OpenFont::Header* >( data ) };
+    request.bytes_parsed += sizeof( OpenFont::Header );
+    assert( header->opcode == protocol::requests::opcodes::OPENFONT );
     const OpenFont::Encoding* encoding {
-        reinterpret_cast< const OpenFont::Encoding* >( data ) };
+        reinterpret_cast< const OpenFont::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( OpenFont::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::OPENFONT );
-
-    std::string_view name {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 name
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        encoding->name_len };
+    request.bytes_parsed += _pad( encoding->name_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1839,29 +2012,25 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "fid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->fid ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "fid", name_width, ws.equals,
+        _formatProtocolType( encoding->fid ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1870,41 +2039,43 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CloseFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CloseFont;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CloseFont::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CloseFont;
+    const _Whitespace& ws { _ROOT_WS };
+    const CloseFont::Header* header {
+        reinterpret_cast< const CloseFont::Header* >( data ) };
+    request.bytes_parsed += sizeof( CloseFont::Header );
+    assert( header->opcode == protocol::requests::opcodes::CLOSEFONT );
     const CloseFont::Encoding* encoding {
-        reinterpret_cast< const CloseFont::Encoding* >( data ) };
+        reinterpret_cast< const CloseFont::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CloseFont::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CLOSEFONT );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "font", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->font ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "font", name_width, ws.equals,
+        _formatProtocolType( encoding->font ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1913,42 +2084,44 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryFont >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::QueryFont;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= QueryFont::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::QueryFont;
+    const _Whitespace& ws { _ROOT_WS };
+    const QueryFont::Header* header {
+        reinterpret_cast< const QueryFont::Header* >( data ) };
+    request.bytes_parsed += sizeof( QueryFont::Header );
+    assert( header->opcode == protocol::requests::opcodes::QUERYFONT );
     const QueryFont::Encoding* encoding {
-        reinterpret_cast< const QueryFont::Encoding* >( data ) };
+        reinterpret_cast< const QueryFont::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryFont::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::QUERYFONT );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "font", name_width, _ROOT_WS.equals,
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "font", name_width, ws.equals,
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
-        _formatProtocolType( encoding->font.font ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+        _formatProtocolType( encoding->font.font ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -1957,63 +2130,65 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryTextExtents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::QueryTextExtents;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= QueryTextExtents::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::QueryTextExtents;
+    const _Whitespace& ws { _ROOT_WS };
+    const QueryTextExtents::Header* header {
+        reinterpret_cast< const QueryTextExtents::Header* >( data ) };
+    request.bytes_parsed += sizeof( QueryTextExtents::Header );
+    assert( header->opcode == protocol::requests::opcodes::QUERYTEXTEXTENTS );
     const QueryTextExtents::Encoding* encoding {
-        reinterpret_cast< const QueryTextExtents::Encoding* >( data ) };
+        reinterpret_cast< const QueryTextExtents::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryTextExtents::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::QUERYTEXTEXTENTS );
-
-    // first calc padded string length due to ambiguity around odd-length
+    // followed by STRING16 string
+    //   first calc padded string length due to ambiguity around odd-length
     const size_t string_sz {
-        ( encoding->request_length * _ALIGN ) - sizeof( QueryTextExtents::Encoding ) };
-    const size_t n_CHAR2B {
+        ( header->tl_aligned_units * QueryTextExtents::ALIGN ) -
+        QueryTextExtents::BASE_ENCODING_SZ };
+    const size_t string_len {
         ( string_sz / sizeof( protocol::CHAR2B/*char16_t*/ ) ) -
-        ( encoding->odd_length.data ? 1 : 0 ) };
+        ( header->odd_length.data ? 1 : 0 ) };
     _ParsingOutputs string {
         _parseLISTof< protocol::CHAR2B >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_CHAR2B,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
-    // bypass normal use of _Parsingoutputs.bytes_parsed due to odd-length
+            data + request.bytes_parsed, string_sz,
+            string_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+    //   bypass expected use of string.bytes_parsed due to odd-length
     request.bytes_parsed += string_sz;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "odd length", name_width, _ROOT_WS.equals,
-            _formatProtocolType( encoding->odd_length ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(odd length)", name_width, ws.equals,
+            _formatProtocolType( header->odd_length ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "font", name_width, _ROOT_WS.equals,
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "font", name_width, ws.equals,
         // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
-        _formatProtocolType( encoding->font.font ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
-        string.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+        _formatProtocolType( encoding->font.font ), ws.separator,
+        ws.memb_indent, "string", name_width, ws.equals,
+        string.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2022,52 +2197,53 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetFontPath >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetFontPath;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetFontPath::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetFontPath;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetFontPath::Header* header {
+        reinterpret_cast< const SetFontPath::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetFontPath::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETFONTPATH );
     const SetFontPath::Encoding* encoding {
-        reinterpret_cast< const SetFontPath::Encoding* >( data ) };
+        reinterpret_cast< const SetFontPath::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetFontPath::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETFONTPATH );
 
     _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, encoding->str_ct,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, sz - request.bytes_parsed,
+            encoding->path_ct, ws.nested() ) };
     request.bytes_parsed += _pad( path.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "STRs in path", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->str_ct ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "path", name_width, _ROOT_WS.equals,
-        path.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(STRs in path)", name_width, ws.equals,
+            _formatInteger( encoding->path_ct ), ws.separator ),
+        ws.memb_indent, "path", name_width, ws.equals,
+        path.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2076,20 +2252,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreatePixmap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CreatePixmap;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CreatePixmap::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CreatePixmap;
+    const _Whitespace& ws { _ROOT_WS };
+    const CreatePixmap::Header* header {
+        reinterpret_cast< const CreatePixmap::Header* >( data ) };
+    request.bytes_parsed += sizeof( CreatePixmap::Header );
+    assert( header->opcode == protocol::requests::opcodes::CREATEPIXMAP );
     const CreatePixmap::Encoding* encoding {
-        reinterpret_cast< const CreatePixmap::Encoding* >( data ) };
+        reinterpret_cast< const CreatePixmap::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreatePixmap::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CREATEPIXMAP );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -2097,30 +2278,27 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->depth ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "depth", name_width, ws.equals,
+        _formatInteger( header->depth ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "pid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->pid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "pid", name_width, ws.equals,
+        _formatProtocolType( encoding->pid ), ws.separator,
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2129,41 +2307,43 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreePixmap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::FreePixmap;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= FreePixmap::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::FreePixmap;
+    const _Whitespace& ws { _ROOT_WS };
+    const FreePixmap::Header* header {
+        reinterpret_cast< const FreePixmap::Header* >( data ) };
+    request.bytes_parsed += sizeof( FreePixmap::Header );
+    assert( header->opcode == protocol::requests::opcodes::FREEPIXMAP );
     const FreePixmap::Encoding* encoding {
-        reinterpret_cast< const FreePixmap::Encoding* >( data ) };
+        reinterpret_cast< const FreePixmap::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreePixmap::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FREEPIXMAP );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "pixmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->pixmap ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "pixmap", name_width, ws.equals,
+        _formatProtocolType( encoding->pixmap ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2172,19 +2352,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CreateGC;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CreateGC::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CreateGC;
+    const _Whitespace& ws { _ROOT_WS };
+    const CreateGC::Header* header {
+        reinterpret_cast< const CreateGC::Header* >( data ) };
+    request.bytes_parsed += sizeof( CreateGC::Header );
+    assert( header->opcode == protocol::requests::opcodes::CREATEGC );
     const CreateGC::Encoding* encoding {
-        reinterpret_cast< const CreateGC::Encoding* >( data ) };
+        reinterpret_cast< const CreateGC::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateGC::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CREATEGC );
-
-    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
-    //   nested in value_list_inputs initializer
+    // followed by LISTofVALUE value-list
     const std::vector< _VALUETraits > value_traits {
         /* function              */ { CreateGC::function_names },
         /* plane-mask            */ {},
@@ -2211,47 +2394,45 @@ X11ProtocolParser::_parseRequest<
         /* arc-mode              */ { CreateGC::arc_mode_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
-        encoding->value_mask,
-        CreateGC::value_types,
-        CreateGC::value_names,
-        value_traits,
-        _ROOT_WS.nested()
-    };
-    _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed, &value_list_outputs );
-    request.bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+        encoding->value_mask, CreateGC::value_types, CreateGC::value_names,
+        value_traits, ws.nested() };
+    _ParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
+                       &value_list );
+    request.bytes_parsed += value_list.bytes_parsed;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        // TBD only print value-mask in verbose mode? print all flags even with value-list?
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
-        value_list_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cid", name_width, ws.equals,
+        _formatProtocolType( encoding->cid ), ws.separator,
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "value-mask", name_width, ws.equals,
+            _formatBitmask( encoding->value_mask,
+                            CreateGC::value_names ), ws.separator ),
+        ws.memb_indent, "value-list", name_width, ws.equals,
+        value_list.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2260,19 +2441,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeGC;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeGC::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeGC;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeGC::Header* header {
+        reinterpret_cast< const ChangeGC::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeGC::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEGC );
     const ChangeGC::Encoding* encoding {
-        reinterpret_cast< const ChangeGC::Encoding* >( data ) };
+        reinterpret_cast< const ChangeGC::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeGC::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEGC );
-
-    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
-    //   nested in value_list_inputs initializer
+    // followed by LISTofVALUE value-list
     const std::vector< _VALUETraits > value_traits {
         /* function              */ { ChangeGC::function_names },
         /* plane-mask            */ {},
@@ -2299,45 +2483,43 @@ X11ProtocolParser::_parseRequest<
         /* arc-mode              */ { ChangeGC::arc_mode_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
-        encoding->value_mask,
-        ChangeGC::value_types,
-        ChangeGC::value_names,
-        value_traits,
-        _ROOT_WS.nested()
-    };
+        encoding->value_mask, ChangeGC::value_types, ChangeGC::value_names,
+        value_traits, ws.nested() };
     _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed, &value_list_outputs );
+    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
+                       &value_list_outputs );
     request.bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        // TBD only print value-mask in verbose mode? print all flags even with value-list?
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
-        value_list_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "value-mask", name_width, ws.equals,
+            _formatBitmask( encoding->value_mask,
+                            ChangeGC::value_names ), ws.separator ),
+        ws.memb_indent, "value-list", name_width, ws.equals,
+        value_list_outputs.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2346,45 +2528,48 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CopyGC;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CopyGC::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CopyGC;
+    const _Whitespace& ws { _ROOT_WS };
+    const CopyGC::Header* header {
+        reinterpret_cast< const CopyGC::Header* >( data ) };
+    request.bytes_parsed += sizeof( CopyGC::Header );
+    assert( header->opcode == protocol::requests::opcodes::COPYGC );
     const CopyGC::Encoding* encoding {
-        reinterpret_cast< const CopyGC::Encoding* >( data ) };
+        reinterpret_cast< const CopyGC::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyGC::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::COPYGC );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "src-gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->src_gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->dst_gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask, CopyGC::value_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "src-gc", name_width, ws.equals,
+        _formatProtocolType( encoding->src_gc ), ws.separator,
+        ws.memb_indent, "dst-gc", name_width, ws.equals,
+        _formatProtocolType( encoding->dst_gc ), ws.separator,
+        ws.memb_indent, "value-mask", name_width, ws.equals,
+        _formatBitmask( encoding->value_mask,
+                        CopyGC::value_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2393,26 +2578,31 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetDashes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetDashes;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetDashes::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetDashes;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetDashes::Header* header {
+        reinterpret_cast< const SetDashes::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetDashes::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETDASHES );
     const SetDashes::Encoding* encoding {
-        reinterpret_cast< const SetDashes::Encoding* >( data ) };
+        reinterpret_cast< const SetDashes::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetDashes::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETDASHES );
-
+    // followed by LISTofCARD8 dashes
     _ParsingOutputs dashes {
         _parseLISTof< protocol::CARD8 >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, encoding->n,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, sz - request.bytes_parsed,
+            encoding->dashes_len, ws.nested() ) };
     request.bytes_parsed += _pad( dashes.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2420,31 +2610,27 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dash-offset", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dash_offset ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "dash-offset", name_width, ws.equals,
+        _formatInteger( encoding->dash_offset ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "dashes", name_width, _ROOT_WS.equals,
-        dashes.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(dashes length)", name_width, ws.equals,
+            _formatInteger( encoding->dashes_len ), ws.separator ),
+        ws.memb_indent, "dashes", name_width, ws.equals,
+        dashes.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2453,30 +2639,35 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetClipRectangles >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetClipRectangles;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetClipRectangles::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetClipRectangles;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetClipRectangles::Header* header {
+        reinterpret_cast< const SetClipRectangles::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetClipRectangles::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETCLIPRECTANGLES );
     const SetClipRectangles::Encoding* encoding {
-        reinterpret_cast< const SetClipRectangles::Encoding* >( data ) };
+        reinterpret_cast< const SetClipRectangles::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetClipRectangles::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETCLIPRECTANGLES );
-
-    const size_t n_rectangles {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( SetClipRectangles::Encoding ) ) /
-        sizeof( protocol::RECTANGLE ) };
+    // followed by LISTofRECTANGLE rectangles
+    const size_t rectangles_sz {
+        ( header->tl_aligned_units * SetClipRectangles::ALIGN ) -
+        SetClipRectangles::BASE_ENCODING_SZ };
+    const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_rectangles,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, rectangles_sz,
+            rectangles_ct, ws.nested() ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -2484,30 +2675,28 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "ordering", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->ordering, SetClipRectangles::ordering_names  ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "ordering", name_width, ws.equals,
+        _formatInteger( header->ordering,
+                        SetClipRectangles::ordering_names  ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "clip-x-origin", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->clip_x_origin ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "clip-y-origin", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->clip_y_origin ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "rectangles", name_width, _ROOT_WS.equals,
-        rectangles.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "clip-x-origin", name_width, ws.equals,
+        _formatInteger( encoding->clip_x_origin ), ws.separator,
+        ws.memb_indent, "clip-y-origin", name_width, ws.equals,
+        _formatInteger( encoding->clip_y_origin ), ws.separator,
+        ws.memb_indent, "rectangles", name_width, ws.equals,
+        rectangles.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2516,41 +2705,43 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeGC >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::FreeGC;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= FreeGC::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::FreeGC;
+    const _Whitespace& ws { _ROOT_WS };
+    const FreeGC::Header* header {
+        reinterpret_cast< const FreeGC::Header* >( data ) };
+    request.bytes_parsed += sizeof( FreeGC::Header );
+    assert( header->opcode == protocol::requests::opcodes::FREEGC );
     const FreeGC::Encoding* encoding {
-        reinterpret_cast< const FreeGC::Encoding* >( data ) };
+        reinterpret_cast< const FreeGC::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreeGC::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FREEGC );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2559,20 +2750,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ClearArea >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ClearArea;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ClearArea::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ClearArea;
+    const _Whitespace& ws { _ROOT_WS };
+    const ClearArea::Header* header {
+        reinterpret_cast< const ClearArea::Header* >( data ) };
+    request.bytes_parsed += sizeof( ClearArea::Header );
+    assert( header->opcode == protocol::requests::opcodes::CLEARAREA );
     const ClearArea::Encoding* encoding {
-        reinterpret_cast< const ClearArea::Encoding* >( data ) };
+        reinterpret_cast< const ClearArea::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ClearArea::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CLEARAREA );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -2581,32 +2777,29 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "exposures", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->exposures ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "exposures", name_width, ws.equals,
+        _formatProtocolType( header->exposures ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2615,20 +2808,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyArea >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CopyArea;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CopyArea::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CopyArea;
+    const _Whitespace& ws { _ROOT_WS };
+    const CopyArea::Header* header {
+        reinterpret_cast< const CopyArea::Header* >( data ) };
+    request.bytes_parsed += sizeof( CopyArea::Header );
+    assert( header->opcode == protocol::requests::opcodes::COPYAREA );
     const CopyArea::Encoding* encoding {
-        reinterpret_cast< const CopyArea::Encoding* >( data ) };
+        reinterpret_cast< const CopyArea::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyArea::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::COPYAREA );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2636,38 +2834,35 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "src-drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->src_drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->dst_drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "src-drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->src_drawable ), ws.separator,
+        ws.memb_indent, "dst-drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->dst_drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "src-x", name_width, ws.equals,
+        _formatInteger( encoding->src_x ), ws.separator,
+        ws.memb_indent, "src-y", name_width, ws.equals,
+        _formatInteger( encoding->src_y ), ws.separator,
+        ws.memb_indent, "dst-x", name_width, ws.equals,
+        _formatInteger( encoding->dst_x ), ws.separator,
+        ws.memb_indent, "dst-y", name_width, ws.equals,
+        _formatInteger( encoding->dst_y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2676,20 +2871,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyPlane >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CopyPlane;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CopyPlane::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CopyPlane;
+    const _Whitespace& ws { _ROOT_WS };
+    const CopyPlane::Header* header {
+        reinterpret_cast< const CopyPlane::Header* >( data ) };
+    request.bytes_parsed += sizeof( CopyPlane::Header );
+    assert( header->opcode == protocol::requests::opcodes::COPYPLANE );
     const CopyPlane::Encoding* encoding {
-        reinterpret_cast< const CopyPlane::Encoding* >( data ) };
+        reinterpret_cast< const CopyPlane::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyPlane::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::COPYPLANE );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2698,161 +2898,37 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "src-drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->src_drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->dst_drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->src_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "bit-plane", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->bit_plane ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "src-drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->src_drawable ), ws.separator,
+        ws.memb_indent, "dst-drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->dst_drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "src-x", name_width, ws.equals,
+        _formatInteger( encoding->src_x ), ws.separator,
+        ws.memb_indent, "src-y", name_width, ws.equals,
+        _formatInteger( encoding->src_y ), ws.separator,
+        ws.memb_indent, "dst-x", name_width, ws.equals,
+        _formatInteger( encoding->dst_x ), ws.separator,
+        ws.memb_indent, "dst-y", name_width, ws.equals,
+        _formatInteger( encoding->dst_y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "bit-plane", name_width, ws.equals,
+        _formatInteger( encoding->bit_plane ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
-    return request;
-}
-
-template <>
-X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseRequest<
-    protocol::requests::PolyPoint >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    _ParsingOutputs request {};
-    using protocol::requests::PolyPoint;
-    const PolyPoint::Encoding* encoding {
-        reinterpret_cast< const PolyPoint::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( PolyPoint::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYPOINT );
-
-    const size_t n_points {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( PolyPoint::Encoding ) ) / sizeof( protocol::POINT ) };
-    _ParsingOutputs points {
-        _parseLISTof< protocol::POINT >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_points,
-            _ROOT_WS.nested() ) };
-    request.bytes_parsed += _pad( points.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
-
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
-    request.str = fmt::format(
-        "{{{}"
-        "{}"
-        "{}{: <{}}{}{}{}"
-        "{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "coordinate-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->coordinate_mode, PolyPoint::coordinate_mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "points", name_width, _ROOT_WS.equals,
-        points.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
-        );
-    // assert( request.bytes_parsed == sz );
-    return request;
-}
-
-// TBD same encoding as PolyPoint; generalize?
-template <>
-X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseRequest<
-    protocol::requests::PolyLine >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    _ParsingOutputs request {};
-    using protocol::requests::PolyLine;
-    const PolyLine::Encoding* encoding {
-        reinterpret_cast< const PolyLine::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( PolyLine::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYLINE );
-
-    const size_t n_points {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( PolyLine::Encoding ) ) / sizeof( protocol::POINT ) };
-    _ParsingOutputs points {
-        _parseLISTof< protocol::POINT >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_points,
-            _ROOT_WS.nested() ) };
-    request.bytes_parsed += _pad( points.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
-
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
-    request.str = fmt::format(
-        "{{{}"
-        "{}"
-        "{}{: <{}}{}{}{}"
-        "{}"
-        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-        "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "coordinate-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->coordinate_mode, PolyLine::coordinate_mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "points", name_width, _ROOT_WS.equals,
-        points.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
-        );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2861,54 +2937,57 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolySegment >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolySegment;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolySegment::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolySegment;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolySegment::Header* header {
+        reinterpret_cast< const PolySegment::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolySegment::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYSEGMENT );
     const PolySegment::Encoding* encoding {
-        reinterpret_cast< const PolySegment::Encoding* >( data ) };
+        reinterpret_cast< const PolySegment::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolySegment::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYSEGMENT );
-
-    const size_t n_segments {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( PolySegment::Encoding ) ) / sizeof( PolySegment::SEGMENT ) };
+    // followed by LISTofSEGMENT segments
+    const size_t segments_sz {
+        ( header->tl_aligned_units * PolySegment::ALIGN ) -
+        PolySegment::BASE_ENCODING_SZ };
+    const size_t segments_ct { segments_sz / sizeof( PolySegment::SEGMENT ) };
     _ParsingOutputs segments {
         _parseLISTof< PolySegment::SEGMENT >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_segments,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, segments_sz,
+            segments_ct, ws.nested() ) };
     request.bytes_parsed += _pad( segments.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "segments", name_width, _ROOT_WS.equals,
-        segments.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "segments", name_width, ws.equals,
+        segments.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2917,54 +2996,57 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyRectangle >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolyRectangle;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolyRectangle::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolyRectangle;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyRectangle::Header* header {
+        reinterpret_cast< const PolyRectangle::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyRectangle::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYRECTANGLE );
     const PolyRectangle::Encoding* encoding {
-        reinterpret_cast< const PolyRectangle::Encoding* >( data ) };
+        reinterpret_cast< const PolyRectangle::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyRectangle::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYRECTANGLE );
-
-    const size_t n_rectangles {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( PolyRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
+    // followed by LISTofRECTANGLE rectangles
+    const size_t rectangles_sz {
+        ( header->tl_aligned_units * PolyRectangle::ALIGN ) -
+        PolyRectangle::BASE_ENCODING_SZ };
+    const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_rectangles,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, rectangles_sz,
+            rectangles_ct, ws.nested() ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "rectangles", name_width, _ROOT_WS.equals,
-        rectangles.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "rectangles", name_width, ws.equals,
+        rectangles.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -2973,54 +3055,56 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyArc >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolyArc;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolyArc::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolyArc;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyArc::Header* header {
+        reinterpret_cast< const PolyArc::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyArc::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYARC );
     const PolyArc::Encoding* encoding {
-        reinterpret_cast< const PolyArc::Encoding* >( data ) };
+        reinterpret_cast< const PolyArc::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyArc::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYARC );
-
-    const size_t n_arcs {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( PolyArc::Encoding ) ) / sizeof( protocol::ARC ) };
+    // followed by LISTofARC arcs
+    const size_t arcs_sz {
+        ( header->tl_aligned_units * PolyArc::ALIGN ) -
+        PolyArc::BASE_ENCODING_SZ };
+    const size_t arcs_ct { arcs_sz / sizeof( protocol::ARC ) };
     _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_arcs,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, arcs_sz, arcs_ct, ws.nested() ) };
     request.bytes_parsed += _pad( arcs.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "arcs", name_width, _ROOT_WS.equals,
-        arcs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "arcs", name_width, ws.equals,
+        arcs.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3029,26 +3113,31 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FillPoly >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::FillPoly;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= FillPoly::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::FillPoly;
+    const _Whitespace& ws { _ROOT_WS };
+    const FillPoly::Header* header {
+        reinterpret_cast< const FillPoly::Header* >( data ) };
+    request.bytes_parsed += sizeof( FillPoly::Header );
+    assert( header->opcode == protocol::requests::opcodes::FILLPOLY );
     const FillPoly::Encoding* encoding {
-        reinterpret_cast< const FillPoly::Encoding* >( data ) };
+        reinterpret_cast< const FillPoly::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FillPoly::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FILLPOLY );
-
-    const size_t n_points {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( FillPoly::Encoding ) ) / sizeof( protocol::POINT ) };
+    // followed by LISTofPOINT points
+    const size_t points_sz {
+        ( header->tl_aligned_units * FillPoly::ALIGN ) -
+        FillPoly::BASE_ENCODING_SZ };
+    const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
     _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_points,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, points_sz, points_ct, ws.nested() ) };
     request.bytes_parsed += _pad( points.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
@@ -3058,30 +3147,29 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "shape", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->shape, FillPoly::shape_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "coordinate-mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->coordinate_mode, FillPoly::coordinate_mode_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "points", name_width, _ROOT_WS.equals,
-        points.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "shape", name_width, ws.equals,
+        _formatInteger( encoding->shape,
+                        FillPoly::shape_names ), ws.separator,
+        ws.memb_indent, "coordinate-mode", name_width, ws.equals,
+        _formatInteger( encoding->coordinate_mode,
+                        FillPoly::coordinate_mode_names ), ws.separator,
+        ws.memb_indent, "points", name_width, ws.equals,
+        points.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3090,54 +3178,56 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyFillRectangle >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolyFillRectangle;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolyFillRectangle::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolyFillRectangle;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyFillRectangle::Header* header {
+        reinterpret_cast< const PolyFillRectangle::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyFillRectangle::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYFILLRECTANGLE );
     const PolyFillRectangle::Encoding* encoding {
-        reinterpret_cast< const PolyFillRectangle::Encoding* >( data ) };
+        reinterpret_cast< const PolyFillRectangle::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyFillRectangle::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYFILLRECTANGLE );
-
-    const size_t n_rectangles {
-        ( ( encoding->request_length * _ALIGN ) -
+    // followed by LISTofRECTANGLE rectangles
+    const size_t rectangles_ct {
+        ( ( header->tl_aligned_units * _ALIGN ) -
           sizeof( PolyFillRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_rectangles,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, sz - request.bytes_parsed,
+            rectangles_ct, ws.nested() ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "rectangles", name_width, _ROOT_WS.equals,
-        rectangles.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "rectangles", name_width, ws.equals,
+        rectangles.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3146,54 +3236,56 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyFillArc >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolyFillArc;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolyFillArc::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolyFillArc;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyFillArc::Header* header {
+        reinterpret_cast< const PolyFillArc::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyFillArc::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYFILLARC );
     const PolyFillArc::Encoding* encoding {
-        reinterpret_cast< const PolyFillArc::Encoding* >( data ) };
+        reinterpret_cast< const PolyFillArc::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyFillArc::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYFILLARC );
-
-    const size_t n_arcs {
-        ( ( encoding->request_length * _ALIGN ) -
+    // followed by LISTofARC arcs
+    const size_t arcs_ct {
+        ( ( header->tl_aligned_units * _ALIGN ) -
           sizeof( PolyFillArc::Encoding ) ) / sizeof( protocol::ARC ) };
     _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_arcs,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, sz - request.bytes_parsed,
+            arcs_ct, ws.nested() ) };
     request.bytes_parsed += _pad( arcs.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "arcs", name_width, _ROOT_WS.equals,
-        arcs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "arcs", name_width, ws.equals,
+        arcs.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3202,25 +3294,31 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PutImage >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PutImage;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PutImage::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PutImage;
+    const _Whitespace& ws { _ROOT_WS };
+    const PutImage::Header* header {
+        reinterpret_cast< const PutImage::Header* >( data ) };
+    request.bytes_parsed += sizeof( PutImage::Header );
+    assert( header->opcode == protocol::requests::opcodes::PUTIMAGE );
     const PutImage::Encoding* encoding {
-        reinterpret_cast< const PutImage::Encoding* >( data ) };
+        reinterpret_cast< const PutImage::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PutImage::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::PUTIMAGE );
-
-    const size_t image_data_sz {
-        ( encoding->request_length * _ALIGN ) - sizeof( PutImage::Encoding ) };
-    // TBD not parsing iamge data as it is not done in xtrace
-    request.bytes_parsed += image_data_sz;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by LISTofBYTE data
+    const size_t data_len {
+        ( header->tl_aligned_units * PutImage::ALIGN ) -
+        sizeof( PutImage::Encoding ) };
+    //   as in xtrace, we will only print the size in bytes of the image data
+    request.bytes_parsed += data_len;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3230,40 +3328,38 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}({} bytes){}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->format, PutImage::format_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "format", name_width, ws.equals,
+        _formatInteger( header->format,
+                        PutImage::format_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "dst-y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->dst_y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "left-pad", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->left_pad ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "depth", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->depth ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "data", name_width, _ROOT_WS.equals,
-        image_data_sz, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "dst-x", name_width, ws.equals,
+        _formatInteger( encoding->dst_x ), ws.separator,
+        ws.memb_indent, "dst-y", name_width, ws.equals,
+        _formatInteger( encoding->dst_y ), ws.separator,
+        ws.memb_indent, "left-pad", name_width, ws.equals,
+        _formatInteger( encoding->left_pad ), ws.separator,
+        ws.memb_indent, "depth", name_width, ws.equals,
+        _formatInteger( encoding->depth ), ws.separator,
+        ws.memb_indent, "data", name_width, ws.equals,
+        data_len, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3272,20 +3368,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetImage >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetImage;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetImage::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetImage;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetImage::Header* header {
+        reinterpret_cast< const GetImage::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetImage::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETIMAGE );
     const GetImage::Encoding* encoding {
-        reinterpret_cast< const GetImage::Encoding* >( data ) };
+        reinterpret_cast< const GetImage::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetImage::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETIMAGE );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3294,36 +3395,34 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "format", name_width, _ROOT_WS.equals,
-        // TBD how can we avoid magic numbers here (or anywhere) for max and min enum?
-        _formatInteger( encoding->format,
-                        GetImage::format_names, _IndexRange{ 1, 2 } ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "format", name_width, ws.equals,
+        _formatInteger( header->format, GetImage::format_names,
+                        _IndexRange( GetImage::FORMAT_ENUM_MIN,
+                                     GetImage::format_names.size() - 1 ) ),
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "plane-mask", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->plane_mask ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.memb_indent, "plane-mask", name_width, ws.equals,
+        _formatBitmask( encoding->plane_mask ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3332,58 +3431,61 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyText8 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolyText8;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolyText8::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolyText8;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyText8::Header* header {
+        reinterpret_cast< const PolyText8::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyText8::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYTEXT8 );
     const PolyText8::Encoding* encoding {
-        reinterpret_cast< const PolyText8::Encoding* >( data ) };
+        reinterpret_cast< const PolyText8::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyText8::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYTEXT8 );
-
-    const size_t text_item_list_sz {
-        ( encoding->request_length * _ALIGN ) - sizeof( PolyText8::Encoding ) };
-    _ParsingOutputs text_items {
+    // followed by LISTofTEXTITEM8 items
+    const size_t items_sz {
+        ( header->tl_aligned_units * PolyText8::ALIGN ) -
+        PolyText8::BASE_ENCODING_SZ };
+    // cannot calc list length in TEXTITEM8 due to their variable length
+    const _ParsingOutputs items {
         _parseLISTof< PolyText8::TEXTITEM8 >(
-            data + request.bytes_parsed, text_item_list_sz,
-            _ROOT_WS.nested() ) };
-    request.bytes_parsed += _pad( text_items.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+            data + request.bytes_parsed, items_sz, ws.nested() ) };
+    request.bytes_parsed += _pad( items.bytes_parsed );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "items", name_width, _ROOT_WS.equals,
-        text_items.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "items", name_width, ws.equals,
+        items.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3392,58 +3494,61 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyText16 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::PolyText16;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= PolyText16::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::PolyText16;
+    const _Whitespace& ws { _ROOT_WS };
+    const PolyText16::Header* header {
+        reinterpret_cast< const PolyText16::Header* >( data ) };
+    request.bytes_parsed += sizeof( PolyText16::Header );
+    assert( header->opcode == protocol::requests::opcodes::POLYTEXT16 );
     const PolyText16::Encoding* encoding {
-        reinterpret_cast< const PolyText16::Encoding* >( data ) };
+        reinterpret_cast< const PolyText16::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyText16::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::POLYTEXT16 );
-
-    const size_t text_item_list_sz {
-        ( encoding->request_length * _ALIGN ) - sizeof( PolyText16::Encoding ) };
-    _ParsingOutputs text_items {
+    // followed by LISTofTEXTITEM16 items
+    const size_t items_sz {
+        ( header->tl_aligned_units * PolyText16::ALIGN ) -
+        PolyText16::BASE_ENCODING_SZ };
+    // cannot calc list length in TEXTITEM16 due to their variable length
+    const _ParsingOutputs items {
         _parseLISTof< PolyText16::TEXTITEM16 >(
-            data + request.bytes_parsed, text_item_list_sz,
-            _ROOT_WS.nested() ) };
-    request.bytes_parsed += _pad( text_items.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+            data + request.bytes_parsed, items_sz, ws.nested() ) };
+    request.bytes_parsed += _pad( items.bytes_parsed );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "items", name_width, _ROOT_WS.equals,
-        text_items.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "items", name_width, ws.equals,
+        items.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3452,59 +3557,61 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ImageText8 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ImageText8;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ImageText8::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ImageText8;
+    const _Whitespace& ws { _ROOT_WS };
+    const ImageText8::Header* header {
+        reinterpret_cast< const ImageText8::Header* >( data ) };
+    request.bytes_parsed += sizeof( ImageText8::Header );
+    assert( header->opcode == protocol::requests::opcodes::IMAGETEXT8 );
     const ImageText8::Encoding* encoding {
-        reinterpret_cast< const ImageText8::Encoding* >( data ) };
+        reinterpret_cast< const ImageText8::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ImageText8::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::IMAGETEXT8 );
-
-    std::string_view string {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 string
+    const std::string_view string {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        header->string_len };
+    request.bytes_parsed += _pad( header->string_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(string length)", name_width, ws.equals,
+            _formatInteger( header->string_len ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
-        string, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "string", name_width, ws.equals,
+        string, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3513,70 +3620,63 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ImageText16 >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ImageText16;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ImageText16::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ImageText16;
+    const _Whitespace& ws { _ROOT_WS };
+    const ImageText16::Header* header {
+        reinterpret_cast< const ImageText16::Header* >( data ) };
+    request.bytes_parsed += sizeof( ImageText16::Header );
+    assert( header->opcode == protocol::requests::opcodes::IMAGETEXT16 );
     const ImageText16::Encoding* encoding {
-        reinterpret_cast< const ImageText16::Encoding* >( data ) };
+        reinterpret_cast< const ImageText16::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ImageText16::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::IMAGETEXT16 );
-
-    std::u16string_view u16string {
-        reinterpret_cast<const char16_t*>( data + request.bytes_parsed ), encoding->n };
-    // printing char16_t vals as hex, same as xtrace
-    // TBD "This means that clients should always transmit such 16-bit character values most
-    // significant byte first, as the server will never byte-swap CHAR2B quantities."
-    std::string string_as_hex;
-    // fmt counts "0x" as part of width when using '#'
-    const size_t c16_hex_width { ( sizeof( char16_t ) * 2 ) + 2 };
-    for ( const char16_t c16 : u16string ) {
-        string_as_hex += fmt::format(
-            "{}{:#0{}x}", string_as_hex.empty() ? "" : " ",
-            uint16_t( c16 ), c16_hex_width );
-    }
-    request.bytes_parsed += _pad( encoding->n * sizeof( protocol::CHAR2B ) );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING16 string
+    const _ParsingOutputs string {
+        _parseLISTof< protocol::CHAR2B >(
+            data + request.bytes_parsed,
+            header->string_2B_len * sizeof( protocol::CHAR2B ),
+            header->string_2B_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+    request.bytes_parsed += _pad( string.bytes_parsed );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}[{}]{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(string len (CHAR2B))", name_width, ws.equals,
+            _formatInteger( header->string_2B_len ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "gc", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->gc ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "x", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->x ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "y", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->y ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "string", name_width, _ROOT_WS.equals,
-        string_as_hex, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "gc", name_width, ws.equals,
+        _formatProtocolType( encoding->gc ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.memb_indent, "string", name_width, ws.equals,
+        string.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3585,20 +3685,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CreateColormap;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CreateColormap::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CreateColormap;
+    const _Whitespace& ws { _ROOT_WS };
+    const CreateColormap::Header* header {
+        reinterpret_cast< const CreateColormap::Header* >( data ) };
+    request.bytes_parsed += sizeof( CreateColormap::Header );
+    assert( header->opcode == protocol::requests::opcodes::CREATECOLORMAP );
     const CreateColormap::Encoding* encoding {
-        reinterpret_cast< const CreateColormap::Encoding* >( data ) };
+        reinterpret_cast< const CreateColormap::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateColormap::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CREATECOLORMAP );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3606,71 +3711,26 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "alloc", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->alloc, CreateColormap::alloc_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "alloc", name_width, ws.equals,
+        _formatInteger( header->alloc,
+                        CreateColormap::alloc_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->mid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "visual", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->visual ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "mid", name_width, ws.equals,
+        _formatProtocolType( encoding->mid ), ws.separator,
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        ws.memb_indent, "visual", name_width, ws.equals,
+        _formatProtocolType( encoding->visual ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
-    return request;
-}
-
-template <>
-X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseRequest<
-    protocol::requests::FreeColormap >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    _ParsingOutputs request {};
-    using protocol::requests::FreeColormap;
-    const FreeColormap::Encoding* encoding {
-        reinterpret_cast< const FreeColormap::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( FreeColormap::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FREECOLORMAP );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
-
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
-    request.str = fmt::format(
-        "{{{}"
-        "{}{}"
-        "{}{: <{}}{}{}{}"
-        "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
-        );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3679,130 +3739,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyColormapAndFree >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CopyColormapAndFree;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CopyColormapAndFree::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CopyColormapAndFree;
+    const _Whitespace& ws { _ROOT_WS };
+    const CopyColormapAndFree::Header* header {
+        reinterpret_cast< const CopyColormapAndFree::Header* >( data ) };
+    request.bytes_parsed += sizeof( CopyColormapAndFree::Header );
+    assert( header->opcode == protocol::requests::opcodes::COPYCOLORMAPANDFREE );
     const CopyColormapAndFree::Encoding* encoding {
-        reinterpret_cast< const CopyColormapAndFree::Encoding* >( data ) };
+        reinterpret_cast< const CopyColormapAndFree::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyColormapAndFree::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::COPYCOLORMAPANDFREE );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->mid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "src-cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->src_cmap ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "mid", name_width, ws.equals,
+        _formatProtocolType( encoding->mid ), ws.separator,
+        ws.memb_indent, "src-cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->src_cmap ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
-    return request;
-}
-
-// TBD generalize shared encoding for InstallColomap/UninstallColomap
-template <>
-X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseRequest<
-    protocol::requests::InstallColormap >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    _ParsingOutputs request {};
-    using protocol::requests::InstallColormap;
-    const InstallColormap::Encoding* encoding {
-        reinterpret_cast< const InstallColormap::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( InstallColormap::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::INSTALLCOLORMAP );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
-
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
-    request.str = fmt::format(
-        "{{{}"
-        "{}{}"
-        "{}{: <{}}{}{}{}"
-        "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
-        );
-    // assert( request.bytes_parsed == sz );
-    return request;
-}
-
-template <>
-X11ProtocolParser::_ParsingOutputs
-X11ProtocolParser::_parseRequest<
-    protocol::requests::UninstallColormap >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
-
-    _ParsingOutputs request {};
-    using protocol::requests::UninstallColormap;
-    const UninstallColormap::Encoding* encoding {
-        reinterpret_cast< const UninstallColormap::Encoding* >( data ) };
-    request.bytes_parsed += sizeof( UninstallColormap::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::UNINSTALLCOLORMAP );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
-
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
-    request.str = fmt::format(
-        "{{{}"
-        "{}{}"
-        "{}{: <{}}{}{}{}"
-        "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
-            "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
-        );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3811,47 +3786,49 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::AllocColor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= AllocColor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::AllocColor;
+    const _Whitespace& ws { _ROOT_WS };
+    const AllocColor::Header* header {
+        reinterpret_cast< const AllocColor::Header* >( data ) };
+    request.bytes_parsed += sizeof( AllocColor::Header );
+    assert( header->opcode == protocol::requests::opcodes::ALLOCCOLOR );
     const AllocColor::Encoding* encoding {
-        reinterpret_cast< const AllocColor::Encoding* >( data ) };
+        reinterpret_cast< const AllocColor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocColor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLOR );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->blue ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "red", name_width, ws.equals,
+        _formatInteger( encoding->red ), ws.separator,
+        ws.memb_indent, "green", name_width, ws.equals,
+        _formatInteger( encoding->green ), ws.separator,
+        ws.memb_indent, "blue", name_width, ws.equals,
+        _formatInteger( encoding->blue ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3860,24 +3837,30 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocNamedColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::AllocNamedColor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= AllocNamedColor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::AllocNamedColor;
+    const _Whitespace& ws { _ROOT_WS };
+    const AllocNamedColor::Header* header {
+        reinterpret_cast< const AllocNamedColor::Header* >( data ) };
+    request.bytes_parsed += sizeof( AllocNamedColor::Header );
+    assert( header->opcode == protocol::requests::opcodes::ALLOCNAMEDCOLOR );
     const AllocNamedColor::Encoding* encoding {
-        reinterpret_cast< const AllocNamedColor::Encoding* >( data ) };
+        reinterpret_cast< const AllocNamedColor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocNamedColor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::ALLOCNAMEDCOLOR );
-
-    std::string_view name {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 name
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        encoding->name_len };
+    request.bytes_parsed += _pad( encoding->name_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3885,29 +3868,25 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3916,20 +3895,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocColorCells >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::AllocColorCells;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= AllocColorCells::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::AllocColorCells;
+    const _Whitespace& ws { _ROOT_WS };
+    const AllocColorCells::Header* header {
+        reinterpret_cast< const AllocColorCells::Header* >( data ) };
+    request.bytes_parsed += sizeof( AllocColorCells::Header );
+    assert( header->opcode == protocol::requests::opcodes::ALLOCCOLORCELLS );
     const AllocColorCells::Encoding* encoding {
-        reinterpret_cast< const AllocColorCells::Encoding* >( data ) };
+        reinterpret_cast< const AllocColorCells::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocColorCells::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORCELLS );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3937,28 +3921,25 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "contiguous", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->contiguous ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "contiguous", name_width, ws.equals,
+        _formatProtocolType( header->contiguous ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "colors", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->colors ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "planes", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->planes ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "colors", name_width, ws.equals,
+        _formatInteger( encoding->colors ), ws.separator,
+        ws.memb_indent, "planes", name_width, ws.equals,
+        _formatInteger( encoding->planes ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -3967,20 +3948,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocColorPlanes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::AllocColorPlanes;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= AllocColorPlanes::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::AllocColorPlanes;
+    const _Whitespace& ws { _ROOT_WS };
+    const AllocColorPlanes::Header* header {
+        reinterpret_cast< const AllocColorPlanes::Header* >( data ) };
+    request.bytes_parsed += sizeof( AllocColorPlanes::Header );
+    assert( header->opcode == protocol::requests::opcodes::ALLOCCOLORPLANES );
     const AllocColorPlanes::Encoding* encoding {
-        reinterpret_cast< const AllocColorPlanes::Encoding* >( data ) };
+        reinterpret_cast< const AllocColorPlanes::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocColorPlanes::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::ALLOCCOLORPLANES );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3989,32 +3975,29 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "contiguous", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->contiguous ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "contiguous", name_width, ws.equals,
+        _formatProtocolType( header->contiguous ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "colors", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->colors ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "reds", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->reds ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "greens", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->greens ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "blues", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->blues ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "colors", name_width, ws.equals,
+        _formatInteger( encoding->colors ), ws.separator,
+        ws.memb_indent, "reds", name_width, ws.equals,
+        _formatInteger( encoding->reds ), ws.separator,
+        ws.memb_indent, "greens", name_width, ws.equals,
+        _formatInteger( encoding->greens ), ws.separator,
+        ws.memb_indent, "blues", name_width, ws.equals,
+        _formatInteger( encoding->blues ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4023,55 +4006,57 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::FreeColors;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= FreeColors::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::FreeColors;
+    const _Whitespace& ws { _ROOT_WS };
+    const FreeColors::Header* header {
+        reinterpret_cast< const FreeColors::Header* >( data ) };
+    request.bytes_parsed += sizeof( FreeColors::Header );
+    assert( header->opcode == protocol::requests::opcodes::FREECOLORS );
     const FreeColors::Encoding* encoding {
-        reinterpret_cast< const FreeColors::Encoding* >( data ) };
+        reinterpret_cast< const FreeColors::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreeColors::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FREECOLORS );
-
-    const size_t n_pixels {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( FreeColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
-    _ParsingOutputs pixels {
-        _parseLISTof< protocol::CARD32 >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_pixels,
-            _ROOT_WS.nested() ) };
+    // followed by LISTofCARD32 pixels
+    const size_t pixels_sz {
+        ( header->tl_aligned_units * FreeColors::ALIGN ) -
+        FreeColors::BASE_ENCODING_SZ  };
+    const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
+    const _ParsingOutputs pixels {
+        _parseLISTof< protocol::CARD32 >( data + request.bytes_parsed,
+                                          pixels_sz, pixels_ct, ws.nested() ) };
     request.bytes_parsed += _pad( pixels.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "plane-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->plane_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pixels", name_width, _ROOT_WS.equals,
-        pixels.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "plane-mask", name_width, ws.equals,
+        _formatBitmask( encoding->plane_mask ), ws.separator,
+        ws.memb_indent, "pixels", name_width, ws.equals,
+        pixels.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4080,52 +4065,54 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::StoreColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::StoreColors;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= StoreColors::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::StoreColors;
+    const _Whitespace& ws { _ROOT_WS };
+    const StoreColors::Header* header {
+        reinterpret_cast< const StoreColors::Header* >( data ) };
+    request.bytes_parsed += sizeof( StoreColors::Header );
+    assert( header->opcode == protocol::requests::opcodes::STORECOLORS );
     const StoreColors::Encoding* encoding {
-        reinterpret_cast< const StoreColors::Encoding* >( data ) };
+        reinterpret_cast< const StoreColors::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( StoreColors::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::STORECOLORS );
-
-    const size_t n_items {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( StoreColors::Encoding ) ) / sizeof( StoreColors::COLORITEM ) };
-    _ParsingOutputs items {
+    // followed by LISTofCOLORITEM items
+    const size_t items_sz {
+        ( header->tl_aligned_units * StoreColors::ALIGN ) -
+        StoreColors::BASE_ENCODING_SZ };
+    const size_t items_ct { items_sz / sizeof( StoreColors::COLORITEM ) };
+    const _ParsingOutputs items {
         _parseLISTof< StoreColors::COLORITEM >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_items,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, items_sz, items_ct, ws.nested() ) };
     request.bytes_parsed += _pad( items.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "items", name_width, _ROOT_WS.equals,
-        items.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "items", name_width, ws.equals,
+        items.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4134,24 +4121,30 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::StoreNamedColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::StoreNamedColor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= StoreNamedColor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::StoreNamedColor;
+    const _Whitespace& ws { _ROOT_WS };
+    const StoreNamedColor::Header* header {
+        reinterpret_cast< const StoreNamedColor::Header* >( data ) };
+    request.bytes_parsed += sizeof( StoreNamedColor::Header );
+    assert( header->opcode == protocol::requests::opcodes::STORENAMEDCOLOR );
     const StoreNamedColor::Encoding* encoding {
-        reinterpret_cast< const StoreNamedColor::Encoding* >( data ) };
+        reinterpret_cast< const StoreNamedColor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( StoreNamedColor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::STORENAMEDCOLOR );
-
-    std::string_view name {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 name
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        encoding->name_len };
+    request.bytes_parsed += _pad( encoding->name_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4161,33 +4154,30 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "do rgb", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->do_rgb_mask, StoreNamedColor::do_rgb_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "(do rgb mask)", name_width, ws.equals,
+        _formatBitmask( header->do_rgb_mask,
+                        StoreNamedColor::do_rgb_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pixel", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->pixel ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "pixel", name_width, ws.equals,
+        _formatInteger( encoding->pixel ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4196,52 +4186,54 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryColors >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::QueryColors;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= QueryColors::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::QueryColors;
+    const _Whitespace& ws { _ROOT_WS };
+    const QueryColors::Header* header {
+        reinterpret_cast< const QueryColors::Header* >( data ) };
+    request.bytes_parsed += sizeof( QueryColors::Header );
+    assert( header->opcode == protocol::requests::opcodes::QUERYCOLORS );
     const QueryColors::Encoding* encoding {
-        reinterpret_cast< const QueryColors::Encoding* >( data ) };
+        reinterpret_cast< const QueryColors::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryColors::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::QUERYCOLORS );
-
-    const size_t n_pixels {
-        ( ( encoding->request_length * _ALIGN ) -
-          sizeof( QueryColors::Encoding ) ) / sizeof( protocol::CARD32 ) };
-    _ParsingOutputs pixels {
-        _parseLISTof< protocol::CARD32 >(
-            data + request.bytes_parsed, sz - request.bytes_parsed, n_pixels,
-            _ROOT_WS.nested() ) };
+    // followed by LISTofCARD32 pixels
+    const size_t pixels_sz {
+        ( header->tl_aligned_units * QueryColors::ALIGN ) -
+        QueryColors::BASE_ENCODING_SZ  };
+    const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
+    const _ParsingOutputs pixels {
+        _parseLISTof< protocol::CARD32 >( data + request.bytes_parsed,
+                                          pixels_sz, pixels_ct, ws.nested() ) };
     request.bytes_parsed += _pad( pixels.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "pixels", name_width, _ROOT_WS.equals,
-        pixels.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        ws.memb_indent, "pixels", name_width, ws.equals,
+        pixels.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4250,24 +4242,30 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::LookupColor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::LookupColor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= LookupColor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::LookupColor;
+    const _Whitespace& ws { _ROOT_WS };
+    const LookupColor::Header* header {
+        reinterpret_cast< const LookupColor::Header* >( data ) };
+    request.bytes_parsed += sizeof( LookupColor::Header );
+    assert( header->opcode == protocol::requests::opcodes::LOOKUPCOLOR );
     const LookupColor::Encoding* encoding {
-        reinterpret_cast< const LookupColor::Encoding* >( data ) };
+        reinterpret_cast< const LookupColor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( LookupColor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::LOOKUPCOLOR );
-
-    std::string_view name {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 name
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        encoding->name_len };
+    request.bytes_parsed += _pad( encoding->name_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4275,29 +4273,25 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cmap", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cmap ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cmap", name_width, ws.equals,
+        _formatProtocolType( encoding->cmap ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4306,59 +4300,67 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CreateCursor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CreateCursor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CreateCursor;
+    const _Whitespace& ws { _ROOT_WS };
+    const CreateCursor::Header* header {
+        reinterpret_cast< const CreateCursor::Header* >( data ) };
+    request.bytes_parsed += sizeof( CreateCursor::Header );
+    assert( header->opcode == protocol::requests::opcodes::CREATECURSOR );
     const CreateCursor::Encoding* encoding {
-        reinterpret_cast< const CreateCursor::Encoding* >( data ) };
+        reinterpret_cast< const CreateCursor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateCursor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CREATECURSOR );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "source", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->source ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "mask", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->mask, CreateCursor::mask_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_blue ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_blue ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cid", name_width, ws.equals,
+        _formatProtocolType( encoding->cid ), ws.separator,
+        ws.memb_indent, "source", name_width, ws.equals,
+        _formatProtocolType( encoding->source ), ws.separator,
+        ws.memb_indent, "mask", name_width, ws.equals,
+        _formatProtocolType( encoding->mask,
+                             CreateCursor::mask_names ), ws.separator,
+        ws.memb_indent, "fore-red", name_width, ws.equals,
+        _formatInteger( encoding->fore_red ), ws.separator,
+        ws.memb_indent, "fore-green", name_width, ws.equals,
+        _formatInteger( encoding->fore_green ), ws.separator,
+        ws.memb_indent, "fore-blue", name_width, ws.equals,
+        _formatInteger( encoding->fore_blue ), ws.separator,
+        ws.memb_indent, "back-red", name_width, ws.equals,
+        _formatInteger( encoding->back_red ), ws.separator,
+        ws.memb_indent, "back-green", name_width, ws.equals,
+        _formatInteger( encoding->back_green ), ws.separator,
+        ws.memb_indent, "back-blue", name_width, ws.equals,
+        _formatInteger( encoding->back_blue ), ws.separator,
+        ws.memb_indent, "x", name_width, ws.equals,
+        _formatInteger( encoding->x ), ws.separator,
+        ws.memb_indent, "y", name_width, ws.equals,
+        _formatInteger( encoding->y ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4367,20 +4369,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateGlyphCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::CreateGlyphCursor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= CreateGlyphCursor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::CreateGlyphCursor;
+    const _Whitespace& ws { _ROOT_WS };
+    const CreateGlyphCursor::Header* header {
+        reinterpret_cast< const CreateGlyphCursor::Header* >( data ) };
+    request.bytes_parsed += sizeof( CreateGlyphCursor::Header );
+    assert( header->opcode == protocol::requests::opcodes::CREATEGLYPHCURSOR );
     const CreateGlyphCursor::Encoding* encoding {
-        reinterpret_cast< const CreateGlyphCursor::Encoding* >( data ) };
+        reinterpret_cast< const CreateGlyphCursor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateGlyphCursor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CREATEGLYPHCURSOR );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4388,42 +4395,40 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cid", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cid ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "source-font", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->source_font ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "mask-font", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->mask_font, CreateGlyphCursor::mask_font_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "source-char", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->source_char ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "mask-char", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mask_char ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_blue ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_blue ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cid", name_width, ws.equals,
+        _formatProtocolType( encoding->cid ), ws.separator,
+        ws.memb_indent, "source-font", name_width, ws.equals,
+        _formatProtocolType( encoding->source_font ), ws.separator,
+        ws.memb_indent, "mask-font", name_width, ws.equals,
+        _formatProtocolType( encoding->mask_font,
+                             CreateGlyphCursor::mask_font_names ), ws.separator,
+        ws.memb_indent, "source-char", name_width, ws.equals,
+        _formatInteger( encoding->source_char ), ws.separator,
+        ws.memb_indent, "mask-char", name_width, ws.equals,
+        _formatInteger( encoding->mask_char ), ws.separator,
+        ws.memb_indent, "fore-red", name_width, ws.equals,
+        _formatInteger( encoding->fore_red ), ws.separator,
+        ws.memb_indent, "fore-green", name_width, ws.equals,
+        _formatInteger( encoding->fore_green ), ws.separator,
+        ws.memb_indent, "fore-blue", name_width, ws.equals,
+        _formatInteger( encoding->fore_blue ), ws.separator,
+        ws.memb_indent, "back-red", name_width, ws.equals,
+        _formatInteger( encoding->back_red ), ws.separator,
+        ws.memb_indent, "back-green", name_width, ws.equals,
+        _formatInteger( encoding->back_green ), ws.separator,
+        ws.memb_indent, "back-blue", name_width, ws.equals,
+        _formatInteger( encoding->back_blue ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4432,41 +4437,43 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::FreeCursor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= FreeCursor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::FreeCursor;
+    const _Whitespace& ws { _ROOT_WS };
+    const FreeCursor::Header* header {
+        reinterpret_cast< const FreeCursor::Header* >( data ) };
+    request.bytes_parsed += sizeof( FreeCursor::Header );
+    assert( header->opcode == protocol::requests::opcodes::FREECURSOR );
     const FreeCursor::Encoding* encoding {
-        reinterpret_cast< const FreeCursor::Encoding* >( data ) };
+        reinterpret_cast< const FreeCursor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreeCursor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FREECURSOR );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cursor ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cursor", name_width, ws.equals,
+        _formatProtocolType( encoding->cursor ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4475,54 +4482,56 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::RecolorCursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::RecolorCursor;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= RecolorCursor::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::RecolorCursor;
+    const _Whitespace& ws { _ROOT_WS };
+    const RecolorCursor::Header* header {
+        reinterpret_cast< const RecolorCursor::Header* >( data ) };
+    request.bytes_parsed += sizeof( RecolorCursor::Header );
+    assert( header->opcode == protocol::requests::opcodes::RECOLORCURSOR );
     const RecolorCursor::Encoding* encoding {
-        reinterpret_cast< const RecolorCursor::Encoding* >( data ) };
+        reinterpret_cast< const RecolorCursor::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( RecolorCursor::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::RECOLORCURSOR );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "cursor", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->cursor ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "fore-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->fore_blue ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-red", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_red ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-green", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_green ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "back-blue", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->back_blue ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "cursor", name_width, ws.equals,
+        _formatProtocolType( encoding->cursor ), ws.separator,
+        ws.memb_indent, "fore-red", name_width, ws.equals,
+        _formatInteger( encoding->fore_red ), ws.separator,
+        ws.memb_indent, "fore-green", name_width, ws.equals,
+        _formatInteger( encoding->fore_green ), ws.separator,
+        ws.memb_indent, "fore-blue", name_width, ws.equals,
+        _formatInteger( encoding->fore_blue ), ws.separator,
+        ws.memb_indent, "back-red", name_width, ws.equals,
+        _formatInteger( encoding->back_red ), ws.separator,
+        ws.memb_indent, "back-green", name_width, ws.equals,
+        _formatInteger( encoding->back_green ), ws.separator,
+        ws.memb_indent, "back-blue", name_width, ws.equals,
+        _formatInteger( encoding->back_blue ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4531,20 +4540,25 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryBestSize >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::QueryBestSize;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= QueryBestSize::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::QueryBestSize;
+    const _Whitespace& ws { _ROOT_WS };
+    const QueryBestSize::Header* header {
+        reinterpret_cast< const QueryBestSize::Header* >( data ) };
+    request.bytes_parsed += sizeof( QueryBestSize::Header );
+    assert( header->opcode == protocol::requests::opcodes::QUERYBESTSIZE );
     const QueryBestSize::Encoding* encoding {
-        reinterpret_cast< const QueryBestSize::Encoding* >( data ) };
+        reinterpret_cast< const QueryBestSize::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryBestSize::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::QUERYBESTSIZE );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4552,28 +4566,26 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "class", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->class_, QueryBestSize::class_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "class", name_width, ws.equals,
+        _formatInteger( header->class_,
+                        QueryBestSize::class_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "drawable", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->drawable ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "width", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->width ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "height", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->height ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "drawable", name_width, ws.equals,
+        _formatProtocolType( encoding->drawable ), ws.separator,
+        ws.memb_indent, "width", name_width, ws.equals,
+        _formatInteger( encoding->width ), ws.separator,
+        ws.memb_indent, "height", name_width, ws.equals,
+        _formatInteger( encoding->height ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4582,50 +4594,52 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryExtension >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::QueryExtension;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= QueryExtension::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::QueryExtension;
+    const _Whitespace& ws { _ROOT_WS };
+    const QueryExtension::Header* header {
+        reinterpret_cast< const QueryExtension::Header* >( data ) };
+    request.bytes_parsed += sizeof( QueryExtension::Header );
+    assert( header->opcode == protocol::requests::opcodes::QUERYEXTENSION );
     const QueryExtension::Encoding* encoding {
-        reinterpret_cast< const QueryExtension::Encoding* >( data ) };
+        reinterpret_cast< const QueryExtension::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryExtension::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::QUERYEXTENSION );
-
-    std::string_view name {
-        reinterpret_cast< const char* >( data + request.bytes_parsed ), encoding->n };
-    request.bytes_parsed += _pad( encoding->n );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    // followed by STRING8 name
+    const std::string_view name {
+        reinterpret_cast< const char* >( data + request.bytes_parsed ),
+        encoding->name_len };
+    request.bytes_parsed += _pad( encoding->name_len );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
         "{}{: <{}}{}{:?}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "n", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->n ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "name", name_width, _ROOT_WS.equals,
-        name, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( encoding->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4634,24 +4648,33 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeKeyboardMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeKeyboardMapping;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeKeyboardMapping::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeKeyboardMapping;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeKeyboardMapping::Header* header {
+        reinterpret_cast< const ChangeKeyboardMapping::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeKeyboardMapping::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEKEYBOARDMAPPING );
     const ChangeKeyboardMapping::Encoding* encoding {
-        reinterpret_cast< const ChangeKeyboardMapping::Encoding* >( data ) };
+        reinterpret_cast< const ChangeKeyboardMapping::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeKeyboardMapping::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEKEYBOARDMAPPING );
-
-    _ParsingOutputs keysyms {
-        _parseLISTof< protocol::KEYSYM >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            encoding->keycode_count * encoding->keysyms_per_keycode,
-            _ROOT_WS.nested() ) };
+    // followed by LISTofKEYSYM keysyms
+    const size_t keysyms_sz {
+        ( header->tl_aligned_units * ChangeKeyboardMapping::ALIGN ) -
+        ChangeKeyboardMapping::BASE_ENCODING_SZ };
+    const uint16_t keysyms_ct (
+        header->keycode_count * encoding->keysyms_per_keycode );
+    assert( keysyms_ct == keysyms_sz / sizeof( protocol::KEYSYM ) );
+    const _ParsingOutputs keysyms {
+        _parseLISTof< protocol::KEYSYM >( data + request.bytes_parsed, keysyms_sz,
+                                          keysyms_ct, ws.nested() ) };
     request.bytes_parsed += _pad( keysyms.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
@@ -4662,28 +4685,25 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "keycode-count", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keycode_count ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "keycode-count", name_width, ws.equals,
+        _formatInteger( header->keycode_count ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "first-keycode", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->first_keycode ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "keysyms-per-keycode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keysyms_per_keycode ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "keysyms", name_width, _ROOT_WS.equals,
-        keysyms.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "first-keycode", name_width, ws.equals,
+        _formatProtocolType( encoding->first_keycode ), ws.separator,
+        ws.memb_indent, "keysyms-per-keycode", name_width, ws.equals,
+        _formatInteger( encoding->keysyms_per_keycode ), ws.separator,
+        ws.memb_indent, "keysyms", name_width, ws.equals,
+        keysyms.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4692,43 +4712,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetKeyboardMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::GetKeyboardMapping;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= GetKeyboardMapping::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::GetKeyboardMapping;
+    const _Whitespace& ws { _ROOT_WS };
+    const GetKeyboardMapping::Header* header {
+        reinterpret_cast< const GetKeyboardMapping::Header* >( data ) };
+    request.bytes_parsed += sizeof( GetKeyboardMapping::Header );
+    assert( header->opcode == protocol::requests::opcodes::GETKEYBOARDMAPPING );
     const GetKeyboardMapping::Encoding* encoding {
-        reinterpret_cast< const GetKeyboardMapping::Encoding* >( data ) };
+        reinterpret_cast< const GetKeyboardMapping::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetKeyboardMapping::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::GETKEYBOARDMAPPING );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "first-keycode", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->first_keycode ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "count", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->count ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "first-keycode", name_width, ws.equals,
+        _formatProtocolType( encoding->first_keycode ), ws.separator,
+        ws.memb_indent, "count", name_width, ws.equals,
+        _formatInteger( encoding->count ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4737,68 +4759,66 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeKeyboardControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeKeyboardControl;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeKeyboardControl::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeKeyboardControl;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeKeyboardControl::Header* header {
+        reinterpret_cast< const ChangeKeyboardControl::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeKeyboardControl::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEKEYBOARDCONTROL );
     const ChangeKeyboardControl::Encoding* encoding {
-        reinterpret_cast< const ChangeKeyboardControl::Encoding* >( data ) };
+        reinterpret_cast< const ChangeKeyboardControl::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeKeyboardControl::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEKEYBOARDCONTROL );
-
-    // TBD lifetime seems too short (causes read-after-free segfaults) if initialized
-    //   nested in value_list_inputs initializer
+    // followed by LISTofVALUE value-list
     const std::vector< _VALUETraits > value_traits {
         /* key-click-percent */ {},
         /* bell-percent      */ {},
         /* bell-pitch        */ {},
         /* bell-duration     */ {},
         /* led               */ {},
-        // TBD how to limit to first two without magic numbers?
         /* led-mode          */ { ChangeKeyboardControl::led_mode_names,
-                                  _IndexRange{ 0, 1 } },
+                                  _IndexRange{ 0, ChangeKeyboardControl::LED_MODE_ENUM_MAX } },
         /* key               */ {},
         /* auto-repeat-mode  */ { ChangeKeyboardControl::led_mode_names }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
-        encoding->value_mask,
-        ChangeKeyboardControl::value_types,
-        ChangeKeyboardControl::value_names,
-        value_traits,
-        _ROOT_WS.nested()
-    };
-    _ParsingOutputs value_list_outputs;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed, &value_list_outputs );
-    request.bytes_parsed += value_list_outputs.bytes_parsed;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+        encoding->value_mask, ChangeKeyboardControl::value_types,
+        ChangeKeyboardControl::value_names, value_traits, ws.nested() };
+    _ParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
+                       &value_list );
+    request.bytes_parsed += value_list.bytes_parsed;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "value-mask", name_width, _ROOT_WS.equals,
-        _formatBitmask( encoding->value_mask ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "value-list", name_width, _ROOT_WS.equals,
-        value_list_outputs.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "value-mask", name_width, ws.equals,
+            _formatBitmask( encoding->value_mask ), ws.separator ),
+        ws.memb_indent, "value-list", name_width, ws.equals,
+        value_list.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4807,42 +4827,44 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::Bell >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::Bell;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= Bell::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::Bell;
+    const _Whitespace& ws { _ROOT_WS };
+    const Bell::Header* header {
+        reinterpret_cast< const Bell::Header* >( data ) };
+    request.bytes_parsed += sizeof( Bell::Header );
+    assert( header->opcode == protocol::requests::opcodes::BELL );
     const Bell::Encoding* encoding {
-        reinterpret_cast< const Bell::Encoding* >( data ) };
+        reinterpret_cast< const Bell::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( Bell::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::BELL );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "percent", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->percent ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "percent", name_width, ws.equals,
+        _formatInteger( header->percent ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4851,17 +4873,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangePointerControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangePointerControl;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangePointerControl::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangePointerControl;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangePointerControl::Header* header {
+        reinterpret_cast< const ChangePointerControl::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangePointerControl::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEPOINTERCONTROL );
     const ChangePointerControl::Encoding* encoding {
-        reinterpret_cast< const ChangePointerControl::Encoding* >( data ) };
+        reinterpret_cast< const ChangePointerControl::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangePointerControl::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEPOINTERCONTROL );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
@@ -4871,30 +4898,27 @@ X11ProtocolParser::_parseRequest<
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "acceleration-numerator", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->acceleration_numerator ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "acceleration-denominator", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->acceleration_denominator ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "threshold", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->threshold ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "do-acceleration", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->do_acceleration ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "do-threshold", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->do_threshold ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "acceleration-numerator", name_width, ws.equals,
+        _formatInteger( encoding->acceleration_numerator ), ws.separator,
+        ws.memb_indent, "acceleration-denominator", name_width, ws.equals,
+        _formatInteger( encoding->acceleration_denominator ), ws.separator,
+        ws.memb_indent, "threshold", name_width, ws.equals,
+        _formatInteger( encoding->threshold ), ws.separator,
+        ws.memb_indent, "do-acceleration", name_width, ws.equals,
+        _formatProtocolType( encoding->do_acceleration ), ws.separator,
+        ws.memb_indent, "do-threshold", name_width, ws.equals,
+        _formatProtocolType( encoding->do_threshold ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4903,17 +4927,22 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetScreenSaver;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetScreenSaver::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetScreenSaver;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetScreenSaver::Header* header {
+        reinterpret_cast< const SetScreenSaver::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetScreenSaver::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETSCREENSAVER );
     const SetScreenSaver::Encoding* encoding {
-        reinterpret_cast< const SetScreenSaver::Encoding* >( data ) };
+        reinterpret_cast< const SetScreenSaver::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetScreenSaver::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETSCREENSAVER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "prefer-blanking" ) - 1 : 0 );
@@ -4922,28 +4951,27 @@ X11ProtocolParser::_parseRequest<
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "timeout", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->timeout ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "interval", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->interval ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "prefer-blanking", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->prefer_blanking, SetScreenSaver::prefer_blanking_names ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "allow-exposures", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->allow_exposures, SetScreenSaver::allow_exposures_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "timeout", name_width, ws.equals,
+        _formatInteger( encoding->timeout ), ws.separator,
+        ws.memb_indent, "interval", name_width, ws.equals,
+        _formatInteger( encoding->interval ), ws.separator,
+        ws.memb_indent, "prefer-blanking", name_width, ws.equals,
+        _formatInteger( encoding->prefer_blanking,
+                        SetScreenSaver::prefer_blanking_names ), ws.separator,
+        ws.memb_indent, "allow-exposures", name_width, ws.equals,
+        _formatInteger( encoding->allow_exposures,
+                        SetScreenSaver::allow_exposures_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -4952,29 +4980,32 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeHosts >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ChangeHosts;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ChangeHosts::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ChangeHosts;
+    const _Whitespace& ws { _ROOT_WS };
+    const ChangeHosts::Header* header {
+        reinterpret_cast< const ChangeHosts::Header* >( data ) };
+    request.bytes_parsed += sizeof( ChangeHosts::Header );
+    assert( header->opcode == protocol::requests::opcodes::CHANGEHOSTS );
     const ChangeHosts::Encoding* encoding {
-        reinterpret_cast< const ChangeHosts::Encoding* >( data ) };
+        reinterpret_cast< const ChangeHosts::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeHosts::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::CHANGEHOSTS );
-
-    // TBD format into IPv4/6 instead of byte array? (depends in family)
-    //   (xtrace prints as bytes)
-    // TBD in the standard, the full description of ChangeHosts anticipates up
-    //   to 5 family values, but in the encoding section, family is limited to
-    //   Internet, DECnet, or Chaos
-    _ParsingOutputs address {
+    // followed by LISTofCARD8 address
+    //   format as byte array, as we can't guarantee that the family is Internet
+    const size_t address_sz {
+        ( header->tl_aligned_units * ChangeHosts::ALIGN ) -
+        ChangeHosts::BASE_ENCODING_SZ };
+    const _ParsingOutputs address {
         _parseLISTof< protocol::CARD8 >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            encoding->length_of_address,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+            data + request.bytes_parsed, address_sz, encoding->address_len,
+            ws.nested( _Whitespace::SINGLELINE ) ) };
     request.bytes_parsed += _pad( address.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "length of address" ) - 1 : 0 );
@@ -4987,35 +5018,29 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, ChangeHosts::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode,
+                        ChangeHosts::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        // TBD need way to limit enum without magic numbers
-        // TBD if using min/max, maybe make _formatInteger param order consistent
-        //   with _EnumTraits member order
-        _ROOT_WS.memb_indent, "family", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->family,
-                        ChangeHosts::family_names, _IndexRange{ 0, 2 } ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "family", name_width, ws.equals,
+        _formatInteger( encoding->family, ChangeHosts::family_names,
+                        _IndexRange{ 0, ChangeHosts::FAMILY_ENUM_MAX } ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "length of address", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->length_of_address ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "address", name_width, _ROOT_WS.equals,
-        address.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(address length)", name_width, ws.equals,
+            _formatInteger( encoding->address_len ), ws.separator ),
+        ws.memb_indent, "address", name_width, ws.equals,
+        address.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5024,42 +5049,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetAccessControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetAccessControl;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetAccessControl::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetAccessControl;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetAccessControl::Header* header {
+        reinterpret_cast< const SetAccessControl::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetAccessControl::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETACCESSCONTROL );
     const SetAccessControl::Encoding* encoding {
-        reinterpret_cast< const SetAccessControl::Encoding* >( data ) };
+        reinterpret_cast< const SetAccessControl::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetAccessControl::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETACCESSCONTROL );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, SetAccessControl::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode,
+                        SetAccessControl::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5068,42 +5096,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetCloseDownMode >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetCloseDownMode;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetCloseDownMode::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetCloseDownMode;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetCloseDownMode::Header* header {
+        reinterpret_cast< const SetCloseDownMode::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetCloseDownMode::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETCLOSEDOWNMODE );
     const SetCloseDownMode::Encoding* encoding {
-        reinterpret_cast< const SetCloseDownMode::Encoding* >( data ) };
+        reinterpret_cast< const SetCloseDownMode::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetCloseDownMode::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETCLOSEDOWNMODE );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, SetCloseDownMode::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode,
+                        SetCloseDownMode::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5112,41 +5143,44 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::KillClient >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::KillClient;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= KillClient::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::KillClient;
+    const _Whitespace& ws { _ROOT_WS };
+    const KillClient::Header* header {
+        reinterpret_cast< const KillClient::Header* >( data ) };
+    request.bytes_parsed += sizeof( KillClient::Header );
+    assert( header->opcode == protocol::requests::opcodes::KILLCLIENT );
     const KillClient::Encoding* encoding {
-        reinterpret_cast< const KillClient::Encoding* >( data ) };
+        reinterpret_cast< const KillClient::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( KillClient::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::KILLCLIENT );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "resource", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->resource, KillClient::resource_names ), _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "resource", name_width, ws.equals,
+        _formatInteger( encoding->resource,
+                        KillClient::resource_names ), ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5155,24 +5189,31 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::RotateProperties >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::RotateProperties;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= RotateProperties::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::RotateProperties;
+    const _Whitespace& ws { _ROOT_WS };
+    const RotateProperties::Header* header {
+        reinterpret_cast< const RotateProperties::Header* >( data ) };
+    request.bytes_parsed += sizeof( RotateProperties::Header );
+    assert( header->opcode == protocol::requests::opcodes::ROTATEPROPERTIES );
     const RotateProperties::Encoding* encoding {
-        reinterpret_cast< const RotateProperties::Encoding* >( data ) };
+        reinterpret_cast< const RotateProperties::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( RotateProperties::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::ROTATEPROPERTIES );
-
-    _ParsingOutputs properties {
+    // followed by LISTofATOM properties
+    const size_t properties_sz {
+        ( header->tl_aligned_units * RotateProperties::ALIGN ) -
+        RotateProperties::BASE_ENCODING_SZ };
+    const _ParsingOutputs properties {
         _parseLISTof< protocol::ATOM >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            encoding->number_of_properties,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, properties_sz,
+            encoding->properties_ct, ws.nested() ) };
     request.bytes_parsed += _pad( properties.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "number of properties" ) - 1 : 0 );
@@ -5183,31 +5224,27 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "window", name_width, _ROOT_WS.equals,
-        _formatProtocolType( encoding->window ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "window", name_width, ws.equals,
+        _formatProtocolType( encoding->window ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "number of properties", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->number_of_properties ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "delta", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->delta ), _ROOT_WS.separator,
-        _ROOT_WS.memb_indent, "properties", name_width, _ROOT_WS.equals,
-        properties.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(n properties)", name_width, ws.equals,
+            _formatInteger( encoding->properties_ct ), ws.separator ),
+        ws.memb_indent, "delta", name_width, ws.equals,
+        _formatInteger( encoding->delta ), ws.separator,
+        ws.memb_indent, "properties", name_width, ws.equals,
+        properties.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5216,42 +5253,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ForceScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::ForceScreenSaver;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= ForceScreenSaver::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::ForceScreenSaver;
+    const _Whitespace& ws { _ROOT_WS };
+    const ForceScreenSaver::Header* header {
+        reinterpret_cast< const ForceScreenSaver::Header* >( data ) };
+    request.bytes_parsed += sizeof( ForceScreenSaver::Header );
+    assert( header->opcode == protocol::requests::opcodes::FORCESCREENSAVER );
     const ForceScreenSaver::Encoding* encoding {
-        reinterpret_cast< const ForceScreenSaver::Encoding* >( data ) };
+        reinterpret_cast< const ForceScreenSaver::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ForceScreenSaver::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::FORCESCREENSAVER );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "mode", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->mode, ForceScreenSaver::mode_names ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "mode", name_width, ws.equals,
+        _formatInteger( header->mode,
+                        ForceScreenSaver::mode_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5260,52 +5300,56 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetPointerMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetPointerMapping;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetPointerMapping::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetPointerMapping;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetPointerMapping::Header* header {
+        reinterpret_cast< const SetPointerMapping::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetPointerMapping::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETPOINTERMAPPING );
     const SetPointerMapping::Encoding* encoding {
-        reinterpret_cast< const SetPointerMapping::Encoding* >( data ) };
+        reinterpret_cast< const SetPointerMapping::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetPointerMapping::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETPOINTERMAPPING );
-
-    _ParsingOutputs map {
+    // followed by LISTofCARD8 map
+    const size_t map_sz {
+        ( header->tl_aligned_units * SetPointerMapping::ALIGN ) -
+        SetPointerMapping::BASE_ENCODING_SZ };
+    const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            encoding->length_of_map,
-            _ROOT_WS.nested( _Whitespace::SINGLELINE ) ) };
+            data + request.bytes_parsed, map_sz,
+            header->map_len, ws.nested( _Whitespace::SINGLELINE ) ) };
     request.bytes_parsed += _pad( map.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
-        "{}"
-        "{}{: <{}}{}{}{}"
-        "{}"
+        "{}{}{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "length_of_map", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->length_of_map ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "map", name_width, _ROOT_WS.equals,
-        map.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(map length)", name_width, ws.equals,
+            _formatInteger( header->map_len ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "map", name_width, ws.equals,
+        map.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5314,27 +5358,32 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetModifierMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SetModifierMapping;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= SetModifierMapping::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::SetModifierMapping;
+    const _Whitespace& ws { _ROOT_WS };
+    const SetModifierMapping::Header* header {
+        reinterpret_cast< const SetModifierMapping::Header* >( data ) };
+    request.bytes_parsed += sizeof( SetModifierMapping::Header );
+    assert( header->opcode == protocol::requests::opcodes::SETMODIFIERMAPPING );
     const SetModifierMapping::Encoding* encoding {
-        reinterpret_cast< const SetModifierMapping::Encoding* >( data ) };
+        reinterpret_cast< const SetModifierMapping::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetModifierMapping::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::SETMODIFIERMAPPING );
-
-    // TBD "The number of keycodes in the list must be 8*keycodes-per-modifier
-    //   (or a Length error results)."
-    // TBD may need constant to avoid magic value 8
-    _ParsingOutputs keycodes {
+    // followed by LISTofKEYCODE keycodes
+    const size_t keycodes_sz {
+        ( header->tl_aligned_units * SetModifierMapping::ALIGN ) -
+        SetModifierMapping::BASE_ENCODING_SZ };
+    const uint16_t keycodes_ct (
+        SetModifierMapping::MODIFIER_CT * header->keycodes_per_modifier );
+    const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            8 * encoding->keycodes_per_modifier,
-            _ROOT_WS.nested() ) };
+            data + request.bytes_parsed, keycodes_sz, keycodes_ct, ws.nested() ) };
     request.bytes_parsed += _pad( keycodes.bytes_parsed );
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
@@ -5345,24 +5394,21 @@ X11ProtocolParser::_parseRequest<
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "keycodes-per-modifier", name_width, _ROOT_WS.equals,
-        _formatInteger( encoding->keycodes_per_modifier ), _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        ws.memb_indent, "keycodes-per-modifier", name_width, ws.equals,
+        _formatInteger( header->keycodes_per_modifier ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.memb_indent, "keycodes", name_width, _ROOT_WS.equals,
-        keycodes.str, _ROOT_WS.separator,
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.memb_indent, "keycodes", name_width, ws.equals,
+        keycodes.str, ws.separator,
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5371,40 +5417,45 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::NoOperation >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::NoOperation;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz > 0 );  // TBD check min size
+    assert( sz >= NoOperation::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    using protocol::requests::NoOperation;
+    const _Whitespace& ws { ws };
+    const NoOperation::Header* header {
+        reinterpret_cast< const NoOperation::Header* >( data ) };
+    request.bytes_parsed += sizeof( NoOperation::Header );
+    assert( header->opcode == protocol::requests::opcodes::NOOPERATION );
     const NoOperation::Encoding* encoding {
-        reinterpret_cast< const NoOperation::Encoding* >( data ) };
+        reinterpret_cast< const NoOperation::Encoding* >(
+            data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( NoOperation::Encoding );
-    assert( encoding->opcode == protocol::requests::opcodes::NOOPERATION );
     // protocol specifies that no-op may be followed by variable length dummy data
-    request.bytes_parsed += ( encoding->request_length - 1 ) * _ALIGN;
-    assert( encoding->request_length == _alignedUnits( request.bytes_parsed ) );
+    const size_t dummy_sz {
+        ( header->tl_aligned_units * NoOperation::ALIGN ) -
+        NoOperation::BASE_ENCODING_SZ };
+    request.bytes_parsed += dummy_sz;
+    assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "request length" ) - 1 : 0 );
+        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}}}",
-        _ROOT_WS.separator,
-        settings.verbose ?
-        fmt::format(
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "opcode", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->opcode ), _ROOT_WS.separator ) : "",
-        settings.verbose ?
-        fmt::format(
+            ws.memb_indent, "opcode", name_width, ws.equals,
+            _formatInteger( header->opcode ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            _ROOT_WS.memb_indent, "request length", name_width, _ROOT_WS.equals,
-            _formatInteger( encoding->request_length ), _ROOT_WS.separator ) : "",
-        _ROOT_WS.encl_indent
+            ws.memb_indent, "(total aligned units)", name_width, ws.equals,
+            _formatInteger( header->tl_aligned_units ), ws.separator ),
+        ws.encl_indent
         );
-    // assert( request.bytes_parsed == sz );
     return request;
 }
 
@@ -5413,10 +5464,12 @@ X11ProtocolParser::_logRequest(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= 4 ); // TBD
+    assert( sz >= sizeof( protocol::requests::Request::Header ) );
 
-    const uint8_t opcode { *data };
-    // TBD core opcodes only to start
+    const uint8_t opcode {
+        reinterpret_cast< const protocol::requests::Request::Header* >(
+            data )->opcode };
+    // TBD before implemementing extensions
     assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );
     // map opcode to sequence number to aid in parsing request errors and replies
     const uint16_t sequence { conn->registerRequest( opcode ) };
@@ -5903,6 +5956,7 @@ X11ProtocolParser::_logRequest(
             protocol::requests::NoOperation >( conn, data, sz );
         break;
     default:
+        // TBD extension logging function dispatch
         break;
     };
     fmt::println( settings.log_fs,

@@ -138,19 +138,23 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     }
 
     ////// Send ChangeWindowAttributes for root window on screen 0 to toggle
-    //////   reporting PropertNotify events
+    //////   reporting PropertyNotify events
     {
         using protocol::requests::ChangeWindowAttributes;
+        ChangeWindowAttributes::Header cwa_header {};
+        cwa_header.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
+        cwa_header.tl_aligned_units = _parser._alignedUnits(
+            ChangeWindowAttributes::BASE_ENCODING_SZ + sizeof( protocol::VALUE ) );
+        sbuffer.load( &cwa_header, sizeof( cwa_header ) );
         ChangeWindowAttributes::Encoding cwa_encoding {};
-        cwa_encoding.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
-        cwa_encoding.request_length = _parser._alignedUnits(
-            sizeof( ChangeWindowAttributes::Encoding ) + sizeof( protocol::VALUE ) );
         cwa_encoding.window = screen0_root;
         cwa_encoding.value_mask = /*XCB_CW_EVENT_MASK*/ 1 << 11;
         sbuffer.load( &cwa_encoding, sizeof( cwa_encoding ) );
-        const protocol::VALUE value_list[1] { /*XCB_EVENT_MASK_PROPERTY_CHANGE*/ 1 << 22 };
-        sbuffer.load( value_list, sizeof( protocol::VALUE ) );
-        assert( sbuffer.size() == sizeof( cwa_encoding ) + sizeof( protocol::VALUE ) );
+        const protocol::VALUE value_list[1] {
+            /*XCB_EVENT_MASK_PROPERTY_CHANGE*/ 1 << 22 };
+        sbuffer.load( value_list, sizeof( value_list ) );
+        assert( sbuffer.size() == ChangeWindowAttributes::BASE_ENCODING_SZ +
+                sizeof( protocol::VALUE ) );
         try {
             pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
@@ -165,18 +169,21 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     // TBD see https://stackoverflow.com/questions/61849695/get-current-x11-server-time
     {
         using protocol::requests::ChangeProperty;
-        ChangeProperty::Encoding cp_encoding {};
-        cp_encoding.opcode = protocol::requests::opcodes::CHANGEPROPERTY;
+        ChangeProperty::Header cp_header {};
+        cp_header.opcode = protocol::requests::opcodes::CHANGEPROPERTY;
         // TBD currenly no enum constants in procotol::, only name arrays
-        cp_encoding.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
-        cp_encoding.request_length = _parser._alignedUnits( sizeof( cp_encoding ) );
+        cp_header.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
+        cp_header.tl_aligned_units =
+            _parser._alignedUnits( ChangeProperty::BASE_ENCODING_SZ );
+        sbuffer.load( &cp_header, sizeof( cp_header ) );
+        ChangeProperty::Encoding cp_encoding {};
         cp_encoding.window = screen0_root;
         cp_encoding.property.data = /*XCB_ATOM_WM_NAME 39*/0x27;
         cp_encoding.type.data = /*XCB_ATOM_STRING 31*/0x1f;
         cp_encoding.format = 8;  // (bits per fmt unit)
-        cp_encoding.fmt_unit_ct = 0;  // 0-length append to act as noop
+        cp_encoding.data_fmt_unit_len = 0;  // 0-length append to act as noop
         sbuffer.load( &cp_encoding, sizeof( cp_encoding ) );
-        assert( sbuffer.size() == sizeof( cp_encoding ) );
+        assert( sbuffer.size() == ChangeProperty::BASE_ENCODING_SZ );
         try {
             pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
@@ -237,6 +244,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
     // indices start at 1
     std::vector<std::string> fetched_atoms ( 1 );
     using protocol::requests::GetAtomName;
+    GetAtomName::Header req_header {};
     GetAtomName::Encoding req_encoding {};
     GetAtomName::Reply::Encoding rep_encoding {};
     constexpr int STRINGBUF_SZ { 1000 };
@@ -251,8 +259,9 @@ void ProxyX11Server::_fetchInternedAtoms() {
                       __PRETTY_FUNCTION__ );
         goto close_socket;
     }
-    req_encoding.opcode = protocol::requests::opcodes::GETATOMNAME;
-    req_encoding.request_length = _parser._alignedUnits( sizeof( req_encoding ) );
+    req_header.opcode = protocol::requests::opcodes::GETATOMNAME;
+    req_header.tl_aligned_units =
+        _parser._alignedUnits( GetAtomName::BASE_ENCODING_SZ );
     // TBD standardize which stream all non-log messages are going to
     fmt::print( stderr, "fetching interned ATOMs: " );
     fmt::print( stderr, "{}?25l", CSI );  // hide cursor
@@ -268,11 +277,12 @@ void ProxyX11Server::_fetchInternedAtoms() {
         exit( EXIT_FAILURE );
     }
     for ( uint32_t i { 1 }; true; ++i ) {
-        ////// Send InternAtom request on ATOMs starting with 1
+        ////// Send GetAtomName request on ATOMs starting with 1
         //////   ( expecting large contiguous region of ATOM ids )
+        sbuffer.load( &req_header, sizeof( req_header ) );
         req_encoding.atom.data = i;
         sbuffer.load( &req_encoding, sizeof( req_encoding ) );
-        assert( sbuffer.size() == sizeof( req_encoding ) );
+        assert( sbuffer.size() == GetAtomName::BASE_ENCODING_SZ );
         try {
             pollSingleSocket( server_fd, POLLOUT, 500 );
         } catch ( const std::exception& e ) {
@@ -281,7 +291,7 @@ void ProxyX11Server::_fetchInternedAtoms() {
         }
         sbuffer.write( server_fd );
 
-        ////// Parse InternAtom reply to get string interned at ATOM i
+        ////// Parse GetAtomName reply to get string interned at ATOM i
         //////   ( or parse first error and break loop )
         assert( sbuffer.empty() );
         try {
