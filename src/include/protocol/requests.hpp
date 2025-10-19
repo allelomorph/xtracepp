@@ -164,7 +164,6 @@ struct Request {
         };
         uint16_t tl_aligned_units;  // total request length in 4B units
     };
-    struct [[gnu::packed]] Encoding {};
 
     static constexpr uint32_t ALIGN { 4 };
 
@@ -1190,7 +1189,7 @@ namespace impl {
 struct SimpleRequest : public Request {
     // Header.tl_aligned_units == 1
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 
     virtual ~SimpleRequest() = 0;
 };
@@ -2820,7 +2819,7 @@ struct Bell : public Request {
     };
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 };
 
 struct ChangePointerControl : public Request {
@@ -2971,7 +2970,7 @@ struct SetAccessControl : public Request {
         protocol::enum_names::access_mode };
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 };
 
 struct SetCloseDownMode : public Request {
@@ -2986,7 +2985,7 @@ struct SetCloseDownMode : public Request {
         protocol::enum_names::close_down_mode };
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 };
 
 struct KillClient : public Request {
@@ -3015,7 +3014,7 @@ struct RotateProperties : public Request {
     // followed by LISTofATOM properties 4nB
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 };
 
 struct ForceScreenSaver : public Request {
@@ -3030,7 +3029,7 @@ struct ForceScreenSaver : public Request {
         protocol::enum_names::screen_saver_set_mode };
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 };
 
 struct SetPointerMapping : public Request {
@@ -3042,7 +3041,7 @@ struct SetPointerMapping : public Request {
     // followed by LISTofCARD8 map pad(map_len)B
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
 
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
@@ -3095,7 +3094,7 @@ struct SetModifierMapping : public Request {
     // followed by LISTofKEYCODE keycodes 8nB
 
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Header ) };
     // https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:SetModifierMapping
     //   "number of keycodes in the list must be 8*keycodes-per-modifier"
     static constexpr uint8_t MODIFIER_CT { 8 };

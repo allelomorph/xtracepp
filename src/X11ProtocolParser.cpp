@@ -47,7 +47,7 @@ size_t X11ProtocolParser::_logClientPacket(
         // authentication negotiation
         break;
     case Connection::OPEN:
-        assert( sz >= sizeof( protocol::requests::NoOperation::Encoding ) );
+        assert( sz >= sizeof( protocol::requests::Request::Header ) );
         bytes_parsed = _logRequest( conn, data, sz );
         break;
     default:

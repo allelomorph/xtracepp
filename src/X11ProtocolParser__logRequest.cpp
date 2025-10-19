@@ -5234,10 +5234,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const Bell::Header* >( data ) };
     request.bytes_parsed += sizeof( Bell::Header );
     assert( header->opcode == protocol::requests::opcodes::BELL );
-    const Bell::Encoding* encoding {
-        reinterpret_cast< const Bell::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( Bell::Encoding );
+    // Bell is header-only
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
@@ -5504,10 +5501,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SetAccessControl::Header* >( data ) };
     request.bytes_parsed += sizeof( SetAccessControl::Header );
     assert( header->opcode == protocol::requests::opcodes::SETACCESSCONTROL );
-    const SetAccessControl::Encoding* encoding {
-        reinterpret_cast< const SetAccessControl::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( SetAccessControl::Encoding );
+    // SetAccessControl is header-only
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
@@ -5551,10 +5545,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SetCloseDownMode::Header* >( data ) };
     request.bytes_parsed += sizeof( SetCloseDownMode::Header );
     assert( header->opcode == protocol::requests::opcodes::SETCLOSEDOWNMODE );
-    const SetCloseDownMode::Encoding* encoding {
-        reinterpret_cast< const SetCloseDownMode::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( SetCloseDownMode::Encoding );
+    // SetCloseDownMode is header-only
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
@@ -5708,10 +5699,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const ForceScreenSaver::Header* >( data ) };
     request.bytes_parsed += sizeof( ForceScreenSaver::Header );
     assert( header->opcode == protocol::requests::opcodes::FORCESCREENSAVER );
-    const ForceScreenSaver::Encoding* encoding {
-        reinterpret_cast< const ForceScreenSaver::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( ForceScreenSaver::Encoding );
+    // ForceScreenSaver is header-only
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
@@ -5755,10 +5743,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SetPointerMapping::Header* >( data ) };
     request.bytes_parsed += sizeof( SetPointerMapping::Header );
     assert( header->opcode == protocol::requests::opcodes::SETPOINTERMAPPING );
-    const SetPointerMapping::Encoding* encoding {
-        reinterpret_cast< const SetPointerMapping::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( SetPointerMapping::Encoding );
+    // SetPointerMapping is header-only
     // followed by LISTofCARD8 map
     const size_t map_sz {
         ( header->tl_aligned_units * SetPointerMapping::ALIGN ) -
@@ -5829,10 +5814,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SetModifierMapping::Header* >( data ) };
     request.bytes_parsed += sizeof( SetModifierMapping::Header );
     assert( header->opcode == protocol::requests::opcodes::SETMODIFIERMAPPING );
-    const SetModifierMapping::Encoding* encoding {
-        reinterpret_cast< const SetModifierMapping::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( SetModifierMapping::Encoding );
+    // SetModifierMapping is header-only
     // followed by LISTofKEYCODE keycodes
     const size_t keycodes_sz {
         ( header->tl_aligned_units * SetModifierMapping::ALIGN ) -
@@ -5904,10 +5886,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const NoOperation::Header* >( data ) };
     request.bytes_parsed += sizeof( NoOperation::Header );
     assert( header->opcode == protocol::requests::opcodes::NOOPERATION );
-    const NoOperation::Encoding* encoding {
-        reinterpret_cast< const NoOperation::Encoding* >(
-            data + request.bytes_parsed ) };
-    request.bytes_parsed += sizeof( NoOperation::Encoding );
+    // NoOperation is header-only
     // protocol specifies that no-op may be followed by variable length dummy data
     const size_t dummy_sz {
         ( header->tl_aligned_units * NoOperation::ALIGN ) -
