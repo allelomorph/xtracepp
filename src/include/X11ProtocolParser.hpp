@@ -613,70 +613,9 @@ private:
     size_t _logEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    template < typename RequestT,
-               std::enable_if_t<
-                   !( std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT> ||
-                      std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT> ||
-                      std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT> ||
-                      std::is_base_of_v<protocol::requests::impl::PolyPointRequest, RequestT> ||
-                      std::is_base_of_v<protocol::requests::impl::SimpleCmapRequest, RequestT> ),
-                   bool> = true >
+    template < typename RequestT >
     _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-    // GrabServer UngrabServer GetInputFocus QueryKeymap GetFontPath
-    // ListExtensions GetKeyboardControl GetPointerControl GetScreenSaver
-    // ListHosts GetPointerMapping GetModifierMapping
-    template < typename RequestT,
-               std::enable_if_t<
-                   std::is_base_of_v<protocol::requests::impl::SimpleRequest, RequestT>,
-                   bool> = true >
-    inline _ParsingOutputs _parseRequest(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _parseRequest<
-            protocol::requests::impl::SimpleRequest >( conn, data, sz );
-    }
-    // GetWindowAttributes DestroyWindow DestroySubwindows MapWindow
-    // MapSubwindows UnmapWindow UnmapSubwindows QueryTree ListProperties
-    // QueryPointer ListInstalledColormaps
-    template < typename RequestT,
-               std::enable_if_t<
-                   std::is_base_of_v<protocol::requests::impl::SimpleWindowRequest, RequestT>,
-                   bool> = true >
-    inline _ParsingOutputs _parseRequest(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _parseRequest<
-            protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
-    }
-    // ListFonts ListFontsWithInfo
-    template < typename RequestT,
-               std::enable_if_t<
-                   std::is_base_of_v<protocol::requests::impl::ListFontsRequest, RequestT>,
-                   bool> = true >
-    inline _ParsingOutputs _parseRequest(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _parseRequest<
-            protocol::requests::impl::ListFontsRequest >( conn, data, sz );
-    }
-    // PolyPoint PolyLine
-    template < typename RequestT,
-               std::enable_if_t<
-                   std::is_base_of_v<protocol::requests::impl::PolyPointRequest, RequestT>,
-                   bool> = true >
-    inline _ParsingOutputs _parseRequest(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _parseRequest<
-            protocol::requests::impl::PolyPointRequest >( conn, data, sz );
-    }
-    // FreeColormap InstallColormap UninstallColormap
-    template < typename RequestT,
-               std::enable_if_t<
-                   std::is_base_of_v<protocol::requests::impl::SimpleCmapRequest, RequestT>,
-                   bool> = true >
-    inline _ParsingOutputs _parseRequest(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
-        return _parseRequest<
-            protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
-    }
     size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
 

@@ -29,7 +29,6 @@ X11ProtocolParser::_parseRequest<
     const SimpleRequest::Header* header {
         reinterpret_cast< const SimpleRequest::Header* >( data ) };
     request.bytes_parsed += sizeof( SimpleRequest::Header );
-    // TBD opcode assert?
     // SimpleRequest is header-only
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -68,7 +67,6 @@ X11ProtocolParser::_parseRequest<
     const SimpleWindowRequest::Header* header {
         reinterpret_cast< const SimpleWindowRequest::Header* >( data ) };
     request.bytes_parsed += sizeof( SimpleWindowRequest::Header );
-    // TBD opcode assert?
     const SimpleWindowRequest::Encoding* encoding {
         reinterpret_cast< const SimpleWindowRequest::Encoding* >(
             data + request.bytes_parsed ) };
@@ -113,7 +111,6 @@ X11ProtocolParser::_parseRequest<
     const ListFontsRequest::Header* header {
         reinterpret_cast< const ListFontsRequest::Header* >( data ) };
     request.bytes_parsed += sizeof( ListFontsRequest::Header );
-    // TBD opcode assert?
     const ListFontsRequest::Encoding* encoding {
         reinterpret_cast< const ListFontsRequest::Encoding* >(
             data + request.bytes_parsed ) };
@@ -171,7 +168,6 @@ X11ProtocolParser::_parseRequest<
     const PolyPointRequest::Header* header {
         reinterpret_cast< const PolyPointRequest::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyPointRequest::Header );
-    // TBD opcode assert?
     const PolyPointRequest::Encoding* encoding {
         reinterpret_cast< const PolyPointRequest::Encoding* >(
             data + request.bytes_parsed ) };
@@ -440,6 +436,54 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::GetWindowAttributes >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetWindowAttributes::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETWINDOWATTRIBUTES );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::GetWindowAttributes > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::DestroyWindow >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::DestroyWindow::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::DESTROYWINDOW );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::DestroyWindow > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::DestroySubwindows >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::DestroySubwindows::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::DESTROYSUBWINDOWS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::DestroySubwindows > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeSaveSet >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::ChangeSaveSet;
@@ -536,6 +580,70 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::MapWindow >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::MapWindow::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::MAPWINDOW );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::MapWindow > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::MapSubwindows >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::MapSubwindows::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::MAPSUBWINDOWS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::MapSubwindows > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::UnmapWindow >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::UnmapWindow::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::UNMAPWINDOW );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::UnmapWindow > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::UnmapSubwindows >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::UnmapSubwindows::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::UNMAPSUBWINDOWS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::UnmapSubwindows > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
 template <>
@@ -698,6 +806,22 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::QueryTree >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::QueryTree::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::QUERYTREE );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::QueryTree > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
 template <>
@@ -991,6 +1115,22 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::ListProperties >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::ListProperties::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::LISTPROPERTIES );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::ListProperties > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
 template <>
@@ -1760,6 +1900,54 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::GrabServer >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GrabServer::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GRABSERVER );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GrabServer > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::UngrabServer >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::UngrabServer::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::UNGRABSERVER );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::UngrabServer > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::QueryPointer >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::QueryPointer::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::QUERYPOINTER );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::QueryPointer > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::GetMotionEvents >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::GetMotionEvents;
@@ -1974,6 +2162,38 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::GetInputFocus >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetInputFocus::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETINPUTFOCUS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetInputFocus > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::QueryKeymap >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::QueryKeymap::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::QUERYKEYMAP );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::QueryKeymap > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
 template <>
@@ -2195,6 +2415,38 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::ListFonts >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::ListFonts::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::LISTFONTS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::ListFontsRequest,
+                   protocol::requests::ListFonts > );
+    return _parseRequest<
+        protocol::requests::impl::ListFontsRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::ListFontsWithInfo >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::ListFontsWithInfo::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::LISTFONTSWITHINFO );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::ListFontsRequest,
+                   protocol::requests::ListFontsWithInfo > );
+    return _parseRequest<
+        protocol::requests::impl::ListFontsRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::SetFontPath >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::SetFontPath;
@@ -2245,6 +2497,22 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::GetFontPath >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetFontPath::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETFONTPATH );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetFontPath > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
 template <>
@@ -2930,6 +3198,38 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::PolyPoint >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::PolyPoint::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::POLYPOINT );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::PolyPointRequest,
+                   protocol::requests::PolyPoint > );
+    return _parseRequest<
+        protocol::requests::impl::PolyPointRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::PolyLine >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::PolyLine::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::POLYLINE );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::PolyPointRequest,
+                   protocol::requests::PolyLine > );
+    return _parseRequest<
+        protocol::requests::impl::PolyPointRequest >( conn, data, sz );
 }
 
 template <>
@@ -3737,6 +4037,22 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::FreeColormap >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::FreeColormap::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::FREECOLORMAP );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleCmapRequest,
+                   protocol::requests::FreeColormap > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::CopyColormapAndFree >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::CopyColormapAndFree;
@@ -3779,6 +4095,54 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::InstallColormap >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::InstallColormap::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::INSTALLCOLORMAP );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleCmapRequest,
+                   protocol::requests::InstallColormap > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::UninstallColormap >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::UninstallColormap::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::UNINSTALLCOLORMAP );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleCmapRequest,
+                   protocol::requests::UninstallColormap > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::ListInstalledColormaps >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::ListInstalledColormaps::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleWindowRequest,
+                   protocol::requests::ListInstalledColormaps > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
 template <>
@@ -4646,6 +5010,22 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::ListExtensions >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::ListExtensions::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::LISTEXTENSIONS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::ListExtensions > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeKeyboardMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::ChangeKeyboardMapping;
@@ -4825,6 +5205,22 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::GetKeyboardControl >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetKeyboardControl::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETKEYBOARDCONTROL );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetKeyboardControl > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::Bell >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::Bell;
@@ -4925,6 +5321,22 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::GetPointerControl >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetPointerControl::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETPOINTERCONTROL );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetPointerControl > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::SetScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::SetScreenSaver;
@@ -4973,6 +5385,22 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::GetScreenSaver >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetScreenSaver::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETSCREENSAVER );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetScreenSaver > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
 template <>
@@ -5042,6 +5470,22 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::ListHosts >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::ListHosts::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::LISTHOSTS );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::ListHosts > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
 template <>
@@ -5356,6 +5800,22 @@ X11ProtocolParser::_parseRequest<
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
+    protocol::requests::GetPointerMapping >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetPointerMapping::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETPOINTERMAPPING );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetPointerMapping > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
     protocol::requests::SetModifierMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::SetModifierMapping;
@@ -5410,6 +5870,22 @@ X11ProtocolParser::_parseRequest<
         ws.encl_indent
         );
     return request;
+}
+
+template <>
+X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest<
+    protocol::requests::GetModifierMapping >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( reinterpret_cast<
+            const protocol::requests::GetModifierMapping::Header* >(
+                data )->opcode ==
+            protocol::requests::opcodes::GETMODIFIERMAPPING );
+    static_assert( std::is_base_of_v<
+                   protocol::requests::impl::SimpleRequest,
+                   protocol::requests::GetModifierMapping > );
+    return _parseRequest<
+        protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
 template <>
