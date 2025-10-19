@@ -192,6 +192,7 @@ struct BoundaryEvent : public Event {
     inline static const
     std::vector< std::string_view >& focus_same_screen_names {
         protocol::enum_names::focus_same_screen_mask };
+    static constexpr uint8_t FOCUS_SAME_SCREEN_ZERO_BITS { 0xFC };
 
     virtual ~BoundaryEvent() = 0;
 };
@@ -263,8 +264,10 @@ struct MotionNotify : public Event {
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
-    std::vector< std::string_view >& detail_names {
-        protocol::enum_names::motion_hint };
+    std::vector< std::string_view > detail_names {
+        "Normal",  // 0
+        "Hint"     // 1
+    };
     inline static const
     std::vector< std::string_view >& child_names {
         protocol::enum_names::zero_none };
@@ -358,8 +361,11 @@ struct VisibilityNotify : public Event {
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
-    std::vector< std::string_view >& state_names {
-        protocol::enum_names::visibility_state };
+    std::vector< std::string_view > state_names {
+        "Unobscured",         // 0
+        "PartiallyObscured",  // 1
+        "FullyObscured"       // 2
+    };
 };
 
 struct CreateNotify : public Event {
@@ -578,8 +584,10 @@ struct PropertyNotify : public Event {
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
-    std::vector< std::string_view >& state_names {
-        protocol::enum_names::property_state };
+    std::vector< std::string_view > state_names {
+        "NewValue",  // 0
+        "Deleted"    // 1
+    };
 };
 
 struct SelectionClear : public Event {
@@ -653,8 +661,10 @@ struct ColormapNotify : public Event {
     std::vector< std::string_view >& colormap_names {
         protocol::enum_names::zero_none };
     inline static const
-    std::vector< std::string_view >& state_names {
-        protocol::enum_names::colormap_state };
+    std::vector< std::string_view > state_names {
+        "Uninstalled",  // 0
+        "Installed"     // 1
+    };
 };
 
 struct ClientMessage : public Event {
@@ -684,8 +694,11 @@ struct MappingNotify : public Event {
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
 
     inline static const
-    std::vector< std::string_view >& request_names {
-        protocol::enum_names::mapping_state };
+    std::vector< std::string_view > request_names {
+        "Modifier",  // 0
+        "Keyboard",  // 1
+        "Pointer"    // 2
+    };
 };
 
 }  // namespace events

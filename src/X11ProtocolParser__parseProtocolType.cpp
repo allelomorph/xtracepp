@@ -28,19 +28,19 @@ X11ProtocolParser::_parseProtocolType<
     assert( sz >= sizeof( protocol::STR ) );
     const protocol::STR str {
         *reinterpret_cast< const protocol::STR* >( data ) };
-    assert( str.n > 0 );
+    assert( str.name_len > 0 );
     outputs.bytes_parsed += sizeof( protocol::STR );
     const std::string_view name {
         reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
-        str.n };
+        str.name_len };
     // note that LISTofSTR will often be padded, but not single STR
-    outputs.bytes_parsed += str.n;
+    outputs.bytes_parsed += str.name_len;
 
     // TBD leaving hard-coded singleline for now
     outputs.str += fmt::format(
         "{{ {}name={:?} }}",
-        !settings.verbose ? "" :
-        fmt::format( "n={} ", _formatInteger( str.n ) ),
+        !settings.verbose ? "" : fmt::format(
+            "(name length)={} ", _formatInteger( str.name_len ) ),
         name );
     return outputs;
 }
@@ -63,17 +63,17 @@ X11ProtocolParser::_parseProtocolType<
     outputs.bytes_parsed += sizeof( protocol::HOST );
     const _ParsingOutputs address {
         _parseLISTof< protocol::BYTE >(
-            data + outputs.bytes_parsed, sz - outputs.bytes_parsed, host.n,
-            ws.nested( _Whitespace::SINGLELINE ) ) };
-    outputs.bytes_parsed += _pad( host.n );
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+            host.address_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+    outputs.bytes_parsed += _pad( host.address_len );
 
     // TBD leaving hard-coded singleline for now
     outputs.str += fmt::format(
         "{{ family={}{} address={} }}",
         _formatInteger( host.family, protocol::HOST::family_names ),
         !settings.verbose ? "" :
-        fmt::format( " n address bytes={}",
-                     _formatInteger( host.n ) ),
+        fmt::format( " (address length)={}",
+                     _formatInteger( host.address_len ) ),
         address.str );
     return outputs;
 }

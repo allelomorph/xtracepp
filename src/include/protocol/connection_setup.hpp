@@ -30,7 +30,7 @@ struct ConnInitiation {
     };
     inline static const
     std::vector< std::string_view >& byte_order_names {
-        protocol::enum_names::image_byte_order };
+        protocol::enum_names::byte_order };
 };
 
 struct ConnResponse {
@@ -49,8 +49,11 @@ struct ConnResponse {
         AUTHENTICATE
     };
     inline static const
-    std::vector< std::string_view >& success_names {
-        protocol::enum_names::server_response_success };
+    std::vector< std::string_view > success_names {
+        "Failed",
+        "Success",
+        "Authenticate"
+    };
 
     virtual ~ConnResponse() = 0;
 };
@@ -104,13 +107,13 @@ struct ConnAcceptance : public ConnResponse {
     // followed by LISTofFORMAT pixmap-formats (pixmap_formats_ct * sizeof(FORMAT))B
     // followed by LISTofSCREEN roots (always multiple of 4)B
 
-    // TBD enum { LSBFIRST, MSBFIRST } for image-byte-order
-    // TBD enum { LEASTSIGNIFICANT, MOSTSIGNIFICANT } for bitmap-format-bit-order
-
     inline static const std::vector< std::string_view >&
-    byte_order_names { protocol::enum_names::image_byte_order };
-    inline static const std::vector< std::string_view >&
-    bit_order_names { protocol::enum_names::bitmap_format_bit_order };
+    image_byte_order_names { protocol::enum_names::byte_order };
+    inline static const std::vector< std::string_view >
+    bitmap_format_bit_order_names {
+        "LeastSignificant",  // 0
+        "MostSignificant"    // 1
+    };
 
     struct [[gnu::packed]] FORMAT {
         CARD8   depth;
@@ -142,8 +145,11 @@ struct ConnAcceptance : public ConnResponse {
         // followed by (always multiple of 4) LISTofDEPTH allowed-depths
 
         inline static const
-        std::vector< std::string_view >& backing_stores_names {
-            protocol::enum_names::screen_backing_stores };
+        std::vector< std::string_view > backing_stores_names {
+            "Never",       // 0
+            "WhenMapped",  // 1
+            "Always"       // 2
+        };
 
         struct DEPTH {
             struct [[gnu::packed]] Encoding {
@@ -169,8 +175,14 @@ struct ConnAcceptance : public ConnResponse {
                 uint8_t  _unused[4];
             public:
                 inline static const
-                std::vector< std::string_view >& class_names {
-                    protocol::enum_names::visualtype_class };
+                std::vector< std::string_view > class_names {
+                    "StaticGray",   // 0
+                    "GrayScale",    // 1
+                    "StaticColor",  // 2
+                    "PseudoColor",  // 3
+                    "TrueColor",    // 4
+                    "DirectColor"   // 5
+                };
             };
         };
     };

@@ -438,7 +438,6 @@ struct GetWindowAttributes : public impl::SimpleWindowRequest {
     // Header.opcode == 3
     // Header.tl_aligned_units == 2
 
-
     struct Reply : public requests::Reply {
         struct [[gnu::packed]] Header {
             uint8_t  reply;                // 1
@@ -476,8 +475,11 @@ struct GetWindowAttributes : public impl::SimpleWindowRequest {
             protocol::enum_names::window_class };
         static constexpr uint16_t CLASS_ENUM_MIN { 1 };
         inline static const
-        std::vector< std::string_view >& map_state_names {
-            protocol::enum_names::window_attribute_map_state };
+        std::vector< std::string_view > map_state_names {
+            "Unmapped",    // 0
+            "Unviewable",  // 1
+            "Viewable"     // 2
+        };
         inline static const
         std::vector< std::string_view >& colormap_names {
             protocol::enum_names::zero_none };
@@ -590,8 +592,10 @@ struct CirculateWindow : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& direction_names {
-        protocol::enum_names::circulate_direction };
+    std::vector< std::string_view > direction_names {
+        "RaiseLowest",  // 0
+        "LowerHighest"  // 1
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -726,8 +730,11 @@ struct ChangeProperty : public Request {
     // followed by LISTofBYTE data pad((format/8)*fmt_unit_len)B
 
     inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::change_property_mode };
+    std::vector< std::string_view > mode_names {
+        "Replace",  // 0
+        "Prepend",  // 1
+        "Append"    // 2
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -760,8 +767,9 @@ struct GetProperty : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& type_names {
-        protocol::enum_names::property_atom };
+    std::vector< std::string_view > type_names {
+        "AnyPropertyType"  // 0
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -889,8 +897,10 @@ struct SendEvent : public Request {
     // followed by Event 32B
 
     inline static const
-    std::vector< std::string_view >& destination_names {
-        protocol::enum_names::event_destination };
+    std::vector< std::string_view > destination_names {
+        "PointerWindow",  // 0
+        "InputFocus"      // 1
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -1174,8 +1184,16 @@ struct AllowEvents : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::events_mode };
+    std::vector< std::string_view > mode_names {
+        "AsyncPointer",    // 0
+        "SyncPointer",     // 1
+        "ReplayPointer",   // 2
+        "AsyncKeyboard",   // 3
+        "SyncKeyboard",    // 4
+        "ReplayKeyboard",  // 5
+        "AsyncBoth",       // 6
+        "SyncBoth"         // 7
+    };
     inline static const
     std::vector< std::string_view >& time_names {
         protocol::enum_names::time };
@@ -1824,8 +1842,12 @@ struct SetClipRectangles : public Request {
     // followed by LISTofRECTANGLE rectangles 8nB
 
     inline static const
-    std::vector< std::string_view >& ordering_names {
-        protocol::enum_names::clip_rect_ordering };
+    std::vector< std::string_view > ordering_names {
+        "UnSorted",  // 0
+        "YSorted",   // 1
+        "YXSorted",  // 2
+        "YXBanded"   // 3
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -1990,8 +2012,11 @@ struct FillPoly : public Request {
     // followed by LISTofPOINT points 4nB
 
     inline static const
-    std::vector< std::string_view >& shape_names {
-        protocol::enum_names::poly_shape };
+    std::vector< std::string_view > shape_names {
+        "Complex",    // 0
+        "Nonconvex",  // 1
+        "Convex"      // 2
+    };
     inline static const
     std::vector< std::string_view >& coordinate_mode_names {
         protocol::enum_names::poly_coordinate_mode };
@@ -2210,8 +2235,10 @@ struct CreateColormap : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& alloc_names {
-        protocol::enum_names::colormap_alloc };
+    std::vector< std::string_view > alloc_names {
+        "None",  // 0
+        "All"    // 1
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -2446,6 +2473,7 @@ struct StoreColors : public Request {
     inline static const
     std::vector< std::string_view >& do_rgb_names {
         protocol::enum_names::do_rgb_mask };
+    static constexpr uint8_t DO_RGB_ZERO_BITS { 0xF8 };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -2469,6 +2497,7 @@ struct StoreNamedColor : public Request {
     inline static const
     std::vector< std::string_view >& do_rgb_names {
         protocol::enum_names::do_rgb_mask };
+    static constexpr uint8_t DO_RGB_ZERO_BITS { 0xF8 };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -2628,8 +2657,11 @@ struct QueryBestSize : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& class_names {
-        protocol::enum_names::size_class };
+    std::vector< std::string_view > class_names {
+        "Cursor",  // 0
+        "Tile",    // 1
+        "Stipple"  // 2
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -2765,8 +2797,16 @@ struct ChangeKeyboardControl : public Request {
         > value_types {};
 
     inline static const
-    std::vector< std::string_view >& value_names {
-        protocol::enum_names::keyctl_value_mask };
+    std::vector< std::string_view > value_names {
+        "key-click-percent",  // 1 << 0
+        "bell-percent",       // 1 << 1
+        "bell-pitch",         // 1 << 2
+        "bell-duration",      // 1 << 3
+        "led",                // 1 << 4
+        "led-mode",           // 1 << 5
+        "key",                // 1 << 6
+        "auto-repeat-mode"    // 1 << 7
+    };
     inline static const
     std::vector< std::string_view >& led_mode_names {
         protocol::enum_names::off_on };
@@ -2921,8 +2961,10 @@ struct ChangeHosts : public Request {
     // followed by LISTofCARD8 address pad(address_len)B
 
     inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::change_mode };
+    std::vector< std::string_view > mode_names {
+        "Insert",  // 0
+        "Delete"   // 1
+    };
     inline static const
     std::vector< std::string_view >& family_names {
         protocol::enum_names::host_family };
@@ -2953,8 +2995,10 @@ struct ListHosts : public impl::SimpleRequest {
         // followed by LISTofHOST hosts (4*hosts_ct)B
 
         inline static const
-        std::vector< std::string_view >& mode_names {
-            protocol::enum_names::host_status_mode };
+        std::vector< std::string_view > mode_names {
+            "Disabled",  // 0
+            "Enabled"    // 1
+        };
     };
 };
 
@@ -2966,8 +3010,10 @@ struct SetAccessControl : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::access_mode };
+    std::vector< std::string_view > mode_names {
+        "Disable",  // 0
+        "Enable"    // 1
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) };
@@ -2981,8 +3027,11 @@ struct SetCloseDownMode : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::close_down_mode };
+    std::vector< std::string_view > mode_names {
+        "Destroy",          // 0
+        "RetainPermanent",  // 1
+        "RetainTemporary"   // 2
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) };
@@ -2996,8 +3045,9 @@ struct KillClient : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& resource_names {
-        protocol::enum_names::client_resource };
+    std::vector< std::string_view > resource_names {
+        "AllTemporary"  // 0
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
@@ -3025,8 +3075,10 @@ struct ForceScreenSaver : public Request {
     };
 
     inline static const
-    std::vector< std::string_view >& mode_names {
-        protocol::enum_names::screen_saver_set_mode };
+    std::vector< std::string_view > mode_names {
+        "Reset",    // 0
+        "Activate"  // 1
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) };

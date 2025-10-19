@@ -29,7 +29,7 @@ X11ProtocolParser::_formatProtocolType(
     assert( ( window.data & protocol::WINDOW::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
-                enum_names == protocol::enum_names::event_destination ||
+                enum_names == protocol::requests::SendEvent::destination_names ||
                 enum_names == protocol::enum_names::input_focus );
     }
     return _formatInteger( window.data, enum_names, name_index_range );
@@ -133,7 +133,7 @@ X11ProtocolParser::_formatProtocolType(
     assert( ( atom.data & protocol::ATOM::ZERO_BITS ) == 0 );
     if ( !enum_names.empty() ) {
         assert( enum_names == protocol::enum_names::zero_none ||
-                enum_names == protocol::enum_names::property_atom );
+                enum_names == protocol::requests::GetProperty::type_names );
     }
     if ( atom.data < enum_names.size() ) {
         return _formatInteger( atom.data, enum_names );
