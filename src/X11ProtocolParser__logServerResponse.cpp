@@ -9,22 +9,25 @@
 
 size_t X11ProtocolParser::_logConnRefusal(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::connection_setup::ConnRefusal;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= sizeof( ConnRefusal::Header ) );
 
     size_t bytes_parsed {};
     const _Whitespace& ws { _ROOT_WS };
-    using namespace protocol::connection_setup;
     const ConnRefusal::Header* header {
         reinterpret_cast< const ConnRefusal::Header* >( data ) };
     bytes_parsed += sizeof( ConnRefusal::Header );
-    assert( header->success == ConnResponse::FAILED );
+    assert( header->success ==
+            protocol::connection_setup::ConnResponse::FAILED );
     // followed by STRING8 reason
-    std::string_view reason {
-        reinterpret_cast< const char* >( data + bytes_parsed ), header->reason_len };
+    const std::string_view reason {
+        reinterpret_cast< const char* >( data + bytes_parsed ),
+        header->reason_len };
     bytes_parsed += _pad( header->reason_len );
     assert( header->following_aligned_units ==
-            _alignedUnits( bytes_parsed - sizeof( header ) ) );
+            _alignedUnits( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
@@ -43,11 +46,12 @@ size_t X11ProtocolParser::_logConnRefusal(
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "success", name_width, ws.equals,
-            _formatInteger( header->success, ConnRefusal::success_names ),
+            _formatInteger( header->success,
+                            ConnRefusal::success_names ),
             ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(reason length in bytes)", name_width, ws.equals,
+            ws.memb_indent, "(reason length)", name_width, ws.equals,
             _formatInteger( header->reason_len ), ws.separator ),
         ws.memb_indent, "protocol-major-version", name_width, ws.equals,
         _formatInteger( header->protocol_major_version ), ws.separator,
@@ -67,17 +71,19 @@ size_t X11ProtocolParser::_logConnRefusal(
 
 size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::connection_setup::ConnRequireFurtherAuthentication;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= sizeof( ConnRequireFurtherAuthentication::Header ) );
 
     size_t bytes_parsed {};
     const _Whitespace& ws { _ROOT_WS };
-    using namespace protocol::connection_setup;
     const ConnRequireFurtherAuthentication::Header* header {
         reinterpret_cast<
         const ConnRequireFurtherAuthentication::Header* >( data ) };
     bytes_parsed += sizeof( ConnRequireFurtherAuthentication::Header );
-    assert( header->success == ConnResponse::AUTHENTICATE );
+    assert( header->success ==
+            protocol::connection_setup::ConnResponse::AUTHENTICATE );
     // followed by STRING8 reason
     const size_t reason_padded_len {
         header->following_aligned_units * _ALIGN };
@@ -86,7 +92,8 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
         reason_padded_len };
     bytes_parsed += reason_padded_len;
     assert( header->following_aligned_units ==
-            _alignedUnits( bytes_parsed - sizeof( header ) ) );
+            _alignedUnits( bytes_parsed -
+                           sizeof( ConnRequireFurtherAuthentication::Header ) ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "success" ) - 1 : 0 );
@@ -103,7 +110,8 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "success", name_width, ws.equals,
-            _formatInteger( header->success, ConnRequireFurtherAuthentication::success_names ),
+            _formatInteger( header->success,
+                            ConnRequireFurtherAuthentication::success_names ),
             ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
@@ -119,36 +127,37 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
 
 size_t X11ProtocolParser::_logConnAcceptance(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::connection_setup::ConnAcceptance;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= sizeof( ConnAcceptance::Encoding ) );
 
     size_t bytes_parsed {};
     const _Whitespace& ws { _ROOT_WS };
-    using namespace protocol::connection_setup;
     const ConnAcceptance::Encoding* encoding {
         reinterpret_cast< const ConnAcceptance::Encoding* >( data ) };
     bytes_parsed += sizeof( ConnAcceptance::Encoding );
-
+    assert( encoding->header.success ==
+            protocol::connection_setup::ConnResponse::SUCCESS );
     // followed by STRING8 vendor
     std::string_view vendor {
-        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->vendor_len };
+        reinterpret_cast< const char* >( data + bytes_parsed ),
+        encoding->vendor_len };
     bytes_parsed += _pad( encoding->vendor_len );
-
     // followed by LISTofFORMAT pixmap-formats
-    _ParsingOutputs pixmap_formats_outputs {
+    const _ParsingOutputs pixmap_formats {
         _parseLISTof< ConnAcceptance::FORMAT >(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->pixmap_formats_ct, ws.nested() ) };
-    bytes_parsed += pixmap_formats_outputs.bytes_parsed;
-
+    bytes_parsed += pixmap_formats.bytes_parsed;
     // followed by LISTofSCREEN roots
-    _ParsingOutputs roots_outputs {
+    const _ParsingOutputs roots {
         _parseLISTof< ConnAcceptance::SCREEN >(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->roots_ct, ws.nested() ) };
-    bytes_parsed += roots_outputs.bytes_parsed;
-    assert( encoding->header.following_aligned_units ==
-            _alignedUnits( bytes_parsed - sizeof( ConnAcceptance::Encoding ) ) );
+    bytes_parsed += roots.bytes_parsed;
+    assert( encoding->header.following_aligned_units == _alignedUnits(
+                bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
 
     const uint32_t name_width (
         settings.multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
@@ -195,19 +204,19 @@ size_t X11ProtocolParser::_logConnAcceptance(
         _formatInteger( encoding->motion_buffer_size ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(vendor length in bytes)",
+            ws.memb_indent, "(vendor length)",
             name_width, ws.equals,
             _formatInteger( encoding->vendor_len ), ws.separator ),
         ws.memb_indent, "maximum-request-length", name_width, ws.equals,
         _formatInteger( encoding->maximum_request_length ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(roots length in SCREENs)",
+            ws.memb_indent, "(SCREENs in roots)",
             name_width, ws.equals,
             _formatInteger( encoding->roots_ct ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(pixmap-formats length in FORMATs)",
+            ws.memb_indent, "(FORMATs in pixmap-formats)",
             name_width, ws.equals,
             _formatInteger( encoding->pixmap_formats_ct ), ws.separator ),
         ws.memb_indent, "image-byte-order", name_width, ws.equals,
@@ -227,9 +236,9 @@ size_t X11ProtocolParser::_logConnAcceptance(
         ws.memb_indent, "vendor", name_width, ws.equals,
         vendor, ws.separator,
         ws.memb_indent, "pixmap-formats", name_width, ws.equals,
-        pixmap_formats_outputs.str, ws.separator,
+        pixmap_formats.str, ws.separator,
         ws.memb_indent, "roots", name_width, ws.equals,
-        roots_outputs.str, ws.separator,
+        roots.str, ws.separator,
         ws.encl_indent
         );
     return bytes_parsed;
@@ -258,7 +267,6 @@ size_t X11ProtocolParser::_logConnResponse(
         conn->status = Connection::OPEN;
         break;
     default:
-        assert( 0 );
         break;
     }
     assert( bytes_parsed <= sz );

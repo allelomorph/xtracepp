@@ -80,24 +80,20 @@ X11ProtocolParser::_parseProtocolType<
 
 // ==============================
 
-// ConnAcceptance::SCREEN
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ConnAcceptance::SCREEN >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
+    using SCREEN =
+        protocol::connection_setup::ConnAcceptance::SCREEN;
     assert( data != nullptr );
-
-    const uint32_t name_width (
-        settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
+    assert( sz >= sizeof( SCREEN::Encoding ) );
 
     _ParsingOutputs outputs;
-    using SCREEN = protocol::connection_setup::ConnAcceptance::SCREEN;
-    assert( sz >= sizeof( SCREEN::Encoding ));
     const SCREEN::Encoding* encoding {
         reinterpret_cast< const SCREEN::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SCREEN::Encoding );
-
     // followed by LISTofDEPTH allowed-depths
     const _ParsingOutputs allowed_depths {
         _parseLISTof< SCREEN::DEPTH >(
@@ -106,6 +102,8 @@ X11ProtocolParser::_parseProtocolType<
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
+    const uint32_t name_width (
+        settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
     outputs.str += fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -149,7 +147,7 @@ X11ProtocolParser::_parseProtocolType<
         _formatInteger( encoding->root_depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(allowed-depths length in DEPTHs)",
+            ws.memb_indent, "(DEPTHs in allowed-depths)",
             name_width, ws.equals,
             _formatInteger( encoding->allowed_depths_ct ), ws.separator ),
         ws.memb_indent, "allowed-depths", name_width, ws.equals,
@@ -159,19 +157,16 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-// ConnAcceptance( tab_ct 0 ) _parseLISTofFORMAT( tab_ct 2 )
-// ConnAcceptance( tab_ct 0 ) _parseLISTofSCREEN( tab_ct 2 ) _parseLISTofDEPTH( tab_ct 4 ) _parseLISTofVISUALTYPE( tab_ct 6 )
-// ConnAcceptance::Screen::DEPTH
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
+    using DEPTH = protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH;
     assert( data != nullptr );
+    assert( sz >= sizeof( DEPTH::Encoding ) );
 
     _ParsingOutputs outputs;
-    using DEPTH = protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH;
-    assert( sz >= sizeof( DEPTH::Encoding ));
     const DEPTH::Encoding* encoding {
         reinterpret_cast< const DEPTH::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( DEPTH::Encoding );
@@ -179,7 +174,7 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs visuals {
         _parseLISTof< DEPTH::VISUALTYPE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            encoding->visuals_ct, ws.nested() ) };
+            encoding->visuals_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
@@ -197,7 +192,7 @@ X11ProtocolParser::_parseProtocolType<
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(length of visuals in VISUALs)", name_width, ws.equals,
+            ws.memb_indent, "(VISUALs in visuals)", name_width, ws.equals,
             _formatInteger( encoding->visuals_ct ), ws.separator ),
         ws.memb_indent, "visuals", name_width, ws.equals,
         visuals.str, ws.separator,

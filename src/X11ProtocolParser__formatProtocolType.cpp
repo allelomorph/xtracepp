@@ -476,19 +476,37 @@ X11ProtocolParser::_formatProtocolType(
 template <>
 std::string
 X11ProtocolParser::_formatProtocolType(
-    const protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE visualtype,
-    const _Whitespace&/* ws*/ ) {
+    const protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::\
+    VISUALTYPE visualtype,
+    const _Whitespace& ws ) {
+    using VISUALTYPE =
+        protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE;
+
+    const uint32_t name_width (
+        ws.multiline ? sizeof( "bits-per-rgb-value" ) - 1 : 0 );
     return fmt::format(
-        "{{ {}={} {}={} {}={} {}={} {}={} {}={} {}={} }}",
-        "visual-id",          _formatProtocolType( visualtype.visual_id ),
-        "class",              _formatInteger(
-            visualtype.class_,
-            protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE::class_names ),
-        "bits-per-rgb-value", _formatInteger( visualtype.bits_per_rgb_value ),
-        "colormap-entries",   _formatInteger( visualtype.colormap_entries ),
-        "red-mask",           _formatBitmask( visualtype.red_mask ),
-        "green-mask",         _formatBitmask( visualtype.green_mask ),
-        "blue-mask",          _formatBitmask( visualtype.blue_mask ) );
+        "{{{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        ws.separator,
+        ws.memb_indent, "visual-id", name_width, ws.equals,
+        _formatProtocolType( visualtype.visual_id ), ws.separator,
+        ws.memb_indent, "class", name_width, ws.equals,
+        _formatInteger( visualtype.class_,
+                        VISUALTYPE::class_names ), ws.separator,
+        ws.memb_indent, "bits-per-rgb-value", name_width, ws.equals,
+        _formatInteger( visualtype.bits_per_rgb_value ), ws.separator,
+        ws.memb_indent, "colormap-entries", name_width, ws.equals,
+        _formatInteger( visualtype.colormap_entries ), ws.separator,
+        ws.memb_indent, "red-mask", name_width, ws.equals,
+        _formatBitmask( visualtype.red_mask ), ws.separator,
+        ws.memb_indent, "green-mask", name_width, ws.equals,
+        _formatBitmask( visualtype.green_mask ), ws.separator,
+        ws.memb_indent, "blue-mask", name_width, ws.equals,
+        _formatBitmask( visualtype.blue_mask ), ws.separator,
+        ws.encl_indent
+        );
 }
 
 // requests::PolySegment::SEGMENT
