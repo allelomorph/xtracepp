@@ -16,7 +16,7 @@
 
 // TBD do partial specialization for std::is_base_of< protocol::impl::XID > in header
 //   (ATOM is only XID with exceptional handling)
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINDOW window,
@@ -31,7 +31,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( window.data, enum_names, name_index_range );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::PIXMAP pixmap,
@@ -46,7 +46,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( pixmap.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::CURSOR cursor,
@@ -59,7 +59,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( cursor.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::FONT font,
@@ -72,7 +72,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( font.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::GCONTEXT gcontext,
@@ -82,7 +82,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( gcontext.data );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::COLORMAP colormap,
@@ -96,7 +96,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( colormap.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::DRAWABLE drawable,
@@ -107,7 +107,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( drawable.window.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::FONTABLE fontable,
@@ -118,7 +118,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( fontable.font.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ATOM atom,
@@ -156,7 +156,7 @@ X11ProtocolParser::_formatProtocolType(
     return fmt::format( "{}({})", _formatInteger( atom.data ), atom_string );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::VISUALID visualid,
@@ -170,7 +170,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( visualid.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::TIMESTAMP time,
@@ -196,7 +196,7 @@ X11ProtocolParser::_formatProtocolType(
     return fmt_str;
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BITGRAVITY bitgravity,
@@ -206,7 +206,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::BITGRAVITY::enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::WINGRAVITY wingravity,
@@ -216,7 +216,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::WINGRAVITY::enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BOOL bool_,
@@ -226,7 +226,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::BOOL::enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofEVENT setofevent,
@@ -237,7 +237,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::SETofEVENT::flag_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofPOINTEREVENT setofpointerevent,
@@ -250,7 +250,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::SETofPOINTEREVENT::flag_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofDEVICEEVENT setofdeviceevent,
@@ -263,7 +263,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::SETofDEVICEEVENT::flag_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::KEYSYM keysym,
@@ -275,7 +275,7 @@ X11ProtocolParser::_formatProtocolType(
 }
 
 // KEYCODE
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::KEYCODE keycode,
@@ -287,7 +287,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( keycode.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::BUTTON button,
@@ -299,7 +299,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatInteger( button.data, enum_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYBUTMASK setofkeybutmask,
@@ -310,7 +310,7 @@ X11ProtocolParser::_formatProtocolType(
                            protocol::SETofKEYBUTMASK::flag_names );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::SETofKEYMASK setofkeymask,
@@ -330,7 +330,7 @@ X11ProtocolParser::_formatProtocolType(
 
 // TBD no examples of SETofBUTMASK found in core encoding
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::CHAR2B char2b, const _Whitespace&/* ws*/ ) {
@@ -339,7 +339,7 @@ X11ProtocolParser::_formatProtocolType(
     return _formatBitmask( *reinterpret_cast< const uint16_t* >( &char2b ) );  // force hex
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::POINT point, const _Whitespace& ws ) {
@@ -358,7 +358,7 @@ X11ProtocolParser::_formatProtocolType(
 }
 
 // RECTANGLE
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::RECTANGLE rectangle, const _Whitespace& ws ) {
@@ -381,7 +381,7 @@ X11ProtocolParser::_formatProtocolType(
 }
 
 // ARC
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ARC arc, const _Whitespace& ws ) {
@@ -408,7 +408,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::Reply::CHARINFO charinfo,
@@ -436,7 +436,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::Reply::FONTPROP fontprop,
@@ -455,7 +455,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::connection_setup::ConnAcceptance::FORMAT format,
@@ -476,7 +476,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::\
@@ -511,7 +511,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::PolySegment::SEGMENT segment,
@@ -534,7 +534,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::StoreColors::COLORITEM coloritem,
@@ -563,7 +563,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::GetMotionEvents::Reply::TIMECOORD timecoord,
@@ -584,7 +584,7 @@ X11ProtocolParser::_formatProtocolType(
         );
 }
 
-template <>
+template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryColors::Reply::RGB rgb,

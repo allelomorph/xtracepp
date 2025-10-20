@@ -14,7 +14,7 @@
 #include "protocol/atoms.hpp"
 
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleRequest >(
@@ -52,7 +52,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleWindowRequest >(
@@ -96,7 +96,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::ListFontsRequest >(
@@ -153,7 +153,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::PolyPointRequest >(
@@ -216,7 +216,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleCmapRequest >(
@@ -261,7 +261,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateWindow >(
@@ -360,7 +360,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeWindowAttributes >(
@@ -434,7 +434,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetWindowAttributes >(
@@ -450,7 +450,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::DestroyWindow >(
@@ -466,7 +466,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::DestroySubwindows >(
@@ -482,7 +482,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeSaveSet >(
@@ -532,7 +532,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ReparentWindow >(
@@ -583,7 +583,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::MapWindow >(
@@ -599,7 +599,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::MapSubwindows >(
@@ -615,7 +615,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UnmapWindow >(
@@ -631,7 +631,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UnmapSubwindows >(
@@ -647,7 +647,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ConfigureWindow >(
@@ -713,7 +713,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CirculateWindow >(
@@ -763,7 +763,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetGeometry >(
@@ -809,7 +809,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryTree >(
@@ -825,7 +825,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::InternAtom >(
@@ -887,7 +887,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetAtomName >(
@@ -932,7 +932,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeProperty >(
@@ -1013,7 +1013,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::DeleteProperty >(
@@ -1060,7 +1060,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetProperty >(
@@ -1118,7 +1118,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListProperties >(
@@ -1134,7 +1134,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetSelectionOwner >(
@@ -1183,7 +1183,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetSelectionOwner >(
@@ -1228,7 +1228,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ConvertSelection >(
@@ -1284,7 +1284,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SendEvent >(
@@ -1348,7 +1348,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabPointer >(
@@ -1415,7 +1415,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabPointer >(
@@ -1461,7 +1461,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabButton >(
@@ -1530,7 +1530,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabButton >(
@@ -1582,7 +1582,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeActivePointerGrab >(
@@ -1633,7 +1633,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabKeyboard >(
@@ -1691,7 +1691,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabKeyboard >(
@@ -1737,7 +1737,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabKey >(
@@ -1795,7 +1795,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabKey >(
@@ -1847,7 +1847,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllowEvents >(
@@ -1898,7 +1898,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabServer >(
@@ -1914,7 +1914,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabServer >(
@@ -1930,7 +1930,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryPointer >(
@@ -1946,7 +1946,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetMotionEvents >(
@@ -1997,7 +1997,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::TranslateCoordinates >(
@@ -2048,7 +2048,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::WarpPointer >(
@@ -2110,7 +2110,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetInputFocus >(
@@ -2165,7 +2165,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetInputFocus >(
@@ -2181,7 +2181,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryKeymap >(
@@ -2197,7 +2197,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::OpenFont >(
@@ -2255,7 +2255,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CloseFont >(
@@ -2300,7 +2300,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryFont >(
@@ -2345,7 +2345,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryTextExtents >(
@@ -2411,7 +2411,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListFonts >(
@@ -2427,7 +2427,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::ListFontsRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListFontsWithInfo >(
@@ -2443,7 +2443,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::ListFontsRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetFontPath >(
@@ -2498,7 +2498,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetFontPath >(
@@ -2514,7 +2514,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreatePixmap >(
@@ -2569,7 +2569,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreePixmap >(
@@ -2614,7 +2614,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateGC >(
@@ -2703,7 +2703,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeGC >(
@@ -2790,7 +2790,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyGC >(
@@ -2840,7 +2840,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetDashes >(
@@ -2901,7 +2901,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetClipRectangles >(
@@ -2967,7 +2967,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeGC >(
@@ -3012,7 +3012,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ClearArea >(
@@ -3070,7 +3070,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyArea >(
@@ -3133,7 +3133,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyPlane >(
@@ -3199,7 +3199,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyPoint >(
@@ -3215,7 +3215,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::PolyPointRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyLine >(
@@ -3231,7 +3231,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::PolyPointRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolySegment >(
@@ -3290,7 +3290,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyRectangle >(
@@ -3349,7 +3349,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyArc >(
@@ -3408,7 +3408,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FillPoly >(
@@ -3474,7 +3474,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyFillRectangle >(
@@ -3533,7 +3533,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyFillArc >(
@@ -3592,7 +3592,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PutImage >(
@@ -3666,7 +3666,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetImage >(
@@ -3729,7 +3729,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyText8 >(
@@ -3792,7 +3792,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyText16 >(
@@ -3855,7 +3855,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ImageText8 >(
@@ -3918,7 +3918,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ImageText16 >(
@@ -3983,7 +3983,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateColormap >(
@@ -4037,7 +4037,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeColormap >(
@@ -4053,7 +4053,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CopyColormapAndFree >(
@@ -4100,7 +4100,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::InstallColormap >(
@@ -4116,7 +4116,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UninstallColormap >(
@@ -4132,7 +4132,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListInstalledColormaps >(
@@ -4148,7 +4148,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocColor >(
@@ -4199,7 +4199,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocNamedColor >(
@@ -4257,7 +4257,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocColorCells >(
@@ -4310,7 +4310,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::AllocColorPlanes >(
@@ -4368,7 +4368,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeColors >(
@@ -4427,7 +4427,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::StoreColors >(
@@ -4484,7 +4484,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::StoreNamedColor >(
@@ -4549,7 +4549,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryColors >(
@@ -4605,7 +4605,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::LookupColor >(
@@ -4663,7 +4663,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateCursor >(
@@ -4732,7 +4732,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::CreateGlyphCursor >(
@@ -4800,7 +4800,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeCursor >(
@@ -4845,7 +4845,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::RecolorCursor >(
@@ -4903,7 +4903,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryBestSize >(
@@ -4957,7 +4957,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryExtension >(
@@ -5011,7 +5011,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListExtensions >(
@@ -5027,7 +5027,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeKeyboardMapping >(
@@ -5091,7 +5091,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetKeyboardMapping >(
@@ -5138,7 +5138,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeKeyboardControl >(
@@ -5206,7 +5206,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetKeyboardControl >(
@@ -5222,7 +5222,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::Bell >(
@@ -5265,7 +5265,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangePointerControl >(
@@ -5319,7 +5319,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetPointerControl >(
@@ -5335,7 +5335,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetScreenSaver >(
@@ -5388,7 +5388,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetScreenSaver >(
@@ -5404,7 +5404,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ChangeHosts >(
@@ -5473,7 +5473,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListHosts >(
@@ -5489,7 +5489,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetAccessControl >(
@@ -5533,7 +5533,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetCloseDownMode >(
@@ -5577,7 +5577,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::KillClient >(
@@ -5623,7 +5623,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::RotateProperties >(
@@ -5687,7 +5687,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ForceScreenSaver >(
@@ -5731,7 +5731,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetPointerMapping >(
@@ -5786,7 +5786,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetPointerMapping >(
@@ -5802,7 +5802,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::SetModifierMapping >(
@@ -5858,7 +5858,7 @@ X11ProtocolParser::_parseRequest<
     return request;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetModifierMapping >(
@@ -5874,7 +5874,7 @@ X11ProtocolParser::_parseRequest<
         protocol::requests::impl::SimpleRequest >( conn, data, sz );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::NoOperation >(

@@ -13,7 +13,7 @@
 #include "protocol/connection_setup.hpp"
 
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::STR >(
@@ -54,7 +54,7 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::HOST >(
@@ -103,7 +103,7 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ConnAcceptance::SCREEN >(
@@ -182,7 +182,7 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH >(
@@ -228,7 +228,7 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText8::TEXTITEM8 >(
@@ -297,7 +297,7 @@ X11ProtocolParser::_parseProtocolType<
 }
 
 // requests::PolyText16::TEXTITEM16 (need parsing due to TEXTITEM*.TEXTELT16 being followed by STRING16)
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText16::TEXTITEM16 >(

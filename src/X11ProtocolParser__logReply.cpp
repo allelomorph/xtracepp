@@ -12,7 +12,7 @@
 #include "protocol/atoms.hpp"
 
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetWindowAttributes >(
@@ -96,7 +96,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetGeometry >(
@@ -159,7 +159,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryTree >(
@@ -226,7 +226,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::InternAtom >(
@@ -281,7 +281,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetAtomName >(
@@ -339,7 +339,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetProperty >(
@@ -420,7 +420,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::ListProperties >(
@@ -480,7 +480,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetSelectionOwner >(
@@ -529,7 +529,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GrabPointer >(
@@ -579,7 +579,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GrabKeyboard >(
@@ -629,7 +629,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryPointer >(
@@ -695,7 +695,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetMotionEvents >(
@@ -755,7 +755,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::TranslateCoordinates >(
@@ -813,7 +813,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetInputFocus >(
@@ -867,7 +867,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryKeymap >(
@@ -921,7 +921,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryFont >(
@@ -1024,7 +1024,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryTextExtents >(
@@ -1090,7 +1090,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::ListFonts >(
@@ -1149,7 +1149,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::ListFontsWithInfo >(
@@ -1283,7 +1283,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetFontPath >(
@@ -1342,7 +1342,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetImage >(
@@ -1403,7 +1403,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::ListInstalledColormaps >(
@@ -1462,7 +1462,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::AllocColor >(
@@ -1516,7 +1516,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::AllocNamedColor >(
@@ -1577,7 +1577,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::AllocColorCells >(
@@ -1650,7 +1650,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::AllocColorPlanes >(
@@ -1715,7 +1715,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryColors >(
@@ -1775,7 +1775,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::LookupColor >(
@@ -1834,7 +1834,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryBestSize >(
@@ -1887,7 +1887,7 @@ X11ProtocolParser::_parseReply<
 // TBD important for later implementation of extensions:
 //   encoding->first_event: base event code
 //   encoding->first_error: base error code
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryExtension >(
@@ -1947,7 +1947,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::ListExtensions >(
@@ -2006,7 +2006,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetKeyboardMapping >(
@@ -2068,7 +2068,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetKeyboardControl >(
@@ -2143,7 +2143,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetPointerControl >(
@@ -2195,7 +2195,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetScreenSaver >(
@@ -2255,7 +2255,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::ListHosts >(
@@ -2319,7 +2319,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::SetPointerMapping >(
@@ -2371,7 +2371,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetPointerMapping >(
@@ -2430,7 +2430,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::SetModifierMapping >(
@@ -2480,7 +2480,7 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetModifierMapping >(

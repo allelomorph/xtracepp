@@ -9,7 +9,7 @@
 #include "protocol/events.hpp"
 
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -76,7 +76,7 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -85,7 +85,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -94,7 +94,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -103,7 +103,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -112,7 +112,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -180,7 +180,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -253,7 +253,7 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -262,7 +262,7 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -271,7 +271,7 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -322,7 +322,7 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -331,7 +331,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -340,7 +340,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
         conn, data, sz, ws );
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -383,7 +383,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -436,7 +436,7 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -495,7 +495,7 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -542,7 +542,7 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -587,7 +587,7 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -644,7 +644,7 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -688,7 +688,7 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -734,7 +734,7 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -780,7 +780,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -824,7 +824,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -877,7 +877,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -938,7 +938,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1004,7 +1004,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1052,7 +1052,7 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1098,7 +1098,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1144,7 +1144,7 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1190,7 +1190,7 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1238,7 +1238,7 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1284,7 +1284,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1339,7 +1339,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1392,7 +1392,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1442,7 +1442,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     Connection* conn, const uint8_t* data, const size_t sz,
@@ -1490,7 +1490,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     return outputs;
 }
 
-template <>
+template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
