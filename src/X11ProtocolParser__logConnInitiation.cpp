@@ -31,14 +31,14 @@ size_t X11ProtocolParser::_logConnInitiation(
     bytes_parsed += _pad( encoding->name_len );
     // followed by STRING8 authorization-protocol-data
     // TBD may be security concerns with logging auth data
-    _ParsingOutputs authorization_protocol_data_outputs {
+    const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, sz - bytes_parsed, encoding->data_len,
             ws.nested() ) };
-    bytes_parsed += authorization_protocol_data_outputs.bytes_parsed;
+    bytes_parsed += authorization_protocol_data.bytes_parsed;
     assert( bytes_parsed == sz );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         settings.multiline ? sizeof( "authorization-protocol-name" ) - 1 : 0 );
     fmt::println(
         settings.log_fs,
@@ -51,27 +51,27 @@ size_t X11ProtocolParser::_logConnInitiation(
         "{}}}",
         conn->id, bytes_parsed, _CLIENT_TO_SERVER, conn->client_desc,
         ws.separator,
-        ws.memb_indent, "byte-order", name_width, ws.equals,
+        ws.memb_indent, "byte-order", memb_name_w, ws.equals,
         _formatInteger( ( encoding->byte_order == ConnInitiation::MSBFIRST ) ? 0 : 1,
                         ConnInitiation::byte_order_names ), ws.separator,
-        ws.memb_indent, "protocol-major-version", name_width, ws.equals,
+        ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
         _formatInteger( encoding->protocol_major_version ), ws.separator,
-        ws.memb_indent, "protocol-minor-version", name_width, ws.equals,
+        ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
         _formatInteger( encoding->protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(authorization-protocol-name length in bytes)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->name_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(authorization-protocol-data length in bytes)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->data_len ), ws.separator ),
-        ws.memb_indent, "authorization-protocol-name", name_width, ws.equals,
+        ws.memb_indent, "authorization-protocol-name", memb_name_w, ws.equals,
         auth_protocol_name, ws.separator,
         // TBD may be security concerns with logging auth data
-        ws.memb_indent, "authorization-protocol-data", name_width, ws.equals,
+        ws.memb_indent, "authorization-protocol-data", memb_name_w, ws.equals,
         encoding->data_len, ws.separator,
         ws.encl_indent
         );

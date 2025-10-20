@@ -33,7 +33,7 @@ X11ProtocolParser::_parseProtocolType<
     // note that LISTofSTR will often be padded, but not single STR
     outputs.bytes_parsed += header->name_len;
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(name length)" ) :
                               sizeof( "name" ) ) - 1 );
@@ -45,9 +45,9 @@ X11ProtocolParser::_parseProtocolType<
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(name length)", name_width, ws.equals,
+            ws.memb_indent, "(name length)", memb_name_w, ws.equals,
             _formatInteger( header->name_len ), ws.separator ),
-        ws.memb_indent, "name", name_width, ws.equals,
+        ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
         );
@@ -78,7 +78,7 @@ X11ProtocolParser::_parseProtocolType<
             header->address_len, ws.nested( _Whitespace::SINGLELINE ) ) };
     outputs.bytes_parsed += _pad( header->address_len );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(address length)" ) :
                               sizeof( "address" ) ) - 1 );
@@ -89,14 +89,14 @@ X11ProtocolParser::_parseProtocolType<
         "{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "family", name_width, ws.equals,
+        ws.memb_indent, "family", memb_name_w, ws.equals,
         _formatInteger( header->family,
                         HOST::family_names ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(address length)", name_width, ws.equals,
+            ws.memb_indent, "(address length)", memb_name_w, ws.equals,
             _formatInteger( header->address_len ), ws.separator ),
-        ws.memb_indent, "address", name_width, ws.equals,
+        ws.memb_indent, "address", memb_name_w, ws.equals,
         address.str, ws.separator,
         ws.encl_indent
         );
@@ -125,7 +125,7 @@ X11ProtocolParser::_parseProtocolType<
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(DEPTHs in allowed-depths)" ) :
                               sizeof( "height-in-millimeters" ) ) - 1 );
@@ -139,43 +139,43 @@ X11ProtocolParser::_parseProtocolType<
         "{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "root", name_width, ws.equals,
+        ws.memb_indent, "root", memb_name_w, ws.equals,
         _formatProtocolType( encoding->root ), ws.separator,
-        ws.memb_indent, "default-colormap", name_width, ws.equals,
+        ws.memb_indent, "default-colormap", memb_name_w, ws.equals,
         _formatProtocolType( encoding->default_colormap ), ws.separator,
-        ws.memb_indent, "white-pixel", name_width, ws.equals,
+        ws.memb_indent, "white-pixel", memb_name_w, ws.equals,
         _formatInteger( encoding->white_pixel ), ws.separator,
-        ws.memb_indent, "black-pixel", name_width, ws.equals,
+        ws.memb_indent, "black-pixel", memb_name_w, ws.equals,
         _formatInteger( encoding->black_pixel ), ws.separator,
-        ws.memb_indent, "current-input-masks", name_width, ws.equals,
+        ws.memb_indent, "current-input-masks", memb_name_w, ws.equals,
         _formatProtocolType( encoding->current_input_masks ), ws.separator,
-        ws.memb_indent, "width-in-pixels", name_width, ws.equals,
+        ws.memb_indent, "width-in-pixels", memb_name_w, ws.equals,
         _formatInteger( encoding->width_in_pixels ), ws.separator,
-        ws.memb_indent, "height-in-pixels", name_width, ws.equals,
+        ws.memb_indent, "height-in-pixels", memb_name_w, ws.equals,
         _formatInteger( encoding->height_in_pixels ), ws.separator,
-        ws.memb_indent, "width-in-millimeters", name_width, ws.equals,
+        ws.memb_indent, "width-in-millimeters", memb_name_w, ws.equals,
         _formatInteger( encoding->width_in_millimeters ), ws.separator,
-        ws.memb_indent, "height-in-millimeters", name_width, ws.equals,
+        ws.memb_indent, "height-in-millimeters", memb_name_w, ws.equals,
         _formatInteger( encoding->height_in_millimeters ), ws.separator,
-        ws.memb_indent, "min-installed-maps", name_width, ws.equals,
+        ws.memb_indent, "min-installed-maps", memb_name_w, ws.equals,
         _formatInteger( encoding->min_installed_maps ), ws.separator,
-        ws.memb_indent, "max-installed-maps", name_width, ws.equals,
+        ws.memb_indent, "max-installed-maps", memb_name_w, ws.equals,
         _formatInteger( encoding->max_installed_maps ), ws.separator,
-        ws.memb_indent, "root-visual", name_width, ws.equals,
+        ws.memb_indent, "root-visual", memb_name_w, ws.equals,
         _formatProtocolType( encoding->root_visual ), ws.separator,
-        ws.memb_indent, "backing-stores", name_width, ws.equals,
+        ws.memb_indent, "backing-stores", memb_name_w, ws.equals,
         _formatInteger( encoding->backing_stores,
                         SCREEN::backing_stores_names ), ws.separator,
-        ws.memb_indent, "save-unders", name_width, ws.equals,
+        ws.memb_indent, "save-unders", memb_name_w, ws.equals,
         _formatProtocolType( encoding->save_unders ), ws.separator,
-        ws.memb_indent, "root-depth", name_width, ws.equals,
+        ws.memb_indent, "root-depth", memb_name_w, ws.equals,
         _formatInteger( encoding->root_depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(DEPTHs in allowed-depths)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->allowed_depths_ct ), ws.separator ),
-        ws.memb_indent, "allowed-depths", name_width, ws.equals,
+        ws.memb_indent, "allowed-depths", memb_name_w, ws.equals,
         allowed_depths.str, ws.separator,
         ws.encl_indent
         );
@@ -203,7 +203,7 @@ X11ProtocolParser::_parseProtocolType<
     outputs.bytes_parsed += visuals.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(VISUALs in visuals)" ) :
                               sizeof( "visuals" ) ) - 1 );
@@ -214,14 +214,14 @@ X11ProtocolParser::_parseProtocolType<
         "{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "depth", name_width, ws.equals,
+        ws.memb_indent, "depth", memb_name_w, ws.equals,
         _formatInteger( encoding->depth ), ws.separator,
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(VISUALs in visuals)", name_width, ws.equals,
+            ws.memb_indent, "(VISUALs in visuals)", memb_name_w, ws.equals,
             _formatInteger( encoding->visuals_ct ), ws.separator ),
-        ws.memb_indent, "visuals", name_width, ws.equals,
+        ws.memb_indent, "visuals", memb_name_w, ws.equals,
         visuals.str, ws.separator,
         ws.encl_indent
         );
@@ -247,7 +247,7 @@ X11ProtocolParser::_parseProtocolType<
             ntohl( *reinterpret_cast< const uint32_t* >(
                        item.font.font_bytes ) ) };
 
-        const uint32_t name_width (
+        const uint32_t memb_name_w (
             !ws.multiline ? 0 :
             sizeof( settings.verbose ? "font-shift" : "font" ) - 1 );
         outputs.str += fmt::format(
@@ -258,9 +258,9 @@ X11ProtocolParser::_parseProtocolType<
             ws.separator,
             !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
-                ws.memb_indent, "font-shift", name_width, ws.equals,
+                ws.memb_indent, "font-shift", memb_name_w, ws.equals,
                 _formatInteger( item.font.font_shift ), ws.separator ),
-            ws.memb_indent, "font", name_width, ws.equals,
+            ws.memb_indent, "font", memb_name_w, ws.equals,
             _formatProtocolType( font ), ws.separator,
             ws.encl_indent
             );
@@ -273,7 +273,7 @@ X11ProtocolParser::_parseProtocolType<
         item.text_element.string_len };
     outputs.bytes_parsed += item.text_element.string_len;
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(string len)" ) :
                               sizeof( "string" ) ) - 1 );
@@ -285,11 +285,11 @@ X11ProtocolParser::_parseProtocolType<
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(string len)", name_width, ws.equals,
+            ws.memb_indent, "(string len)", memb_name_w, ws.equals,
             _formatInteger( item.text_element.string_len ), ws.separator ),
-        ws.memb_indent, "delta", name_width, ws.equals,
+        ws.memb_indent, "delta", memb_name_w, ws.equals,
         _formatInteger( item.text_element.delta ), ws.separator,
-        ws.memb_indent, "string", name_width, ws.equals,
+        ws.memb_indent, "string", memb_name_w, ws.equals,
         string, ws.separator,
         ws.encl_indent
         );
@@ -316,7 +316,7 @@ X11ProtocolParser::_parseProtocolType<
             htonl( *reinterpret_cast< const uint32_t* >(
                        item.font.font_bytes ) ) };
 
-        const uint32_t name_width (
+        const uint32_t memb_name_w (
             !ws.multiline ? 0 : ( settings.verbose ?
                                   sizeof( "font-shift" ) :
                                   sizeof( "font" ) ) - 1 );
@@ -329,9 +329,9 @@ X11ProtocolParser::_parseProtocolType<
             !settings.verbose ? "" :
             fmt::format(
                 "{}{: <{}}{}{}{}",
-                ws.memb_indent, "font-shift", name_width, ws.equals,
+                ws.memb_indent, "font-shift", memb_name_w, ws.equals,
                 _formatInteger( item.font.font_shift ), ws.separator ),
-            ws.memb_indent, "font", name_width, ws.equals,
+            ws.memb_indent, "font", memb_name_w, ws.equals,
             _formatProtocolType( font ), ws.separator,
             ws.encl_indent
             );
@@ -346,7 +346,7 @@ X11ProtocolParser::_parseProtocolType<
             ws.nested( _Whitespace::SINGLELINE ) ) };
     outputs.bytes_parsed += string.bytes_parsed;
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(string length (CHAR2B))" ) :
                               sizeof( "string" ) ) - 1 );
@@ -358,11 +358,11 @@ X11ProtocolParser::_parseProtocolType<
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(string length (CHAR2B))", name_width, ws.equals,
+            ws.memb_indent, "(string length (CHAR2B))", memb_name_w, ws.equals,
             _formatInteger( item.text_element.string_2B_len ), ws.separator ),
-        ws.memb_indent, "delta", name_width, ws.equals,
+        ws.memb_indent, "delta", memb_name_w, ws.equals,
             _formatInteger( item.text_element.delta ), ws.separator,
-        ws.memb_indent, "string", name_width, ws.equals,
+        ws.memb_indent, "string", memb_name_w, ws.equals,
         string.str, ws.separator,
         ws.encl_indent
         );

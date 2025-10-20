@@ -25,7 +25,7 @@ size_t X11ProtocolParser::_logError(
     assert( encoding->header.code >= protocol::errors::codes::MIN &&
             encoding->header.code <= protocol::errors::codes::MAX );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
     const _Whitespace& ws { _ROOT_WS };
     std::string bad_resource_str {};
@@ -33,19 +33,19 @@ size_t X11ProtocolParser::_logError(
     case protocol::errors::ValueTypeCode::VALUE:
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(bad value)", name_width, ws.equals,
+            ws.memb_indent, "(bad value)", memb_name_w, ws.equals,
             _formatInteger( encoding->bad_value ), ws.separator );
         break;
     case protocol::errors::ValueTypeCode::RESOURCE_ID:
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(bad resource id)", name_width, ws.equals,
+            ws.memb_indent, "(bad resource id)", memb_name_w, ws.equals,
             _formatInteger( encoding->bad_resource_id ), ws.separator );
         break;
     case protocol::errors::ValueTypeCode::ATOM_ID:
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(bad atom id)", name_width, ws.equals,
+            ws.memb_indent, "(bad atom id)", memb_name_w, ws.equals,
             _formatInteger( encoding->bad_atom_id ), ws.separator );
         break;
     default:
@@ -64,22 +64,22 @@ size_t X11ProtocolParser::_logError(
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "error", name_width, ws.equals,
+            ws.memb_indent, "error", memb_name_w, ws.equals,
             _formatInteger( encoding->header.error ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "code", name_width, ws.equals,
+            ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(sequence number)", name_width, ws.equals,
+            ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
         bad_resource_str,
-        ws.memb_indent, "(minor opcode)", name_width, ws.equals,
+        ws.memb_indent, "(minor opcode)", memb_name_w, ws.equals,
         _formatInteger( encoding->minor_opcode ), ws.separator,
-        ws.memb_indent, "(major opcode)", name_width, ws.equals,
+        ws.memb_indent, "(major opcode)", memb_name_w, ws.equals,
         _formatInteger( encoding->major_opcode ), ws.separator,
         ws.encl_indent
         );

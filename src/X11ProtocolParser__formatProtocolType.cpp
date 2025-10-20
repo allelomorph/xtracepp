@@ -343,15 +343,15 @@ template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::POINT point, const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "x" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "x" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "x", name_width, ws.equals,
+        ws.memb_indent, "x", memb_name_w, ws.equals,
         _formatInteger( point.x ), ws.separator,
-        ws.memb_indent, "y", name_width, ws.equals,
+        ws.memb_indent, "y", memb_name_w, ws.equals,
         _formatInteger( point.y ), ws.separator,
         ws.encl_indent
         );
@@ -362,19 +362,19 @@ template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::RECTANGLE rectangle, const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "height" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "height" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "x", name_width, ws.equals,
+        ws.memb_indent, "x", memb_name_w, ws.equals,
         _formatInteger( rectangle.x ), ws.separator,
-        ws.memb_indent, "y", name_width, ws.equals,
+        ws.memb_indent, "y", memb_name_w, ws.equals,
         _formatInteger( rectangle.y ), ws.separator,
-        ws.memb_indent, "width", name_width, ws.equals,
+        ws.memb_indent, "width", memb_name_w, ws.equals,
         _formatInteger( rectangle.width ), ws.separator,
-        ws.memb_indent, "height", name_width, ws.equals,
+        ws.memb_indent, "height", memb_name_w, ws.equals,
         _formatInteger( rectangle.height ), ws.separator,
         ws.encl_indent
         );
@@ -385,24 +385,24 @@ template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ARC arc, const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "height" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "height" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "x", name_width, ws.equals,
+        ws.memb_indent, "x", memb_name_w, ws.equals,
         _formatInteger( arc.x ), ws.separator,
-        ws.memb_indent, "y", name_width, ws.equals,
+        ws.memb_indent, "y", memb_name_w, ws.equals,
         _formatInteger( arc.y ), ws.separator,
-        ws.memb_indent, "width", name_width, ws.equals,
+        ws.memb_indent, "width", memb_name_w, ws.equals,
         _formatInteger( arc.width ), ws.separator,
-        ws.memb_indent, "height", name_width, ws.equals,
+        ws.memb_indent, "height", memb_name_w, ws.equals,
         _formatInteger( arc.height ), ws.separator,
-        ws.memb_indent, "angle1", name_width, ws.equals,
+        ws.memb_indent, "angle1", memb_name_w, ws.equals,
         _formatInteger( arc.angle1 ), ws.separator,
-        ws.memb_indent, "angle2", name_width, ws.equals,
+        ws.memb_indent, "angle2", memb_name_w, ws.equals,
         _formatInteger( arc.angle2 ), ws.separator,
         ws.encl_indent
         );
@@ -413,24 +413,24 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::Reply::CHARINFO charinfo,
     const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "right-side-bearing" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "right-side-bearing" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "left-side-bearing", name_width, ws.equals,
+        ws.memb_indent, "left-side-bearing", memb_name_w, ws.equals,
         _formatInteger( charinfo.left_side_bearing ), ws.separator,
-        ws.memb_indent, "right-side-bearing", name_width, ws.equals,
+        ws.memb_indent, "right-side-bearing", memb_name_w, ws.equals,
         _formatInteger( charinfo.right_side_bearing ), ws.separator,
-        ws.memb_indent, "character-width", name_width, ws.equals,
+        ws.memb_indent, "character-width", memb_name_w, ws.equals,
         _formatInteger( charinfo.character_width ), ws.separator,
-        ws.memb_indent, "ascent", name_width, ws.equals,
+        ws.memb_indent, "ascent", memb_name_w, ws.equals,
         _formatInteger( charinfo.ascent ), ws.separator,
-        ws.memb_indent, "descent", name_width, ws.equals,
+        ws.memb_indent, "descent", memb_name_w, ws.equals,
         _formatInteger( charinfo.descent ), ws.separator,
-        ws.memb_indent, "attributes", name_width, ws.equals,
+        ws.memb_indent, "attributes", memb_name_w, ws.equals,
         _formatInteger( charinfo.attributes ), ws.separator,
         ws.encl_indent
         );
@@ -441,15 +441,15 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::Reply::FONTPROP fontprop,
     const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "value" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "value" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "name", name_width, ws.equals,
+        ws.memb_indent, "name", memb_name_w, ws.equals,
         _formatProtocolType( fontprop.name ), ws.separator,
-        ws.memb_indent, "value", name_width, ws.equals,
+        ws.memb_indent, "value", memb_name_w, ws.equals,
         _formatInteger( fontprop.value ), ws.separator,
         ws.encl_indent
         );
@@ -460,17 +460,17 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::connection_setup::ConnAcceptance::FORMAT format,
     const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "bits-per-pixel" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "bits-per-pixel" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "depth", name_width, ws.equals,
+        ws.memb_indent, "depth", memb_name_w, ws.equals,
         _formatInteger( format.depth ), ws.separator,
-        ws.memb_indent, "bits-per-pixel", name_width, ws.equals,
+        ws.memb_indent, "bits-per-pixel", memb_name_w, ws.equals,
         _formatInteger( format.bits_per_pixel ), ws.separator,
-        ws.memb_indent, "scanline-pad", name_width, ws.equals,
+        ws.memb_indent, "scanline-pad", memb_name_w, ws.equals,
         _formatInteger( format.scanline_pad ), ws.separator,
         ws.encl_indent
         );
@@ -484,7 +484,7 @@ X11ProtocolParser::_formatProtocolType(
     using VISUALTYPE =
         protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE;
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         ws.multiline ? sizeof( "bits-per-rgb-value" ) - 1 : 0 );
     return fmt::format(
         "{{{}"
@@ -492,20 +492,20 @@ X11ProtocolParser::_formatProtocolType(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "visual-id", name_width, ws.equals,
+        ws.memb_indent, "visual-id", memb_name_w, ws.equals,
         _formatProtocolType( visualtype.visual_id ), ws.separator,
-        ws.memb_indent, "class", name_width, ws.equals,
+        ws.memb_indent, "class", memb_name_w, ws.equals,
         _formatInteger( visualtype.class_,
                         VISUALTYPE::class_names ), ws.separator,
-        ws.memb_indent, "bits-per-rgb-value", name_width, ws.equals,
+        ws.memb_indent, "bits-per-rgb-value", memb_name_w, ws.equals,
         _formatInteger( visualtype.bits_per_rgb_value ), ws.separator,
-        ws.memb_indent, "colormap-entries", name_width, ws.equals,
+        ws.memb_indent, "colormap-entries", memb_name_w, ws.equals,
         _formatInteger( visualtype.colormap_entries ), ws.separator,
-        ws.memb_indent, "red-mask", name_width, ws.equals,
+        ws.memb_indent, "red-mask", memb_name_w, ws.equals,
         _formatBitmask( visualtype.red_mask ), ws.separator,
-        ws.memb_indent, "green-mask", name_width, ws.equals,
+        ws.memb_indent, "green-mask", memb_name_w, ws.equals,
         _formatBitmask( visualtype.green_mask ), ws.separator,
-        ws.memb_indent, "blue-mask", name_width, ws.equals,
+        ws.memb_indent, "blue-mask", memb_name_w, ws.equals,
         _formatBitmask( visualtype.blue_mask ), ws.separator,
         ws.encl_indent
         );
@@ -516,19 +516,19 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::PolySegment::SEGMENT segment,
     const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "x1" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "x1" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "x1", name_width, ws.equals,
+        ws.memb_indent, "x1", memb_name_w, ws.equals,
         _formatInteger( segment.x1 ), ws.separator,
-        ws.memb_indent, "y1", name_width, ws.equals,
+        ws.memb_indent, "y1", memb_name_w, ws.equals,
         _formatInteger( segment.y1 ), ws.separator,
-        ws.memb_indent, "x2", name_width, ws.equals,
+        ws.memb_indent, "x2", memb_name_w, ws.equals,
         _formatInteger( segment.x2 ), ws.separator,
-        ws.memb_indent, "y2", name_width, ws.equals,
+        ws.memb_indent, "y2", memb_name_w, ws.equals,
         _formatInteger( segment.y2 ), ws.separator,
         ws.encl_indent
         );
@@ -541,22 +541,22 @@ X11ProtocolParser::_formatProtocolType(
     const _Whitespace& ws ) {
     using COLORITEM = protocol::requests::StoreColors::COLORITEM;
     assert( ( coloritem.do_rgb_mask & COLORITEM::DO_RGB_ZERO_BITS ) == 0 );
-    static constexpr uint32_t name_width ( sizeof( "(do rgb mask)" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "(do rgb mask)" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "pixel", name_width, ws.equals,
+        ws.memb_indent, "pixel", memb_name_w, ws.equals,
         _formatInteger( coloritem.pixel ), ws.separator,
-        ws.memb_indent, "red", name_width, ws.equals,
+        ws.memb_indent, "red", memb_name_w, ws.equals,
         _formatInteger( coloritem.red ), ws.separator,
-        ws.memb_indent, "green", name_width, ws.equals,
+        ws.memb_indent, "green", memb_name_w, ws.equals,
         _formatInteger( coloritem.green ), ws.separator,
-        ws.memb_indent, "blue", name_width, ws.equals,
+        ws.memb_indent, "blue", memb_name_w, ws.equals,
         _formatInteger( coloritem.blue ), ws.separator,
-        ws.memb_indent, "(do rgb mask)", name_width, ws.equals,
+        ws.memb_indent, "(do rgb mask)", memb_name_w, ws.equals,
         _formatBitmask( coloritem.do_rgb_mask,
                         COLORITEM::do_rgb_names ), ws.separator,
         ws.encl_indent
@@ -568,17 +568,17 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::GetMotionEvents::Reply::TIMECOORD timecoord,
     const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "time" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "time" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "time", name_width, ws.equals,
+        ws.memb_indent, "time", memb_name_w, ws.equals,
         _formatProtocolType( timecoord.time ), ws.separator,
-        ws.memb_indent, "x", name_width, ws.equals,
+        ws.memb_indent, "x", memb_name_w, ws.equals,
         _formatInteger( timecoord.x ), ws.separator,
-        ws.memb_indent, "y", name_width, ws.equals,
+        ws.memb_indent, "y", memb_name_w, ws.equals,
         _formatInteger( timecoord.y ), ws.separator,
         ws.encl_indent
         );
@@ -589,17 +589,17 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryColors::Reply::RGB rgb,
     const _Whitespace& ws ) {
-    static constexpr uint32_t name_width ( sizeof( "green" ) - 1 );
+    static constexpr uint32_t memb_name_w ( sizeof( "green" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        ws.memb_indent, "red", name_width, ws.equals,
+        ws.memb_indent, "red", memb_name_w, ws.equals,
         _formatInteger( rgb.red ), ws.separator,
-        ws.memb_indent, "green", name_width, ws.equals,
+        ws.memb_indent, "green", memb_name_w, ws.equals,
         _formatInteger( rgb.green ), ws.separator,
-        ws.memb_indent, "blue", name_width, ws.equals,
+        ws.memb_indent, "blue", memb_name_w, ws.equals,
         _formatInteger( rgb.blue ), ws.separator,
         ws.encl_indent
         );

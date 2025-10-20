@@ -29,7 +29,7 @@ size_t X11ProtocolParser::_logConnRefusal(
     assert( header->following_aligned_units ==
             _alignedUnits( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
 
     fmt::println(
@@ -45,24 +45,24 @@ size_t X11ProtocolParser::_logConnRefusal(
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "success", name_width, ws.equals,
+            ws.memb_indent, "success", memb_name_w, ws.equals,
             _formatInteger( header->success,
                             ConnRefusal::success_names ),
             ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(reason length)", name_width, ws.equals,
+            ws.memb_indent, "(reason length)", memb_name_w, ws.equals,
             _formatInteger( header->reason_len ), ws.separator ),
-        ws.memb_indent, "protocol-major-version", name_width, ws.equals,
+        ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
         _formatInteger( header->protocol_major_version ), ws.separator,
-        ws.memb_indent, "protocol-minor-version", name_width, ws.equals,
+        ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
         _formatInteger( header->protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(4B units after header)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( header->following_aligned_units ), ws.separator ),
-        ws.memb_indent, "reason", name_width, ws.equals,
+        ws.memb_indent, "reason", memb_name_w, ws.equals,
         reason, ws.separator,
         ws.encl_indent
         );
@@ -95,7 +95,7 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
             _alignedUnits( bytes_parsed -
                            sizeof( ConnRequireFurtherAuthentication::Header ) ) );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         settings.multiline ? sizeof( "success" ) - 1 : 0 );
 
     fmt::println(
@@ -109,16 +109,16 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "success", name_width, ws.equals,
+            ws.memb_indent, "success", memb_name_w, ws.equals,
             _formatInteger( header->success,
                             ConnRequireFurtherAuthentication::success_names ),
             ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(4B units after header)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( header->following_aligned_units ), ws.separator ),
-        ws.memb_indent, "reason", name_width, ws.equals,
+        ws.memb_indent, "reason", memb_name_w, ws.equals,
         reason, ws.separator,
         ws.encl_indent
         );
@@ -159,7 +159,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
     assert( encoding->header.following_aligned_units == _alignedUnits(
                 bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
 
-    const uint32_t name_width (
+    const uint32_t memb_name_w (
         settings.multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
     fmt::println(
         settings.log_fs,
@@ -181,63 +181,63 @@ size_t X11ProtocolParser::_logConnAcceptance(
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "success", name_width, ws.equals,
+            ws.memb_indent, "success", memb_name_w, ws.equals,
             _formatInteger( encoding->header.success,
                             ConnAcceptance::success_names ),
             ws.separator ),
-        ws.memb_indent, "protocol-major-version", name_width, ws.equals,
+        ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
         _formatInteger( encoding->header.protocol_major_version ), ws.separator,
-        ws.memb_indent, "protocol-minor-version", name_width, ws.equals,
+        ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
         _formatInteger( encoding->header.protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(4B units after header)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->header.following_aligned_units ), ws.separator ),
-        ws.memb_indent, "release-number", name_width, ws.equals,
+        ws.memb_indent, "release-number", memb_name_w, ws.equals,
         _formatInteger( encoding->release_number ), ws.separator,
-        ws.memb_indent, "resource-id-base", name_width, ws.equals,
+        ws.memb_indent, "resource-id-base", memb_name_w, ws.equals,
         _formatInteger( encoding->resource_id_base ), ws.separator,
-        ws.memb_indent, "resource-id-mask", name_width, ws.equals,
+        ws.memb_indent, "resource-id-mask", memb_name_w, ws.equals,
         _formatInteger( encoding->resource_id_mask ), ws.separator,
-        ws.memb_indent, "motion-buffer-size", name_width, ws.equals,
+        ws.memb_indent, "motion-buffer-size", memb_name_w, ws.equals,
         _formatInteger( encoding->motion_buffer_size ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(vendor length)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->vendor_len ), ws.separator ),
-        ws.memb_indent, "maximum-request-length", name_width, ws.equals,
+        ws.memb_indent, "maximum-request-length", memb_name_w, ws.equals,
         _formatInteger( encoding->maximum_request_length ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(SCREENs in roots)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->roots_ct ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(FORMATs in pixmap-formats)",
-            name_width, ws.equals,
+            memb_name_w, ws.equals,
             _formatInteger( encoding->pixmap_formats_ct ), ws.separator ),
-        ws.memb_indent, "image-byte-order", name_width, ws.equals,
+        ws.memb_indent, "image-byte-order", memb_name_w, ws.equals,
         _formatInteger( encoding->image_byte_order,
                         ConnAcceptance::image_byte_order_names ), ws.separator,
-        ws.memb_indent, "bitmap-format-bit-order", name_width, ws.equals,
+        ws.memb_indent, "bitmap-format-bit-order", memb_name_w, ws.equals,
         _formatInteger( encoding->bitmap_format_bit_order,
                         ConnAcceptance::bitmap_format_bit_order_names ), ws.separator,
-        ws.memb_indent, "bitmap-format-scanline-unit", name_width, ws.equals,
+        ws.memb_indent, "bitmap-format-scanline-unit", memb_name_w, ws.equals,
         _formatInteger( encoding->bitmap_format_scanline_unit ), ws.separator,
-        ws.memb_indent, "bitmap-format-scanline-pad", name_width, ws.equals,
+        ws.memb_indent, "bitmap-format-scanline-pad", memb_name_w, ws.equals,
         _formatInteger( encoding->bitmap_format_scanline_pad ), ws.separator,
-        ws.memb_indent, "min-keycode", name_width, ws.equals,
+        ws.memb_indent, "min-keycode", memb_name_w, ws.equals,
         _formatProtocolType( encoding->min_keycode ), ws.separator,
-        ws.memb_indent, "max-keycode", name_width, ws.equals,
+        ws.memb_indent, "max-keycode", memb_name_w, ws.equals,
         _formatProtocolType( encoding->max_keycode ), ws.separator,
-        ws.memb_indent, "vendor", name_width, ws.equals,
+        ws.memb_indent, "vendor", memb_name_w, ws.equals,
         vendor, ws.separator,
-        ws.memb_indent, "pixmap-formats", name_width, ws.equals,
+        ws.memb_indent, "pixmap-formats", memb_name_w, ws.equals,
         pixmap_formats.str, ws.separator,
-        ws.memb_indent, "roots", name_width, ws.equals,
+        ws.memb_indent, "roots", memb_name_w, ws.equals,
         roots.str, ws.separator,
         ws.encl_indent
         );

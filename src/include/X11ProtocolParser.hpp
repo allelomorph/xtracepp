@@ -480,7 +480,7 @@ private:
         }
     };
 
-    // TBD put mask in parsing inputs, that way we can calc the name_width of
+    // TBD put mask in parsing inputs, that way we can calc the memb_name_w of
     //   widest name _used_, not just overall
     // TBD for that matter we could just put data and sz in there as well
     template < typename TupleT >
@@ -490,7 +490,7 @@ private:
         const std::vector< std::string_view >& names;
         const std::vector< _VALUETraits >& traits;
         const _Whitespace ws;
-        size_t name_width {};
+        size_t memb_name_w {};
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
@@ -506,7 +506,7 @@ private:
             if ( ws.multiline ) {
                 for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
                     if ( value_mask & ( 1 << i ) ) {
-                        name_width = std::max( name_width, names[i].size() );
+                        memb_name_w = std::max( memb_name_w, names[i].size() );
                     }
                 }
             }
@@ -570,8 +570,9 @@ private:
 
         outputs->str += fmt::format(
             "{}{: <{}}{}{}{}",
-            inputs.ws.memb_indent, inputs.names[I], inputs.name_width, inputs.ws.equals,
-            _formatVALUE( value, inputs.traits[I] ), inputs.ws.separator );
+            inputs.ws.memb_indent, inputs.names[I], inputs.memb_name_w,
+            inputs.ws.equals, _formatVALUE( value, inputs.traits[I] ),
+            inputs.ws.separator );
         return _parseLISTofVALUE< I + 1, Args... >(
             inputs, data + sizeof( protocol::VALUE ), outputs );
     }
