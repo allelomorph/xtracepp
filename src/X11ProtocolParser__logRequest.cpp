@@ -33,7 +33,7 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "(total aligned units)" ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -74,7 +74,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -123,7 +125,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "max-names" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -185,7 +189,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "coordinate-mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -239,7 +245,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "cmap" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -309,7 +317,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "border-width" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -408,7 +418,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "value-mask" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -505,7 +517,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -555,7 +569,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -687,7 +703,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "value-mask" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -736,7 +754,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "direction" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -786,7 +806,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -857,7 +879,9 @@ X11ProtocolParser::_parseRequest<
     _stashAtom( { conn->id, conn->sequence }, name );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "only-if-exists" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -910,7 +934,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "atom" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -972,8 +998,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(data length (format units))" ) - 1 : 0 );
-
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(data length (format units))" ) :
+                              sizeof( "property" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1036,7 +1063,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "property" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1083,7 +1112,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "long-offset" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1157,7 +1188,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "selection" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1206,7 +1239,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "selection" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1251,7 +1286,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "requestor" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1315,7 +1352,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "destination" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1371,7 +1410,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "keyboard-mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1438,7 +1479,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "time" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1484,7 +1527,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "keyboard-mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1553,7 +1598,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "grab-window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1605,7 +1652,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "event-mask" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1656,7 +1705,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "keyboard-mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1714,7 +1765,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "time" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1818,7 +1871,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "grab-window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1870,7 +1925,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -1969,7 +2026,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2020,7 +2079,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "src-window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2071,7 +2132,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "src-window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2133,7 +2196,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "revert-to" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -2225,7 +2290,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "fid" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2278,7 +2345,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "font" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2323,7 +2392,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "font" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2382,7 +2453,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "string" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -2472,7 +2545,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "path" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -2537,7 +2612,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -2592,7 +2669,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "pixmap" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2670,7 +2749,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "value-list" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2759,7 +2840,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "value-list" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2813,7 +2896,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "value-mask" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2869,7 +2954,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "dash-offset" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -2934,7 +3021,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "clip-x-origin" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3035,7 +3124,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "exposures" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3093,7 +3184,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "src-drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3156,7 +3249,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "src-drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3264,7 +3359,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3323,7 +3420,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "rectangles" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3382,7 +3481,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3441,7 +3542,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "coordinate-mode" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "coordinate-mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3507,7 +3610,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "rectangles" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3566,7 +3671,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3621,7 +3728,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3689,7 +3798,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "plane-mask" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -3761,7 +3872,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3824,7 +3937,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -3883,7 +3998,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -3948,7 +4065,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -4006,7 +4125,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "window" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4076,7 +4197,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "src-cmap" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4171,7 +4294,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "green" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4227,7 +4352,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "cmap" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4280,7 +4407,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "contiguous" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4333,7 +4462,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "contiguous" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4400,7 +4531,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "plane-mask" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4460,7 +4593,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "items" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4512,7 +4647,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "(do rgb mask)" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4581,7 +4718,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "pixels" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4633,7 +4772,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "cmap" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4686,7 +4827,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "fore-green" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4755,7 +4898,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "source-font" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4823,7 +4968,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "cursor" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4868,7 +5015,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "fore-green" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -4926,7 +5075,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "drawable" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -4985,7 +5136,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "name" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -5061,7 +5214,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "keysyms-per-keycode" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "keysyms-per-keycode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5114,7 +5269,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "first-keycode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -5180,7 +5337,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "value-list" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -5242,7 +5401,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "percent" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5288,7 +5449,7 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "acceleration-denominator" ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -5358,7 +5519,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "prefer-blanking" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "prefer-blanking" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -5437,7 +5600,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "length of address" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "address" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5509,7 +5674,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5553,7 +5720,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5600,7 +5769,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "resource" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -5655,7 +5826,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "number of properties" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "properties" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -5676,7 +5849,7 @@ X11ProtocolParser::_parseRequest<
         _formatProtocolType( encoding->window ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n properties)", memb_name_w, ws.equals,
+            ws.memb_indent, "(ATOMs in properties)", memb_name_w, ws.equals,
             _formatInteger( encoding->properties_ct ), ws.separator ),
         ws.memb_indent, "delta", memb_name_w, ws.equals,
         _formatInteger( encoding->delta ), ws.separator,
@@ -5707,7 +5880,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "mode" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5760,7 +5935,9 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(total aligned units)" ) :
+                              sizeof( "map" ) ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -5832,7 +6009,7 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "keycodes-per-modifier" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "keycodes-per-modifier" ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}"
@@ -5899,7 +6076,8 @@ X11ProtocolParser::_parseRequest<
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(total aligned units)" ) - 1 : 0 );
+        ( !ws.multiline || !settings.verbose ) ? 0 :
+        sizeof( "(total aligned units)" ) - 1 );
     request.str = fmt::format(
         "{{{}"
         "{}{}"

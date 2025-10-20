@@ -30,8 +30,9 @@ size_t X11ProtocolParser::_logConnRefusal(
             _alignedUnits( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "protocol-major-version" ) - 1 : 0 );
-
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(post-header aligned units)" ) :
+                              sizeof( "protocol-major-version" ) ) - 1 );
     fmt::println(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: server refused connection: "
@@ -59,7 +60,7 @@ size_t X11ProtocolParser::_logConnRefusal(
         _formatInteger( header->protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(4B units after header)",
+            ws.memb_indent, "(post-header aligned units)",
             memb_name_w, ws.equals,
             _formatInteger( header->following_aligned_units ), ws.separator ),
         ws.memb_indent, "reason", memb_name_w, ws.equals,
@@ -96,8 +97,9 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
                            sizeof( ConnRequireFurtherAuthentication::Header ) ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "success" ) - 1 : 0 );
-
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(post-header aligned units)" ) :
+                              sizeof( "success" ) ) - 1 );
     fmt::println(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: server requested further authentication: "
@@ -115,7 +117,7 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
             ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(4B units after header)",
+            ws.memb_indent, "(post-header aligned units)",
             memb_name_w, ws.equals,
             _formatInteger( header->following_aligned_units ), ws.separator ),
         ws.memb_indent, "reason", memb_name_w, ws.equals,
@@ -160,7 +162,9 @@ size_t X11ProtocolParser::_logConnAcceptance(
                 bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "bitmap-format-scanline-unit" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(post-header aligned units)" ) :
+                              sizeof( "bitmap-format-scanline-unit" ) ) - 1 );
     fmt::println(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: server accepted connection: "
@@ -191,8 +195,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
         _formatInteger( encoding->header.protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(4B units after header)",
-            memb_name_w, ws.equals,
+            ws.memb_indent, "(post-header aligned units)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.following_aligned_units ), ws.separator ),
         ws.memb_indent, "release-number", memb_name_w, ws.equals,
         _formatInteger( encoding->release_number ), ws.separator,

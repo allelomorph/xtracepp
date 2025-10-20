@@ -28,7 +28,9 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
             code <= protocol::events::codes::BUTTONRELEASE );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "same-screen" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -130,7 +132,9 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     assert( code == protocol::events::codes::MOTIONNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "same-screen" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -199,7 +203,7 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
             code == protocol::events::codes::LEAVENOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "(same-screen/focus mask)" ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -245,7 +249,7 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
         ws.memb_indent, "mode", memb_name_w, ws.equals,
         _formatInteger( encoding->mode, BoundaryEvent::mode_names,
                         _IndexRange{ 0, BoundaryEvent::MAX_MODE } ), ws.separator,
-        ws.memb_indent, "same-screen/focus", memb_name_w, ws.equals,
+        ws.memb_indent, "(same-screen/focus mask)", memb_name_w, ws.equals,
         _formatBitmask( encoding->focus_same_screen_mask,
                         BoundaryEvent::focus_same_screen_names ), ws.separator,
         ws.encl_indent
@@ -290,7 +294,9 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
             code == protocol::events::codes::FOCUSOUT );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "same-screen/focus" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "detail" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -364,15 +370,14 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
             ws.nested( _Whitespace::SINGLELINE ) ) };
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "keys(0-7 omitted)" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "keys(0-7 omitted)" ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
         "{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
@@ -401,7 +406,9 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     assert( code == protocol::events::codes::EXPOSE );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "window" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -455,7 +462,9 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
 
     // TBD lookup request opcodes and assert against encoding opcodes?
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "minor-opcode" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -514,7 +523,9 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
 
     // TBD lookup request opcodes and assert against encoding opcodes?
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "minor-opcode" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -560,20 +571,20 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     assert( code == protocol::events::codes::VISIBILITYNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "window" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -605,7 +616,9 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     assert( code == protocol::events::codes::CREATENOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "override-redirect" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -662,7 +675,9 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     assert( code == protocol::events::codes::DESTROYNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "window" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -706,7 +721,9 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     assert( code == protocol::events::codes::UNMAPNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "from-configure" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -752,7 +769,9 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     assert( code == protocol::events::codes::MAPNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "override-redirect" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -842,7 +861,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     assert( encoding->header.code == protocol::events::codes::REPARENTNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "override-redirect" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -895,7 +916,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     assert( code == protocol::events::codes::CONFIGURENOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "override-redirect" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "override-redirect" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -956,7 +979,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     assert( code == protocol::events::codes::CONFIGUREREQUEST );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "border-width" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -998,7 +1023,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
         ws.memb_indent, "border-width", memb_name_w, ws.equals,
         _formatInteger( encoding->border_width ), ws.separator,
         ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-        _formatBitmask( encoding->value_mask, ConfigureRequest::value_names ), ws.separator,
+        _formatBitmask( encoding->value_mask,
+                        ConfigureRequest::value_names ), ws.separator,
         ws.encl_indent
         );
     return outputs;
@@ -1022,7 +1048,9 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     assert( code == protocol::events::codes::GRAVITYNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "window" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1070,7 +1098,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     assert( code == protocol::events::codes::RESIZEREQUEST );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "window" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1116,7 +1146,9 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     assert( code == protocol::events::codes::CIRCULATENOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "window" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1162,7 +1194,9 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     assert( code == protocol::events::codes::CIRCULATEREQUEST );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "parent" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1256,7 +1290,9 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     assert( code == protocol::events::codes::SELECTIONCLEAR );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "selection" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1302,7 +1338,9 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     assert( code == protocol::events::codes::SELECTIONREQUEST );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "requestor" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1357,7 +1395,9 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     assert( code == protocol::events::codes::SELECTIONNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "requestor" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1410,7 +1450,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     assert( code == protocol::events::codes::COLORMAPNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "colormap" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
@@ -1460,7 +1502,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     assert( code == protocol::events::codes::CLIENTMESSAGE );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "format" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -1508,7 +1552,9 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     assert( code == protocol::events::codes::MAPPINGNOTIFY );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "first-keycode" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"

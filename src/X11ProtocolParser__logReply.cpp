@@ -34,7 +34,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "do-not-propagate-mask" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "do-not-propagate-mask" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -118,7 +120,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "border-width" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -189,7 +193,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += children.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "children" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -217,7 +223,7 @@ X11ProtocolParser::_parseReply<
                              QueryTree::Reply::parent_names ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n children)", memb_name_w, ws.equals,
+            ws.memb_indent, "(WINDOWs in children)", memb_name_w, ws.equals,
             _formatInteger( encoding->children_ct ), ws.separator ),
         ws.memb_indent, "children", memb_name_w, ws.equals,
         children.str, ws.separator,
@@ -254,7 +260,9 @@ X11ProtocolParser::_parseReply<
                             encoding->atom );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "atom" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -309,7 +317,9 @@ X11ProtocolParser::_parseReply<
 
     const _Whitespace& ws { _ROOT_WS };
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "name" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -379,7 +389,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += _pad( value.bytes_parsed );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(value n format units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(value length (format units))" ) :
+                              sizeof( "bytes-after" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -411,7 +423,7 @@ X11ProtocolParser::_parseReply<
         _formatInteger( encoding->bytes_after ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(value n format units)", memb_name_w, ws.equals,
+            ws.memb_indent, "(value length (format units))", memb_name_w, ws.equals,
             _formatInteger( encoding->value_fmt_unit_len ), ws.separator ),
         ws.memb_indent, "value", memb_name_w, ws.equals,
         value.str, ws.separator,
@@ -450,7 +462,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += _pad( atoms.bytes_parsed );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "atoms" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -471,7 +485,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n atoms)", memb_name_w, ws.equals,
+            ws.memb_indent, "(ATOMs in atoms)", memb_name_w, ws.equals,
             _formatInteger( encoding->atoms_ct ), ws.separator ),
         ws.memb_indent, "atoms", memb_name_w, ws.equals,
         atoms.str, ws.separator,
@@ -502,7 +516,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "owner" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -551,7 +567,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "status" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -601,7 +619,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "status" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -651,7 +671,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "same-screen" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -673,7 +695,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "reply length", memb_name_w, ws.equals,
+            ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "root", memb_name_w, ws.equals,
         _formatProtocolType( encoding->root ), ws.separator,
@@ -724,9 +746,11 @@ X11ProtocolParser::_parseReply<
             encoding->events_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     reply.bytes_parsed += events.bytes_parsed;
 
-    const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
-    reply.str = fmt::format(
+   const uint32_t memb_name_w (
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(TIMECOORDs in events)" ) :
+                              sizeof( "events" ) ) - 1 );
+     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
         "{}{: <{}}{}{}{}"
@@ -746,7 +770,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n events)", memb_name_w, ws.equals,
+            ws.memb_indent, "(TIMECOORDs in events)", memb_name_w, ws.equals,
             _formatInteger( encoding->events_ct ), ws.separator ),
         ws.memb_indent, "events", memb_name_w, ws.equals,
         events.str, ws.separator,
@@ -778,7 +802,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "same-screen" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -835,7 +861,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "revert-to" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -861,7 +889,8 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "focus", memb_name_w, ws.equals,
         _formatProtocolType( encoding->focus, GetInputFocus::Reply::focus_names,
-                             _IndexRange{ 0, GetInputFocus::Reply::FOCUS_ENUM_MAX } ), ws.separator,
+                             _IndexRange{ 0, GetInputFocus::Reply::FOCUS_ENUM_MAX } ),
+        ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -895,7 +924,9 @@ X11ProtocolParser::_parseReply<
     // keys bytes already parsed as part of encoding
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "keys" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -959,7 +990,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += char_infos.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(FONTPROPs in properties)" ) :
+                              sizeof( "min-char-or-byte2" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -996,7 +1029,7 @@ X11ProtocolParser::_parseReply<
         _formatInteger( encoding->default_char ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n properties)", memb_name_w, ws.equals,
+            ws.memb_indent, "(FONTPROPs in properties)", memb_name_w, ws.equals,
             _formatInteger( encoding->properties_ct ), ws.separator ),
         ws.memb_indent, "draw-direction", memb_name_w, ws.equals,
         _formatInteger( encoding->draw_direction,
@@ -1013,7 +1046,7 @@ X11ProtocolParser::_parseReply<
         _formatInteger( encoding->font_descent ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(m char-infos)", memb_name_w, ws.equals,
+            ws.memb_indent, "(CHARINFOs in char-infos)", memb_name_w, ws.equals,
             _formatInteger( encoding->char_infos_ct ), ws.separator ),
         ws.memb_indent, "properties", memb_name_w, ws.equals,
         properties.str, ws.separator,
@@ -1046,7 +1079,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "overall-descent" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -1119,7 +1154,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "names" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1140,7 +1177,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n names)", memb_name_w, ws.equals,
+            ws.memb_indent, "(STRs in names)", memb_name_w, ws.equals,
             _formatInteger( encoding->names_ct ), ws.separator ),
         ws.memb_indent, "names", memb_name_w, ws.equals,
         names.str, ws.separator,
@@ -1171,8 +1208,11 @@ X11ProtocolParser::_parseReply<
         assert( encoding->header.extra_aligned_units ==
                 _alignedUnits( sizeof( ListFontsWithInfo::Reply::Encoding ) -
                                protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+
         const uint32_t memb_name_w (
-            settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+            !ws.multiline ? 0 : ( settings.verbose ?
+                                  sizeof( "(extra aligned units)" ) :
+                                  sizeof( "last-reply" ) ) - 1 );
         reply.str = fmt::format(
             "{{{}"
             "{}"
@@ -1216,8 +1256,11 @@ X11ProtocolParser::_parseReply<
                              encoding->properties_ct ) +
                            _pad( encoding->header.name_len ) -
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(FONTPROPs in properties)" ) :
+                              sizeof( "min-char-or-byte2" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1235,7 +1278,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(name len)", memb_name_w, ws.equals,
+            ws.memb_indent, "(name length)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.name_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
@@ -1257,7 +1300,7 @@ X11ProtocolParser::_parseReply<
         _formatInteger( encoding->default_char ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n properties)", memb_name_w, ws.equals,
+            ws.memb_indent, "(FONTPROPs in properties)", memb_name_w, ws.equals,
             _formatInteger( encoding->properties_ct ), ws.separator ),
         ws.memb_indent, "draw-direction", memb_name_w, ws.equals,
         _formatInteger( encoding->draw_direction,
@@ -1312,7 +1355,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "path" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1333,7 +1378,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n path elems)", memb_name_w, ws.equals,
+            ws.memb_indent, "(STRs in path)", memb_name_w, ws.equals,
             _formatInteger( encoding->path_ct ), ws.separator ),
         ws.memb_indent, "path", memb_name_w, ws.equals,
         path.str, ws.separator,
@@ -1370,7 +1415,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += _pad( data_.bytes_parsed );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "visual" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -1432,7 +1479,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += cmaps.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "cmaps" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1453,7 +1502,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n cmaps)", memb_name_w, ws.equals,
+            ws.memb_indent, "(COLORMAPs in cmaps)", memb_name_w, ws.equals,
             _formatInteger( encoding->cmaps_ct ), ws.separator ),
         ws.memb_indent, "cmaps", memb_name_w, ws.equals,
         cmaps.str, ws.separator,
@@ -1484,7 +1533,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "green" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -1538,7 +1589,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "visual-green" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -1614,7 +1667,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "pixels" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}{}"
@@ -1635,11 +1690,11 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n pixels)", memb_name_w, ws.equals,
+            ws.memb_indent, "(CARD32 in pixels)", memb_name_w, ws.equals,
             _formatInteger( encoding->pixels_ct ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(m masks)", memb_name_w, ws.equals,
+            ws.memb_indent, "(CARD32 in masks)", memb_name_w, ws.equals,
             _formatInteger( encoding->masks_ct ), ws.separator ),
         ws.memb_indent, "pixels", memb_name_w, ws.equals,
         pixels.str, ws.separator,
@@ -1679,7 +1734,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += pixels.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "green-mask" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1700,7 +1757,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n pixels)", memb_name_w, ws.equals,
+            ws.memb_indent, "(CARD32 in pixels)", memb_name_w, ws.equals,
             _formatInteger( encoding->pixels_ct ), ws.separator ),
         ws.memb_indent, "red-mask", memb_name_w, ws.equals,
         _formatBitmask( encoding->red_mask ), ws.separator,
@@ -1745,7 +1802,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += colors.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "colors" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1766,7 +1825,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n colors)", memb_name_w, ws.equals,
+            ws.memb_indent, "(RGBs in colors)", memb_name_w, ws.equals,
             _formatInteger( encoding->colors_ct ), ws.separator ),
         ws.memb_indent, "colors", memb_name_w, ws.equals,
         colors.str, ws.separator,
@@ -1797,7 +1856,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "visual-green" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -1856,7 +1917,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "height" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -1915,7 +1978,9 @@ X11ProtocolParser::_parseReply<
     }
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "major-opcode" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -1976,7 +2041,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "names" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -1989,7 +2056,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n names)", memb_name_w, ws.equals,
+            ws.memb_indent, "(STRs in names)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.names_ct ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
@@ -2038,7 +2105,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "keysyms" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -2098,7 +2167,9 @@ X11ProtocolParser::_parseReply<
     //   member of GetKeyboardControl::Reply::Encoding
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "global-auto-repeat" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2165,7 +2236,7 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "acceleration-denominator" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "acceleration-denominator" ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -2217,7 +2288,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "prefer-blanking" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}"
@@ -2284,7 +2357,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += hosts.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "hosts" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2310,7 +2385,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(n hosts)", memb_name_w, ws.equals,
+            ws.memb_indent, "(HOSTs in hosts)", memb_name_w, ws.equals,
             _formatInteger( encoding->hosts_ct ), ws.separator ),
         ws.memb_indent, "hosts", memb_name_w, ws.equals,
         hosts.str, ws.separator,
@@ -2341,7 +2416,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "status" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2400,7 +2477,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += _pad( map.bytes_parsed );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "map" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}{}{}{}"
@@ -2413,7 +2492,7 @@ X11ProtocolParser::_parseReply<
             _formatInteger( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(map len)", memb_name_w, ws.equals,
+            ws.memb_indent, "(map length)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.map_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
@@ -2452,7 +2531,9 @@ X11ProtocolParser::_parseReply<
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "status" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"
@@ -2512,7 +2593,9 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += keycodes.bytes_parsed;
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(extra aligned units)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(extra aligned units)" ) :
+                              sizeof( "keycodes-per-modifier" ) ) - 1 );
     reply.str = fmt::format(
         "{{{}"
         "{}"

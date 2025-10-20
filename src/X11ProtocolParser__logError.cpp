@@ -25,9 +25,11 @@ size_t X11ProtocolParser::_logError(
     assert( encoding->header.code >= protocol::errors::codes::MIN &&
             encoding->header.code <= protocol::errors::codes::MAX );
 
-    const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
     const _Whitespace& ws { _ROOT_WS };
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "(minor opcode)" ) ) - 1 );
     std::string bad_resource_str {};
     switch ( protocol::errors::value_types[ encoding->header.code ] ) {
     case protocol::errors::ValueTypeCode::VALUE:

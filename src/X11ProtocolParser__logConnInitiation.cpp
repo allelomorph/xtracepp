@@ -39,7 +39,9 @@ size_t X11ProtocolParser::_logConnInitiation(
     assert( bytes_parsed == sz );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "authorization-protocol-name" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(authorization-protocol-name length)" ) :
+                              sizeof( "authorization-protocol-name" ) ) - 1 );
     fmt::println(
         settings.log_fs,
         "C{:03d}:{:04d}B:{}: client \"{}\" attempting connection: "
@@ -60,12 +62,12 @@ size_t X11ProtocolParser::_logConnInitiation(
         _formatInteger( encoding->protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(authorization-protocol-name length in bytes)",
+            ws.memb_indent, "(authorization-protocol-name length)",
             memb_name_w, ws.equals,
             _formatInteger( encoding->name_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
-            ws.memb_indent, "(authorization-protocol-data length in bytes)",
+            ws.memb_indent, "(authorization-protocol-data length)",
             memb_name_w, ws.equals,
             _formatInteger( encoding->data_len ), ws.separator ),
         ws.memb_indent, "authorization-protocol-name", memb_name_w, ws.equals,
