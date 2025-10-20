@@ -6,7 +6,6 @@
 #include <fmt/format.h>
 
 #include "X11ProtocolParser.hpp"
-//#include "Settings.hpp"
 #include "Connection.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
@@ -14,71 +13,95 @@
 #include "protocol/connection_setup.hpp"
 
 
-// TBD zero bit validation should maybe happen instead at parse time
-
-
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::STR >(
-        const uint8_t* data, const size_t sz, const _Whitespace&/* ws*/ ) {
+        const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
+    using protocol::STR;
     assert( data != nullptr );
+    assert( sz >= sizeof( STR::Header ) );
 
     _ParsingOutputs outputs;
-    assert( sz >= sizeof( protocol::STR ) );
-    const protocol::STR str {
-        *reinterpret_cast< const protocol::STR* >( data ) };
-    assert( str.name_len > 0 );
-    outputs.bytes_parsed += sizeof( protocol::STR );
+    const STR::Header* header {
+        reinterpret_cast< const STR::Header* >( data ) };
+    outputs.bytes_parsed += sizeof( STR::Header );
+    // followed by STRING8 name
     const std::string_view name {
         reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
-        str.name_len };
+        header->name_len };
     // note that LISTofSTR will often be padded, but not single STR
-    outputs.bytes_parsed += str.name_len;
+    outputs.bytes_parsed += header->name_len;
 
-    // TBD leaving hard-coded singleline for now
-    outputs.str += fmt::format(
-        "{{ {}name={:?} }}",
+    const uint32_t name_width (
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(name length)" ) :
+                              sizeof( "name" ) ) - 1 );
+    outputs.str = fmt::format(
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{:?}{}"
+        "{}}}",
+        ws.separator,
         !settings.verbose ? "" : fmt::format(
-            "(name length)={} ", _formatInteger( str.name_len ) ),
-        name );
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(name length)", name_width, ws.equals,
+            _formatInteger( header->name_len ), ws.separator ),
+        ws.memb_indent, "name", name_width, ws.equals,
+        name, ws.separator,
+        ws.encl_indent
+        );
     return outputs;
 }
 
-// protocol::HOST (followed by n LISTofBYTE)
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::HOST >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
+    using protocol::HOST;
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::HOST ) );
+    assert( sz >= sizeof( HOST::Header ) );
 
     _ParsingOutputs outputs;
-    const protocol::HOST host {
-        *reinterpret_cast< const protocol::HOST* >( data ) };
-    assert( host.family < protocol::HOST::family_names.size() );
-    // TBD what would we name constants for unused values?
-    assert( host.family != 3 && host.family != 4 );
-    outputs.bytes_parsed += sizeof( protocol::HOST );
+    const HOST::Header* header {
+        reinterpret_cast< const HOST::Header* >( data ) };
+    outputs.bytes_parsed += sizeof( HOST::Header );
+    assert( header->family < HOST::family_names.size() );
+    // check for skipped enum values 4, 5
+    assert( !HOST::family_names[ header->family ].empty() );
+    // no HOST::Encoding
+    // followed by LISTofBYTE address
     const _ParsingOutputs address {
         _parseLISTof< protocol::BYTE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            host.address_len, ws.nested( _Whitespace::SINGLELINE ) ) };
-    outputs.bytes_parsed += _pad( host.address_len );
+            header->address_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+    outputs.bytes_parsed += _pad( header->address_len );
 
-    // TBD leaving hard-coded singleline for now
-    outputs.str += fmt::format(
-        "{{ family={}{} address={} }}",
-        _formatInteger( host.family, protocol::HOST::family_names ),
-        !settings.verbose ? "" :
-        fmt::format( " (address length)={}",
-                     _formatInteger( host.address_len ) ),
-        address.str );
+    const uint32_t name_width (
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(address length)" ) :
+                              sizeof( "address" ) ) - 1 );
+    outputs.str = fmt::format(
+        "{{{}"
+        "{}{: <{}}{}{}{}"
+        "{}"
+        "{}{: <{}}{}{}{}"
+        "{}}}",
+        ws.separator,
+        ws.memb_indent, "family", name_width, ws.equals,
+        _formatInteger( header->family,
+                        HOST::family_names ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(address length)", name_width, ws.equals,
+            _formatInteger( header->address_len ), ws.separator ),
+        ws.memb_indent, "address", name_width, ws.equals,
+        address.str, ws.separator,
+        ws.encl_indent
+        );
     return outputs;
 }
-
-// ==============================
 
 template <>
 X11ProtocolParser::_ParsingOutputs
@@ -103,7 +126,9 @@ X11ProtocolParser::_parseProtocolType<
     assert( outputs.bytes_parsed <= sz );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "height-in-millimeters" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(DEPTHs in allowed-depths)" ) :
+                              sizeof( "height-in-millimeters" ) ) - 1 );
     outputs.str += fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -179,7 +204,9 @@ X11ProtocolParser::_parseProtocolType<
     assert( outputs.bytes_parsed <= sz );
 
     const uint32_t name_width (
-        settings.multiline ? sizeof( "visuals" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(VISUALs in visuals)" ) :
+                              sizeof( "visuals" ) ) - 1 );
     outputs.str += fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}"
@@ -201,17 +228,16 @@ X11ProtocolParser::_parseProtocolType<
     return outputs;
 }
 
-// requests::PolyText8::TEXTITEM8 (need parsing due to TEXTITEM*.TEXTELT8 being followed by STRING8)
 template <>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText8::TEXTITEM8 >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
+    using protocol::requests::PolyText8;
     assert( data != nullptr );
+    assert( sz >= sizeof( PolyText8::TEXTITEM8::TEXTELT8 ) );
 
     _ParsingOutputs outputs;
-    using protocol::requests::PolyText8;
-    assert( sz >= sizeof( PolyText8::TEXTITEM8 ) );
     const PolyText8::TEXTITEM8 item {
         *reinterpret_cast< const PolyText8::TEXTITEM8* >( data ) };
     if ( item.font.font_shift == PolyText8::FONT_SHIFT ) {
@@ -222,15 +248,15 @@ X11ProtocolParser::_parseProtocolType<
                        item.font.font_bytes ) ) };
 
         const uint32_t name_width (
-            settings.multiline ? sizeof( "font-shift" ) - 1 : 0 );
+            !ws.multiline ? 0 :
+            sizeof( settings.verbose ? "font-shift" : "font" ) - 1 );
         outputs.str += fmt::format(
             "{{{}"
             "{}"
             "{}{: <{}}{}{}{}"
             "{}}}",
             ws.separator,
-            !settings.verbose ? "" :
-            fmt::format(
+            !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
                 ws.memb_indent, "font-shift", name_width, ws.equals,
                 _formatInteger( item.font.font_shift ), ws.separator ),
@@ -238,33 +264,35 @@ X11ProtocolParser::_parseProtocolType<
             _formatProtocolType( font ), ws.separator,
             ws.encl_indent
             );
-    } else {
-        assert( item.text_element.string_len > 0 );
-        outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::TEXTELT8 );
-        std::string_view string {
-            reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
-            item.text_element.string_len };
-        outputs.bytes_parsed += item.text_element.string_len;
-
-        const uint32_t name_width (
-            settings.multiline ? sizeof( "string" ) - 1 : 0 );
-        outputs.str += fmt::format(
-            "{{{}"
-            "{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
-            "{}}}",
-            ws.separator,
-            !settings.verbose ? "" : fmt::format(
-                "{}{: <{}}{}{}{}",
-                ws.memb_indent, "(string len)", name_width, ws.equals,
-                _formatInteger( item.text_element.string_len ), ws.separator ),
-            ws.memb_indent, "delta", name_width, ws.equals,
-            _formatInteger( item.text_element.delta ), ws.separator,
-            ws.memb_indent, "string", name_width, ws.equals,
-            string, ws.separator,
-            ws.encl_indent
-            );
+        return outputs;
     }
+    outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::TEXTELT8 );
+    // followed by STRING8 string
+    const std::string_view string {
+        reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
+        item.text_element.string_len };
+    outputs.bytes_parsed += item.text_element.string_len;
+
+    const uint32_t name_width (
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(string len)" ) :
+                              sizeof( "string" ) ) - 1 );
+    outputs.str += fmt::format(
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{:?}{}"
+        "{}}}",
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(string len)", name_width, ws.equals,
+            _formatInteger( item.text_element.string_len ), ws.separator ),
+        ws.memb_indent, "delta", name_width, ws.equals,
+        _formatInteger( item.text_element.delta ), ws.separator,
+        ws.memb_indent, "string", name_width, ws.equals,
+        string, ws.separator,
+        ws.encl_indent
+        );
     return outputs;
 }
 
@@ -274,15 +302,14 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseProtocolType<
     protocol::requests::PolyText16::TEXTITEM16 >(
         const uint8_t* data, const size_t sz, const _Whitespace& ws ) {
+    using protocol::requests::PolyText16;
     assert( data != nullptr );
+    assert( sz >= sizeof( PolyText16::TEXTITEM16::TEXTELT16 ) );
 
     _ParsingOutputs outputs;
-    using protocol::requests::PolyText16;
-    assert( sz >= sizeof( PolyText16::TEXTITEM16 ) );
     const PolyText16::TEXTITEM16 item {
         *reinterpret_cast< const PolyText16::TEXTITEM16* >( data ) };
-    const uint16_t first_byte { *data };
-    if ( first_byte == PolyText16::FONT_SHIFT ) {
+    if ( item.font.font_shift == PolyText16::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::FONT );
         // font bytes in array from MSB to LSB
         const protocol::FONT font {
@@ -290,7 +317,9 @@ X11ProtocolParser::_parseProtocolType<
                        item.font.font_bytes ) ) };
 
         const uint32_t name_width (
-            settings.multiline ? sizeof( "font-shift" ) - 1 : 0 );
+            !ws.multiline ? 0 : ( settings.verbose ?
+                                  sizeof( "font-shift" ) :
+                                  sizeof( "font" ) ) - 1 );
         outputs.str += fmt::format(
             "{{{}"
             "{}"
@@ -306,33 +335,36 @@ X11ProtocolParser::_parseProtocolType<
             _formatProtocolType( font ), ws.separator,
             ws.encl_indent
             );
-    } else {
-        outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::TEXTELT16 );
-
-        const _ParsingOutputs string {
-            _parseLISTof< protocol::CHAR2B >(
-                data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                item.text_element.string_2B_len, ws.nested( _Whitespace::SINGLELINE ) ) };
-        outputs.bytes_parsed += string.bytes_parsed;
-
-        const uint32_t name_width (
-            settings.multiline ? sizeof( "string" ) - 1 : 0 );
-        outputs.str += fmt::format(
-            "{{{}"
-            "{}"
-            "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
-            "{}}}",
-            ws.separator,
-            !settings.verbose ? "" : fmt::format(
-                "{}{: <{}}{}{}{}",
-                ws.memb_indent, "(string length (CHAR2B))", name_width, ws.equals,
-                _formatInteger( item.text_element.string_2B_len ), ws.separator ),
-            ws.memb_indent, "delta", name_width, ws.equals,
-            _formatInteger( item.text_element.delta ), ws.separator,
-            ws.memb_indent, "string", name_width, ws.equals,
-            string.str, ws.separator,
-            ws.encl_indent
-            );
+        return outputs;
     }
+    outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::TEXTELT16 );
+    // followed by STRING16 string
+    const _ParsingOutputs string {
+        _parseLISTof< protocol::CHAR2B >(
+            data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+            item.text_element.string_2B_len,
+            ws.nested( _Whitespace::SINGLELINE ) ) };
+    outputs.bytes_parsed += string.bytes_parsed;
+
+    const uint32_t name_width (
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(string length (CHAR2B))" ) :
+                              sizeof( "string" ) ) - 1 );
+    outputs.str += fmt::format(
+        "{{{}"
+        "{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}}}",
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(string length (CHAR2B))", name_width, ws.equals,
+            _formatInteger( item.text_element.string_2B_len ), ws.separator ),
+        ws.memb_indent, "delta", name_width, ws.equals,
+            _formatInteger( item.text_element.delta ), ws.separator,
+        ws.memb_indent, "string", name_width, ws.equals,
+        string.str, ws.separator,
+        ws.encl_indent
+        );
     return outputs;
 }

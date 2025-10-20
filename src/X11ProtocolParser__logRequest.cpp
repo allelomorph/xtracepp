@@ -177,9 +177,10 @@ X11ProtocolParser::_parseRequest<
         ( header->tl_aligned_units * PolyPointRequest::ALIGN ) -
         PolyPointRequest::BASE_ENCODING_SZ };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
-    _ParsingOutputs points {
+    const _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
-            data + request.bytes_parsed, points_sz, points_ct, ws.nested() ) };
+            data + request.bytes_parsed, points_sz, points_ct,
+            ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( points.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -964,7 +965,7 @@ X11ProtocolParser::_parseRequest<
         data_.bytes_parsed = data_len;
     } else {
         data_ = _parseLISTof< protocol::BYTE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
+            data + request.bytes_parsed, data_len,
             data_len, ws.nested( _Whitespace::SINGLELINE ) );
     }
     request.bytes_parsed += _pad( data_.bytes_parsed );
@@ -2338,8 +2339,7 @@ X11ProtocolParser::_parseRequest<
             ws.memb_indent, "(total aligned units)", name_width, ws.equals,
             _formatInteger( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "font", name_width, ws.equals,
-        // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
-        _formatProtocolType( encoding->font.font ), ws.separator,
+        _formatProtocolType( encoding->font ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2403,8 +2403,7 @@ X11ProtocolParser::_parseRequest<
             ws.memb_indent, "(total aligned units)", name_width, ws.equals,
             _formatInteger( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "font", name_width, ws.equals,
-        // TBD is it necessary to resolve FONT or GCONTEXT from FONTABLE?
-        _formatProtocolType( encoding->font.font ), ws.separator,
+        _formatProtocolType( encoding->font ), ws.separator,
         ws.memb_indent, "string", name_width, ws.equals,
         string.str, ws.separator,
         ws.encl_indent
@@ -2464,8 +2463,8 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SetFontPath::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetFontPath::Encoding );
-
-    _ParsingOutputs path {
+    // followed by LISTofSTR path
+    const _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
             data + request.bytes_parsed, sz - request.bytes_parsed,
             encoding->path_ct, ws.nested() ) };
@@ -2753,10 +2752,10 @@ X11ProtocolParser::_parseRequest<
     const _LISTofVALUEParsingInputs value_list_inputs {
         encoding->value_mask, ChangeGC::value_types, ChangeGC::value_names,
         value_traits, ws.nested() };
-    _ParsingOutputs value_list_outputs;
+    _ParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
-                       &value_list_outputs );
-    request.bytes_parsed += value_list_outputs.bytes_parsed;
+                       &value_list );
+    request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t name_width (
@@ -2785,7 +2784,7 @@ X11ProtocolParser::_parseRequest<
             _formatBitmask( encoding->value_mask,
                             ChangeGC::value_names ), ws.separator ),
         ws.memb_indent, "value-list", name_width, ws.equals,
-        value_list_outputs.str, ws.separator,
+        value_list.str, ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2930,7 +2929,7 @@ X11ProtocolParser::_parseRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz,
-            rectangles_ct, ws.nested() ) };
+            rectangles_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3257,10 +3256,10 @@ X11ProtocolParser::_parseRequest<
         ( header->tl_aligned_units * PolySegment::ALIGN ) -
         PolySegment::BASE_ENCODING_SZ };
     const size_t segments_ct { segments_sz / sizeof( PolySegment::SEGMENT ) };
-    _ParsingOutputs segments {
+    const _ParsingOutputs segments {
         _parseLISTof< PolySegment::SEGMENT >(
             data + request.bytes_parsed, segments_sz,
-            segments_ct, ws.nested() ) };
+            segments_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( segments.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3319,7 +3318,7 @@ X11ProtocolParser::_parseRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz,
-            rectangles_ct, ws.nested() ) };
+            rectangles_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3375,9 +3374,10 @@ X11ProtocolParser::_parseRequest<
         ( header->tl_aligned_units * PolyArc::ALIGN ) -
         PolyArc::BASE_ENCODING_SZ };
     const size_t arcs_ct { arcs_sz / sizeof( protocol::ARC ) };
-    _ParsingOutputs arcs {
+    const _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
-            data + request.bytes_parsed, arcs_sz, arcs_ct, ws.nested() ) };
+            data + request.bytes_parsed, arcs_sz,
+            arcs_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( arcs.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3433,9 +3433,10 @@ X11ProtocolParser::_parseRequest<
         ( header->tl_aligned_units * FillPoly::ALIGN ) -
         FillPoly::BASE_ENCODING_SZ };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
-    _ParsingOutputs points {
+    const _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
-            data + request.bytes_parsed, points_sz, points_ct, ws.nested() ) };
+            data + request.bytes_parsed, points_sz, points_ct,
+            ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( points.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3494,13 +3495,14 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyFillRectangle::Encoding );
     // followed by LISTofRECTANGLE rectangles
-    const size_t rectangles_ct {
-        ( ( header->tl_aligned_units * _ALIGN ) -
-          sizeof( PolyFillRectangle::Encoding ) ) / sizeof( protocol::RECTANGLE ) };
-    _ParsingOutputs rectangles {
+    const size_t rectangles_sz {
+        ( header->tl_aligned_units * PolyFillRectangle::ALIGN ) -
+        sizeof( PolyFillRectangle::Encoding ) };
+    const uint16_t rectangles_ct ( rectangles_sz / sizeof( protocol::RECTANGLE ) );
+    const _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            rectangles_ct, ws.nested() ) };
+            data + request.bytes_parsed, rectangles_sz,
+            rectangles_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3552,13 +3554,14 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( PolyFillArc::Encoding );
     // followed by LISTofARC arcs
-    const size_t arcs_ct {
-        ( ( header->tl_aligned_units * _ALIGN ) -
-          sizeof( PolyFillArc::Encoding ) ) / sizeof( protocol::ARC ) };
-    _ParsingOutputs arcs {
+    const size_t arcs_sz {
+        ( header->tl_aligned_units * PolyFillArc::ALIGN ) -
+        sizeof( PolyFillArc::Encoding ) };
+    const uint16_t arcs_ct ( arcs_sz  / sizeof( protocol::ARC ) );
+    const _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
-            data + request.bytes_parsed, sz - request.bytes_parsed,
-            arcs_ct, ws.nested() ) };
+            data + request.bytes_parsed, arcs_sz,
+            arcs_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( arcs.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3750,7 +3753,7 @@ X11ProtocolParser::_parseRequest<
     const size_t items_sz {
         ( header->tl_aligned_units * PolyText8::ALIGN ) -
         PolyText8::BASE_ENCODING_SZ };
-    // cannot calc list length in TEXTITEM8 due to their variable length
+    // TEXTITEM8 count undetermined due to their variable length
     const _ParsingOutputs items {
         _parseLISTof< PolyText8::TEXTITEM8 >(
             data + request.bytes_parsed, items_sz, ws.nested() ) };
@@ -3813,7 +3816,7 @@ X11ProtocolParser::_parseRequest<
     const size_t items_sz {
         ( header->tl_aligned_units * PolyText16::ALIGN ) -
         PolyText16::BASE_ENCODING_SZ };
-    // cannot calc list length in TEXTITEM16 due to their variable length
+    // TEXTITEM8 count undetermined due to their variable length
     const _ParsingOutputs items {
         _parseLISTof< PolyText16::TEXTITEM16 >(
             data + request.bytes_parsed, items_sz, ws.nested() ) };
@@ -4451,7 +4454,8 @@ X11ProtocolParser::_parseRequest<
     const size_t items_ct { items_sz / sizeof( StoreColors::COLORITEM ) };
     const _ParsingOutputs items {
         _parseLISTof< StoreColors::COLORITEM >(
-            data + request.bytes_parsed, items_sz, items_ct, ws.nested() ) };
+            data + request.bytes_parsed, items_sz,
+            items_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     request.bytes_parsed += _pad( items.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 

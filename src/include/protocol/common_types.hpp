@@ -245,20 +245,26 @@ struct [[gnu::packed]] ARC {
     INT16  angle1, angle2;
 };
 
-struct [[gnu::packed]] HOST {
-    CARD8  family;
-    CARD8  unused;
-    CARD16 address_len;  // length of address in bytes
+struct HOST {
+    struct [[gnu::packed]] Header {
+        CARD8  family;
+    private:
+        CARD8  _unused;
+    public:
+        CARD16 address_len;  // length of address in bytes
+    };
+    // followed by LISTofBYTE address pad(address_len)B
 
     inline static const std::vector< std::string_view >& family_names {
         protocol::enum_names::host_family };
 };
-// followed by LISTofBYTE address
 
 struct [[gnu::packed]] STR {
-    uint8_t name_len;  // length of name in bytes
+    struct [[gnu::packed]] Header {
+        uint8_t name_len;  // length of name in bytes
+    };
+    // followed by STRING8 name pad(name_len)B
 };
-// followed by STRING8 name pad(n)B
 
 }  // namespace protocol
 

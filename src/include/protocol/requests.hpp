@@ -2139,10 +2139,10 @@ struct PolyText8 : public Request {
     static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM8 {
         struct [[gnu::packed]] TEXTELT8 {
-            uint8_t string_len;  // length in bytes (cannot be FONT_SHIFT)
+            uint8_t string_len;  // string length in bytes (cannot be FONT_SHIFT)
             INT8    delta;
-            // followed by STRING8 string string_lenB
         } text_element;
+        // followed by STRING8 string string_lenB
         struct [[gnu::packed]] FONT {
             uint8_t font_shift;     // font-shift FONT_SHIFT
             uint8_t font_bytes[4];  // font byte 3 (most-significant) to
@@ -2170,10 +2170,10 @@ struct PolyText16 : public Request {
     static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM16 {
         struct [[gnu::packed]] TEXTELT16 {
-            uint8_t string_2B_len;  // length in CHAR2B (cannot be FONT_SHIFT)
+            uint8_t string_2B_len;  // string length in CHAR2B (cannot be FONT_SHIFT)
             INT8    delta;
-            // followed by STRING16 string 2string_lenB
         } text_element;
+        // followed by STRING16 string 2string_lenB
         struct [[gnu::packed]] FONT {
             uint8_t font_shift;     // font-shift FONT_SHIFT
             uint8_t font_bytes[4];  // font byte 3 (most-significant) to
@@ -2468,12 +2468,13 @@ struct StoreColors : public Request {
         uint8_t do_rgb_mask;  // 0x01 do-red 0x02 do-green 0x04 do-blue 0xF8 unused
     private:
         uint8_t _unused;
-    };
+    public:
 
-    inline static const
-    std::vector< std::string_view >& do_rgb_names {
-        protocol::enum_names::do_rgb_mask };
-    static constexpr uint8_t DO_RGB_ZERO_BITS { 0xF8 };
+        inline static const
+        std::vector< std::string_view >& do_rgb_names {
+            protocol::enum_names::do_rgb_mask };
+        static constexpr uint8_t DO_RGB_ZERO_BITS { 0xF8 };
+    };
 
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };

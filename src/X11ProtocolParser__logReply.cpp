@@ -721,7 +721,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs events {
         _parseLISTof< GetMotionEvents::Reply::TIMECOORD >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->events_ct, ws.nested() ) };
+            encoding->events_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     reply.bytes_parsed += events.bytes_parsed;
 
     const uint32_t name_width (
@@ -949,13 +949,13 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs properties {
         _parseLISTof< QueryFont::Reply::FONTPROP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->properties_ct, ws.nested() ) };
+            encoding->properties_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     reply.bytes_parsed += properties.bytes_parsed;
 
     const _ParsingOutputs char_infos {
         _parseLISTof< QueryFont::Reply::CHARINFO >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->char_infos_ct, ws.nested() ) };
+            encoding->char_infos_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     reply.bytes_parsed += char_infos.bytes_parsed;
 
     const uint32_t name_width (
@@ -1202,7 +1202,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs properties {
         _parseLISTof< ListFontsWithInfo::Reply::FONTPROP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->properties_ct, ws.nested() ) };
+            encoding->properties_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     reply.bytes_parsed += properties.bytes_parsed;
 
     const std::string_view name {
@@ -1741,7 +1741,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs colors {
         _parseLISTof< QueryColors::Reply::RGB >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->colors_ct, ws.nested() ) };
+            encoding->colors_ct, ws.nested(), _Whitespace::SINGLELINE ) };
     reply.bytes_parsed += colors.bytes_parsed;
 
     const uint32_t name_width (
