@@ -343,7 +343,8 @@ template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::POINT point, const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "x" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "x" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -362,7 +363,8 @@ template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::RECTANGLE rectangle, const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "height" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "height" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -385,7 +387,8 @@ template<>
 std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::ARC arc, const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "height" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "height" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -413,7 +416,8 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::Reply::CHARINFO charinfo,
     const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "right-side-bearing" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "right-side-bearing" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -441,7 +445,8 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryFont::Reply::FONTPROP fontprop,
     const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "value" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "value" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -460,7 +465,8 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::connection_setup::ConnAcceptance::FORMAT format,
     const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "bits-per-pixel" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "bits-per-pixel" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -483,9 +489,8 @@ X11ProtocolParser::_formatProtocolType(
     VISUALTYPE visualtype, const _Whitespace& ws ) {
     using VISUALTYPE =
         protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE;
-
     const uint32_t memb_name_w (
-        ws.multiline ? sizeof( "bits-per-rgb-value" ) - 1 : 0 );
+        !ws.multiline ? 0 : sizeof( "bits-per-rgb-value" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -516,7 +521,8 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::PolySegment::SEGMENT segment,
     const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "x1" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "x1" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -541,7 +547,8 @@ X11ProtocolParser::_formatProtocolType(
     const _Whitespace& ws ) {
     using COLORITEM = protocol::requests::StoreColors::COLORITEM;
     assert( ( coloritem.do_rgb_mask & COLORITEM::DO_RGB_ZERO_BITS ) == 0 );
-    static constexpr uint32_t memb_name_w ( sizeof( "(do rgb mask)" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "(do rgb mask)" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -568,7 +575,8 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::GetMotionEvents::Reply::TIMECOORD timecoord,
     const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "time" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "time" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
@@ -589,7 +597,8 @@ std::string
 X11ProtocolParser::_formatProtocolType(
     const protocol::requests::QueryColors::Reply::RGB rgb,
     const _Whitespace& ws ) {
-    static constexpr uint32_t memb_name_w ( sizeof( "green" ) - 1 );
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 : sizeof( "green" ) - 1 );
     return fmt::format(
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
