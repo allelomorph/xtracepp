@@ -86,7 +86,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
     assert( data != nullptr );
     assert( sz >= sizeof( KeyPress::Header ) );
     assert( reinterpret_cast< const KeyPress::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::KEYPRESS );
     return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
@@ -102,7 +102,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
     assert( data != nullptr );
     assert( sz >= sizeof( KeyRelease::Header ) );
     assert( reinterpret_cast< const KeyRelease::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::KEYRELEASE );
     return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
@@ -118,9 +118,9 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
     assert( data != nullptr );
     assert( sz >= sizeof( ButtonPress::Header ) );
     assert( reinterpret_cast< const ButtonPress::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::BUTTONPRESS );
-   return _parseEvent< InputEvent >( conn, data, sz, ws );
+    return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -134,7 +134,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
     assert( data != nullptr );
     assert( sz >= sizeof( ButtonRelease::Header ) );
     assert( reinterpret_cast< const ButtonRelease::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::BUTTONRELEASE );
     return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
@@ -153,7 +153,8 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     const MotionNotify::Encoding* encoding {
         reinterpret_cast< const MotionNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MotionNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::MOTIONNOTIFY );
     assert( outputs.bytes_parsed == MotionNotify::ENCODING_SZ );
 
@@ -288,7 +289,7 @@ X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
     assert( data != nullptr );
     assert( sz >= sizeof( EnterNotify::Header ) );
     assert( reinterpret_cast< const EnterNotify::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::ENTERNOTIFY );
     return _parseEvent< BoundaryEvent >( conn, data, sz, ws );
 }
@@ -304,7 +305,7 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
     assert( data != nullptr );
     assert( sz >= sizeof( LeaveNotify::Header ) );
     assert( reinterpret_cast< const LeaveNotify::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::LEAVENOTIFY );
     return _parseEvent< BoundaryEvent >( conn, data, sz, ws );
 }
@@ -370,7 +371,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
     assert( data != nullptr );
     assert( sz >= sizeof( FocusIn::Header ) );
     assert( reinterpret_cast< const FocusIn::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::FOCUSIN );
     return _parseEvent< FocusEvent >( conn, data, sz, ws );
 }
@@ -386,7 +387,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
     assert( data != nullptr );
     assert( sz >= sizeof( FocusOut::Header ) );
     assert( reinterpret_cast< const FocusOut::Header* >(
-                data )->code & _EVENT_CODE_MASK ==
+                data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::FOCUSOUT );
     return _parseEvent< FocusEvent >( conn, data, sz, ws );
 }
@@ -406,7 +407,8 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
         reinterpret_cast< const KeymapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( KeymapNotify::Encoding );
     assert( outputs.bytes_parsed == KeymapNotify::ENCODING_SZ );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::KEYMAPNOTIFY );
     // TBD can we develop a way of printing the keyboard state instead of bytes?
     const _ParsingOutputs keys {
@@ -448,7 +450,8 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
         reinterpret_cast< const Expose::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( Expose::Encoding );
     assert( outputs.bytes_parsed == Expose::ENCODING_SZ );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::EXPOSE );
 
     const uint32_t memb_name_w (
@@ -501,7 +504,8 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     const GraphicsExposure::Encoding* encoding {
         reinterpret_cast< const GraphicsExposure::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( GraphicsExposure::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::GRAPHICSEXPOSURE );
     assert( outputs.bytes_parsed == GraphicsExposure::ENCODING_SZ );
     // TBD lookup request opcodes and assert against encoding opcodes?
@@ -561,7 +565,8 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     const NoExposure::Encoding* encoding {
         reinterpret_cast< const NoExposure::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( NoExposure::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::NOEXPOSURE );
     assert( outputs.bytes_parsed == NoExposure::ENCODING_SZ );
     // TBD lookup request opcodes and assert against encoding opcodes?
@@ -609,7 +614,8 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     const VisibilityNotify::Encoding* encoding {
         reinterpret_cast< const VisibilityNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( VisibilityNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::VISIBILITYNOTIFY );
     assert( outputs.bytes_parsed == VisibilityNotify::ENCODING_SZ );
 
@@ -655,7 +661,8 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     const CreateNotify::Encoding* encoding {
         reinterpret_cast< const CreateNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( CreateNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::CREATENOTIFY );
     assert( outputs.bytes_parsed == CreateNotify::ENCODING_SZ );
 
@@ -713,7 +720,8 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     const DestroyNotify::Encoding* encoding {
         reinterpret_cast< const DestroyNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( DestroyNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::DESTROYNOTIFY );
     assert( outputs.bytes_parsed == DestroyNotify::ENCODING_SZ );
 
@@ -758,7 +766,8 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     const UnmapNotify::Encoding* encoding {
         reinterpret_cast< const UnmapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( UnmapNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::UNMAPNOTIFY );
     assert( outputs.bytes_parsed == UnmapNotify::ENCODING_SZ );
 
@@ -805,7 +814,8 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     const MapNotify::Encoding* encoding {
         reinterpret_cast< const MapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MapNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::MAPNOTIFY );
     assert( outputs.bytes_parsed == MapNotify::ENCODING_SZ );
 
@@ -852,7 +862,8 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     const MapRequest::Encoding* encoding {
         reinterpret_cast< const MapRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MapRequest::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::MAPREQUEST );
     assert( outputs.bytes_parsed == MapRequest::ENCODING_SZ );
 
@@ -897,7 +908,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     const ReparentNotify::Encoding* encoding {
         reinterpret_cast< const ReparentNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ReparentNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::REPARENTNOTIFY );
     assert( outputs.bytes_parsed == ReparentNotify::ENCODING_SZ );
 
@@ -951,7 +963,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     const ConfigureNotify::Encoding* encoding {
         reinterpret_cast< const ConfigureNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ConfigureNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::CONFIGURENOTIFY );
     assert( outputs.bytes_parsed == ConfigureNotify::ENCODING_SZ );
 
@@ -1014,7 +1027,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     const ConfigureRequest::Encoding* encoding {
         reinterpret_cast< const ConfigureRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ConfigureRequest::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::CONFIGUREREQUEST );
     assert( outputs.bytes_parsed == ConfigureRequest::ENCODING_SZ );
 
@@ -1082,7 +1096,8 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     const GravityNotify::Encoding* encoding {
         reinterpret_cast< const GravityNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( GravityNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::GRAVITYNOTIFY );
     assert( outputs.bytes_parsed == GravityNotify::ENCODING_SZ );
 
@@ -1131,7 +1146,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     const ResizeRequest::Encoding* encoding {
         reinterpret_cast< const ResizeRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ResizeRequest::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::RESIZEREQUEST );
     assert( outputs.bytes_parsed == ResizeRequest::ENCODING_SZ );
 
@@ -1178,7 +1194,8 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     const CirculateNotify::Encoding* encoding {
         reinterpret_cast< const CirculateNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( CirculateNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::CIRCULATENOTIFY );
     assert( outputs.bytes_parsed == CirculateNotify::ENCODING_SZ );
 
@@ -1225,7 +1242,8 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     const CirculateRequest::Encoding* encoding {
         reinterpret_cast< const CirculateRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( CirculateRequest::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::CIRCULATEREQUEST );
     assert( outputs.bytes_parsed == CirculateRequest::ENCODING_SZ );
 
@@ -1272,7 +1290,8 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     const PropertyNotify::Encoding* encoding {
         reinterpret_cast< const PropertyNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( PropertyNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::PROPERTYNOTIFY );
     assert( outputs.bytes_parsed == PropertyNotify::ENCODING_SZ );
 
@@ -1320,7 +1339,8 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     const SelectionClear::Encoding* encoding {
         reinterpret_cast< const SelectionClear::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SelectionClear::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::SELECTIONCLEAR );
     assert( outputs.bytes_parsed == SelectionClear::ENCODING_SZ );
 
@@ -1367,7 +1387,8 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     const SelectionRequest::Encoding* encoding {
         reinterpret_cast< const SelectionRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SelectionRequest::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::SELECTIONREQUEST );
     assert( outputs.bytes_parsed == SelectionRequest::ENCODING_SZ );
 
@@ -1423,7 +1444,8 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     const SelectionNotify::Encoding* encoding {
         reinterpret_cast< const SelectionNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SelectionNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::SELECTIONNOTIFY );
     assert( outputs.bytes_parsed == SelectionNotify::ENCODING_SZ );
 
@@ -1477,7 +1499,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     const ColormapNotify::Encoding* encoding {
         reinterpret_cast< const ColormapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ColormapNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::COLORMAPNOTIFY );
     assert( outputs.bytes_parsed == ColormapNotify::ENCODING_SZ );
 
@@ -1528,7 +1551,8 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     const ClientMessage::Encoding* encoding {
         reinterpret_cast< const ClientMessage::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ClientMessage::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::CLIENTMESSAGE );
     assert( sz >= ClientMessage::ENCODING_SZ );
 
@@ -1577,7 +1601,8 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     const MappingNotify::Encoding* encoding {
         reinterpret_cast< const MappingNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MappingNotify::Encoding );
-    assert( encoding->header.code & _EVENT_CODE_MASK ==
+    assert( encoding->header.code &
+            protocol::requests::SendEvent::EVENT_CODE_MASK ==
             protocol::events::codes::MAPPINGNOTIFY );
     assert( outputs.bytes_parsed == MappingNotify::ENCODING_SZ );
 
@@ -1619,10 +1644,10 @@ X11ProtocolParser::_parseEvent(
     assert( data != nullptr );
     assert( sz >= protocol::events::Event::ENCODING_SZ );
 
-    // event codes with msb turned on are generated by request SendEvent
+    // event codes with msb toggled on are generated by request SendEvent
     const uint8_t code (
-        reinterpret_cast< const protocol::events::Event::Header* >( data )->code &
-        _EVENT_CODE_MASK );
+        reinterpret_cast< const protocol::events::Event::Header* >(
+            data )->code & protocol::requests::SendEvent::EVENT_CODE_MASK );
     // TBD will change with extensions
     assert( code >= protocol::events::codes::MIN &&
             code <= protocol::events::codes::MAX );
@@ -1771,6 +1796,7 @@ X11ProtocolParser::_parseEvent(
 //    logging of both normal events and those encoded by SendEvent
 size_t X11ProtocolParser::_logEvent(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::requests::SendEvent;
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= protocol::events::Event::ENCODING_SZ );
@@ -1778,7 +1804,7 @@ size_t X11ProtocolParser::_logEvent(
     const protocol::events::Event::Header* header {
         reinterpret_cast< const protocol::events::Event::Header* >( data ) };
     // event codes with msb turned on are generated by request SendEvent
-    const uint8_t code ( header->code & _EVENT_CODE_MASK );
+    const uint8_t code ( header->code & SendEvent::EVENT_CODE_MASK );
     // KeymapNotify presents edge case, as it does not encode a sequence number
     const std::string sequence_num_str {
         ( header->code == protocol::events::codes::KEYMAPNOTIFY ) ? "?????" :
@@ -1788,10 +1814,9 @@ size_t X11ProtocolParser::_logEvent(
     fmt::println( settings.log_fs,
                   "C{:03d}:{:04d}B:{}:S{}: Event {}({}){}: {}",
                   conn->id, event.bytes_parsed, _SERVER_TO_CLIENT,
-                  sequence_num_str,
-                  protocol::events::names[ code ], code,
-                  header->code & _GENERATED_EVENT_FLAG ? " (generated)" : "",
-                  event.str );
+                  sequence_num_str, protocol::events::names[ code ], code,
+                  header->code & SendEvent::GENERATED_EVENT_FLAG ?
+                  " (generated)" : "", event.str );
     assert( event.bytes_parsed == protocol::events::Event::ENCODING_SZ );
     return event.bytes_parsed;
 }
