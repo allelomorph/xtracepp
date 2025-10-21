@@ -87,8 +87,8 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
             protocol::connection_setup::ConnResponse::AUTHENTICATE );
     // followed by STRING8 reason
     const size_t reason_padded_len {
-        header->following_aligned_units * _ALIGN };
-    std::string_view reason {
+        _alignedSize( header->following_aligned_units ) };
+    const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         reason_padded_len };
     bytes_parsed += reason_padded_len;

@@ -796,6 +796,8 @@ struct GetProperty : public Request {
         inline static const
         std::vector< std::string_view >& type_names {
             protocol::enum_names::zero_none };
+        static constexpr CARD8 MAX_FORMAT    { 32 };
+        static constexpr CARD8 FORMAT_FACTOR { 8 };
     };
 };
 
@@ -2831,6 +2833,7 @@ struct GetKeyboardControl : public impl::SimpleRequest {
             CARD16   sequence_num;         // sequence number
             uint32_t extra_aligned_units;  // 5
         };
+        static constexpr uint32_t AUTO_REPEATS_SZ { 32 };
         struct [[gnu::packed]] Encoding {
             Header  header;
             CARD32  led_mask;           // led-mask
@@ -2841,14 +2844,15 @@ struct GetKeyboardControl : public impl::SimpleRequest {
         private:
             uint8_t _unused[2];
         public:
-            CARD8   auto_repeats[32];   // LISTofCARD8 auto-repeats (LIST included due to fixed size)
+            CARD8   auto_repeats[AUTO_REPEATS_SZ];  // LISTofCARD8 auto-repeats
+                                                    //   (included due to fixed size)
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ + (5 * ALIGN) );
 
         inline static const
         std::vector< std::string_view >& global_auto_repeat_names {
             protocol::enum_names::off_on };
-        static constexpr int GLOBAL_AUTO_REPREAT_ENUM_MAX { 1 };
+        static constexpr uint8_t GLOBAL_AUTO_REPREAT_ENUM_MAX { 1 };
     };
 };
 

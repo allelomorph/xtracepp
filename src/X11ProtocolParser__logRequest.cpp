@@ -178,7 +178,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyPointRequest::Encoding );
     // followed by LISTofPOINT points
     const size_t points_sz {
-        ( header->tl_aligned_units * PolyPointRequest::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         PolyPointRequest::BASE_ENCODING_SZ };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
     const _ParsingOutputs points {
@@ -451,15 +451,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetWindowAttributes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetWindowAttributes::Header* >(
+    using protocol::requests::GetWindowAttributes;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, GetWindowAttributes > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetWindowAttributes::Header ) );
+    assert( reinterpret_cast< const GetWindowAttributes::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETWINDOWATTRIBUTES );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::GetWindowAttributes > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -467,15 +467,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::DestroyWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::DestroyWindow::Header* >(
+    using protocol::requests::DestroyWindow;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, DestroyWindow > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( DestroyWindow::Header ) );
+    assert( reinterpret_cast< const DestroyWindow::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::DESTROYWINDOW );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::DestroyWindow > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -483,15 +483,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::DestroySubwindows >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::DestroySubwindows::Header* >(
+    using protocol::requests::DestroySubwindows;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, DestroySubwindows > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( DestroySubwindows::Header ) );
+    assert( reinterpret_cast< const DestroySubwindows::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::DESTROYSUBWINDOWS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::DestroySubwindows > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -604,15 +604,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::MapWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::MapWindow::Header* >(
+    using protocol::requests::MapWindow;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, MapWindow > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( MapWindow::Header ) );
+    assert( reinterpret_cast< const MapWindow::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::MAPWINDOW );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::MapWindow > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -620,15 +620,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::MapSubwindows >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::MapSubwindows::Header* >(
+    using protocol::requests::MapSubwindows;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, MapSubwindows > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( MapSubwindows::Header ) );
+    assert( reinterpret_cast< const MapSubwindows::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::MAPSUBWINDOWS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::MapSubwindows > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -636,15 +636,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UnmapWindow >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::UnmapWindow::Header* >(
+    using protocol::requests::UnmapWindow;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, UnmapWindow > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( UnmapWindow::Header ) );
+    assert( reinterpret_cast< const UnmapWindow::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::UNMAPWINDOW );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::UnmapWindow > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -652,15 +652,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UnmapSubwindows >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::UnmapSubwindows::Header* >(
+    using protocol::requests::UnmapSubwindows;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, UnmapSubwindows > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( UnmapSubwindows::Header ) );
+    assert( reinterpret_cast< const UnmapSubwindows::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::UNMAPSUBWINDOWS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::UnmapSubwindows > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -836,15 +836,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryTree >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::QueryTree::Header* >(
+    using protocol::requests::QueryTree;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, QueryTree > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( QueryTree::Header ) );
+    assert( reinterpret_cast< const QueryTree::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::QUERYTREE );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::QueryTree > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -1154,15 +1154,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListProperties >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::ListProperties::Header* >(
+    using protocol::requests::ListProperties;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, ListProperties > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ListProperties::Header ) );
+    assert( reinterpret_cast< const ListProperties::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::LISTPROPERTIES );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::ListProperties > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -1960,15 +1960,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GrabServer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GrabServer::Header* >(
+    using protocol::requests::GrabServer;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GrabServer > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GrabServer::Header ) );
+    assert( reinterpret_cast< const GrabServer::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GRABSERVER );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GrabServer > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -1976,15 +1976,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UngrabServer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::UngrabServer::Header* >(
+    using protocol::requests::UngrabServer;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, UngrabServer > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( UngrabServer::Header ) );
+    assert( reinterpret_cast< const UngrabServer::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::UNGRABSERVER );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::UngrabServer > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -1992,15 +1992,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryPointer >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::QueryPointer::Header* >(
+    using protocol::requests::QueryPointer;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, QueryPointer > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( QueryPointer::Header ) );
+    assert( reinterpret_cast< const QueryPointer::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::QUERYPOINTER );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::QueryPointer > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -2235,15 +2235,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetInputFocus >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetInputFocus::Header* >(
+    using protocol::requests::GetInputFocus;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetInputFocus > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetInputFocus::Header ) );
+    assert( reinterpret_cast< const GetInputFocus::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETINPUTFOCUS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetInputFocus > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -2251,15 +2251,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::QueryKeymap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::QueryKeymap::Header* >(
+    using protocol::requests::QueryKeymap;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, QueryKeymap > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( QueryKeymap::Header ) );
+    assert( reinterpret_cast< const QueryKeymap::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::QUERYKEYMAP );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::QueryKeymap > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -2439,7 +2439,7 @@ X11ProtocolParser::_parseRequest<
     // followed by STRING16 string
     //   first calc padded string length due to ambiguity around odd-length
     const size_t string_sz {
-        ( header->tl_aligned_units * QueryTextExtents::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         QueryTextExtents::BASE_ENCODING_SZ };
     const size_t string_len {
         ( string_sz / sizeof( protocol::CHAR2B/*char16_t*/ ) ) -
@@ -2489,15 +2489,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListFonts >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::ListFonts::Header* >(
+    using protocol::requests::ListFonts;
+    using protocol::requests::impl::ListFontsRequest;
+    static_assert( std::is_base_of_v< ListFontsRequest, ListFonts > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ListFonts::Header ) );
+    assert( reinterpret_cast< const ListFonts::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::LISTFONTS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::ListFontsRequest,
-                   protocol::requests::ListFonts > );
-    return _parseRequest<
-        protocol::requests::impl::ListFontsRequest >( conn, data, sz );
+    return _parseRequest< ListFontsRequest >( conn, data, sz );
 }
 
 template<>
@@ -2505,15 +2505,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListFontsWithInfo >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::ListFontsWithInfo::Header* >(
+    using protocol::requests::ListFontsWithInfo;
+    using protocol::requests::impl::ListFontsRequest;
+    static_assert( std::is_base_of_v< ListFontsRequest, ListFontsWithInfo > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ListFontsWithInfo::Header ) );
+    assert( reinterpret_cast< const ListFontsWithInfo::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::LISTFONTSWITHINFO );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::ListFontsRequest,
-                   protocol::requests::ListFontsWithInfo > );
-    return _parseRequest<
-        protocol::requests::impl::ListFontsRequest >( conn, data, sz );
+    return _parseRequest< ListFontsRequest >( conn, data, sz );
 }
 
 template<>
@@ -2578,15 +2578,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetFontPath >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetFontPath::Header* >(
+    using protocol::requests::GetFontPath;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetFontPath > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetFontPath::Header ) );
+    assert( reinterpret_cast< const GetFontPath::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETFONTPATH );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetFontPath > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -3010,7 +3010,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( SetClipRectangles::Encoding );
     // followed by LISTofRECTANGLE rectangles
     const size_t rectangles_sz {
-        ( header->tl_aligned_units * SetClipRectangles::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         SetClipRectangles::BASE_ENCODING_SZ };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
@@ -3299,15 +3299,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyPoint >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::PolyPoint::Header* >(
+    using protocol::requests::PolyPoint;
+    using protocol::requests::impl::PolyPointRequest;
+    static_assert( std::is_base_of_v< PolyPointRequest, PolyPoint > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( PolyPoint::Header ) );
+    assert( reinterpret_cast< const PolyPoint::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::POLYPOINT );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::PolyPointRequest,
-                   protocol::requests::PolyPoint > );
-    return _parseRequest<
-        protocol::requests::impl::PolyPointRequest >( conn, data, sz );
+    return _parseRequest< PolyPointRequest >( conn, data, sz );
 }
 
 template<>
@@ -3315,15 +3315,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::PolyLine >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::PolyLine::Header* >(
+    using protocol::requests::PolyLine;
+    using protocol::requests::impl::PolyPointRequest;
+    static_assert( std::is_base_of_v< PolyPointRequest, PolyLine > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( PolyLine::Header ) );
+    assert( reinterpret_cast< const PolyLine::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::POLYLINE );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::PolyPointRequest,
-                   protocol::requests::PolyLine > );
-    return _parseRequest<
-        protocol::requests::impl::PolyPointRequest >( conn, data, sz );
+    return _parseRequest< PolyPointRequest >( conn, data, sz );
 }
 
 template<>
@@ -3348,7 +3348,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolySegment::Encoding );
     // followed by LISTofSEGMENT segments
     const size_t segments_sz {
-        ( header->tl_aligned_units * PolySegment::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         PolySegment::BASE_ENCODING_SZ };
     const size_t segments_ct { segments_sz / sizeof( PolySegment::SEGMENT ) };
     const _ParsingOutputs segments {
@@ -3409,7 +3409,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyRectangle::Encoding );
     // followed by LISTofRECTANGLE rectangles
     const size_t rectangles_sz {
-        ( header->tl_aligned_units * PolyRectangle::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         PolyRectangle::BASE_ENCODING_SZ };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
@@ -3470,7 +3470,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyArc::Encoding );
     // followed by LISTofARC arcs
     const size_t arcs_sz {
-        ( header->tl_aligned_units * PolyArc::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         PolyArc::BASE_ENCODING_SZ };
     const size_t arcs_ct { arcs_sz / sizeof( protocol::ARC ) };
     const _ParsingOutputs arcs {
@@ -3531,7 +3531,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( FillPoly::Encoding );
     // followed by LISTofPOINT points
     const size_t points_sz {
-        ( header->tl_aligned_units * FillPoly::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         FillPoly::BASE_ENCODING_SZ };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
     const _ParsingOutputs points {
@@ -3599,7 +3599,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyFillRectangle::Encoding );
     // followed by LISTofRECTANGLE rectangles
     const size_t rectangles_sz {
-        ( header->tl_aligned_units * PolyFillRectangle::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         sizeof( PolyFillRectangle::Encoding ) };
     const uint16_t rectangles_ct ( rectangles_sz / sizeof( protocol::RECTANGLE ) );
     const _ParsingOutputs rectangles {
@@ -3660,7 +3660,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyFillArc::Encoding );
     // followed by LISTofARC arcs
     const size_t arcs_sz {
-        ( header->tl_aligned_units * PolyFillArc::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         sizeof( PolyFillArc::Encoding ) };
     const uint16_t arcs_ct ( arcs_sz  / sizeof( protocol::ARC ) );
     const _ParsingOutputs arcs {
@@ -3721,7 +3721,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PutImage::Encoding );
     // followed by LISTofBYTE data
     const size_t data_len {
-        ( header->tl_aligned_units * PutImage::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         sizeof( PutImage::Encoding ) };
     //   as in xtrace, we will only print the size in bytes of the image data
     request.bytes_parsed += data_len;
@@ -3862,7 +3862,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyText8::Encoding );
     // followed by LISTofTEXTITEM8 items
     const size_t items_sz {
-        ( header->tl_aligned_units * PolyText8::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         PolyText8::BASE_ENCODING_SZ };
     // TEXTITEM8 count undetermined due to their variable length
     const _ParsingOutputs items {
@@ -3927,7 +3927,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyText16::Encoding );
     // followed by LISTofTEXTITEM16 items
     const size_t items_sz {
-        ( header->tl_aligned_units * PolyText16::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         PolyText16::BASE_ENCODING_SZ };
     // TEXTITEM8 count undetermined due to their variable length
     const _ParsingOutputs items {
@@ -4163,15 +4163,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::FreeColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::FreeColormap::Header* >(
+    using protocol::requests::FreeColormap;
+    using protocol::requests::impl::SimpleCmapRequest;
+    static_assert( std::is_base_of_v< SimpleCmapRequest, FreeColormap > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( FreeColormap::Header ) );
+    assert( reinterpret_cast< const FreeColormap::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::FREECOLORMAP );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleCmapRequest,
-                   protocol::requests::FreeColormap > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
+    return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
 
 template<>
@@ -4228,15 +4228,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::InstallColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::InstallColormap::Header* >(
+    using protocol::requests::InstallColormap;
+    using protocol::requests::impl::SimpleCmapRequest;
+    static_assert( std::is_base_of_v< SimpleCmapRequest, InstallColormap > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( InstallColormap::Header ) );
+    assert( reinterpret_cast< const InstallColormap::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::INSTALLCOLORMAP );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleCmapRequest,
-                   protocol::requests::InstallColormap > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
+    return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
 
 template<>
@@ -4244,15 +4244,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::UninstallColormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::UninstallColormap::Header* >(
+    using protocol::requests::UninstallColormap;
+    using protocol::requests::impl::SimpleCmapRequest;
+    static_assert( std::is_base_of_v< SimpleCmapRequest, UninstallColormap > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( UninstallColormap::Header ) );
+    assert( reinterpret_cast< const UninstallColormap::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::UNINSTALLCOLORMAP );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleCmapRequest,
-                   protocol::requests::UninstallColormap > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleCmapRequest >( conn, data, sz );
+    return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
 
 template<>
@@ -4260,15 +4260,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListInstalledColormaps >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::ListInstalledColormaps::Header* >(
+    using protocol::requests::ListInstalledColormaps;
+    using protocol::requests::impl::SimpleWindowRequest;
+    static_assert( std::is_base_of_v< SimpleWindowRequest, ListInstalledColormaps > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ListInstalledColormaps::Header ) );
+    assert( reinterpret_cast< const ListInstalledColormaps::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleWindowRequest,
-                   protocol::requests::ListInstalledColormaps > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleWindowRequest >( conn, data, sz );
+    return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
 template<>
@@ -4521,7 +4521,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( FreeColors::Encoding );
     // followed by LISTofCARD32 pixels
     const size_t pixels_sz {
-        ( header->tl_aligned_units * FreeColors::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         FreeColors::BASE_ENCODING_SZ  };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
     const _ParsingOutputs pixels {
@@ -4582,7 +4582,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( StoreColors::Encoding );
     // followed by LISTofCOLORITEM items
     const size_t items_sz {
-        ( header->tl_aligned_units * StoreColors::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         StoreColors::BASE_ENCODING_SZ };
     const size_t items_ct { items_sz / sizeof( StoreColors::COLORITEM ) };
     const _ParsingOutputs items {
@@ -4708,7 +4708,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( QueryColors::Encoding );
     // followed by LISTofCARD32 pixels
     const size_t pixels_sz {
-        ( header->tl_aligned_units * QueryColors::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         QueryColors::BASE_ENCODING_SZ  };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
     const _ParsingOutputs pixels {
@@ -5169,15 +5169,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListExtensions >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::ListExtensions::Header* >(
+    using protocol::requests::ListExtensions;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, ListExtensions > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ListExtensions::Header ) );
+    assert( reinterpret_cast< const ListExtensions::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::LISTEXTENSIONS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::ListExtensions > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -5202,7 +5202,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( ChangeKeyboardMapping::Encoding );
     // followed by LISTofKEYSYM keysyms
     const size_t keysyms_sz {
-        ( header->tl_aligned_units * ChangeKeyboardMapping::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         ChangeKeyboardMapping::BASE_ENCODING_SZ };
     const uint16_t keysyms_ct (
         header->keycode_count * encoding->keysyms_per_keycode );
@@ -5370,15 +5370,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetKeyboardControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetKeyboardControl::Header* >(
+    using protocol::requests::GetKeyboardControl;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetKeyboardControl > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetKeyboardControl::Header ) );
+    assert( reinterpret_cast< const GetKeyboardControl::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETKEYBOARDCONTROL );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetKeyboardControl > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -5485,15 +5485,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetPointerControl >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetPointerControl::Header* >(
+    using protocol::requests::GetPointerControl;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetPointerControl > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetPointerControl::Header ) );
+    assert( reinterpret_cast< const GetPointerControl::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETPOINTERCONTROL );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetPointerControl > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -5556,15 +5556,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetScreenSaver >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetScreenSaver::Header* >(
+    using protocol::requests::GetScreenSaver;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetScreenSaver > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetScreenSaver::Header ) );
+    assert( reinterpret_cast< const GetScreenSaver::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETSCREENSAVER );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetScreenSaver > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -5590,7 +5590,7 @@ X11ProtocolParser::_parseRequest<
     // followed by LISTofCARD8 address
     //   format as byte array, as we can't guarantee that the family is Internet
     const size_t address_sz {
-        ( header->tl_aligned_units * ChangeHosts::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         ChangeHosts::BASE_ENCODING_SZ };
     const _ParsingOutputs address {
         _parseLISTof< protocol::CARD8 >(
@@ -5643,15 +5643,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::ListHosts >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::ListHosts::Header* >(
+    using protocol::requests::ListHosts;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, ListHosts > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ListHosts::Header ) );
+    assert( reinterpret_cast< const ListHosts::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::LISTHOSTS );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::ListHosts > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -5816,7 +5816,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( RotateProperties::Encoding );
     // followed by LISTofATOM properties
     const size_t properties_sz {
-        ( header->tl_aligned_units * RotateProperties::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         RotateProperties::BASE_ENCODING_SZ };
     const _ParsingOutputs properties {
         _parseLISTof< protocol::ATOM >(
@@ -5925,7 +5925,7 @@ X11ProtocolParser::_parseRequest<
     // SetPointerMapping is header-only
     // followed by LISTofCARD8 map
     const size_t map_sz {
-        ( header->tl_aligned_units * SetPointerMapping::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         SetPointerMapping::BASE_ENCODING_SZ };
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
@@ -5968,15 +5968,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetPointerMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetPointerMapping::Header* >(
+    using protocol::requests::GetPointerMapping;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetPointerMapping > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetPointerMapping::Header ) );
+    assert( reinterpret_cast< const GetPointerMapping::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETPOINTERMAPPING );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetPointerMapping > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -5998,7 +5998,7 @@ X11ProtocolParser::_parseRequest<
     // SetModifierMapping is header-only
     // followed by LISTofKEYCODE keycodes
     const size_t keycodes_sz {
-        ( header->tl_aligned_units * SetModifierMapping::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         SetModifierMapping::BASE_ENCODING_SZ };
     const uint16_t keycodes_ct (
         SetModifierMapping::MODIFIER_CT * header->keycodes_per_modifier );
@@ -6040,15 +6040,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::GetModifierMapping >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( reinterpret_cast<
-            const protocol::requests::GetModifierMapping::Header* >(
+    using protocol::requests::GetModifierMapping;
+    using protocol::requests::impl::SimpleRequest;
+    static_assert( std::is_base_of_v< SimpleRequest, GetModifierMapping > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GetModifierMapping::Header ) );
+    assert( reinterpret_cast< const GetModifierMapping::Header* >(
                 data )->opcode ==
             protocol::requests::opcodes::GETMODIFIERMAPPING );
-    static_assert( std::is_base_of_v<
-                   protocol::requests::impl::SimpleRequest,
-                   protocol::requests::GetModifierMapping > );
-    return _parseRequest<
-        protocol::requests::impl::SimpleRequest >( conn, data, sz );
+    return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
 template<>
@@ -6070,7 +6070,7 @@ X11ProtocolParser::_parseRequest<
     // NoOperation is header-only
     // protocol specifies that no-op may be followed by variable length dummy data
     const size_t dummy_sz {
-        ( header->tl_aligned_units * NoOperation::ALIGN ) -
+        _alignedSize( header->tl_aligned_units ) -
         NoOperation::BASE_ENCODING_SZ };
     request.bytes_parsed += dummy_sz;
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );

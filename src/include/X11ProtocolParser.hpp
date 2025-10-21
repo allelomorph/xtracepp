@@ -137,7 +137,7 @@ private:
         return n + ( ( _ALIGN - ( n % _ALIGN ) ) % _ALIGN );
     }
     inline size_t _alignedUnits( const size_t sz ) {
-        return sz / _ALIGN;
+        return _pad( sz ) / _ALIGN;
     }
     inline size_t _alignedSize( const size_t units ) {
         return units * _ALIGN;

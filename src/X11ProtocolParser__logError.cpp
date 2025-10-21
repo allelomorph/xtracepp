@@ -11,12 +11,12 @@
 
 size_t X11ProtocolParser::_logError(
     Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::errors::Error;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= protocol::errors::Error::ENCODING_SZ );
+    assert( sz >= Error::ENCODING_SZ );
 
     size_t bytes_parsed {};
-    using protocol::errors::Error;
     const Error::Encoding* encoding {
         reinterpret_cast< const Error::Encoding* >( data ) };
     bytes_parsed += sizeof( Error::Encoding );

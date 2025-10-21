@@ -8,35 +8,38 @@
 #include "Connection.hpp"
 #include "protocol/connection_setup.hpp"
 #include "protocol/enum_names.hpp"
+#include "protocol/version.hpp"
 
 
 size_t X11ProtocolParser::_logConnInitiation(
     const Connection* conn, const uint8_t* data, const size_t sz ) {
+    using protocol::connection_setup::ConnInitiation;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::connection_setup::ConnInitiation::Encoding ) );
+    assert( sz >= sizeof( ConnInitiation::Encoding ) );
 
     size_t bytes_parsed {};
     const _Whitespace& ws { _ROOT_WS };
-    using namespace protocol::connection_setup;
     const ConnInitiation::Encoding* encoding {
         reinterpret_cast< const ConnInitiation::Encoding* >( data ) };
     assert( encoding->byte_order == ConnInitiation::MSBFIRST ||
             encoding->byte_order == ConnInitiation::LSBFIRST );
-    // TBD error if protocol is not 11.0
+    // TBD version error instead of assert?
+    assert( encoding->protocol_major_version == protocol::MAJOR_VERSION );
+    assert( encoding->protocol_minor_version == protocol::MINOR_VERSION );
     bytes_parsed += sizeof( ConnInitiation::Encoding );
     // followed by STRING8 authorization-protocol-name
     const std::string_view auth_protocol_name {
-        reinterpret_cast< const char* >( data + bytes_parsed ), encoding->name_len };
+        reinterpret_cast< const char* >( data + bytes_parsed ),
+        encoding->name_len };
     bytes_parsed += _pad( encoding->name_len );
     // followed by STRING8 authorization-protocol-data
-    // TBD may be security concerns with logging auth data
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
-            data + bytes_parsed, sz - bytes_parsed, encoding->data_len,
-            ws.nested() ) };
-    bytes_parsed += authorization_protocol_data.bytes_parsed;
-    assert( bytes_parsed == sz );
+            data + bytes_parsed, encoding->data_len,
+            encoding->data_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+    bytes_parsed += _pad( encoding->data_len );
+    assert( bytes_parsed == sz );  // (should not be batched with other packetss)
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -44,7 +47,7 @@ size_t X11ProtocolParser::_logConnInitiation(
                               sizeof( "authorization-protocol-name" ) ) - 1 );
     fmt::println(
         settings.log_fs,
-        "C{:03d}:{:04d}B:{}: client \"{}\" attempting connection: "
+        "C{:03d}:{:04d}B:{}: client {:?} attempting connection: "
         "{{{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}{}"                       // name_len, data_len
@@ -72,7 +75,6 @@ size_t X11ProtocolParser::_logConnInitiation(
             _formatInteger( encoding->data_len ), ws.separator ),
         ws.memb_indent, "authorization-protocol-name", memb_name_w, ws.equals,
         auth_protocol_name, ws.separator,
-        // TBD may be security concerns with logging auth data
         ws.memb_indent, "authorization-protocol-data", memb_name_w, ws.equals,
         encoding->data_len, ws.separator,
         ws.encl_indent

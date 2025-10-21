@@ -14,18 +14,16 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::impl::InputEvent;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= InputEvent::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::impl::InputEvent;
-    assert( sz >= sizeof( InputEvent::Encoding ) );
     const InputEvent::Encoding* encoding {
         reinterpret_cast< const InputEvent::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( InputEvent::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code >= protocol::events::codes::KEYPRESS &&
-            code <= protocol::events::codes::BUTTONRELEASE );
+    assert( outputs.bytes_parsed == InputEvent::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -41,15 +39,13 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         ws.memb_indent, "detail", memb_name_w, ws.equals,
         _formatProtocolType( encoding->header.detail ), ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -60,7 +56,8 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
         ws.memb_indent, "event", memb_name_w, ws.equals,
         _formatProtocolType( encoding->event ), ws.separator,
         ws.memb_indent, "child", memb_name_w, ws.equals,
-        _formatProtocolType( encoding->child, InputEvent::child_names ), ws.separator,
+        _formatProtocolType( encoding->child,
+                             InputEvent::child_names ), ws.separator,
         ws.memb_indent, "root-x", memb_name_w, ws.equals,
         _formatInteger( encoding->root_x ), ws.separator,
         ws.memb_indent, "root-y", memb_name_w, ws.equals,
@@ -83,8 +80,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeyPress >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::InputEvent >(
-        conn, data, sz, ws );
+    using protocol::events::KeyPress;
+    using protocol::events::impl::InputEvent;
+    static_assert( std::is_base_of_v< InputEvent, KeyPress > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( KeyPress::Header ) );
+    assert( reinterpret_cast< const KeyPress::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::KEYPRESS );
+    return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -92,8 +96,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeyRelease >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::InputEvent >(
-        conn, data, sz, ws );
+    using protocol::events::KeyRelease;
+    using protocol::events::impl::InputEvent;
+    static_assert( std::is_base_of_v< InputEvent, KeyRelease > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( KeyRelease::Header ) );
+    assert( reinterpret_cast< const KeyRelease::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::KEYRELEASE );
+    return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -101,8 +112,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ButtonPress >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::InputEvent >(
-        conn, data, sz, ws );
+    using protocol::events::ButtonPress;
+    using protocol::events::impl::InputEvent;
+    static_assert( std::is_base_of_v< InputEvent, ButtonPress > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ButtonPress::Header ) );
+    assert( reinterpret_cast< const ButtonPress::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::BUTTONPRESS );
+   return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -110,8 +128,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::InputEvent >(
-        conn, data, sz, ws );
+    using protocol::events::ButtonRelease;
+    using protocol::events::impl::InputEvent;
+    static_assert( std::is_base_of_v< InputEvent, ButtonRelease > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( ButtonRelease::Header ) );
+    assert( reinterpret_cast< const ButtonRelease::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::BUTTONRELEASE );
+    return _parseEvent< InputEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -119,17 +144,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::MotionNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= MotionNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::MotionNotify;
-    assert( sz >= sizeof( MotionNotify::Encoding ) );
     const MotionNotify::Encoding* encoding {
         reinterpret_cast< const MotionNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MotionNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::MOTIONNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::MOTIONNOTIFY );
+    assert( outputs.bytes_parsed == MotionNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -145,16 +171,14 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         ws.memb_indent, "detail", memb_name_w, ws.equals,
         _formatInteger( encoding->header.detail,
                         MotionNotify::detail_names ), ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -189,18 +213,16 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::impl::BoundaryEvent;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= BoundaryEvent::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::impl::BoundaryEvent;
-    assert( sz >= sizeof( BoundaryEvent::Encoding ) );
     const BoundaryEvent::Encoding* encoding {
         reinterpret_cast< const BoundaryEvent::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( BoundaryEvent::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::ENTERNOTIFY ||
-            code == protocol::events::codes::LEAVENOTIFY );
+    assert( outputs.bytes_parsed == BoundaryEvent::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : sizeof( "(same-screen/focus mask)" ) - 1 );
@@ -214,16 +236,14 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         ws.memb_indent, "detail", memb_name_w, ws.equals,
         _formatInteger( encoding->header.detail, BoundaryEvent::detail_names,
                         _IndexRange{ 0, BoundaryEvent::MAX_DETAIL } ), ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -262,8 +282,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::EnterNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::BoundaryEvent >(
-        conn, data, sz, ws );
+    using protocol::events::EnterNotify;
+    using protocol::events::impl::BoundaryEvent;
+    static_assert( std::is_base_of_v< BoundaryEvent, EnterNotify > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( EnterNotify::Header ) );
+    assert( reinterpret_cast< const EnterNotify::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::ENTERNOTIFY );
+    return _parseEvent< BoundaryEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -271,8 +298,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::BoundaryEvent >(
-        conn, data, sz, ws );
+    using protocol::events::LeaveNotify;
+    using protocol::events::impl::BoundaryEvent;
+    static_assert( std::is_base_of_v< BoundaryEvent, LeaveNotify > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( LeaveNotify::Header ) );
+    assert( reinterpret_cast< const LeaveNotify::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::LEAVENOTIFY );
+    return _parseEvent< BoundaryEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -280,18 +314,17 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::impl::FocusEvent;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= FocusEvent::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::impl::FocusEvent;
     assert( sz >= sizeof( FocusEvent::Encoding ) );
     const FocusEvent::Encoding* encoding {
         reinterpret_cast< const FocusEvent::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( FocusEvent::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::FOCUSIN ||
-            code == protocol::events::codes::FOCUSOUT );
+    assert( outputs.bytes_parsed == FocusEvent::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -305,16 +338,14 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         ws.memb_indent, "detail", memb_name_w, ws.equals,
         _formatInteger( encoding->header.detail,
                         FocusEvent::detail_names ), ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -333,8 +364,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::FocusIn >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::FocusEvent >(
-        conn, data, sz, ws );
+    using protocol::events::FocusIn;
+    using protocol::events::impl::FocusEvent;
+    static_assert( std::is_base_of_v< FocusEvent, FocusIn > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( FocusIn::Header ) );
+    assert( reinterpret_cast< const FocusIn::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::FOCUSIN );
+    return _parseEvent< FocusEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -342,8 +380,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
-    return _parseEvent< protocol::events::impl::FocusEvent >(
-        conn, data, sz, ws );
+    using protocol::events::FocusOut;
+    using protocol::events::impl::FocusEvent;
+    static_assert( std::is_base_of_v< FocusEvent, FocusOut > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( FocusOut::Header ) );
+    assert( reinterpret_cast< const FocusOut::Header* >(
+                data )->code & _EVENT_CODE_MASK ==
+            protocol::events::codes::FOCUSOUT );
+    return _parseEvent< FocusEvent >( conn, data, sz, ws );
 }
 
 template<>
@@ -351,20 +396,20 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::KeymapNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= KeymapNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::KeymapNotify;
-    assert( sz >= sizeof( KeymapNotify::Encoding ) );
     const KeymapNotify::Encoding* encoding {
         reinterpret_cast< const KeymapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( KeymapNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::KEYMAPNOTIFY );
-
+    assert( outputs.bytes_parsed == KeymapNotify::ENCODING_SZ );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::KEYMAPNOTIFY );
     // TBD can we develop a way of printing the keyboard state instead of bytes?
-    _ParsingOutputs keys {
+    const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
             ws.nested( _Whitespace::SINGLELINE ) ) };
@@ -393,17 +438,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::Expose;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= Expose::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::Expose;
-    assert( sz >= sizeof( Expose::Encoding ) );
     const Expose::Encoding* encoding {
         reinterpret_cast< const Expose::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( Expose::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::EXPOSE );
+    assert( outputs.bytes_parsed == Expose::ENCODING_SZ );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::EXPOSE );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -416,13 +462,11 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -448,19 +492,20 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::GraphicsExposure;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= GraphicsExposure::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::GraphicsExposure;
-    assert( sz >= sizeof( GraphicsExposure::Encoding ) );
     const GraphicsExposure::Encoding* encoding {
         reinterpret_cast< const GraphicsExposure::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( GraphicsExposure::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::GRAPHICSEXPOSURE );
-
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::GRAPHICSEXPOSURE );
+    assert( outputs.bytes_parsed == GraphicsExposure::ENCODING_SZ );
     // TBD lookup request opcodes and assert against encoding opcodes?
+
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(sequence number)" ) :
@@ -473,13 +518,11 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -509,19 +552,20 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::NoExposure;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= NoExposure::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::NoExposure;
-    assert( sz >= sizeof( NoExposure::Encoding ) );
     const NoExposure::Encoding* encoding {
         reinterpret_cast< const NoExposure::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( NoExposure::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::NOEXPOSURE );
-
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::NOEXPOSURE );
+    assert( outputs.bytes_parsed == NoExposure::ENCODING_SZ );
     // TBD lookup request opcodes and assert against encoding opcodes?
+
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(sequence number)" ) :
@@ -532,13 +576,11 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -558,17 +600,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::VisibilityNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= VisibilityNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::VisibilityNotify;
-    assert( sz >= sizeof( VisibilityNotify::Encoding ) );
     const VisibilityNotify::Encoding* encoding {
         reinterpret_cast< const VisibilityNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( VisibilityNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::VISIBILITYNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::VISIBILITYNOTIFY );
+    assert( outputs.bytes_parsed == VisibilityNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -603,17 +646,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::CreateNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= CreateNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::CreateNotify;
-    assert( sz >= sizeof( CreateNotify::Encoding ) );
     const CreateNotify::Encoding* encoding {
         reinterpret_cast< const CreateNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( CreateNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::CREATENOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::CREATENOTIFY );
+    assert( outputs.bytes_parsed == CreateNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -626,13 +670,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -662,17 +704,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::DestroyNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= DestroyNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::DestroyNotify;
-    assert( sz >= sizeof( DestroyNotify::Encoding ) );
     const DestroyNotify::Encoding* encoding {
         reinterpret_cast< const DestroyNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( DestroyNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::DESTROYNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::DESTROYNOTIFY );
+    assert( outputs.bytes_parsed == DestroyNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -684,13 +727,11 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -708,17 +749,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::UnmapNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= UnmapNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::UnmapNotify;
-    assert( sz >= sizeof( UnmapNotify::Encoding ) );
     const UnmapNotify::Encoding* encoding {
         reinterpret_cast< const UnmapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( UnmapNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::UNMAPNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::UNMAPNOTIFY );
+    assert( outputs.bytes_parsed == UnmapNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -730,13 +772,11 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -756,17 +796,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::MapNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= MapNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::MapNotify;
-    assert( sz >= sizeof( MapNotify::Encoding ) );
     const MapNotify::Encoding* encoding {
         reinterpret_cast< const MapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MapNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::MAPNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::MAPNOTIFY );
+    assert( outputs.bytes_parsed == MapNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -778,13 +819,11 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -804,33 +843,34 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::MapRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= MapRequest::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::MapRequest;
-    assert( sz >= sizeof( MapRequest::Encoding ) );
     const MapRequest::Encoding* encoding {
         reinterpret_cast< const MapRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MapRequest::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::MAPREQUEST );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::MAPREQUEST );
+    assert( outputs.bytes_parsed == MapRequest::ENCODING_SZ );
 
     const uint32_t memb_name_w (
-        settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
+        !ws.multiline ? 0 : ( settings.verbose ?
+                              sizeof( "(sequence number)" ) :
+                              sizeof( "parent" ) ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -848,17 +888,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::ReparentNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= ReparentNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::ReparentNotify;
-    assert( sz >= sizeof( ReparentNotify::Encoding ) );
     const ReparentNotify::Encoding* encoding {
         reinterpret_cast< const ReparentNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ReparentNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( encoding->header.code == protocol::events::codes::REPARENTNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::REPARENTNOTIFY );
+    assert( outputs.bytes_parsed == ReparentNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -871,13 +912,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -903,17 +942,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::ConfigureNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= ConfigureNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::ConfigureNotify;
-    assert( sz >= sizeof( ConfigureNotify::Encoding ) );
     const ConfigureNotify::Encoding* encoding {
         reinterpret_cast< const ConfigureNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ConfigureNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::CONFIGURENOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::CONFIGURENOTIFY );
+    assert( outputs.bytes_parsed == ConfigureNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -927,13 +967,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -966,17 +1004,19 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::ConfigureRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= ConfigureRequest::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::ConfigureRequest;
     assert( sz >= sizeof( ConfigureRequest::Encoding ) );
     const ConfigureRequest::Encoding* encoding {
         reinterpret_cast< const ConfigureRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ConfigureRequest::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::CONFIGUREREQUEST );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::CONFIGUREREQUEST );
+    assert( outputs.bytes_parsed == ConfigureRequest::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -992,16 +1032,14 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         ws.memb_indent, "stack-mode", memb_name_w, ws.equals,
         _formatInteger( encoding->header.stack_mode,
                         ConfigureRequest::stack_mode_names ), ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1035,17 +1073,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::GravityNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= GravityNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::GravityNotify;
-    assert( sz >= sizeof( GravityNotify::Encoding ) );
     const GravityNotify::Encoding* encoding {
         reinterpret_cast< const GravityNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( GravityNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::GRAVITYNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::GRAVITYNOTIFY );
+    assert( outputs.bytes_parsed == GravityNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1057,13 +1096,11 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1085,17 +1122,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::ResizeRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= ResizeRequest::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::ResizeRequest;
-    assert( sz >= sizeof( ResizeRequest::Encoding ) );
     const ResizeRequest::Encoding* encoding {
         reinterpret_cast< const ResizeRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ResizeRequest::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::RESIZEREQUEST );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::RESIZEREQUEST );
+    assert( outputs.bytes_parsed == ResizeRequest::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1107,13 +1145,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1133,17 +1169,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::CirculateNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= CirculateNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::CirculateNotify;
-    assert( sz >= sizeof( CirculateNotify::Encoding ) );
     const CirculateNotify::Encoding* encoding {
         reinterpret_cast< const CirculateNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( CirculateNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::CIRCULATENOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::CIRCULATENOTIFY );
+    assert( outputs.bytes_parsed == CirculateNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1155,13 +1192,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1181,17 +1216,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::CirculateRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= CirculateRequest::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::CirculateRequest;
-    assert( sz >= sizeof( CirculateRequest::Encoding ) );
     const CirculateRequest::Encoding* encoding {
         reinterpret_cast< const CirculateRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( CirculateRequest::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::CIRCULATEREQUEST );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::CIRCULATEREQUEST );
+    assert( outputs.bytes_parsed == CirculateRequest::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1203,13 +1239,11 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1229,17 +1263,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::PropertyNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= PropertyNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::PropertyNotify;
-    assert( sz >= sizeof( PropertyNotify::Encoding ) );
     const PropertyNotify::Encoding* encoding {
         reinterpret_cast< const PropertyNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( PropertyNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::PROPERTYNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::PROPERTYNOTIFY );
+    assert( outputs.bytes_parsed == PropertyNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         settings.multiline ? sizeof( "(sequence number)" ) - 1 : 0 );
@@ -1249,13 +1284,11 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1266,7 +1299,8 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
         ws.memb_indent, "time", memb_name_w, ws.equals,
         _formatProtocolType( encoding->time ), ws.separator,
         ws.memb_indent, "state", memb_name_w, ws.equals,
-        _formatInteger( encoding->state, PropertyNotify::state_names ), ws.separator,
+        _formatInteger( encoding->state,
+                        PropertyNotify::state_names ), ws.separator,
         ws.encl_indent
         );
     return outputs;
@@ -1277,17 +1311,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::SelectionClear;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= SelectionClear::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::SelectionClear;
-    assert( sz >= sizeof( SelectionClear::Encoding ) );
     const SelectionClear::Encoding* encoding {
         reinterpret_cast< const SelectionClear::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SelectionClear::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::SELECTIONCLEAR );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::SELECTIONCLEAR );
+    assert( outputs.bytes_parsed == SelectionClear::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1299,13 +1334,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1325,17 +1358,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::SelectionRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= SelectionRequest::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::SelectionRequest;
-    assert( sz >= sizeof( SelectionRequest::Encoding ) );
     const SelectionRequest::Encoding* encoding {
         reinterpret_cast< const SelectionRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SelectionRequest::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::SELECTIONREQUEST );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::SELECTIONREQUEST );
+    assert( outputs.bytes_parsed == SelectionRequest::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1348,13 +1382,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1382,17 +1414,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::SelectionNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= SelectionNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::SelectionNotify;
-    assert( sz >= sizeof( SelectionNotify::Encoding ) );
     const SelectionNotify::Encoding* encoding {
         reinterpret_cast< const SelectionNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( SelectionNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::SELECTIONNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::SELECTIONNOTIFY );
+    assert( outputs.bytes_parsed == SelectionNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1405,13 +1438,11 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1437,17 +1468,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::ColormapNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= ColormapNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::ColormapNotify;
-    assert( sz >= sizeof( ColormapNotify::Encoding ) );
     const ColormapNotify::Encoding* encoding {
         reinterpret_cast< const ColormapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ColormapNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::COLORMAPNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::COLORMAPNOTIFY );
+    assert( outputs.bytes_parsed == ColormapNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1459,13 +1491,11 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1489,17 +1519,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::ClientMessage;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= ClientMessage::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::ClientMessage;
-    assert( sz >= sizeof( ClientMessage::Encoding ) );
     const ClientMessage::Encoding* encoding {
         reinterpret_cast< const ClientMessage::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ClientMessage::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::CLIENTMESSAGE );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::CLIENTMESSAGE );
+    assert( sz >= ClientMessage::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1513,15 +1544,13 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
         ws.memb_indent, "format", memb_name_w, ws.equals,
         _formatInteger( encoding->header.format ), ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
@@ -1539,17 +1568,18 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
     Connection* conn, const uint8_t* data, const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
+    using protocol::events::MappingNotify;
     assert( conn != nullptr );
     assert( data != nullptr );
+    assert( sz >= MappingNotify::ENCODING_SZ );
 
     _ParsingOutputs outputs {};
-    using protocol::events::MappingNotify;
-    assert( sz >= sizeof( MappingNotify::Encoding ) );
     const MappingNotify::Encoding* encoding {
         reinterpret_cast< const MappingNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( MappingNotify::Encoding );
-    const uint8_t code ( encoding->header.code & _EVENT_CODE_MASK );
-    assert( code == protocol::events::codes::MAPPINGNOTIFY );
+    assert( encoding->header.code & _EVENT_CODE_MASK ==
+            protocol::events::codes::MAPPINGNOTIFY );
+    assert( outputs.bytes_parsed == MappingNotify::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1561,13 +1591,11 @@ X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
         ws.separator,
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatInteger( encoding->header.code ), ws.separator ),
-        !settings.verbose ? "" :
-        fmt::format(
+        !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
             _formatInteger( encoding->header.sequence_num ), ws.separator ),
