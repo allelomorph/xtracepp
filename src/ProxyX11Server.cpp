@@ -105,10 +105,11 @@ void ProxyX11Server::init( const int argc, const char* argv[] ) {
         _copyAuthentication();
     if ( settings.relativetimestamps )
         _fetchCurrentServerTime();
+    std::vector< std::string > fetched_atoms;
     if ( settings.prefetchatoms )
-        _fetchInternedAtoms();
+        fetched_atoms = _fetchInternedAtoms();
 
-    _parser.importSettings( settings );
+    _parser.importSettings( settings, fetched_atoms );
 }
 
 int ProxyX11Server::run() {

@@ -54,7 +54,7 @@ private:
     // TBD once InternAtom replies with server ATOM, properly map to ATOM
     std::unordered_map<uint32_t, std::string> _nonseq_interned_atoms;
     // TBD prefer prefetched atoms when option is turned on
-    std::vector<std::string> _seq_interned_atoms;
+    std::vector< std::string > _seq_interned_atoms;
 
     // only atom string known at InternAtom request parsing
     void
@@ -110,8 +110,8 @@ private:
         uint8_t          base_tab_ct {};
         std::string_view encl_indent;
         std::string_view memb_indent;
-        std::string_view equals;     // TBD would prefer const& if not using copy ctor
-        std::string_view separator;  // TBD would prefer const& if not using copy ctor
+        std::string_view equals;
+        std::string_view separator;
 
         _Whitespace() = delete;
         _Whitespace( const uint8_t base_tab_ct_, const bool multiline_ ) :
@@ -659,7 +659,8 @@ public:
 
     X11ProtocolParser() {}
 
-    void importSettings( const Settings& settings_ );
+    void importSettings( const Settings& settings_,
+                         const std::vector< std::string >& fetched_atoms );
     size_t logClientPackets( Connection* conn );
     size_t logServerPackets( Connection* conn );
 };

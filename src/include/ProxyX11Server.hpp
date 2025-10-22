@@ -60,7 +60,7 @@ private:
     bool _authenticateServerConnection(
         const int server_fd, protocol::WINDOW* screen0_root = nullptr );
     void _fetchCurrentServerTime();
-    void _fetchInternedAtoms();
+    std::vector< std::string > _fetchInternedAtoms();
 
     ////// CLI Subcommand
 

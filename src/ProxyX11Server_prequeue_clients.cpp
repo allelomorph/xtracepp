@@ -92,11 +92,13 @@ bool ProxyX11Server::_authenticateServerConnection(
     sbuffer.read( server_fd );
     using protocol::connection_setup::ConnResponse;
     using protocol::connection_setup::ConnAcceptance;
-    assert( sbuffer.size() >= sizeof( ConnAcceptance::Header ) );
-    ConnAcceptance::Encoding accept_encoding;
+    assert( sbuffer.size() >= sizeof( ConnAcceptance::Encoding ) );
+    ConnAcceptance::Encoding accept_encoding {};
     sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
-    assert( sbuffer.size() >= _parser._alignedSize(
-                accept_encoding.header.following_aligned_units ) );
+    // TBD separate header from encoding for cleaner asserts
+    assert( sbuffer.size() == sizeof( ConnAcceptance::Header ) +
+            _parser._alignedSize( accept_encoding.header.following_aligned_units ) -
+            sizeof( ConnAcceptance::Encoding ) );
     if ( accept_encoding.header.success != ConnResponse::SUCCESS )
         return false;
     if ( accept_encoding.header.protocol_major_version !=
@@ -227,45 +229,35 @@ static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
     write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
-    _exit( sig );
+    static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
+    _exit( _SIGNAL_RETVAL_OFFSET + sig );
 }
 
-void ProxyX11Server::_fetchInternedAtoms() {
+std::vector< std::string >
+ProxyX11Server::_fetchInternedAtoms() {
+    using protocol::requests::GetAtomName;
+
     const int server_fd { _connectToServer() };
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
             stderr, "{}: failure to connect to X server for display: {}",
             __PRETTY_FUNCTION__, _out_display.name );
-        return;
+        exit( EXIT_FAILURE );
     }
-
-    // TBD put most initializations first to avoid being crossed by goto
-    // indices start at 1
-    std::vector<std::string> fetched_atoms ( 1 );
-    using protocol::requests::GetAtomName;
-    GetAtomName::Header req_header {};
-    GetAtomName::Encoding req_encoding {};
-    GetAtomName::Reply::Encoding rep_encoding {};
-    constexpr int STRINGBUF_SZ { 1000 };
-    char stringbuf[STRINGBUF_SZ];
-    constexpr int readout_int_width { 5 };
-    constexpr char CSI[sizeof("\x1b[")] { "\x1b[" };
-    SocketBuffer sbuffer;
-    struct sigaction act {};
-
     if ( !_authenticateServerConnection( server_fd ) ) {
         fmt::println( stderr, "{}: failed to authenticate connection to X server",
                       __PRETTY_FUNCTION__ );
-        goto close_socket;
+        close( server_fd );  // sends EOF
+        exit( EXIT_FAILURE );
     }
-    req_header.opcode = protocol::requests::opcodes::GETATOMNAME;
-    req_header.tl_aligned_units =
-        _parser._alignedUnits( GetAtomName::BASE_ENCODING_SZ );
+
+    constexpr char CSI[ sizeof( "\x1b[" ) ] { "\x1b[" };
     // TBD standardize which stream all non-log messages are going to
     fmt::print( stderr, "fetching interned ATOMs: " );
     fmt::print( stderr, "{}?25l", CSI );  // hide cursor
     // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
+    struct sigaction act {};
     act.sa_handler = &handleTerminatingSignal;
     if ( sigaction( SIGABRT, &act, nullptr ) == -1 ||
          sigaction( SIGINT, &act, nullptr ) == -1  ||
@@ -274,8 +266,20 @@ void ProxyX11Server::_fetchInternedAtoms() {
         fmt::println(
             stderr, "{}: {}", __PRETTY_FUNCTION__,
             errors::system::message( "sigaction" ) );
+        close( server_fd );  // sends EOF
         exit( EXIT_FAILURE );
     }
+
+    GetAtomName::Header req_header {};
+    req_header.opcode = protocol::requests::opcodes::GETATOMNAME;
+    req_header.tl_aligned_units =
+        _parser._alignedUnits( GetAtomName::BASE_ENCODING_SZ );
+    GetAtomName::Encoding req_encoding {};
+    GetAtomName::Reply::Encoding rep_encoding {};
+    std::vector< std::string > fetched_atoms ( 1 );  // indices start at 1
+    static constexpr size_t STRINGBUF_SZ { 1000 };
+    char stringbuf[ STRINGBUF_SZ ];
+    SocketBuffer sbuffer;
     for ( uint32_t i { 1 }; true; ++i ) {
         ////// Send GetAtomName request on ATOMs starting with 1
         //////   ( expecting large contiguous region of ATOM ids )
@@ -287,7 +291,8 @@ void ProxyX11Server::_fetchInternedAtoms() {
             pollSingleSocket( server_fd, POLLOUT, 500 );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
-            goto close_socket;
+            close( server_fd );  // sends EOF
+            exit( EXIT_FAILURE );
         }
         sbuffer.write( server_fd );
 
@@ -298,7 +303,8 @@ void ProxyX11Server::_fetchInternedAtoms() {
             pollSingleSocket( server_fd, POLLIN, 500 );
         } catch ( const std::exception& e ) {
             fmt::println( stderr, "{}", e.what() );
-            goto close_socket;
+            close( server_fd );  // sends EOF
+            exit( EXIT_FAILURE );
         }
         sbuffer.read( server_fd );
         assert( sbuffer.size() >= sizeof( rep_encoding ) );
@@ -332,9 +338,9 @@ void ProxyX11Server::_fetchInternedAtoms() {
         assert( sbuffer.empty() );
 
         // Update ATOM counter in place to keep user aware of progress
-        // \x1b[#D right # cols
-        fmt::print( stderr, "{:{}d}{}{}D",
-                    i, readout_int_width, CSI, readout_int_width );
+        static constexpr int COUNTER_W { 5 };
+        fmt::print( stderr, "{:{}d}{}{}D",  // \x1b[#D right # cols
+                    i, COUNTER_W, CSI, COUNTER_W );
     }
 
     fmt::print( stderr, "{}?25h", CSI );  // show cursor
@@ -347,13 +353,9 @@ void ProxyX11Server::_fetchInternedAtoms() {
         fmt::println(
             stderr, "{}: {}", __PRETTY_FUNCTION__,
             errors::system::message( "sigaction" ) );
+        close( server_fd );  // sends EOF
         exit( EXIT_FAILURE );
     }
-    if ( fetched_atoms.size() > 1 ) {
-        _parser._seq_interned_atoms = std::move( fetched_atoms );
-    }
 
-close_socket:
-    // sends EOF
-    close( server_fd );
+    return fetched_atoms;
 }

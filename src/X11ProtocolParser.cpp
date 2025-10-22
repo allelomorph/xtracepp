@@ -1,4 +1,5 @@
 #include <string_view>
+#include <utility>   // move
 
 #include <cassert>
 
@@ -16,6 +17,16 @@
 #include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
 #include "protocol/errors.hpp"  // errors::ENCODING_SZ
 
+
+void X11ProtocolParser::importSettings(
+    const Settings& settings_,
+    const std::vector< std::string >& fetched_atoms ) {
+    _seq_interned_atoms = std::move( fetched_atoms );
+    _ROOT_WS = _Whitespace{ 0, settings_.multiline };
+    settings = settings_;
+    assert( settings.log_fs != nullptr );
+    assert( !feof( settings.log_fs ) && !ferror( settings_.log_fs ) );
+}
 
 size_t X11ProtocolParser::_logClientPacket(
     Connection* conn, uint8_t* data, const size_t sz ) {
@@ -87,17 +98,6 @@ size_t X11ProtocolParser::_logServerPacket(
     }
     assert( bytes_parsed <= sz );
     return bytes_parsed;
-}
-
-// TBD this should all happen in parser ctor to allow const settings
-void X11ProtocolParser::importSettings(
-    const Settings& settings_ ) {
-
-    settings = settings_;
-    assert( settings.log_fs != nullptr );
-    assert( !feof( settings.log_fs ) && !ferror( settings_.log_fs ) );
-
-    _ROOT_WS = _Whitespace( 0, settings.multiline );
 }
 
 // TBD pass in readwritedebug or keep as private parser var like verbosity?
