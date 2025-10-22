@@ -75,7 +75,7 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs address {
         _parseLISTof< protocol::BYTE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            header->address_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+            header->address_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     outputs.bytes_parsed += _pad( header->address_len );
 
     const uint32_t memb_name_w (
@@ -199,7 +199,7 @@ X11ProtocolParser::_parseProtocolType<
     const _ParsingOutputs visuals {
         _parseLISTof< DEPTH::VISUALTYPE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            encoding->visuals_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->visuals_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
 
@@ -343,7 +343,7 @@ X11ProtocolParser::_parseProtocolType<
         _parseLISTof< protocol::CHAR2B >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
             item.text_element.string_2B_len,
-            ws.nested( _Whitespace::SINGLELINE ) ) };
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     outputs.bytes_parsed += string.bytes_parsed;
 
     const uint32_t memb_name_w (

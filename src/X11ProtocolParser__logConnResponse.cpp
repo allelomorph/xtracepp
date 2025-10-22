@@ -150,7 +150,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
     const _ParsingOutputs pixmap_formats {
         _parseLISTof< ConnAcceptance::FORMAT >(
             data + bytes_parsed, sz - bytes_parsed,
-            encoding->pixmap_formats_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->pixmap_formats_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     bytes_parsed += pixmap_formats.bytes_parsed;
     // followed by LISTofSCREEN roots
     const _ParsingOutputs roots {

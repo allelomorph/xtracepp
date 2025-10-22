@@ -184,7 +184,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
             data + request.bytes_parsed, points_sz, points_ct,
-            ws.nested(), _Whitespace::SINGLELINE ) };
+            ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( points.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -992,7 +992,7 @@ X11ProtocolParser::_parseRequest<
     } else {
         data_ = _parseLISTof< protocol::BYTE >(
             data + request.bytes_parsed, data_len,
-            data_len, ws.nested( _Whitespace::SINGLELINE ) );
+            data_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) );
     }
     request.bytes_parsed += _pad( data_.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
@@ -2447,7 +2447,7 @@ X11ProtocolParser::_parseRequest<
     _ParsingOutputs string {
         _parseLISTof< protocol::CHAR2B >(
             data + request.bytes_parsed, string_sz,
-            string_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+            string_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     //   bypass expected use of string.bytes_parsed due to odd-length
     request.bytes_parsed += string_sz;
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
@@ -3016,7 +3016,7 @@ X11ProtocolParser::_parseRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz,
-            rectangles_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            rectangles_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3354,7 +3354,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs segments {
         _parseLISTof< PolySegment::SEGMENT >(
             data + request.bytes_parsed, segments_sz,
-            segments_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            segments_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( segments.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3415,7 +3415,7 @@ X11ProtocolParser::_parseRequest<
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz,
-            rectangles_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            rectangles_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3476,7 +3476,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
             data + request.bytes_parsed, arcs_sz,
-            arcs_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            arcs_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( arcs.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3537,7 +3537,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
             data + request.bytes_parsed, points_sz, points_ct,
-            ws.nested(), _Whitespace::SINGLELINE ) };
+            ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( points.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3605,7 +3605,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz,
-            rectangles_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            rectangles_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( rectangles.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -3666,7 +3666,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
             data + request.bytes_parsed, arcs_sz,
-            arcs_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            arcs_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( arcs.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -4060,7 +4060,7 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::CHAR2B >(
             data + request.bytes_parsed,
             header->string_2B_len * sizeof( protocol::CHAR2B ),
-            header->string_2B_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+            header->string_2B_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += _pad( string.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -4588,7 +4588,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs items {
         _parseLISTof< StoreColors::COLORITEM >(
             data + request.bytes_parsed, items_sz,
-            items_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            items_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += _pad( items.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -5595,7 +5595,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs address {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, address_sz, encoding->address_len,
-            ws.nested( _Whitespace::SINGLELINE ) ) };
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += _pad( address.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
@@ -5930,7 +5930,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, map_sz,
-            header->map_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+            header->map_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += _pad( map.bytes_parsed );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 

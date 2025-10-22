@@ -37,7 +37,7 @@ size_t X11ProtocolParser::_logConnInitiation(
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, encoding->data_len,
-            encoding->data_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+            encoding->data_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     bytes_parsed += _pad( encoding->data_len );
     assert( bytes_parsed == sz );  // (should not be batched with other packetss)
 

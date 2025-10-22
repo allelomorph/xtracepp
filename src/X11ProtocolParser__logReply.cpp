@@ -372,7 +372,7 @@ X11ProtocolParser::_parseReply<
     } else {
         value = _parseLISTof< protocol::BYTE >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed, value_sz,
-            ws.nested( _Whitespace::SINGLELINE ) );
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) );
     }
     reply.bytes_parsed += _pad( value.bytes_parsed );
     assert( encoding->header.extra_aligned_units ==
@@ -721,7 +721,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs events {
         _parseLISTof< GetMotionEvents::Reply::TIMECOORD >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->events_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->events_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += events.bytes_parsed;
     assert( encoding->header.extra_aligned_units ==
             _alignedUnits( reply.bytes_parsed -
@@ -897,7 +897,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
-            ws.nested( _Whitespace::SINGLELINE ) ) };
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -948,13 +948,13 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs properties {
         _parseLISTof< QueryFont::Reply::FONTPROP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->properties_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->properties_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += properties.bytes_parsed;
     // followed by LISTofCHARINFO char-infos
     const _ParsingOutputs char_infos {
         _parseLISTof< QueryFont::Reply::CHARINFO >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->char_infos_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->char_infos_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += char_infos.bytes_parsed;
     assert( encoding->header.extra_aligned_units ==
             _alignedUnits( reply.bytes_parsed -
@@ -1210,7 +1210,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs properties {
         _parseLISTof< ListFontsWithInfo::Reply::FONTPROP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->properties_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->properties_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += properties.bytes_parsed;
     // followed by STRING8 name
     const std::string_view name {
@@ -1371,7 +1371,7 @@ X11ProtocolParser::_parseReply<
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
             // (no data length in encoding, must be inferred from eau)
             _alignedSize( encoding->header.extra_aligned_units ),
-            ws.nested( _Whitespace::SINGLELINE ) ) };
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     reply.bytes_parsed += _pad( data_.bytes_parsed );
     assert( encoding->header.extra_aligned_units ==
             _alignedUnits( reply.bytes_parsed -
@@ -1746,7 +1746,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs colors {
         _parseLISTof< QueryColors::Reply::RGB >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->colors_ct, ws.nested(), _Whitespace::SINGLELINE ) };
+            encoding->colors_ct, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += colors.bytes_parsed;
     assert( encoding->header.extra_aligned_units ==
             _alignedUnits( reply.bytes_parsed -
@@ -2103,7 +2103,7 @@ X11ProtocolParser::_parseReply<
         _parseLISTof< protocol::CARD8 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
             GetKeyboardControl::Reply::AUTO_REPEATS_SZ,
-            ws.nested( _Whitespace::SINGLELINE ) ) };
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     assert( encoding->header.extra_aligned_units ==
             _alignedUnits( reply.bytes_parsed -
                            protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
@@ -2405,7 +2405,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->header.map_len, ws.nested( _Whitespace::SINGLELINE ) ) };
+            encoding->header.map_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     reply.bytes_parsed += _pad( map.bytes_parsed );
     assert( encoding->header.extra_aligned_units ==
             _alignedUnits( reply.bytes_parsed -

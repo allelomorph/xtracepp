@@ -17,17 +17,6 @@
 #include "protocol/errors.hpp"  // errors::ENCODING_SZ
 
 
-std::string_view
-X11ProtocolParser::_Whitespace::_tabIndent( const uint8_t tab_ct ) {
-    static constexpr std::string_view WHITESPACE {
-        "                                                           "
-        "                                                           "
-    };
-    const size_t indent_sz ( tab_ct * _TAB_SZ );
-    assert( indent_sz <= WHITESPACE.size() );
-    return { WHITESPACE.data(), indent_sz };
-}
-
 size_t X11ProtocolParser::_logClientPacket(
     Connection* conn, uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );

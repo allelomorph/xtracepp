@@ -414,7 +414,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
-            ws.nested( _Whitespace::SINGLELINE ) ) };
+            ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : sizeof( "keys(0-7 omitted)" ) - 1 );

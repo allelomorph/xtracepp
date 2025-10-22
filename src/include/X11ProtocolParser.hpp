@@ -30,11 +30,6 @@ class ProxyX11Server;
 
 class X11ProtocolParser {
 private:
-    // TBD could be reference to track changes in server.settings, but settings
-    //   not likely to change after initial parse of CLI
-    Settings settings;
-
-
     ////// Atom Internment
 
     struct _StashedAtomID {
@@ -99,13 +94,18 @@ private:
             equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
             separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
 
-        std::string_view
-        _tabIndent( const uint8_t tab_ct );
+        inline std::string_view
+        _tabIndent( const uint8_t tab_ct ) {
+            static constexpr std::string_view WHITESPACE {
+                "                                                           "
+                "                                                           "
+            };
+            const size_t indent_sz ( tab_ct * _TAB_SZ );
+            assert( indent_sz <= WHITESPACE.size() );
+            return { WHITESPACE.data(), indent_sz };
+        }
 
     public:
-        enum { SINGLELINE, MULTILINE, UNDEFINED };
-        // TBD members cannot be const while using _Whitespace(_Whitespace&&),
-        //   see importSettings
         bool             multiline   {};
         uint8_t          base_tab_ct {};
         std::string_view encl_indent;
@@ -119,31 +119,23 @@ private:
             multiline( multiline_ ),
             base_tab_ct( base_tab_ct_ ),
             encl_indent(
-                !multiline_ ? "" : _tabIndent( base_tab_ct ) ),
+                !multiline_ ? "" : _tabIndent( base_tab_ct_ ) ),
             memb_indent(
-                !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ),
+                !multiline_ ? "" : _tabIndent( base_tab_ct_ + _MEMBER_TAB_OFFSET ) ),
             equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
             separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
 
-        // TBD mod to take bool force_singleline (see also _parseLISTof)
+        enum { DEFAULT, FORCE_SINGLELINE };
         inline _Whitespace
-        nested( const int multiline_ = UNDEFINED ) const {
+        nested( const bool force_singleline = DEFAULT ) const {
             return _Whitespace (
                 base_tab_ct + _NESTING_TAB_OFFSET,
                 _default_multiline,
-                // TBD can nest singleline in multiline but not reverse
-                multiline_ == SINGLELINE ? multiline_ : _default_multiline );
+                force_singleline == FORCE_SINGLELINE ?
+                false : _default_multiline );
         }
     };
-    // TBD can only be const if set in parser ctor after server gets settings
     _Whitespace _ROOT_WS { 0, settings.multiline };
-
-    template < typename ScalarT,
-               std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
-    inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
-        // fmt counts "0x" as part of width when using '#'
-        return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
-    }
 
 
     ////// Memory Alignment
@@ -164,6 +156,13 @@ private:
 
 
     ////// Individual Data Field Formatting
+
+    template < typename ScalarT,
+               std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
+    inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
+        // fmt counts "0x" as part of width when using '#'
+        return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
+    }
 
     // TBD encapsulate name vector refs with range min, max into _EnumNameRange
     struct _IndexRange {
@@ -392,7 +391,7 @@ private:
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz,
                   const _Whitespace& ws,
-                  const int members_multiline = _Whitespace::UNDEFINED ) {
+                  const bool force_membs_singleline = _Whitespace::DEFAULT ) {
         assert( data != nullptr );
         // assert( sz >= sizeof( MemberT::Encoding ) ); // TBD may be empty list
 
@@ -403,7 +402,7 @@ private:
             const _ParsingOutputs member {
                 _parseProtocolType< MemberT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    ws.nested( members_multiline ) ) };
+                    ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
                 "{}{}{}", ws.memb_indent, member.str, ws.separator );
@@ -420,7 +419,7 @@ private:
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
                   const _Whitespace& ws,
-                  const int members_multiline = _Whitespace::UNDEFINED ) {
+                  const bool force_membs_singleline = _Whitespace::DEFAULT ) {
         assert( data != nullptr );
         // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
 
@@ -431,7 +430,7 @@ private:
             const _ParsingOutputs member {
                 _parseProtocolType< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    ws.nested( members_multiline ) ) };
+                    ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
                 "{}{}{}", ws.memb_indent, member.str, ws.separator );
@@ -656,10 +655,11 @@ private:
     friend ProxyX11Server;
 
 public:
+    Settings settings;
+
     X11ProtocolParser() {}
 
-    void importSettings(
-        const Settings& settings );
+    void importSettings( const Settings& settings_ );
     size_t logClientPackets( Connection* conn );
     size_t logServerPackets( Connection* conn );
 };
