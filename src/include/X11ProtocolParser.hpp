@@ -34,6 +34,9 @@ private:
     //   not likely to change after initial parse of CLI
     Settings settings;
 
+
+    ////// Atom Internment
+
     struct _StashedAtomID {
         uint32_t conn_id {};
         uint16_t seq_num {};
@@ -65,14 +68,17 @@ private:
     void
     _internStashedAtom( const _StashedAtomID sa_id, const protocol::ATOM atom );
 
+
+    ////// Non-data Text Formatting
+
     static constexpr std::string_view _CLIENT_TO_SERVER { "s<c" };
     static constexpr std::string_view _SERVER_TO_CLIENT { "s>c" };
 
     class _Whitespace {
     private:
-        static constexpr uint8_t   _TAB_SZ { 2 };  // in spaces/bytes
-        static constexpr uint8_t   _MEMBER_TAB_OFFSET { 1 };
-        static constexpr uint8_t   _NESTING_TAB_OFFSET { 1 };
+        static constexpr uint8_t _TAB_SZ { 2 };  // in spaces/bytes
+        static constexpr uint8_t _MEMBER_TAB_OFFSET  { 1 };
+        static constexpr uint8_t _NESTING_TAB_OFFSET { 1 };
 
         static constexpr std::string_view _SL_EQUALS    { "=" };
         static constexpr std::string_view _SL_SEPARATOR { " " };
@@ -80,7 +86,8 @@ private:
         static constexpr std::string_view _ML_SEPARATOR { "\n" };
 
         bool _default_multiline {};
-        _Whitespace(const uint8_t base_tab_ct_, const bool default_multiline_,
+
+        _Whitespace( const uint8_t base_tab_ct_, const bool default_multiline_,
                      const bool multiline_ ) :
             _default_multiline( default_multiline_ ),
             multiline( multiline_ ),
@@ -99,15 +106,15 @@ private:
         enum { SINGLELINE, MULTILINE, UNDEFINED };
         // TBD members cannot be const while using _Whitespace(_Whitespace&&),
         //   see importSettings
-        bool                multiline {};
-        uint8_t             base_tab_ct {};
-        std::string_view    encl_indent {};
-        std::string_view    memb_indent {};
-        std::string_view    equals;     // TBD would prefer const& if not using copy ctor
-        std::string_view    separator;  // TBD would prefer const& if not using copy ctor
+        bool             multiline   {};
+        uint8_t          base_tab_ct {};
+        std::string_view encl_indent;
+        std::string_view memb_indent;
+        std::string_view equals;     // TBD would prefer const& if not using copy ctor
+        std::string_view separator;  // TBD would prefer const& if not using copy ctor
 
         _Whitespace() = delete;
-        _Whitespace(const uint8_t base_tab_ct_, const bool multiline_ ) :
+        _Whitespace( const uint8_t base_tab_ct_, const bool multiline_ ) :
             _default_multiline( multiline_ ),
             multiline( multiline_ ),
             base_tab_ct( base_tab_ct_ ),
@@ -118,6 +125,7 @@ private:
             equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
             separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
 
+        // TBD mod to take bool force_singleline (see also _parseLISTof)
         inline _Whitespace
         nested( const int multiline_ = UNDEFINED ) const {
             return _Whitespace (
@@ -130,6 +138,17 @@ private:
     // TBD can only be const if set in parser ctor after server gets settings
     _Whitespace _ROOT_WS { 0, settings.multiline };
 
+    template < typename ScalarT,
+               std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
+    inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
+        // fmt counts "0x" as part of width when using '#'
+        return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
+    }
+
+
+    ////// Memory Alignment
+
+    // TBD separate public member class that can also be used by prequeue clients
     // "where E is some expression, and pad(E) is the number of bytes needed to
     //   round E up to a multiple of four."
     static constexpr size_t _ALIGN { 4 };
@@ -143,13 +162,10 @@ private:
         return units * _ALIGN;
     }
 
-    template < typename ScalarT,
-               std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
-    inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
-        // fmt counts "0x" as part of width when using '#'
-        return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
-    }
 
+    ////// Individual Data Field Formatting
+
+    // TBD encapsulate name vector refs with range min, max into _EnumNameRange
     struct _IndexRange {
         static constexpr uint32_t UNINIT {
             std::numeric_limits< uint32_t >::max() };
@@ -243,6 +259,9 @@ private:
     std::string
     _formatProtocolType(
         const ProtocolT value, const _Whitespace& indents );
+
+
+    ////// LISTof* Formatting
 
     struct _ParsingOutputs {
         std::string str       {};
@@ -450,6 +469,9 @@ private:
         return outputs;
     }
 
+
+    ////// LISTofVALUE Formatting
+
     struct _VALUETraits {
         // TBD cannot have union of plain references?
         //   - https://stackoverflow.com/questions/38691282/use-of-union-with-reference
@@ -576,6 +598,9 @@ private:
         return _parseLISTofVALUE< I + 1, Args... >(
             inputs, data + sizeof( protocol::VALUE ), outputs );
     }
+
+
+    ////// Logging
 
     size_t _logConnInitiation(
         const Connection* conn, const uint8_t* data, const size_t sz );
