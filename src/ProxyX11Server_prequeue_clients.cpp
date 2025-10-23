@@ -92,27 +92,28 @@ bool ProxyX11Server::_authenticateServerConnection(
     sbuffer.read( server_fd );
     using protocol::connection_setup::ConnResponse;
     using protocol::connection_setup::ConnAcceptance;
-    assert( sbuffer.size() >= sizeof( ConnAcceptance::Encoding ) );
-    ConnAcceptance::Encoding accept_encoding {};
-    sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
-    // TBD separate header from encoding for cleaner asserts
-    assert( sbuffer.size() == sizeof( ConnAcceptance::Header ) +
-            _parser._alignedSize( accept_encoding.header.following_aligned_units ) -
-            sizeof( ConnAcceptance::Encoding ) );
-    if ( accept_encoding.header.success != ConnResponse::SUCCESS )
+    assert( sbuffer.size() >= sizeof( ConnAcceptance::Header ) );
+    ConnAcceptance::Header accept_header {};
+    sbuffer.unload( &accept_header, sizeof( ConnAcceptance::Header ) );
+    if ( accept_header.success != ConnResponse::SUCCESS )
         return false;
-    if ( accept_encoding.header.protocol_major_version !=
+    if ( accept_header.protocol_major_version !=
          init_encoding.protocol_major_version )
         return false;
-    if ( accept_encoding.header.protocol_minor_version !=
+    if ( accept_header.protocol_minor_version !=
          init_encoding.protocol_minor_version )
         return false;
-    // TBD skip over vendor
+    assert( sbuffer.size() == _parser._alignedSize(
+                accept_header.following_aligned_units ) );
+    ConnAcceptance::Encoding accept_encoding {};
+    sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
+    // skip over vendor
     sbuffer.unload( _parser._pad( accept_encoding.vendor_len ) );
-    // TBD skip over pixmap-formats
+    // skip over pixmap-formats
     sbuffer.unload( accept_encoding.pixmap_formats_ct *
                     sizeof( ConnAcceptance::FORMAT ) );
-    // TBD get WINDOW for root window of first screen
+    // get WINDOW for root window of first screen
+    assert( accept_encoding.roots_ct >= 1 );
     ConnAcceptance::SCREEN::Encoding screen_encoding;
     sbuffer.unload( &screen_encoding, sizeof( ConnAcceptance::SCREEN::Encoding ) );
     if ( screen0_root != nullptr )

@@ -85,7 +85,6 @@ struct ConnAcceptance : public ConnResponse {
         uint16_t following_aligned_units;  // message length after header in 4B units
     };
     struct [[gnu::packed]] Encoding {
-        Header   header;
         CARD32   release_number;               // release-number
         CARD32   resource_id_base;             // resource-id-base
         CARD32   resource_id_mask;             // resource-id-mask

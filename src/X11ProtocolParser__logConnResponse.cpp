@@ -136,13 +136,17 @@ size_t X11ProtocolParser::_logConnAcceptance(
 
     size_t bytes_parsed {};
     const _Whitespace& ws { _ROOT_WS };
-    const ConnAcceptance::Encoding* encoding {
-        reinterpret_cast< const ConnAcceptance::Encoding* >( data ) };
-    bytes_parsed += sizeof( ConnAcceptance::Encoding );
-    assert( encoding->header.success ==
+    const ConnAcceptance::Header* header {
+        reinterpret_cast< const ConnAcceptance::Header* >( data ) };
+    bytes_parsed += sizeof( ConnAcceptance::Header );
+    assert( header->success ==
             protocol::connection_setup::ConnResponse::SUCCESS );
+    const ConnAcceptance::Encoding* encoding {
+        reinterpret_cast< const ConnAcceptance::Encoding* >(
+            data + bytes_parsed ) };
+    bytes_parsed += sizeof( ConnAcceptance::Encoding );
     // followed by STRING8 vendor
-    std::string_view vendor {
+    const std::string_view vendor {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         encoding->vendor_len };
     bytes_parsed += _pad( encoding->vendor_len );
@@ -158,7 +162,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->roots_ct, ws.nested() ) };
     bytes_parsed += roots.bytes_parsed;
-    assert( encoding->header.following_aligned_units == _alignedUnits(
+    assert( header->following_aligned_units == _alignedUnits(
                 bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
 
     const uint32_t memb_name_w (
@@ -186,17 +190,17 @@ size_t X11ProtocolParser::_logConnAcceptance(
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "success", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.success,
+            _formatInteger( header->success,
                             ConnAcceptance::success_names ),
             ws.separator ),
         ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.protocol_major_version ), ws.separator,
+        _formatInteger( header->protocol_major_version ), ws.separator,
         ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.protocol_minor_version ), ws.separator,
+        _formatInteger( header->protocol_minor_version ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(post-header aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.following_aligned_units ), ws.separator ),
+            _formatInteger( header->following_aligned_units ), ws.separator ),
         ws.memb_indent, "release-number", memb_name_w, ws.equals,
         _formatInteger( encoding->release_number ), ws.separator,
         ws.memb_indent, "resource-id-base", memb_name_w, ws.equals,
