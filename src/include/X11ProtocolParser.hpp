@@ -32,36 +32,43 @@ class X11ProtocolParser {
 private:
     ////// Atom Internment
 
-    struct _StashedAtomID {
+    struct _StashedStringID {
         uint32_t conn_id {};
         uint16_t seq_num {};
 
-        bool operator==( const _StashedAtomID& other ) const {
+        bool operator==( const _StashedStringID& other ) const {
             return this->conn_id == other.conn_id &&
                 this->seq_num == other.seq_num;
         }
+        struct Hash {
+            size_t operator()( const _StashedStringID& sa_id ) const noexcept {
+                const size_t h1 { std::hash<uint32_t>{}( sa_id.conn_id ) };
+                const size_t h2 { std::hash<uint16_t>{}( sa_id.seq_num ) };
+                return h1 ^ ( h2 << 1 ); // or use boost::hash_combine
+            }
+        };
     };
-    struct _StashedAtomIDHash {
-        size_t operator()(const _StashedAtomID& sa_id) const noexcept {
-            const size_t h1 { std::hash<uint32_t>{}( sa_id.conn_id ) };
-            const size_t h2 { std::hash<uint16_t>{}( sa_id.seq_num ) };
-            return h1 ^ (h2 << 1); // or use boost::hash_combine
-        }
-    };
-    // TBD index atoms by conn id and seq num between InternAtom request and reply
-    std::unordered_map<_StashedAtomID, std::string_view, _StashedAtomIDHash>
-    _stashed_atoms;
-    // TBD once InternAtom replies with server ATOM, properly map to ATOM
-    std::unordered_map<uint32_t, std::string> _nonseq_interned_atoms;
-    // TBD prefer prefetched atoms when option is turned on
-    std::vector< std::string > _seq_interned_atoms;
+    // Temporary storage of strings defined in requests that are then needed for
+    //   operations in the corresponding reply (eg InternAtom and QueryExtension.)
+    //   Indexed by combination of connection ID + sequence number of request.
+    std::unordered_map< _StashedStringID, std::string_view,
+                        _StashedStringID::Hash >
+    _stashed_strings;
+
+    // Internment of strings at least partially mirroring that of actual X
+    //   server, indexed by ATOM. Should contain:
+    //   - all protocol predefined atoms (1 "PRIMARY" - 68 "WM_TRANSIENT_FOR")
+    //   - any atoms in InternAtom requests made by any client during main queue
+    //   - optionally with --prefetchatoms, all already interned strings in the
+    //     first contiguous range of ATOMs starting with 1
+    std::unordered_map< uint32_t, std::string > _interned_atoms;
 
     // only atom string known at InternAtom request parsing
     void
-    _stashAtom( const _StashedAtomID sa_id, const std::string_view atom_str );
+    _stashString( const _StashedStringID ss_id, const std::string_view str );
     // when parsing InternAtom reply, then string and ATOM can be joined
     void
-    _internStashedAtom( const _StashedAtomID sa_id, const protocol::ATOM atom );
+    _internStashedAtom( const _StashedStringID sa_id, const protocol::ATOM atom );
 
 
     ////// Non-data Text Formatting

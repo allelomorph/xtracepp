@@ -132,28 +132,10 @@ X11ProtocolParser::_formatProtocolType(
     if ( atom.data < enum_names.size() ) {
         return _formatInteger( atom.data, enum_names );
     }
-    std::string atom_string {};
-    // TBD one of two arrays should store the ATOMs known before starting the
-    //   client queue, with a map as backup for any ATOMs identified while parsing
-    //   the queue that are not in contiguous index order with the rest
-    // TBD this should be simplified into just one map of ATOM to atom, populated by
-    //   protocol::atoms::predefined::strings plus optionally prefetched atoms and
-    //   anything interned in this session by the user
-    if ( settings.prefetchatoms &&
-         atom.data < _seq_interned_atoms.size() ) {
-        atom_string =
-            fmt::format( "{:?}", _seq_interned_atoms[ atom.data ] );
-    } else if ( atom.data <= protocol::atoms::predefined::MAX ) {
-        atom_string =
-            fmt::format( "{:?}", protocol::atoms::predefined::strings[ atom.data ] );
-    } else {
-        auto it { _nonseq_interned_atoms.find( atom.data ) };
-        if ( it == _nonseq_interned_atoms.end() )
-            atom_string = "unrecognized atom";
-        else
-            atom_string = it->second;
-    }
-    return fmt::format( "{}({})", _formatInteger( atom.data ), atom_string );
+    const auto it { _interned_atoms.find( atom.data ) };
+    return fmt::format( "{}({})", _formatInteger( atom.data ),
+                        it == _interned_atoms.end() ? "unrecognized atom" :
+                        fmt::format( "{:?}", it->second ) );
 }
 
 template<>

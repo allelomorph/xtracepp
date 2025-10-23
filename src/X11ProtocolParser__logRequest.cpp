@@ -876,7 +876,7 @@ X11ProtocolParser::_parseRequest<
 
     // Stash copy of atom until reply comes in - at that time we will include it
     //   in our own internment if it isn't already
-    _stashAtom( { conn->id, conn->sequence }, name );
+    _stashString( { conn->id, conn->sequence }, name );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
