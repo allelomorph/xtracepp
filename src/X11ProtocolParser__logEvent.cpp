@@ -1813,7 +1813,7 @@ size_t X11ProtocolParser::_logEvent(
         _parseEvent( conn, data, sz, _ROOT_WS ) };
     fmt::println( settings.log_fs,
                   "C{:03d}:{:04d}B:{}:S{}: Event {}({}){}: {}",
-                  conn->id, event.bytes_parsed, _SERVER_TO_CLIENT,
+                  conn->id, event.bytes_parsed, SERVER_TO_CLIENT,
                   sequence_num_str, protocol::events::names[ code ], code,
                   header->code & SendEvent::GENERATED_EVENT_FLAG ?
                   " (generated)" : "", event.str );

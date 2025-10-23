@@ -66,7 +66,7 @@ struct ConnRefusal : public ConnResponse {
         CARD16   protocol_minor_version;   // protocol-minor-version
         uint16_t following_aligned_units;  // message length after header in 4B units
     };
-    // followed by STRING8 reason _pad(Header.reason_len * 4)
+    // followed by STRING8 reason pad(Header.reason_len * 4)
 };
 
 struct ConnRequireFurtherAuthentication : public ConnResponse {

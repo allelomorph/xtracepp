@@ -60,7 +60,7 @@ size_t X11ProtocolParser::_logError(
         "{}{}{}{}"
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        conn->id, bytes_parsed, _SERVER_TO_CLIENT, encoding->header.sequence_num,
+        conn->id, bytes_parsed, SERVER_TO_CLIENT, encoding->header.sequence_num,
         protocol::errors::names[ encoding->header.code ], encoding->header.code,
         ws.separator,
         !settings.verbose ? "" :

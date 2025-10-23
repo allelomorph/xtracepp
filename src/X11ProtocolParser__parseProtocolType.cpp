@@ -76,7 +76,7 @@ X11ProtocolParser::_parseProtocolType<
         _parseLISTof< protocol::BYTE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
             header->address_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    outputs.bytes_parsed += _pad( header->address_len );
+    outputs.bytes_parsed += alignment.pad( header->address_len );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?

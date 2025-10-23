@@ -32,13 +32,13 @@ size_t X11ProtocolParser::_logConnInitiation(
     const std::string_view auth_protocol_name {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         encoding->name_len };
-    bytes_parsed += _pad( encoding->name_len );
+    bytes_parsed += alignment.pad( encoding->name_len );
     // followed by STRING8 authorization-protocol-data
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, encoding->data_len,
             encoding->data_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    bytes_parsed += _pad( encoding->data_len );
+    bytes_parsed += alignment.pad( encoding->data_len );
     assert( bytes_parsed == sz );  // (should not be batched with other packetss)
 
     const uint32_t memb_name_w (
@@ -54,7 +54,7 @@ size_t X11ProtocolParser::_logConnInitiation(
         "{}{: <{}}{}{:?}{}"          // authorization-protocol-name
         "{}{: <{}}{}({:d} bytes){}"  // authorization-protocol-data (hidden)
         "{}}}",
-        conn->id, bytes_parsed, _CLIENT_TO_SERVER, conn->client_desc,
+        conn->id, bytes_parsed, CLIENT_TO_SERVER, conn->client_desc,
         ws.separator,
         ws.memb_indent, "byte-order", memb_name_w, ws.equals,
         _formatInteger( ( encoding->byte_order == ConnInitiation::MSBFIRST ) ? 0 : 1,

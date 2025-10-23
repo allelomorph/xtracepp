@@ -470,7 +470,7 @@ void ProxyX11Server::_processPolledSockets() {
                     fmt::println(
                         settings.log_fs,
                         "C{:03d}:{}: error reading from client: {}",
-                        conn.id, _parser._CLIENT_TO_SERVER, e.what() );
+                        conn.id, _parser.CLIENT_TO_SERVER, e.what() );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -479,7 +479,7 @@ void ProxyX11Server::_processPolledSockets() {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
                                   "C{:03d}:{}: got EOF",
-                                  conn.id, _parser._CLIENT_TO_SERVER );
+                                  conn.id, _parser.CLIENT_TO_SERVER );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -487,7 +487,7 @@ void ProxyX11Server::_processPolledSockets() {
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
                               "C{:03d}:{:04d}B:{}: packet read from client into buffer",
-                              conn.id, bytes_read, _parser._CLIENT_TO_SERVER );
+                              conn.id, bytes_read, _parser.CLIENT_TO_SERVER );
             }
             assert( !conn.client_buffer.empty() );
             const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
@@ -501,7 +501,7 @@ void ProxyX11Server::_processPolledSockets() {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
                                   "C{:03d}:{}: error writing to client: {}",
-                                  conn.id, _parser._SERVER_TO_CLIENT, e.what() );
+                                  conn.id, _parser.SERVER_TO_CLIENT, e.what() );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -510,7 +510,7 @@ void ProxyX11Server::_processPolledSockets() {
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
                               "C{:03d}:{:04d}B:{}: wrote packet from buffer to client",
-                              conn.id, bytes_written, _parser._SERVER_TO_CLIENT );
+                              conn.id, bytes_written, _parser.SERVER_TO_CLIENT );
             }
         } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
             fmt::println(
@@ -529,7 +529,7 @@ void ProxyX11Server::_processPolledSockets() {
                     fmt::println(
                         settings.log_fs,
                         "C{:03d}:{}: error reading from server: {}",
-                        conn.id, _parser._SERVER_TO_CLIENT, e.what() );
+                        conn.id, _parser.SERVER_TO_CLIENT, e.what() );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -538,7 +538,7 @@ void ProxyX11Server::_processPolledSockets() {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
                                   "C{:03d}:{}: got EOF",
-                                  conn.id, _parser._SERVER_TO_CLIENT );
+                                  conn.id, _parser.SERVER_TO_CLIENT );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -546,7 +546,7 @@ void ProxyX11Server::_processPolledSockets() {
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
                               "C{:03d}:{:04d}B:{}: packet read from server into buffer",
-                              conn.id, bytes_read, _parser._SERVER_TO_CLIENT );
+                              conn.id, bytes_read, _parser.SERVER_TO_CLIENT );
             }
             assert( !conn.server_buffer.empty() );
             const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
@@ -560,7 +560,7 @@ void ProxyX11Server::_processPolledSockets() {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
                                   "C{:03d}:{}: error writing to server: {}",
-                                  conn.id, _parser._CLIENT_TO_SERVER, e.what() );
+                                  conn.id, _parser.CLIENT_TO_SERVER, e.what() );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -569,7 +569,7 @@ void ProxyX11Server::_processPolledSockets() {
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
                               "C{:03d}:{:04d}B:{}: wrote packet from buffer to server",
-                              conn.id, bytes_written, _parser._CLIENT_TO_SERVER );
+                              conn.id, bytes_written, _parser.CLIENT_TO_SERVER );
             }
         } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
             fmt::println(
@@ -787,13 +787,13 @@ void ProxyX11Server::_closeConnections( const std::vector< int >& ids ) {
             fmt::println(
                 settings.log_fs,
                 "C{:03d}:{:04d}B:{}: discarded unsent buffer",
-                conn.id, conn.client_buffer.size(), _parser._CLIENT_TO_SERVER );
+                conn.id, conn.client_buffer.size(), _parser.CLIENT_TO_SERVER );
         }
         if ( !conn.server_buffer.empty() ) {
             fmt::println(
                 settings.log_fs,
                 "C{:03d}:{:04d}B:{}: discarded unsent buffer",
-                conn.id, conn.server_buffer.size(), _parser._SERVER_TO_CLIENT );
+                conn.id, conn.server_buffer.size(), _parser.SERVER_TO_CLIENT );
         }
         _pfds_i_by_fd.erase( conn.client_fd );
         conn.closeClientSocket();

@@ -25,11 +25,29 @@
 #include "protocol/connection_setup.hpp"
 
 
-// TBD forward declare here to allow friending
-class ProxyX11Server;
-
 class X11ProtocolParser {
 private:
+    ////// Encoding Memory Alignment
+
+    // https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Syntactic_Conventions_b
+    // "where E is some expression, and pad(E) is the number of bytes needed to
+    //   round E up to a multiple of four."
+    class _Alignment {
+    private:
+        static constexpr size_t _ALIGN { 4 };
+
+    public:
+        inline size_t pad( const size_t sz ) {
+            return sz + ( ( _ALIGN - ( sz % _ALIGN ) ) % _ALIGN );
+        }
+        inline size_t units( const size_t sz ) {
+            return pad( sz ) / _ALIGN;
+        }
+        inline size_t size( const size_t units ) {
+            return units * _ALIGN;
+        }
+    };
+
     ////// Atom Internment
 
     struct _StashedStringID {
@@ -70,12 +88,14 @@ private:
     void
     _internStashedAtom( const _StashedStringID sa_id, const protocol::ATOM atom );
 
-
     ////// Non-data Text Formatting
 
-    static constexpr std::string_view _CLIENT_TO_SERVER { "s<c" };
-    static constexpr std::string_view _SERVER_TO_CLIENT { "s>c" };
+public:
+    // made accessible to ProxyX11Server for use in error messages
+    static constexpr std::string_view CLIENT_TO_SERVER { "s<c" };
+    static constexpr std::string_view SERVER_TO_CLIENT { "s>c" };
 
+private:
     class _Whitespace {
     private:
         static constexpr uint8_t _TAB_SZ { 2 };  // in spaces/bytes
@@ -143,24 +163,6 @@ private:
         }
     };
     _Whitespace _ROOT_WS { 0, settings.multiline };
-
-
-    ////// Memory Alignment
-
-    // TBD separate public member class that can also be used by prequeue clients
-    // "where E is some expression, and pad(E) is the number of bytes needed to
-    //   round E up to a multiple of four."
-    static constexpr size_t _ALIGN { 4 };
-    inline size_t _pad( const size_t n ) {
-        return n + ( ( _ALIGN - ( n % _ALIGN ) ) % _ALIGN );
-    }
-    inline size_t _alignedUnits( const size_t sz ) {
-        return _pad( sz ) / _ALIGN;
-    }
-    inline size_t _alignedSize( const size_t units ) {
-        return units * _ALIGN;
-    }
-
 
     ////// Individual Data Field Formatting
 
@@ -265,7 +267,6 @@ private:
     std::string
     _formatProtocolType(
         const ProtocolT value, const _Whitespace& indents );
-
 
     ////// LISTof* Formatting
 
@@ -405,7 +406,7 @@ private:
         _ParsingOutputs outputs;
         outputs.str += fmt::format( "[{}",
                                     sz == 0 ? "" : ws.separator );
-        while ( _pad( outputs.bytes_parsed ) < sz ) {
+        while ( alignment.pad( outputs.bytes_parsed ) < sz ) {
             const _ParsingOutputs member {
                 _parseProtocolType< MemberT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
@@ -474,7 +475,6 @@ private:
             "{}]", n == 0 ? "" : ws.encl_indent );
         return outputs;
     }
-
 
     ////// LISTofVALUE Formatting
 
@@ -605,7 +605,6 @@ private:
             inputs, data + sizeof( protocol::VALUE ), outputs );
     }
 
-
     ////// Logging
 
     size_t _logConnInitiation(
@@ -649,19 +648,9 @@ private:
     size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    // TBD would prefer to only allow
-    //   - ProxyX11Server::_authenticateServerConnection()
-    //     - _pad(), _alignedUnits()
-    //   - ProxyX11Server::_fetchCurrentServerTime()
-    //     - _pad(), _alignedUnits()
-    //   - ProxyX11Server::_fetchInternedAtoms()
-    //     - _pad(), _alignedUnits(), _prefetched_interned_atoms
-    //   but we can't make undefined class methods friends, and we can't define
-    //   ProxyX11Server as it has a X11ProtocolParser member, which would create a
-    //   circular include
-    friend ProxyX11Server;
-
 public:
+    _Alignment alignment;
+
     Settings settings;
 
     X11ProtocolParser() {}

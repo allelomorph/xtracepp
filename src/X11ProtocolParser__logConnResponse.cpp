@@ -25,9 +25,9 @@ size_t X11ProtocolParser::_logConnRefusal(
     const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         header->reason_len };
-    bytes_parsed += _pad( header->reason_len );
+    bytes_parsed += alignment.pad( header->reason_len );
     assert( header->following_aligned_units ==
-            _alignedUnits( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
+            alignment.units( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -42,7 +42,7 @@ size_t X11ProtocolParser::_logConnRefusal(
         "{}"                 // total_aligned_units
         "{}{: <{}}{}{:?}{}"  // reason
         "{}}}",
-        conn->id, bytes_parsed, _SERVER_TO_CLIENT,
+        conn->id, bytes_parsed, SERVER_TO_CLIENT,
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
@@ -87,13 +87,13 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
             protocol::connection_setup::ConnResponse::AUTHENTICATE );
     // followed by STRING8 reason
     const size_t reason_padded_len {
-        _alignedSize( header->following_aligned_units ) };
+        alignment.size( header->following_aligned_units ) };
     const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         reason_padded_len };
     bytes_parsed += reason_padded_len;
     assert( header->following_aligned_units ==
-            _alignedUnits( bytes_parsed -
+            alignment.units( bytes_parsed -
                            sizeof( ConnRequireFurtherAuthentication::Header ) ) );
 
     const uint32_t memb_name_w (
@@ -107,7 +107,7 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
         "{}{}"               // success, total_aligned_units
         "{}{: <{}}{}{:?}{}"  // reason
         "{}}}",
-        conn->id, bytes_parsed, _SERVER_TO_CLIENT,
+        conn->id, bytes_parsed, SERVER_TO_CLIENT,
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
@@ -149,7 +149,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
     const std::string_view vendor {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         encoding->vendor_len };
-    bytes_parsed += _pad( encoding->vendor_len );
+    bytes_parsed += alignment.pad( encoding->vendor_len );
     // followed by LISTofFORMAT pixmap-formats
     const _ParsingOutputs pixmap_formats {
         _parseLISTof< ConnAcceptance::FORMAT >(
@@ -162,7 +162,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
             data + bytes_parsed, sz - bytes_parsed,
             encoding->roots_ct, ws.nested() ) };
     bytes_parsed += roots.bytes_parsed;
-    assert( header->following_aligned_units == _alignedUnits(
+    assert( header->following_aligned_units == alignment.units(
                 bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
 
     const uint32_t memb_name_w (
@@ -185,7 +185,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
         "{}{: <{}}{}{:?}{}"  // vendor
         "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
         "{}}}",
-        conn->id, bytes_parsed, _SERVER_TO_CLIENT,
+        conn->id, bytes_parsed, SERVER_TO_CLIENT,
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",

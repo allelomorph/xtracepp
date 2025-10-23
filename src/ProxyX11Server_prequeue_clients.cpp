@@ -69,11 +69,11 @@ bool ProxyX11Server::_authenticateServerConnection(
     init_encoding.data_len = _AUTH_DATA_SZ;
     sbuffer.load( &init_encoding, sizeof(init_encoding) );
     // TBD padded sz will copy up to 3 junk bytes
-    sbuffer.load( _AUTH_NAME.data(), _parser._pad( _AUTH_NAME.size() ) );
-    sbuffer.load( _auth_data, _parser._pad( _AUTH_DATA_SZ ) );
+    sbuffer.load( _AUTH_NAME.data(), _parser.alignment.pad( _AUTH_NAME.size() ) );
+    sbuffer.load( _auth_data, _parser.alignment.pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
-        sizeof(init_encoding) + _parser._pad( _AUTH_NAME.size() ) +
-            _parser._pad( _AUTH_DATA_SZ ) );
+        sizeof(init_encoding) + _parser.alignment.pad( _AUTH_NAME.size() ) +
+            _parser.alignment.pad( _AUTH_DATA_SZ ) );
     try {
         pollSingleSocket( server_fd, POLLOUT );
     } catch ( const std::exception& e ) {
@@ -103,12 +103,12 @@ bool ProxyX11Server::_authenticateServerConnection(
     if ( accept_header.protocol_minor_version !=
          init_encoding.protocol_minor_version )
         return false;
-    assert( sbuffer.size() == _parser._alignedSize(
+    assert( sbuffer.size() == _parser.alignment.size(
                 accept_header.following_aligned_units ) );
     ConnAcceptance::Encoding accept_encoding {};
     sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
     // skip over vendor
-    sbuffer.unload( _parser._pad( accept_encoding.vendor_len ) );
+    sbuffer.unload( _parser.alignment.pad( accept_encoding.vendor_len ) );
     // skip over pixmap-formats
     sbuffer.unload( accept_encoding.pixmap_formats_ct *
                     sizeof( ConnAcceptance::FORMAT ) );
@@ -146,7 +146,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         using protocol::requests::ChangeWindowAttributes;
         ChangeWindowAttributes::Header cwa_header {};
         cwa_header.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
-        cwa_header.tl_aligned_units = _parser._alignedUnits(
+        cwa_header.tl_aligned_units = _parser.alignment.units(
             ChangeWindowAttributes::BASE_ENCODING_SZ + sizeof( protocol::VALUE ) );
         sbuffer.load( &cwa_header, sizeof( cwa_header ) );
         ChangeWindowAttributes::Encoding cwa_encoding {};
@@ -177,7 +177,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         // TBD currenly no enum constants in procotol::, only name arrays
         cp_header.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
         cp_header.tl_aligned_units =
-            _parser._alignedUnits( ChangeProperty::BASE_ENCODING_SZ );
+            _parser.alignment.units( ChangeProperty::BASE_ENCODING_SZ );
         sbuffer.load( &cp_header, sizeof( cp_header ) );
         ChangeProperty::Encoding cp_encoding {};
         cp_encoding.window = screen0_root;
@@ -274,7 +274,7 @@ ProxyX11Server::_fetchInternedAtoms() {
     GetAtomName::Header req_header {};
     req_header.opcode = protocol::requests::opcodes::GETATOMNAME;
     req_header.tl_aligned_units =
-        _parser._alignedUnits( GetAtomName::BASE_ENCODING_SZ );
+        _parser.alignment.units( GetAtomName::BASE_ENCODING_SZ );
     GetAtomName::Encoding req_encoding {};
     GetAtomName::Reply::Encoding rep_encoding {};
     std::vector< std::string > fetched_atoms ( 1 );  // indices start at 1
@@ -330,9 +330,9 @@ ProxyX11Server::_fetchInternedAtoms() {
         assert( rep_encoding.header.reply == protocol::requests::Reply::REPLY );
         assert( rep_encoding.header.sequence_num == i );
         assert( rep_encoding.header.extra_aligned_units ==
-                _parser._alignedUnits( _parser._pad( rep_encoding.name_len ) ) );
+                _parser.alignment.units( _parser.alignment.pad( rep_encoding.name_len ) ) );
         assert( sbuffer.size() < STRINGBUF_SZ );
-        assert( sbuffer.size() == _parser._pad( rep_encoding.name_len ) );
+        assert( sbuffer.size() == _parser.alignment.pad( rep_encoding.name_len ) );
         sbuffer.unload( stringbuf, sbuffer.size() );
         stringbuf[ rep_encoding.name_len ] = '\0';
         fetched_atoms.emplace_back( stringbuf );
