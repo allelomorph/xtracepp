@@ -3722,9 +3722,9 @@ X11ProtocolParser::_parseRequest<
     // followed by LISTofBYTE data
     const size_t data_len {
         _alignedSize( header->tl_aligned_units ) -
-        sizeof( PutImage::Encoding ) };
+        PutImage::BASE_ENCODING_SZ };
     //   as in xtrace, we will only print the size in bytes of the image data
-    request.bytes_parsed += data_len;
+    request.bytes_parsed += _pad( data_len );
     assert( header->tl_aligned_units == _alignedUnits( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
