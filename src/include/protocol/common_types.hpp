@@ -27,8 +27,11 @@ using VALUE  = CARD32;  // always 4B regardless of associated type
 
 namespace impl {
 
-// unique identifiers
-struct [[gnu::packed]] XID {
+// TBD empty classes to use as tags for easier SFINAE resolution
+struct [[gnu::packed]] Integer {};
+struct [[gnu::packed]] Bitmask : public Integer {};
+
+struct [[gnu::packed]] XID : public Integer {
     CARD32 data;
     // must be zeroed in XID values
     static constexpr uint32_t ZERO_BITS { 0xE0000000 };
@@ -64,11 +67,11 @@ struct [[gnu::packed]] ATOM : public impl::XID {};
 
 struct [[gnu::packed]] VISUALID : public impl::XID {};
 
-struct [[gnu::packed]] TIMESTAMP {
+struct [[gnu::packed]] TIMESTAMP : public impl::Integer {
     CARD32 data;
 };
 
-struct [[gnu::packed]] BITGRAVITY {
+struct [[gnu::packed]] BITGRAVITY : public impl::Integer {
     CARD8 data;
 
     inline static const
@@ -87,7 +90,7 @@ struct [[gnu::packed]] BITGRAVITY {
     };
 };
 
-struct [[gnu::packed]] WINGRAVITY {
+struct [[gnu::packed]] WINGRAVITY : public impl::Integer {
     CARD8 data;
 
     inline static const
@@ -106,7 +109,7 @@ struct [[gnu::packed]] WINGRAVITY {
     };
 };
 
-struct [[gnu::packed]] BOOL {
+struct [[gnu::packed]] BOOL : public impl::Integer {
     CARD8 data;
 
     inline static const
@@ -118,7 +121,7 @@ struct [[gnu::packed]] BOOL {
 
 namespace impl {
 
-struct [[gnu::packed]] SETofEVENTBase {
+struct [[gnu::packed]] SETofEVENTBase : public impl::Bitmask {
     inline static const
     std::vector< std::string_view >& flag_names {
         "KeyPress",              // 1 <<  0
@@ -174,19 +177,19 @@ struct [[gnu::packed]] SETofDEVICEEVENT : public impl::SETofEVENTBase {
     static constexpr uint32_t ZERO_BITS { 0xFFFFC0B0 };
 };
 
-struct [[gnu::packed]] KEYSYM {
+struct [[gnu::packed]] KEYSYM : public impl::Integer {
     CARD32 data;
 };
 
-struct [[gnu::packed]] KEYCODE {
+struct [[gnu::packed]] KEYCODE : public impl::Integer {
     CARD8 data;
 };
 
-struct [[gnu::packed]] BUTTON {
+struct [[gnu::packed]] BUTTON : public impl::Integer {
     CARD8 data;
 };
 
-struct [[gnu::packed]] SETofKEYBUTMASK {
+struct [[gnu::packed]] SETofKEYBUTMASK : public impl::Bitmask {
     CARD16 data;
 
     // must be zeroed in SETofKEYBUTMASK values

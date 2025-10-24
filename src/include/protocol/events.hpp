@@ -181,14 +181,14 @@ struct BoundaryEvent : public Event {
     inline static const
     std::vector< std::string_view >& detail_names {
         protocol::enum_names::focus_detail };
-    static constexpr uint8_t MAX_DETAIL { 4 };
+    static constexpr uint8_t DETAIL_ENUM_MAX { 4 };
     inline static const
     std::vector< std::string_view >& child_names {
         protocol::enum_names::zero_none };
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::focus_mode };
-    static constexpr uint8_t MAX_MODE { 2 };
+    static constexpr uint8_t MODE_ENUM_MAX { 2 };
     inline static const
     std::vector< std::string_view >& focus_same_screen_names {
         protocol::enum_names::focus_same_screen_mask };

@@ -58,7 +58,7 @@ size_t X11ProtocolParser::_logConnInitiation(
         ws.separator,
         ws.memb_indent, "byte-order", memb_name_w, ws.equals,
         _formatInteger( ( encoding->byte_order == ConnInitiation::MSBFIRST ) ? 0 : 1,
-                        ConnInitiation::byte_order_names ), ws.separator,
+                        { ConnInitiation::byte_order_names } ), ws.separator,
         ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
         _formatInteger( encoding->protocol_major_version ), ws.separator,
         ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
