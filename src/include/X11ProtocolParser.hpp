@@ -166,7 +166,7 @@ private:
 
     ////// Individual Data Field Formatting
 
-    template < typename ScalarT,
+    template< typename ScalarT,
                std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
     inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
         // fmt counts "0x" as part of width when using '#'
@@ -214,7 +214,7 @@ private:
         _EnumNameRange( const std::vector< std::string_view >& names_ ) :
             _EnumNameRange( _ctorHelper( names_ ) ) {}
 
-        template < typename IntT,
+        template< typename IntT,
                    std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
         inline bool in( const IntT val ) const {
             if ( std::is_signed_v< IntT > && val < 0 )
@@ -223,7 +223,7 @@ private:
                 return false;
             return ( val >= min && val <= max );
         }
-        template < typename IntT,
+        template< typename IntT,
                    std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
         inline std::string_view at( const IntT val ) const {
             return in( val ) ? names[ val ] : "";
@@ -244,7 +244,7 @@ private:
             name_range( name_range_ ), bitmask( bitmask_ ) {}
     };
 
-    template < typename IntT,
+    template< typename IntT,
                std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
     std::string _formatInteger( const IntT val,
                                 const _EnumNameRange name_range = {},
@@ -290,7 +290,7 @@ private:
     std::string _formatCommonType( const protocol::ATOM val,
                                    const _EnumNameRange name_range = {} );
 
-    template < typename ProtocolIntT,
+    template< typename ProtocolIntT,
                std::enable_if_t<
                    std::is_base_of_v< protocol::impl::XID, ProtocolIntT > &&
                    !std::is_same_v< protocol::ATOM, ProtocolIntT >,
@@ -301,7 +301,7 @@ private:
         return _formatInteger( val.data, name_range );
     }
 
-    template < typename ProtocolIntT,
+    template< typename ProtocolIntT,
                std::enable_if_t<
                    std::is_base_of_v< protocol::impl::Integer, ProtocolIntT > &&
                    !std::is_base_of_v< protocol::impl::XID, ProtocolIntT >,
@@ -317,212 +317,135 @@ private:
         uint32_t bytes_parsed {};
     };
 
-    // // TBD SFINAE here is less extensible and grows onerous, maybe use empty parent classes
-    // //   in protocol::impl to select categories of protocol types
-    // template < typename ProtocolT >
-    // struct _is_protocol_integer_alias :
-    //     public std::is_integral< ProtocolT > {};
-    // template < typename ProtocolT >
-    // static constexpr bool _is_protocol_integer_alias_v =
-    //     _is_protocol_integer_alias< ProtocolT >::value;
+    // TBD for use with _parseLISTof<>
+    template< typename ProtocolT,
+               std::enable_if_t< std::is_integral_v< ProtocolT >,
+                                 bool > = true >
+    _ParsingOutputs
+    _parseProtocolType( const uint8_t* data, const size_t sz,
+                        const _EnumNameRange name_range = {} ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT ) );
 
-    // template < typename ProtocolT >
-    // struct _is_textitem_protocol_type :
-    //     public std::integral_constant<
-    //     bool,
-    //     std::is_same_v< ProtocolT, protocol::requests::PolyText8::TEXTITEM8 > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::PolyText16::TEXTITEM16 > > {};
-    // template < typename ProtocolT >
-    // static constexpr bool _is_textitem_protocol_type_v = _is_textitem_protocol_type< ProtocolT >::value;
+        _ParsingOutputs outputs;
+        const ProtocolT val { *reinterpret_cast< const ProtocolT* >( data ) };
+        outputs.bytes_parsed = sizeof( ProtocolT );
+        outputs.str = _formatInteger( val, name_range );  // int alias (CARD8, etc)
+        return outputs;
+    }
 
-    // template < typename ProtocolT >
-    // struct _is_variable_length_struct_protocol_type :
-    //     public std::integral_constant<
-    //     bool,
-    //     _is_textitem_protocol_type< ProtocolT >::value ||
-    //     std::is_same_v< ProtocolT, protocol::STR > ||
-    //     std::is_same_v< ProtocolT, protocol::HOST > ||
-    //     std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::SCREEN > ||
-    //     std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH > > {};
-    // template < typename ProtocolT >
-    // static constexpr bool _is_variable_length_struct_protocol_type_v =
-    //     _is_variable_length_struct_protocol_type< ProtocolT >::value;
+    // TBD for use with _parseLISTof<>
+    template< typename ProtocolT,
+               std::enable_if_t<
+                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
+                   bool > = true >
+    _ParsingOutputs
+    _parseProtocolType( const uint8_t* data, const size_t sz,
+                        const _EnumNameRange name_range = {} ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolT ) );
 
-    // template < typename ProtocolT >
-    // struct _is_fixed_length_struct_protocol_type :
-    //     public std::integral_constant<
-    //     bool,
-    //     std::is_same_v< ProtocolT, protocol::CHAR2B > ||
-    //     std::is_same_v< ProtocolT, protocol::POINT > ||
-    //     std::is_same_v< ProtocolT, protocol::RECTANGLE > ||
-    //     std::is_same_v< ProtocolT, protocol::ARC > ||
-    //     std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::FORMAT > ||
-    //     std::is_same_v< ProtocolT, protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::GetMotionEvents::Reply::TIMECOORD > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::QueryFont::Reply::FONTPROP > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::QueryFont::Reply::CHARINFO > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::PolySegment::SEGMENT > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::StoreColors::COLORITEM > ||
-    //     std::is_same_v< ProtocolT, protocol::requests::QueryColors::Reply::RGB > > {};
-    // template < typename ProtocolT >
-    // static constexpr bool _is_fixed_length_struct_protocol_type_v =
-    //     _is_fixed_length_struct_protocol_type< ProtocolT >::value;
+        _ParsingOutputs outputs;
+        const ProtocolT val { *reinterpret_cast< const ProtocolT* >( data ) };
+        outputs.bytes_parsed = sizeof( ProtocolT );
+        outputs.str = _formatCommonType( val, name_range );  // protocol int types (WINDOW etc)
+        return outputs;
+    }
 
-    // template < typename ProtocolT >
-    // struct _is_integer_protocol_type :
-    //     public std::integral_constant<
-    //     bool,
-    //     !_is_protocol_integer_alias_v< ProtocolT > &&
-    //     !_is_fixed_length_struct_protocol_type_v< ProtocolT > &&
-    //     !_is_variable_length_struct_protocol_type_v< ProtocolT > > {};
-    // template < typename ProtocolT >
-    // static constexpr bool _is_integer_protocol_type_v =
-    //     _is_integer_protocol_type< ProtocolT >::value;
+    // TBD for use with _parseLISTof<>
+    template< typename ProtocolT,
+               std::enable_if_t<
+                   ( !std::is_integral_v< ProtocolT > &&
+                     !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
+                   bool > = true >
+    _ParsingOutputs
+    _parseProtocolType( const uint8_t* data, const size_t sz,
+                        const _Whitespace& ws );
 
-    // // TBD individual template specializations in source
-    // template < typename ProtocolT,
-    //            std::enable_if_t<
-    //                _is_variable_length_struct_protocol_type_v< ProtocolT >, bool > = true>
-    // _ParsingOutputs
-    // _parseProtocolType( const uint8_t* data, const size_t sz,
-    //                     const _Whitespace& ws );
+    // TBD for LISTs that have no length provided eg PolyText8|16
+    template< typename ProtocolT,
+               std::enable_if_t<
+                   ( !std::is_integral_v< ProtocolT > &&
+                     !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
+                   bool > = true >
+    _ParsingOutputs
+    _parseLISTof( const uint8_t* data, const size_t sz,
+                  const _Whitespace& ws,
+                  const bool force_membs_singleline = _Whitespace::DEFAULT ) {
+        assert( data != nullptr );
 
-    // // TBD wrapper mainly for use with _parseLISTof<>
-    // template < typename ProtocolT,
-    //            std::enable_if_t<
-    //                _is_fixed_length_struct_protocol_type_v< ProtocolT > , bool > = true>
-    // _ParsingOutputs
-    // _parseProtocolType( const uint8_t* data, const size_t sz,
-    //                     const _Whitespace& ws ) {
-    //     assert( data != nullptr );
-    //     assert( sz >= sizeof( ProtocolT ) );
+        _ParsingOutputs outputs;
+        outputs.str += fmt::format( "[{}",
+                                    sz == 0 ? "" : ws.separator );
+        while ( alignment.pad( outputs.bytes_parsed ) < sz ) {
+            const _ParsingOutputs member {
+                _parseProtocolType< ProtocolT >(
+                    data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                    ws.nested( force_membs_singleline ) ) };
+            outputs.bytes_parsed += member.bytes_parsed;
+            outputs.str += fmt::format(
+                "{}{}{}", ws.memb_indent, member.str, ws.separator );
+        }
+        outputs.str += fmt::format(
+            "{}]", outputs.bytes_parsed == 0 ? "" : ws.encl_indent );
+        return outputs;
+    }
 
-    //     return { _formatProtocolType( *reinterpret_cast< const ProtocolT* >( data ),
-    //                                   ws ),
-    //              sizeof( ProtocolT ) };
-    // }
+    template< typename ProtocolT,
+               std::enable_if_t<
+                   ( !std::is_integral_v< ProtocolT > &&
+                     !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
+                   bool > = true >
+    _ParsingOutputs
+    _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
+                  const _Whitespace& ws,
+                  const bool force_membs_singleline = _Whitespace::DEFAULT ) {
+        assert( data != nullptr );
 
-    // TBD using this as a default for name vector references prevents calling
-    //   std::vector{} every time
-    // TBD consider passing pointer instead of reference to allow for null
-    //   checks (use std::optional?) and have lighter weight default ctor
-    inline static const std::vector<std::string_view> _TEMP_NO_NAMES {};
+        _ParsingOutputs outputs;
+        outputs.str += fmt::format( "[{}",
+                                    memb_ct == 0 ? "" : ws.separator );
+        for ( uint16_t i {}; i < memb_ct; ++i ) {
+            const _ParsingOutputs member {
+                _parseProtocolType< ProtocolT >(
+                    data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                    ws.nested( force_membs_singleline ) ) };
+            outputs.bytes_parsed += member.bytes_parsed;
+            outputs.str += fmt::format(
+                "{}{}{}", ws.memb_indent, member.str, ws.separator );
+        }
+        outputs.str += fmt::format(
+            "{}]", memb_ct == 0 ? "" : ws.encl_indent );
+        return outputs;
+    }
 
-    // // TBD wrapper mainly for use with _parseLISTof<>
-    // template < typename ProtocolT,
-    //            std::enable_if_t<
-    //                _is_protocol_integer_alias_v< ProtocolT >, bool > = true >
-    // _ParsingOutputs
-    // _parseProtocolType(
-    //     const uint8_t* data, const size_t sz,
-    //     const std::vector< std::string_view >& enum_names = _TEMP_NO_NAMES ) {
-    //     assert( data != nullptr );
-    //     assert( sz >= sizeof( ProtocolT ) );
+    template< typename ProtocolT,
+               std::enable_if_t<
+                   std::is_integral_v< ProtocolT > ||
+                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
+                   bool > = true >
+    _ParsingOutputs
+    _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
+                  const _Whitespace& ws,
+                  const _EnumNameRange name_range = {} ) {
+        assert( data != nullptr );
 
-    //     return { _formatInteger( *reinterpret_cast< const ProtocolT* >( data ),
-    //                              enum_names ),
-    //              sizeof( ProtocolT ) };
-    // }
-
-    // // TBD wrapper mainly for use with _parseLISTof<>
-    // // all other types, eg ATOM TIMESTAMP WINDOW
-    // template < typename ProtocolT,
-    //            std::enable_if_t<
-    //                _is_integer_protocol_type_v< ProtocolT >, bool > = true>
-    // _ParsingOutputs
-    // _parseProtocolType(
-    //     const uint8_t* data, const size_t sz,
-    //     const std::vector< std::string_view >& enum_names = _TEMP_NO_NAMES ) {
-    //     assert( data != nullptr );
-    //     assert( sz >= sizeof( ProtocolT ) );
-
-    //     return { _formatProtocolType( *reinterpret_cast< const ProtocolT* >( data ),
-    //                                   enum_names ),
-    //              sizeof( ProtocolT ) };
-    // }
-
-    // // TBD for LISTs that have no length provided eg PolyText8|16
-    // template < typename MemberT,
-    //            std::enable_if_t< _is_textitem_protocol_type_v< MemberT >, bool > = true >
-    // _ParsingOutputs
-    // _parseLISTof( const uint8_t* data, const size_t sz,
-    //               const _Whitespace& ws,
-    //               const bool force_membs_singleline = _Whitespace::DEFAULT ) {
-    //     assert( data != nullptr );
-    //     // assert( sz >= sizeof( MemberT::Encoding ) ); // TBD may be empty list
-
-    //     _ParsingOutputs outputs;
-    //     outputs.str += fmt::format( "[{}",
-    //                                 sz == 0 ? "" : ws.separator );
-    //     while ( alignment.pad( outputs.bytes_parsed ) < sz ) {
-    //         const _ParsingOutputs member {
-    //             _parseProtocolType< MemberT >(
-    //                 data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-    //                 ws.nested( force_membs_singleline ) ) };
-    //         outputs.bytes_parsed += member.bytes_parsed;
-    //         outputs.str += fmt::format(
-    //             "{}{}{}", ws.memb_indent, member.str, ws.separator );
-    //     }
-    //     outputs.str += fmt::format(
-    //         "{}]", outputs.bytes_parsed == 0 ? "" : ws.encl_indent );
-    //     return outputs;
-    // }
-
-    // template < typename ProtocolT,
-    //            std::enable_if_t<
-    //                _is_fixed_length_struct_protocol_type_v< ProtocolT > ||
-    //                _is_variable_length_struct_protocol_type_v< ProtocolT >, bool > = true>
-    // _ParsingOutputs
-    // _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
-    //               const _Whitespace& ws,
-    //               const bool force_membs_singleline = _Whitespace::DEFAULT ) {
-    //     assert( data != nullptr );
-    //     // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
-
-    //     _ParsingOutputs outputs;
-    //     outputs.str += fmt::format( "[{}",
-    //                                 n == 0 ? "" : ws.separator );
-    //     for ( uint16_t i {}; i < n; ++i ) {
-    //         const _ParsingOutputs member {
-    //             _parseProtocolType< ProtocolT >(
-    //                 data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-    //                 ws.nested( force_membs_singleline ) ) };
-    //         outputs.bytes_parsed += member.bytes_parsed;
-    //         outputs.str += fmt::format(
-    //             "{}{}{}", ws.memb_indent, member.str, ws.separator );
-    //     }
-    //     outputs.str += fmt::format(
-    //         "{}]", n == 0 ? "" : ws.encl_indent );
-    //     return outputs;
-    // }
-
-    // template < typename ProtocolT,
-    //            std::enable_if_t<
-    //                _is_integer_protocol_type_v< ProtocolT > ||
-    //                _is_protocol_integer_alias_v< ProtocolT >, bool > = true>
-    // _ParsingOutputs
-    // _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t n,
-    //               const _Whitespace& ws,
-    //               const std::vector< std::string_view >& enum_names = _TEMP_NO_NAMES ) {
-    //     assert( data != nullptr );
-    //     // assert( sz >= sizeof( ProtocolT::Encoding ) ); // TBD may be empty list
-
-    //     _ParsingOutputs outputs;
-    //     outputs.str += fmt::format( "[{}",
-    //                                 n == 0 ? "" : ws.separator );
-    //     for ( uint16_t i {}; i < n; ++i ) {
-    //         const _ParsingOutputs member {
-    //             _parseProtocolType< ProtocolT >(
-    //                 data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-    //                 enum_names ) };
-    //         outputs.bytes_parsed += member.bytes_parsed;
-    //         outputs.str += fmt::format(
-    //             "{}{}{}", ws.memb_indent, member.str, ws.separator );
-    //     }
-    //     outputs.str += fmt::format(
-    //         "{}]", n == 0 ? "" : ws.encl_indent );
-    //     return outputs;
-    // }
+        _ParsingOutputs outputs;
+        outputs.str += fmt::format( "[{}",
+                                    memb_ct == 0 ? "" : ws.separator );
+        for ( uint16_t i {}; i < memb_ct; ++i ) {
+            const _ParsingOutputs member {
+                _parseProtocolType< ProtocolT >(
+                    data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
+                    name_range ) };
+            outputs.bytes_parsed += member.bytes_parsed;
+            outputs.str += fmt::format(
+                "{}{}{}", ws.memb_indent, member.str, ws.separator );
+        }
+        outputs.str += fmt::format(
+            "{}]", memb_ct == 0 ? "" : ws.encl_indent );
+        return outputs;
+    }
 
     // ////// LISTofVALUE Formatting
 
@@ -559,7 +482,7 @@ private:
     // // TBD put mask in parsing inputs, that way we can calc the memb_name_w of
     // //   widest name _used_, not just overall
     // // TBD for that matter we could just put data and sz in there as well
-    // template < typename TupleT >
+    // template< typename TupleT >
     // struct _LISTofVALUEParsingInputs {
     //     const uint32_t value_mask;
     //     const TupleT& types;
@@ -590,7 +513,7 @@ private:
     // };
 
     // // TBD [u]intXX_t CARDXX INTXX
-    // template < typename ValueT,
+    // template< typename ValueT,
     //            std::enable_if_t< std::is_integral_v< ValueT >, bool > = true >
     // inline std::string
     // _formatVALUE(
@@ -602,7 +525,7 @@ private:
 
     // // PIXMAP WINDOW VISUALID COLORMAP  // TBD these don't need to pass names, but no need for overload due to default param
     // // TIMESTAMP CURSOR ATOM FONT BITGRAVITY WINGRAVITY BOOL SETofEVENT SETofPOINTEREVENT SETofDEVICEEVENT KEYCODE BUTTON SETofKEYMASK SETofKEYBUTMASK POINT RECTANGLE ARC
-    // template < typename ValueT,
+    // template< typename ValueT,
     //            std::enable_if_t< !std::is_integral_v< ValueT >, bool > = true >
     // inline std::string
     // _formatVALUE(
@@ -674,13 +597,13 @@ private:
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    template < typename RequestT >
+    template< typename RequestT >
     _ParsingOutputs _parseReply(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logReply(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    template < typename EventT >
+    template< typename EventT >
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );
@@ -690,7 +613,7 @@ private:
     size_t _logEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    template < typename RequestT >
+    template< typename RequestT >
     _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logRequest(
