@@ -485,13 +485,6 @@ struct ConfigureRequest : public Event {
         CARD16   height;
         CARD16   border_width;  // border-width
         uint16_t value_mask;    // 2B value-mask
-        //   0x0001: x
-        //   0x0002: y
-        //   0x0004: width
-        //   0x0008: height
-        //   0x0010: border-width
-        //   0x0020: sibling
-        //   0x0040: stack-mode
     private:
         uint8_t  _unused[4];
     };

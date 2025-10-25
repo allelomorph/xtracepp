@@ -7,7 +7,8 @@
 
 namespace protocol {
 
-// enum names shared accross serveral protocol format structs
+// enum names shared accross serveral protocol value fields - if a set of names
+//   are unique to a field, they are stored with that encoding
 
 namespace enum_names {
 

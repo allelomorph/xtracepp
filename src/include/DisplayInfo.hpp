@@ -14,8 +14,6 @@
 //   - https://github.com/mirror/libX11/blob/master/include/X11/Xlibint.h#L72
 class DisplayInfo {
 private:
-    static constexpr std::string_view _UNIX_SOCKET_PATH_PREFIX {
-        "/tmp/.X11-unix/X" };
     static constexpr int _UNSET { -1 };
 
     static constexpr std::string_view _UNIX  { "unix" };
@@ -24,13 +22,16 @@ private:
     static constexpr std::string_view _INET  { "inet" };
     static constexpr std::string_view _INET6 { "inet6" };
 
-    // TBD matches UNIX_PATH_MAX from <linux/un.h>
-    static constexpr size_t _UNIX_PATH_MAX { 108 };
-    static constexpr int _SOCKET_DEFAULT_PROTOCOL { 0 };
-    // "For TCP connections, displays on a given host are numbered starting from 0,
-    //   and the server for display N listens and accepts connections on port
+    // should match UNIX_PATH_MAX from <linux/un.h>
+    static constexpr size_t _UNIX_PATH_MAX           { 108 };
+    static constexpr int    _SOCKET_DEFAULT_PROTOCOL { 0 };
+    // https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
+    // "For TCP connections, displays on a given host are numbered starting from
+    //   0, and the server for display N listens and accepts connections on port
     //   6000 + N."
-    static constexpr int _X_TCP_PORT { 6000 };
+    static constexpr int    _X_TCP_PORT              { 6000 };
+    static constexpr std::string_view
+                            _UNIX_SOCKET_PATH_PREFIX { "/tmp/.X11-unix/X" };
 
     char _addrstr_buf[ INET6_ADDRSTRLEN ] {};
     bool _unix_pattern {};
@@ -59,7 +60,8 @@ public:
     int ai_protocol { _UNSET };
     socklen_t ai_addrlen {};
     union {
-        sockaddr     ai_addr;  // TBD inclusion in union saves us a cast when calling bind(2) or connect(2)
+        // including sockaddr in union saves a cast when calling bind(2) or connect(2)
+        sockaddr     ai_addr;
         sockaddr_in  inaddr;
         sockaddr_in6 in6addr;
         sockaddr_un  unaddr {};
@@ -72,9 +74,7 @@ public:
 
     enum class Direction {
         IN, OUT };
-    //_DisplayInfo() = delete;
     DisplayInfo() {}
-    //DisplayInfo( const char* displayname );
     DisplayInfo( const char* displayname, const Direction direction );
 };
 
