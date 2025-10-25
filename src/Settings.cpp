@@ -91,7 +91,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
             assert( log_path != nullptr && log_path[0] != '\0' );
             log_fs = fopen( log_path, "w" );
             if ( log_fs == nullptr ) {
-                fmt::println( stderr, "{}: could not open log file \"{}\", {}",
+                fmt::println( stderr, "{}: could not open log file {:?}, {}",
                               app_name, log_path,
                               errors::system::message( "fopen" ) );
                 exit( EXIT_FAILURE );

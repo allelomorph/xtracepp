@@ -299,7 +299,7 @@ void ProxyX11Server::_copyAuthentication() {
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
             if ( auth.name != _AUTH_NAME ) {
                 fmt::println(
-                    stderr, "No support for display \"{}\" auth method {} (expected {})",
+                    stderr, "No support for display {:?} auth method {} (expected {})",
                     _out_display.name, auth.name, _AUTH_NAME );
                 exit( EXIT_FAILURE );
             }
@@ -310,7 +310,7 @@ void ProxyX11Server::_copyAuthentication() {
             break;
     }
     if ( out_display_auth == nullptr ) {
-        fmt::println( stderr, "Could not find auth data for display \"{}\"",
+        fmt::println( stderr, "Could not find auth data for display {:?}",
                       _out_display.name );
         exit( EXIT_FAILURE );
     }
