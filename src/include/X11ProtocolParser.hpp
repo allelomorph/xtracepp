@@ -167,7 +167,7 @@ private:
     ////// Individual Data Field Formatting
 
     template< typename ScalarT,
-               std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
+              std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
     inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
         // fmt counts "0x" as part of width when using '#'
         return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
@@ -215,7 +215,7 @@ private:
             _EnumNameRange( _ctorHelper( names_ ) ) {}
 
         template< typename IntT,
-                   std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
+                  std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
         inline bool in( const IntT val ) const {
             if ( std::is_signed_v< IntT > && val < 0 )
                 return false;
@@ -224,7 +224,7 @@ private:
             return ( val >= min && val <= max );
         }
         template< typename IntT,
-                   std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
+                  std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
         inline std::string_view at( const IntT val ) const {
             return in( val ) ? names[ val ] : "";
         }
@@ -246,7 +246,7 @@ private:
 
     // fundamental integers (and protocol aliases thereof)
     template< typename IntT,
-               std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
+              std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
     std::string _formatVariable( const IntT val,
                                  const _EnumNameRange name_range = {},
                                  const bool bitmask = _ValueTraits::NOT_BITMASK ) {
@@ -298,7 +298,7 @@ private:
 
     // only ResourceId with unique definition
     std::string _formatVariable( const protocol::DRAWABLE var,
-                                  const _EnumNameRange name_range = {} );
+                                 const _EnumNameRange name_range = {} );
     // union of ResourceId
     std::string _formatVariable( const protocol::FONTABLE var,
                                  const _EnumNameRange name_range = {} );
@@ -334,8 +334,8 @@ private:
 
     // fundamental integers (and protocol aliases thereof)
     template< typename ProtocolT,
-               std::enable_if_t< std::is_integral_v< ProtocolT >,
-                                 bool > = true >
+              std::enable_if_t< std::is_integral_v< ProtocolT >,
+                                bool > = true >
     _ParsingOutputs
     _parseListMember( const uint8_t* data, const size_t sz,
                       const _ValueTraits traits = {} ) {
@@ -349,9 +349,9 @@ private:
 
     // protocol integer types (eg ResourceId, Bitmask)
     template< typename ProtocolT,
-               std::enable_if_t<
-                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
-                   bool > = true >
+              std::enable_if_t<
+                  std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
+                  bool > = true >
     _ParsingOutputs
     _parseListMember( const uint8_t* data, const size_t sz,
                       const _ValueTraits traits = {} ) {
@@ -400,10 +400,10 @@ private:
 
     // TBD for LISTs that have no length provided eg PolyText8|16
     template< typename ProtocolT,
-               std::enable_if_t<
-                   ( !std::is_integral_v< ProtocolT > &&
-                     !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
-                   bool > = true >
+              std::enable_if_t<
+                  ( !std::is_integral_v< ProtocolT > &&
+                    !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
+                  bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz,
                   const _Whitespace& ws,
@@ -428,10 +428,10 @@ private:
     }
 
     template< typename ProtocolT,
-               std::enable_if_t<
-                   ( !std::is_integral_v< ProtocolT > &&
-                     !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
-                   bool > = true >
+              std::enable_if_t<
+                  ( !std::is_integral_v< ProtocolT > &&
+                    !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
+                  bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
                   const _Whitespace& ws,
@@ -456,10 +456,10 @@ private:
     }
 
     template< typename ProtocolT,
-               std::enable_if_t<
-                   std::is_integral_v< ProtocolT > ||
-                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
-                   bool > = true >
+              std::enable_if_t<
+                  std::is_integral_v< ProtocolT > ||
+                  std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
+                  bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
                   const _Whitespace& ws,
@@ -498,23 +498,20 @@ private:
 
         _LISTofVALUEParsingInputs() = delete;
         _LISTofVALUEParsingInputs(
-            const uint8_t* data_,
-            const size_t sz_,
-            const uint32_t value_mask_,
-            const TupleT& types_,
-            const std::vector< std::string_view >& names_,
+            const uint8_t* data_, const size_t sz_, const uint32_t value_mask_,
+            const TupleT& types_, const std::vector< std::string_view >& names_,
             const std::vector< _ValueTraits >& traits_,
             const _Whitespace ws_ ) :
-            data( data_ ), sz( sz_ ),
-            value_mask( value_mask_ ), types( types_ ), names( names_ ),
-            traits( traits_ ), ws( ws_ ) {
+            data( data_ ), sz( sz_ ), value_mask( value_mask_ ),
+            types( types_ ), names( names_ ), traits( traits_ ), ws( ws_ ) {
+
             assert( data != nullptr );
             assert( std::tuple_size< TupleT >{} == names.size() &&
                     names.size() == traits.size() );
             if ( ws.multiline ) {
-                for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
+                for ( uint32_t i {}, sz ( names.size() ); i < sz; ++i ) {
                     if ( value_mask & ( 1 << i ) ) {
-                        memb_name_w = std::max( memb_name_w, names[i].size() );
+                        memb_name_w = std::max( memb_name_w, names[ i ].size() );
                     }
                 }
             }
@@ -562,9 +559,9 @@ private:
             decltype( std::get< I >( inputs.types ) ) >;
         const _ParsingOutputs member {
             _parseListMember< ValueT >(
-                    inputs.data + outputs->bytes_parsed,
-                    inputs.sz - outputs->bytes_parsed,
-                    inputs.traits[ I ] ) };
+                inputs.data + outputs->bytes_parsed,
+                inputs.sz - outputs->bytes_parsed,
+                inputs.traits[ I ] ) };
         // do not use member.bytes_parsed as all VALUEs are encoded as 4B
         outputs->bytes_parsed += sizeof( protocol::VALUE );
 
@@ -577,6 +574,11 @@ private:
 
     ////// Logging
 
+    size_t _logClientPacket(
+            Connection* conn, uint8_t* data, const size_t sz );
+    size_t _logServerPacket(
+        Connection* conn, uint8_t* data, const size_t sz );
+
     size_t _logConnInitiation(
         const Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logConnRefusal(
@@ -587,11 +589,6 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logConnResponse(
         Connection* conn, const uint8_t* data, const size_t sz );
-
-    size_t _logClientPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
-    size_t _logServerPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
 
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
