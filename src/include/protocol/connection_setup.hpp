@@ -114,7 +114,7 @@ struct ConnAcceptance : public ConnResponse {
         "MostSignificant"    // 1
     };
 
-    struct [[gnu::packed]] FORMAT {
+    struct [[gnu::packed]] FORMAT : public protocol::impl::Struct {
         CARD8   depth;
         CARD8   bits_per_pixel;  // bits-per-pixel
         CARD8   scanline_pad;    // scanline-pad
@@ -122,7 +122,7 @@ struct ConnAcceptance : public ConnResponse {
         uint8_t _unused[5];
     };
 
-    struct SCREEN {
+    struct SCREEN : public protocol::impl::StructWithSuffixes {
         struct [[gnu::packed]] Encoding {
             WINDOW     root;
             COLORMAP   default_colormap;       // default-colormap
@@ -150,7 +150,7 @@ struct ConnAcceptance : public ConnResponse {
             "Always"       // 2
         };
 
-        struct DEPTH {
+        struct DEPTH : public protocol::impl::StructWithSuffixes {
             struct [[gnu::packed]] Encoding {
                 CARD8    depth;
             private:
@@ -162,7 +162,7 @@ struct ConnAcceptance : public ConnResponse {
             };
             // followed by LISTofVISUALTYPE visuals (visuals_ct * sizeof(VISUALTYPE))B
 
-            struct [[gnu::packed]] VISUALTYPE {
+            struct [[gnu::packed]] VISUALTYPE : public protocol::impl::Struct {
                 VISUALID visual_id;           // visual-id
                 uint8_t  class_;              // class
                 CARD8    bits_per_rgb_value;  // bits-per-rgb-value

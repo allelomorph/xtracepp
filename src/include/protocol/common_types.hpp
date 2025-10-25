@@ -27,45 +27,47 @@ using VALUE  = CARD32;  // always 4B regardless of associated type
 
 namespace impl {
 
-// TBD empty classes to use as tags for easier SFINAE resolution
 struct [[gnu::packed]] Integer {};
 struct [[gnu::packed]] Bitmask : public Integer {};
-
-struct [[gnu::packed]] XID : public Integer {
+struct [[gnu::packed]] ResourceId : public Integer {
     CARD32 data;
-    // must be zeroed in XID values
+    // must be zeroed in ResourceId values
     static constexpr uint32_t ZERO_BITS { 0xE0000000 };
 };
 
+struct [[gnu::packed]] Struct {};
+struct [[gnu::packed]] StructWithSuffixes : public Struct {};
+
+
 }  // namespace impl
 
-struct [[gnu::packed]] WINDOW : public impl::XID {};
+struct [[gnu::packed]] WINDOW : public impl::ResourceId {};
 
-struct [[gnu::packed]] PIXMAP : public impl::XID {};
+struct [[gnu::packed]] PIXMAP : public impl::ResourceId {};
 
-struct [[gnu::packed]] CURSOR : public impl::XID {};
+struct [[gnu::packed]] CURSOR : public impl::ResourceId {};
 
-struct [[gnu::packed]] FONT : public impl::XID {};
+struct [[gnu::packed]] FONT : public impl::ResourceId {};
 
-struct [[gnu::packed]] GCONTEXT : public impl::XID {};
+struct [[gnu::packed]] GCONTEXT : public impl::ResourceId {};
 
-struct [[gnu::packed]] COLORMAP : public impl::XID {};
+struct [[gnu::packed]] COLORMAP : public impl::ResourceId {};
 
-// TBD should we make XID rather than union?
+// TBD should we make ResourceId rather than union?
 union [[gnu::packed]] DRAWABLE {
     WINDOW window;
     PIXMAP pixmap;
 };
 
-// TBD should we make XID rather than union?
+// TBD should we make ResourceId rather than union?
 union [[gnu::packed]] FONTABLE {
     FONT     font;
     GCONTEXT gcontext;
 };
 
-struct [[gnu::packed]] ATOM : public impl::XID {};
+struct [[gnu::packed]] ATOM : public impl::ResourceId {};
 
-struct [[gnu::packed]] VISUALID : public impl::XID {};
+struct [[gnu::packed]] VISUALID : public impl::ResourceId {};
 
 struct [[gnu::packed]] TIMESTAMP : public impl::Integer {
     CARD32 data;
@@ -226,29 +228,29 @@ struct [[gnu::packed]] SETofKEYMASK : public SETofKEYBUTMASK {
 //     static constexpr uint16_t ZERO_BITS { 0xE0FF };
 // };
 
-struct [[gnu::packed]] CHAR2B {
+struct [[gnu::packed]] CHAR2B : public impl::Struct {
     CARD8 byte1, byte2;
 };
 
 // using STRING8  = LISTofCARD8
 // using STRING16 = LISTofCHAR2B
 
-struct [[gnu::packed]] POINT {
+struct [[gnu::packed]] POINT : public impl::Struct {
     INT16 x, y;
 };
 
-struct [[gnu::packed]] RECTANGLE {
+struct [[gnu::packed]] RECTANGLE : public impl::Struct {
     INT16  x, y;
     CARD16 width, height;
 };
 
-struct [[gnu::packed]] ARC {
+struct [[gnu::packed]] ARC : public impl::Struct {
     INT16  x, y;
     CARD16 width, height;
     INT16  angle1, angle2;
 };
 
-struct HOST {
+struct HOST : public impl::StructWithSuffixes {
     struct [[gnu::packed]] Header {
         CARD8  family;
     private:
@@ -262,7 +264,7 @@ struct HOST {
         protocol::enum_names::host_family };
 };
 
-struct [[gnu::packed]] STR {
+struct STR : public impl::StructWithSuffixes {
     struct [[gnu::packed]] Header {
         uint8_t name_len;  // length of name in bytes
     };

@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 add_executable(xtracepp
+  bufferHexDump.cpp
   errors.cpp
   main.cpp
   Connection.cpp
@@ -11,15 +12,14 @@ add_executable(xtracepp
   Settings.cpp
   SocketBuffer.cpp
   X11ProtocolParser.cpp
+  X11ProtocolParser__formatVariable.cpp
   X11ProtocolParser__logConnInitiation.cpp
   X11ProtocolParser__logConnResponse.cpp
   X11ProtocolParser__logRequest.cpp
   X11ProtocolParser__logError.cpp
   X11ProtocolParser__logEvent.cpp
   X11ProtocolParser__logReply.cpp
-  X11ProtocolParser__formatCommonType.cpp
-  X11ProtocolParser__parseProtocolType.cpp
-  bufferHexDump.cpp
+  X11ProtocolParser__parseListMember.cpp
 )
 
 target_include_directories(xtracepp PRIVATE

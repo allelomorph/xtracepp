@@ -36,19 +36,19 @@ size_t X11ProtocolParser::_logError(
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(bad value)", memb_name_w, ws.equals,
-            _formatInteger( encoding->bad_value ), ws.separator );
+            _formatVariable( encoding->bad_value ), ws.separator );
         break;
     case protocol::errors::ValueTypeCode::RESOURCE_ID:
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(bad resource id)", memb_name_w, ws.equals,
-            _formatInteger( encoding->bad_resource_id ), ws.separator );
+            _formatVariable( encoding->bad_resource_id ), ws.separator );
         break;
     case protocol::errors::ValueTypeCode::ATOM_ID:
         bad_resource_str = fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(bad atom id)", memb_name_w, ws.equals,
-            _formatInteger( encoding->bad_atom_id ), ws.separator );
+            _formatVariable( encoding->bad_atom_id ), ws.separator );
         break;
     default:
         break;
@@ -67,22 +67,22 @@ size_t X11ProtocolParser::_logError(
         fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "error", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.error ), ws.separator ),
+            _formatVariable( encoding->header.error ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.code ), ws.separator ),
+            _formatVariable( encoding->header.code ), ws.separator ),
         !settings.verbose ? "" :
         fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         bad_resource_str,
         ws.memb_indent, "(minor opcode)", memb_name_w, ws.equals,
-        _formatInteger( encoding->minor_opcode ), ws.separator,
+        _formatVariable( encoding->minor_opcode ), ws.separator,
         ws.memb_indent, "(major opcode)", memb_name_w, ws.equals,
-        _formatInteger( encoding->major_opcode ), ws.separator,
+        _formatVariable( encoding->major_opcode ), ws.separator,
         ws.encl_indent
         );
     conn->unregisterRequest( encoding->header.sequence_num );

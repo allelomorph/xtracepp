@@ -50,48 +50,48 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "backing-store", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.backing_store,
-                        { GetWindowAttributes::Reply::backing_store_names } ), ws.separator,
+        _formatVariable( encoding->header.backing_store,
+                         { GetWindowAttributes::Reply::backing_store_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "visual", memb_name_w, ws.equals,
-        _formatCommonType( encoding->visual ), ws.separator,
+        _formatVariable( encoding->visual ), ws.separator,
         ws.memb_indent, "class", memb_name_w, ws.equals,
-        _formatInteger(
+        _formatVariable(
             encoding->class_, { GetWindowAttributes::Reply::class_names,
                                 _EnumNameRange::Bound::MIN,
                                 GetWindowAttributes::Reply::CLASS_ENUM_MIN } ), ws.separator,
         ws.memb_indent, "bit-gravity", memb_name_w, ws.equals,
-        _formatCommonType( encoding->bit_gravity ), ws.separator,
+        _formatVariable( encoding->bit_gravity ), ws.separator,
         ws.memb_indent, "win-gravity", memb_name_w, ws.equals,
-        _formatCommonType( encoding->win_gravity ), ws.separator,
+        _formatVariable( encoding->win_gravity ), ws.separator,
         ws.memb_indent, "backing-planes", memb_name_w, ws.equals,
-        _formatInteger( encoding->backing_planes ), ws.separator,
+        _formatVariable( encoding->backing_planes ), ws.separator,
         ws.memb_indent, "backing-pixel", memb_name_w, ws.equals,
-        _formatInteger( encoding->backing_pixel ), ws.separator,
+        _formatVariable( encoding->backing_pixel ), ws.separator,
         ws.memb_indent, "save-under", memb_name_w, ws.equals,
-        _formatCommonType( encoding->save_under ), ws.separator,
+        _formatVariable( encoding->save_under ), ws.separator,
         ws.memb_indent, "map-is-installed", memb_name_w, ws.equals,
-        _formatCommonType( encoding->map_is_installed ), ws.separator,
+        _formatVariable( encoding->map_is_installed ), ws.separator,
         ws.memb_indent, "map-state", memb_name_w, ws.equals,
-        _formatInteger( encoding->map_state,
-                        { GetWindowAttributes::Reply::map_state_names } ), ws.separator,
+        _formatVariable( encoding->map_state,
+                         { GetWindowAttributes::Reply::map_state_names } ), ws.separator,
         ws.memb_indent, "override-redirect", memb_name_w, ws.equals,
-        _formatCommonType( encoding->override_redirect ), ws.separator,
+        _formatVariable( encoding->override_redirect ), ws.separator,
         ws.memb_indent, "all-event-masks", memb_name_w, ws.equals,
-        _formatCommonType( encoding->all_event_masks ), ws.separator,
+        _formatVariable( encoding->all_event_masks ), ws.separator,
         ws.memb_indent, "your-event-mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->your_event_mask ), ws.separator,
+        _formatVariable( encoding->your_event_mask ), ws.separator,
         ws.memb_indent, "do-not-propagate-mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->do_not_propagate_mask ), ws.separator,
+        _formatVariable( encoding->do_not_propagate_mask ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -133,29 +133,29 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "depth", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.depth ), ws.separator,
+        _formatVariable( encoding->header.depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "root", memb_name_w, ws.equals,
-        _formatCommonType( encoding->root ), ws.separator,
+        _formatVariable( encoding->root ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.memb_indent, "border-width", memb_name_w, ws.equals,
-        _formatInteger( encoding->border_width ), ws.separator,
+        _formatVariable( encoding->border_width ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -202,24 +202,24 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "root", memb_name_w, ws.equals,
-        _formatCommonType( encoding->root ), ws.separator,
+        _formatVariable( encoding->root ), ws.separator,
         ws.memb_indent, "parent", memb_name_w, ws.equals,
-        _formatCommonType( encoding->parent,
-                           { QueryTree::Reply::parent_names } ), ws.separator,
+        _formatVariable( encoding->parent,
+                         { QueryTree::Reply::parent_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(WINDOWs in children)", memb_name_w, ws.equals,
-            _formatInteger( encoding->children_ct ), ws.separator ),
+            _formatVariable( encoding->children_ct ), ws.separator ),
         ws.memb_indent, "children", memb_name_w, ws.equals,
         children.str, ws.separator,
         ws.encl_indent
@@ -266,18 +266,18 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "atom", memb_name_w, ws.equals,
-        _formatCommonType( encoding->atom,
-                           { InternAtom::Reply::atom_names } ), ws.separator,
+        _formatVariable( encoding->atom,
+                         { InternAtom::Reply::atom_names } ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -321,19 +321,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -396,26 +396,26 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "format", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.format ), ws.separator,
+        _formatVariable( encoding->header.format ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "type", memb_name_w, ws.equals,
-        _formatCommonType( encoding->type,
-                           { GetProperty::Reply::type_names } ), ws.separator,
+        _formatVariable( encoding->type,
+                         { GetProperty::Reply::type_names } ), ws.separator,
         ws.memb_indent, "bytes-after", memb_name_w, ws.equals,
-        _formatInteger( encoding->bytes_after ), ws.separator,
+        _formatVariable( encoding->bytes_after ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(value length (format units))", memb_name_w, ws.equals,
-            _formatInteger( encoding->value_fmt_unit_len ), ws.separator ),
+            _formatVariable( encoding->value_fmt_unit_len ), ws.separator ),
         ws.memb_indent, "value", memb_name_w, ws.equals,
         value.str, ws.separator,
         ws.encl_indent
@@ -462,19 +462,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(ATOMs in atoms)", memb_name_w, ws.equals,
-            _formatInteger( encoding->atoms_ct ), ws.separator ),
+            _formatVariable( encoding->atoms_ct ), ws.separator ),
         ws.memb_indent, "atoms", memb_name_w, ws.equals,
         atoms.str, ws.separator,
         ws.encl_indent
@@ -515,18 +515,18 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "owner", memb_name_w, ws.equals,
-        _formatCommonType( encoding->owner,
-                           { GetSelectionOwner::Reply::owner_names } ), ws.separator,
+        _formatVariable( encoding->owner,
+                         { GetSelectionOwner::Reply::owner_names } ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -566,18 +566,18 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "status", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.status,
-                        { GrabPointer::Reply::status_names } ), ws.separator,
+        _formatVariable( encoding->header.status,
+                         { GrabPointer::Reply::status_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return reply;
@@ -617,18 +617,18 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "status", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.status,
-                        { GrabKeyboard::Reply::status_names } ), ws.separator,
+        _formatVariable( encoding->header.status,
+                         { GrabKeyboard::Reply::status_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return reply;
@@ -670,32 +670,32 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "same-screen", memb_name_w, ws.equals,
-        _formatCommonType( encoding->header.same_screen ), ws.separator,
+        _formatVariable( encoding->header.same_screen ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "root", memb_name_w, ws.equals,
-        _formatCommonType( encoding->root ), ws.separator,
+        _formatVariable( encoding->root ), ws.separator,
         ws.memb_indent, "child", memb_name_w, ws.equals,
-        _formatCommonType( encoding->child,
-                           { QueryPointer::Reply::child_names } ), ws.separator,
+        _formatVariable( encoding->child,
+                         { QueryPointer::Reply::child_names } ), ws.separator,
         ws.memb_indent, "root-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->root_x ), ws.separator,
+        _formatVariable( encoding->root_x ), ws.separator,
         ws.memb_indent, "root-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->root_y ), ws.separator,
+        _formatVariable( encoding->root_y ), ws.separator,
         ws.memb_indent, "win-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->win_x ), ws.separator,
+        _formatVariable( encoding->win_x ), ws.separator,
         ws.memb_indent, "win-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->win_y ), ws.separator,
+        _formatVariable( encoding->win_y ), ws.separator,
         ws.memb_indent, "mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->mask ), ws.separator,
+        _formatVariable( encoding->mask ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -740,19 +740,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(TIMECOORDs in events)", memb_name_w, ws.equals,
-            _formatInteger( encoding->events_ct ), ws.separator ),
+            _formatVariable( encoding->events_ct ), ws.separator ),
         ws.memb_indent, "events", memb_name_w, ws.equals,
         events.str, ws.separator,
         ws.encl_indent
@@ -795,24 +795,24 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "same-screen", memb_name_w, ws.equals,
-        _formatCommonType( encoding->header.same_screen ), ws.separator,
+        _formatVariable( encoding->header.same_screen ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "child", memb_name_w, ws.equals,
-        _formatCommonType( encoding->child,
-                           { TranslateCoordinates::Reply::child_names } ), ws.separator,
+        _formatVariable( encoding->child,
+                         { TranslateCoordinates::Reply::child_names } ), ws.separator,
         ws.memb_indent, "dst-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_x ), ws.separator,
+        _formatVariable( encoding->dst_x ), ws.separator,
         ws.memb_indent, "dst-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_y ), ws.separator,
+        _formatVariable( encoding->dst_y ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -853,22 +853,22 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "revert-to", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.revert_to,
-                        { GetInputFocus::Reply::revert_to_names } ), ws.separator,
+        _formatVariable( encoding->header.revert_to,
+                         { GetInputFocus::Reply::revert_to_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "focus", memb_name_w, ws.equals,
-        _formatCommonType( encoding->focus, { GetInputFocus::Reply::focus_names,
-                                              _EnumNameRange::Bound::MAX,
-                                              GetInputFocus::Reply::FOCUS_ENUM_MAX } ),
+        _formatVariable( encoding->focus, { GetInputFocus::Reply::focus_names,
+                                            _EnumNameRange::Bound::MAX,
+                                            GetInputFocus::Reply::FOCUS_ENUM_MAX } ),
         ws.separator,
         ws.encl_indent
         );
@@ -913,15 +913,15 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "keys", memb_name_w, ws.equals,
         keys.str, ws.separator,
         ws.encl_indent
@@ -980,46 +980,46 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "min-bounds", memb_name_w, ws.equals,
-        _formatCommonType( encoding->min_bounds, ws.nested() ), ws.separator,
+        _formatVariable( encoding->min_bounds, ws.nested() ), ws.separator,
         ws.memb_indent, "max-bounds", memb_name_w, ws.equals,
-        _formatCommonType( encoding->max_bounds, ws.nested() ), ws.separator,
+        _formatVariable( encoding->max_bounds, ws.nested() ), ws.separator,
         ws.memb_indent, "min-char-or-byte2", memb_name_w, ws.equals,
-        _formatInteger( encoding->min_char_or_byte2 ), ws.separator,
+        _formatVariable( encoding->min_char_or_byte2 ), ws.separator,
         ws.memb_indent, "max-char-or-byte2", memb_name_w, ws.equals,
-        _formatInteger( encoding->max_char_or_byte2 ), ws.separator,
+        _formatVariable( encoding->max_char_or_byte2 ), ws.separator,
         ws.memb_indent, "default-char", memb_name_w, ws.equals,
-        _formatInteger( encoding->default_char ), ws.separator,
+        _formatVariable( encoding->default_char ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(FONTPROPs in properties)", memb_name_w, ws.equals,
-            _formatInteger( encoding->properties_ct ), ws.separator ),
+            _formatVariable( encoding->properties_ct ), ws.separator ),
         ws.memb_indent, "draw-direction", memb_name_w, ws.equals,
-        _formatInteger( encoding->draw_direction,
-                        { QueryFont::Reply::draw_direction_names } ), ws.separator,
+        _formatVariable( encoding->draw_direction,
+                         { QueryFont::Reply::draw_direction_names } ), ws.separator,
         ws.memb_indent, "min-byte1", memb_name_w, ws.equals,
-        _formatInteger( encoding->min_byte1 ), ws.separator,
+        _formatVariable( encoding->min_byte1 ), ws.separator,
         ws.memb_indent, "max-byte1", memb_name_w, ws.equals,
-        _formatInteger( encoding->max_byte1 ), ws.separator,
+        _formatVariable( encoding->max_byte1 ), ws.separator,
         ws.memb_indent, "all-chars-exist", memb_name_w, ws.equals,
-        _formatCommonType( encoding->all_chars_exist ), ws.separator,
+        _formatVariable( encoding->all_chars_exist ), ws.separator,
         ws.memb_indent, "font-ascent", memb_name_w, ws.equals,
-        _formatInteger( encoding->font_ascent ), ws.separator,
+        _formatVariable( encoding->font_ascent ), ws.separator,
         ws.memb_indent, "font-descent", memb_name_w, ws.equals,
-        _formatInteger( encoding->font_descent ), ws.separator,
+        _formatVariable( encoding->font_descent ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(CHARINFOs in char-infos)", memb_name_w, ws.equals,
-            _formatInteger( encoding->char_infos_ct ), ws.separator ),
+            _formatVariable( encoding->char_infos_ct ), ws.separator ),
         ws.memb_indent, "properties", memb_name_w, ws.equals,
         properties.str, ws.separator,
         ws.memb_indent, "char-infos", memb_name_w, ws.equals,
@@ -1065,32 +1065,32 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "draw-direction", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.draw_direction,
-                        { QueryTextExtents::Reply::draw_direction_names } ), ws.separator,
+        _formatVariable( encoding->header.draw_direction,
+                         { QueryTextExtents::Reply::draw_direction_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "font-ascent", memb_name_w, ws.equals,
-        _formatInteger( encoding->font_ascent ), ws.separator,
+        _formatVariable( encoding->font_ascent ), ws.separator,
         ws.memb_indent, "font-descent", memb_name_w, ws.equals,
-        _formatInteger( encoding->font_descent ), ws.separator,
+        _formatVariable( encoding->font_descent ), ws.separator,
         ws.memb_indent, "overall-ascent", memb_name_w, ws.equals,
-        _formatInteger( encoding->overall_ascent ), ws.separator,
+        _formatVariable( encoding->overall_ascent ), ws.separator,
         ws.memb_indent, "overall-descent", memb_name_w, ws.equals,
-        _formatInteger( encoding->overall_descent ), ws.separator,
+        _formatVariable( encoding->overall_descent ), ws.separator,
         ws.memb_indent, "overall-width", memb_name_w, ws.equals,
-        _formatInteger( encoding->overall_width ), ws.separator,
+        _formatVariable( encoding->overall_width ), ws.separator,
         ws.memb_indent, "overall-left", memb_name_w, ws.equals,
-        _formatInteger( encoding->overall_left ), ws.separator,
+        _formatVariable( encoding->overall_left ), ws.separator,
         ws.memb_indent, "overall-right", memb_name_w, ws.equals,
-        _formatInteger( encoding->overall_right ), ws.separator,
+        _formatVariable( encoding->overall_right ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -1135,19 +1135,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(STRs in names)", memb_name_w, ws.equals,
-            _formatInteger( encoding->names_ct ), ws.separator ),
+            _formatVariable( encoding->names_ct ), ws.separator ),
         ws.memb_indent, "names", memb_name_w, ws.equals,
         names.str, ws.separator,
         ws.encl_indent
@@ -1191,17 +1191,17 @@ X11ProtocolParser::_parseReply<
             !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
                 ws.memb_indent, "reply", memb_name_w, ws.equals,
-                _formatInteger( encoding->header.reply ), ws.separator ),
+                _formatVariable( encoding->header.reply ), ws.separator ),
             ws.memb_indent, "last-reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.last_reply ), ws.separator,
+            _formatVariable( encoding->header.last_reply ), ws.separator,
             !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
                 ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-                _formatInteger( encoding->header.sequence_num ), ws.separator ),
+                _formatVariable( encoding->header.sequence_num ), ws.separator ),
             !settings.verbose ? "" : fmt::format(
                 "{}{: <{}}{}{}{}",
                 ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-                _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+                _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
             ws.encl_indent
             );
         return reply;
@@ -1240,48 +1240,48 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.name_len ), ws.separator ),
+            _formatVariable( encoding->header.name_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "min-bounds", memb_name_w, ws.equals,
-        _formatCommonType( encoding->min_bounds, ws.nested() ), ws.separator,
+        _formatVariable( encoding->min_bounds, ws.nested() ), ws.separator,
         ws.memb_indent, "max-bounds", memb_name_w, ws.equals,
-        _formatCommonType( encoding->max_bounds, ws.nested() ), ws.separator,
+        _formatVariable( encoding->max_bounds, ws.nested() ), ws.separator,
         ws.memb_indent, "min-char-or-byte2", memb_name_w, ws.equals,
-        _formatInteger( encoding->min_char_or_byte2 ), ws.separator,
+        _formatVariable( encoding->min_char_or_byte2 ), ws.separator,
         ws.memb_indent, "max-char-or-byte2", memb_name_w, ws.equals,
-        _formatInteger( encoding->max_char_or_byte2 ), ws.separator,
+        _formatVariable( encoding->max_char_or_byte2 ), ws.separator,
         ws.memb_indent, "default-char", memb_name_w, ws.equals,
-        _formatInteger( encoding->default_char ), ws.separator,
+        _formatVariable( encoding->default_char ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(FONTPROPs in properties)", memb_name_w, ws.equals,
-            _formatInteger( encoding->properties_ct ), ws.separator ),
+            _formatVariable( encoding->properties_ct ), ws.separator ),
         ws.memb_indent, "draw-direction", memb_name_w, ws.equals,
-        _formatInteger( encoding->draw_direction,
-                        { ListFontsWithInfo::Reply::draw_direction_names } ), ws.separator,
+        _formatVariable( encoding->draw_direction,
+                         { ListFontsWithInfo::Reply::draw_direction_names } ), ws.separator,
         ws.memb_indent, "min-byte1", memb_name_w, ws.equals,
-        _formatInteger( encoding->min_byte1 ), ws.separator,
+        _formatVariable( encoding->min_byte1 ), ws.separator,
         ws.memb_indent, "max-byte1", memb_name_w, ws.equals,
-        _formatInteger( encoding->max_byte1 ), ws.separator,
+        _formatVariable( encoding->max_byte1 ), ws.separator,
         ws.memb_indent, "all-chars-exist", memb_name_w, ws.equals,
-        _formatCommonType( encoding->all_chars_exist ), ws.separator,
+        _formatVariable( encoding->all_chars_exist ), ws.separator,
         ws.memb_indent, "font-ascent", memb_name_w, ws.equals,
-        _formatInteger( encoding->font_ascent ), ws.separator,
+        _formatVariable( encoding->font_ascent ), ws.separator,
         ws.memb_indent, "font-descent", memb_name_w, ws.equals,
-        _formatInteger( encoding->font_descent ), ws.separator,
+        _formatVariable( encoding->font_descent ), ws.separator,
         ws.memb_indent, "replies-hint", memb_name_w, ws.equals,
-        _formatInteger( encoding->replies_hint ), ws.separator,
+        _formatVariable( encoding->replies_hint ), ws.separator,
         ws.memb_indent, "properties", memb_name_w, ws.equals,
         properties.str, ws.separator,
         ws.memb_indent, "name", memb_name_w, ws.equals,
@@ -1330,19 +1330,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(STRs in path)", memb_name_w, ws.equals,
-            _formatInteger( encoding->path_ct ), ws.separator ),
+            _formatVariable( encoding->path_ct ), ws.separator ),
         ws.memb_indent, "path", memb_name_w, ws.equals,
         path.str, ws.separator,
         ws.encl_indent
@@ -1393,20 +1393,20 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "depth", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.depth ), ws.separator,
+        _formatVariable( encoding->header.depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "visual", memb_name_w, ws.equals,
-        _formatCommonType( encoding->visual,
-                           { GetImage::Reply::visual_names } ), ws.separator,
+        _formatVariable( encoding->visual,
+                         { GetImage::Reply::visual_names } ), ws.separator,
         ws.memb_indent, "data", memb_name_w, ws.equals,
         data_.str, ws.separator,
         ws.encl_indent
@@ -1453,19 +1453,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(COLORMAPs in cmaps)", memb_name_w, ws.equals,
-            _formatInteger( encoding->cmaps_ct ), ws.separator ),
+            _formatVariable( encoding->cmaps_ct ), ws.separator ),
         ws.memb_indent, "cmaps", memb_name_w, ws.equals,
         cmaps.str, ws.separator,
         ws.encl_indent
@@ -1506,23 +1506,23 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "red", memb_name_w, ws.equals,
-        _formatInteger( encoding->red ), ws.separator,
+        _formatVariable( encoding->red ), ws.separator,
         ws.memb_indent, "green", memb_name_w, ws.equals,
-        _formatInteger( encoding->green ), ws.separator,
+        _formatVariable( encoding->green ), ws.separator,
         ws.memb_indent, "blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->blue ), ws.separator,
+        _formatVariable( encoding->blue ), ws.separator,
         ws.memb_indent, "pixel", memb_name_w, ws.equals,
-        _formatInteger( encoding->pixel ), ws.separator,
+        _formatVariable( encoding->pixel ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -1562,29 +1562,29 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "pixel", memb_name_w, ws.equals,
-        _formatInteger( encoding->pixel ), ws.separator,
+        _formatVariable( encoding->pixel ), ws.separator,
         ws.memb_indent, "exact-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->exact_red ), ws.separator,
+        _formatVariable( encoding->exact_red ), ws.separator,
         ws.memb_indent, "exact-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->exact_green ), ws.separator,
+        _formatVariable( encoding->exact_green ), ws.separator,
         ws.memb_indent, "exact-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->exact_blue ), ws.separator,
+        _formatVariable( encoding->exact_blue ), ws.separator,
         ws.memb_indent, "visual-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->visual_red ), ws.separator,
+        _formatVariable( encoding->visual_red ), ws.separator,
         ws.memb_indent, "visual-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->visual_green ), ws.separator,
+        _formatVariable( encoding->visual_green ), ws.separator,
         ws.memb_indent, "visual-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->visual_blue ), ws.separator,
+        _formatVariable( encoding->visual_blue ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -1636,23 +1636,23 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(CARD32 in pixels)", memb_name_w, ws.equals,
-            _formatInteger( encoding->pixels_ct ), ws.separator ),
+            _formatVariable( encoding->pixels_ct ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(CARD32 in masks)", memb_name_w, ws.equals,
-            _formatInteger( encoding->masks_ct ), ws.separator ),
+            _formatVariable( encoding->masks_ct ), ws.separator ),
         ws.memb_indent, "pixels", memb_name_w, ws.equals,
         pixels.str, ws.separator,
         ws.memb_indent, "masks", memb_name_w, ws.equals,
@@ -1701,25 +1701,28 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(CARD32 in pixels)", memb_name_w, ws.equals,
-            _formatInteger( encoding->pixels_ct ), ws.separator ),
+            _formatVariable( encoding->pixels_ct ), ws.separator ),
         ws.memb_indent, "red-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->red_mask, {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->red_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "green-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->green_mask {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->green_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "blue-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->blue_mask {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->blue_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "pixels", memb_name_w, ws.equals,
         pixels.str, ws.separator,
         ws.encl_indent
@@ -1766,19 +1769,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(RGBs in colors)", memb_name_w, ws.equals,
-            _formatInteger( encoding->colors_ct ), ws.separator ),
+            _formatVariable( encoding->colors_ct ), ws.separator ),
         ws.memb_indent, "colors", memb_name_w, ws.equals,
         colors.str, ws.separator,
         ws.encl_indent
@@ -1820,27 +1823,27 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "exact-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->exact_red ), ws.separator,
+        _formatVariable( encoding->exact_red ), ws.separator,
         ws.memb_indent, "exact-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->exact_green ), ws.separator,
+        _formatVariable( encoding->exact_green ), ws.separator,
         ws.memb_indent, "exact-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->exact_blue ), ws.separator,
+        _formatVariable( encoding->exact_blue ), ws.separator,
         ws.memb_indent, "visual-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->visual_red ), ws.separator,
+        _formatVariable( encoding->visual_red ), ws.separator,
         ws.memb_indent, "visual-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->visual_green ), ws.separator,
+        _formatVariable( encoding->visual_green ), ws.separator,
         ws.memb_indent, "visual-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->visual_blue ), ws.separator,
+        _formatVariable( encoding->visual_blue ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -1879,19 +1882,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -1939,23 +1942,23 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "present", memb_name_w, ws.equals,
-        _formatCommonType( encoding->present ), ws.separator,
+        _formatVariable( encoding->present ), ws.separator,
         ws.memb_indent, "major-opcode", memb_name_w, ws.equals,
-        _formatInteger( encoding->major_opcode ), ws.separator,
+        _formatVariable( encoding->major_opcode ), ws.separator,
         ws.memb_indent, "first-event", memb_name_w, ws.equals,
-        _formatInteger( encoding->first_event ), ws.separator,
+        _formatVariable( encoding->first_event ), ws.separator,
         ws.memb_indent, "first-error", memb_name_w, ws.equals,
-        _formatInteger( encoding->first_error ), ws.separator,
+        _formatVariable( encoding->first_error ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -2000,19 +2003,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(STRs in names)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.names_ct ), ws.separator ),
+            _formatVariable( encoding->header.names_ct ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "names", memb_name_w, ws.equals,
         names.str, ws.separator,
         ws.encl_indent
@@ -2063,19 +2066,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "keysyms-per-keycode", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.keysyms_per_keycode ), ws.separator ),
+            _formatVariable( encoding->header.keysyms_per_keycode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "keysyms", memb_name_w, ws.equals,
         keysyms.str, ws.separator,
         ws.encl_indent
@@ -2125,9 +2128,9 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "global-auto-repeat", memb_name_w, ws.equals,
-        _formatInteger(
+        _formatVariable(
             encoding->header.global_auto_repeat,
             { GetKeyboardControl::Reply::global_auto_repeat_names,
               _EnumNameRange::Bound::MAX,
@@ -2136,21 +2139,21 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "led-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->led_mask ), ws.separator,
+        _formatVariable( encoding->led_mask ), ws.separator,
         ws.memb_indent, "key-click-percent", memb_name_w, ws.equals,
-        _formatInteger( encoding->key_click_percent ), ws.separator,
+        _formatVariable( encoding->key_click_percent ), ws.separator,
         ws.memb_indent, "bell-percent", memb_name_w, ws.equals,
-        _formatInteger( encoding->bell_percent ), ws.separator,
+        _formatVariable( encoding->bell_percent ), ws.separator,
         ws.memb_indent, "bell-pitch", memb_name_w, ws.equals,
-        _formatInteger( encoding->bell_pitch ), ws.separator,
+        _formatVariable( encoding->bell_pitch ), ws.separator,
         ws.memb_indent, "bell-duration", memb_name_w, ws.equals,
-        _formatInteger( encoding->bell_duration ), ws.separator,
+        _formatVariable( encoding->bell_duration ), ws.separator,
         ws.memb_indent, "auto-repeats", memb_name_w, ws.equals,
         auto_repeats.str, ws.separator,
         ws.encl_indent
@@ -2189,21 +2192,21 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "acceleration-numerator", memb_name_w, ws.equals,
-        _formatInteger( encoding->acceleration_numerator ), ws.separator,
+        _formatVariable( encoding->acceleration_numerator ), ws.separator,
         ws.memb_indent, "acceleration-denominator", memb_name_w, ws.equals,
-        _formatInteger( encoding->acceleration_denominator ), ws.separator,
+        _formatVariable( encoding->acceleration_denominator ), ws.separator,
         ws.memb_indent, "threshold", memb_name_w, ws.equals,
-        _formatInteger( encoding->threshold ), ws.separator,
+        _formatVariable( encoding->threshold ), ws.separator,
         ws.encl_indent
         );
     return reply;
@@ -2242,30 +2245,30 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "timeout", memb_name_w, ws.equals,
-        _formatInteger( encoding->timeout ), ws.separator,
+        _formatVariable( encoding->timeout ), ws.separator,
         ws.memb_indent, "interval", memb_name_w, ws.equals,
-        _formatInteger( encoding->interval ), ws.separator,
+        _formatVariable( encoding->interval ), ws.separator,
         ws.memb_indent, "prefer-blanking", memb_name_w, ws.equals,
-        _formatInteger( encoding->prefer_blanking,
-                        { GetScreenSaver::Reply::prefer_blanking_names,
-                          _EnumNameRange::Bound::MAX,
-                          GetScreenSaver::Reply::PREFER_BLANKING_ENUM_MAX } ),
+        _formatVariable( encoding->prefer_blanking,
+                         { GetScreenSaver::Reply::prefer_blanking_names,
+                           _EnumNameRange::Bound::MAX,
+                           GetScreenSaver::Reply::PREFER_BLANKING_ENUM_MAX } ),
         ws.separator,
         ws.memb_indent, "allow-exposures", memb_name_w, ws.equals,
-        _formatInteger( encoding->allow_exposures,
-                        { GetScreenSaver::Reply::allow_exposures_names,
-                          _EnumNameRange::Bound::MAX,
-                          GetScreenSaver::Reply::ALLOW_EXPOSURES_ENUM_MAX } ),
+        _formatVariable( encoding->allow_exposures,
+                         { GetScreenSaver::Reply::allow_exposures_names,
+                           _EnumNameRange::Bound::MAX,
+                           GetScreenSaver::Reply::ALLOW_EXPOSURES_ENUM_MAX } ),
         ws.separator,
         ws.encl_indent
         );
@@ -2313,22 +2316,22 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.mode,
-                        { ListHosts::Reply::mode_names } ), ws.separator,
+        _formatVariable( encoding->header.mode,
+                         { ListHosts::Reply::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(HOSTs in hosts)", memb_name_w, ws.equals,
-            _formatInteger( encoding->hosts_ct ), ws.separator ),
+            _formatVariable( encoding->hosts_ct ), ws.separator ),
         ws.memb_indent, "hosts", memb_name_w, ws.equals,
         hosts.str, ws.separator,
         ws.encl_indent
@@ -2370,21 +2373,21 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "status", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.status,
-                        { SetPointerMapping::Reply::status_names,
-                          _EnumNameRange::Bound::MAX,
-                          SetPointerMapping::Reply::STATUS_ENUM_MAX } ),
+        _formatVariable( encoding->header.status,
+                         { SetPointerMapping::Reply::status_names,
+                           _EnumNameRange::Bound::MAX,
+                           SetPointerMapping::Reply::STATUS_ENUM_MAX } ),
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return reply;
@@ -2429,19 +2432,19 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(map length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.map_len ), ws.separator ),
+            _formatVariable( encoding->header.map_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "map", memb_name_w, ws.equals,
         map.str, ws.separator,
         ws.encl_indent
@@ -2483,18 +2486,18 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "status", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.status,
-                        { SetModifierMapping::Reply::status_names } ), ws.separator,
+        _formatVariable( encoding->header.status,
+                         { SetModifierMapping::Reply::status_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return reply;
@@ -2544,17 +2547,17 @@ X11ProtocolParser::_parseReply<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "reply", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.reply ), ws.separator ),
+            _formatVariable( encoding->header.reply ), ws.separator ),
         ws.memb_indent, "keycodes-per-modifier", memb_name_w, ws.equals,
-        _formatInteger( encoding->header.keycodes_per_modifier ), ws.separator,
+        _formatVariable( encoding->header.keycodes_per_modifier ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
-            _formatInteger( encoding->header.extra_aligned_units ), ws.separator ),
+            _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "keycodes", memb_name_w, ws.equals,
         keycodes.str, ws.separator,
         ws.encl_indent

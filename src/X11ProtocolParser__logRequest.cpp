@@ -18,7 +18,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::impl::SimpleRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -42,11 +42,11 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return request;
@@ -56,7 +56,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleWindowRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::impl::SimpleWindowRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -86,13 +86,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -102,7 +102,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::ListFontsRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::impl::ListFontsRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -139,17 +139,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "max-names", memb_name_w, ws.equals,
-        _formatInteger( encoding->max_names ), ws.separator,
+        _formatVariable( encoding->max_names ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(pattern length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->pattern_len ), ws.separator ),
+            _formatVariable( encoding->pattern_len ), ws.separator ),
         ws.memb_indent, "pattern", memb_name_w, ws.equals,
         pattern, ws.separator,
         ws.encl_indent
@@ -203,18 +203,18 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "coordinate-mode", memb_name_w, ws.equals,
-        _formatInteger( header->coordinate_mode,
-                        { PolyPointRequest::coordinate_mode_names } ), ws.separator,
+        _formatVariable( header->coordinate_mode,
+                         { PolyPointRequest::coordinate_mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "points", memb_name_w, ws.equals,
         points.str, ws.separator,
         ws.encl_indent
@@ -226,7 +226,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleCmapRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::requests::impl::SimpleCmapRequest;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -257,13 +257,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -290,29 +290,34 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateWindow::Encoding );
     // followed by LISTofVALUE value-list
-    const std::vector< _VALUETraits > value_traits {
-        /* background-pixmap     */ { CreateWindow::background_pixmap_names },
+    const std::vector< _ValueTraits > value_traits {
+        /* background-pixmap     */ {
+            _EnumNameRange{ CreateWindow::background_pixmap_names } },
         /* background-pixel      */ {},
-        /* border-pixmap         */ { CreateWindow::border_pixmap_names },
+        /* border-pixmap         */ {
+            _EnumNameRange{ CreateWindow::border_pixmap_names } },
         /* border-pixel          */ {},
         /* bit-gravity           */ {},
         /* win-gravity           */ {},
-        /* backing-store         */ { CreateWindow::backing_store_names },
+        /* backing-store         */ {
+            _EnumNameRange{ CreateWindow::backing_store_names } },
         /* backing-planes        */ {},
         /* backing-pixel         */ {},
         /* override-redirect     */ {},
         /* save-under            */ {},
         /* event-mask            */ {},
         /* do-not-propagate-mask */ {},
-        /* colormap              */ { CreateWindow::colormap_names },
-        /* cursor                */ { CreateWindow::cursor_names }
+        /* colormap              */ {
+            _EnumNameRange{ CreateWindow::colormap_names } },
+        /* cursor                */ {
+            _EnumNameRange{ CreateWindow::cursor_names } }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        data + request.bytes_parsed, sz - request.bytes_parsed,
         encoding->value_mask, CreateWindow::value_types,
         CreateWindow::value_names, value_traits, ws.nested() };
-    _ParsingOutputs value_list;
-    _parseLISTofVALUE(
-        value_list_inputs, data + request.bytes_parsed, &value_list );
+    _LISTofVALUEParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -333,37 +338,37 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "depth", memb_name_w, ws.equals,
-        _formatInteger( header->depth ), ws.separator,
+        _formatVariable( header->depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "wid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->wid ), ws.separator,
+        _formatVariable( encoding->wid ), ws.separator,
         ws.memb_indent, "parent", memb_name_w, ws.equals,
-        _formatCommonType( encoding->parent ), ws.separator,
+        _formatVariable( encoding->parent ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.memb_indent, "border-width", memb_name_w, ws.equals,
-        _formatInteger( encoding->border_width ), ws.separator,
+        _formatVariable( encoding->border_width ), ws.separator,
         ws.memb_indent, "class", memb_name_w, ws.equals,
-        _formatInteger( encoding->class_,
-                        { CreateWindow::class_names } ), ws.separator,
+        _formatVariable( encoding->class_,
+                         { CreateWindow::class_names } ), ws.separator,
         ws.memb_indent, "visual", memb_name_w, ws.equals,
-        _formatCommonType( encoding->visual,
-                           { CreateWindow::visual_names } ),
+        _formatVariable( encoding->visual,
+                         { CreateWindow::visual_names } ),
         ws.separator,
         ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->value_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->value_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "value-list", memb_name_w, ws.equals,
         value_list.str, ws.separator,
         ws.encl_indent
@@ -392,29 +397,34 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeWindowAttributes::Encoding );
     // followed by LISTofVALUE value-list
-    const std::vector< _VALUETraits > value_traits {
-        /* background-pixmap     */ { ChangeWindowAttributes::background_pixmap_names },
+    const std::vector< _ValueTraits > value_traits {
+        /* background-pixmap     */ {
+            _EnumNameRange{ ChangeWindowAttributes::background_pixmap_names } },
         /* background-pixel      */ {},
-        /* border-pixmap         */ { ChangeWindowAttributes::border_pixmap_names },
+        /* border-pixmap         */ {
+            _EnumNameRange{ ChangeWindowAttributes::border_pixmap_names } },
         /* border-pixel          */ {},
         /* bit-gravity           */ {},
         /* win-gravity           */ {},
-        /* backing-store         */ { ChangeWindowAttributes::backing_store_names },
+        /* backing-store         */ {
+            _EnumNameRange{ ChangeWindowAttributes::backing_store_names } },
         /* backing-planes        */ {},
         /* backing-pixel         */ {},
         /* override-redirect     */ {},
         /* save-under            */ {},
         /* event-mask            */ {},
         /* do-not-propagate-mask */ {},
-        /* colormap              */ { ChangeWindowAttributes::colormap_names },
-        /* cursor                */ { ChangeWindowAttributes::cursor_names }
+        /* colormap              */ {
+            _EnumNameRange{ ChangeWindowAttributes::colormap_names } },
+        /* cursor                */ {
+            _EnumNameRange{ ChangeWindowAttributes::cursor_names } }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        data + request.bytes_parsed, sz - request.bytes_parsed,
         encoding->value_mask, ChangeWindowAttributes::value_types,
         ChangeWindowAttributes::value_names, value_traits, ws.nested() };
-    _ParsingOutputs value_list;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
-                       &value_list );
+    _LISTofVALUEParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -431,16 +441,16 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->value_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->value_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "value-list", memb_name_w, ws.equals,
         value_list.str, ws.separator,
         ws.encl_indent
@@ -533,16 +543,16 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        { ChangeSaveSet::mode_names } ), ws.separator,
+        _formatVariable( header->mode,
+                         { ChangeSaveSet::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -583,19 +593,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "parent", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -686,21 +696,22 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ConfigureWindow::Encoding );
     // followed by LISTofVALUE value-list
-    const std::vector< _VALUETraits > value_traits {
+    const std::vector< _ValueTraits > value_traits {
         /* x            */ {},
         /* y            */ {},
         /* width        */ {},
         /* height       */ {},
         /* border-width */ {},
         /* sibling      */ {},
-        /* stack-mode   */ { ConfigureWindow::stack_mode_names },
+        /* stack-mode   */ {
+            _EnumNameRange{ ConfigureWindow::stack_mode_names } }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        data + request.bytes_parsed, sz - request.bytes_parsed,
         encoding->value_mask, ConfigureWindow::value_types,
         ConfigureWindow::value_names, value_traits, ws.nested() };
-    _ParsingOutputs value_list;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
-                       &value_list );
+    _LISTofVALUEParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -717,16 +728,16 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->value_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->value_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "value-list", memb_name_w, ws.equals,
         value_list.str, ws.separator,
         ws.encl_indent
@@ -771,16 +782,16 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "direction", memb_name_w, ws.equals,
-        _formatInteger( header->direction,
-                        { CirculateWindow::direction_names } ), ws.separator,
+        _formatVariable( header->direction,
+                         { CirculateWindow::direction_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -822,13 +833,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -896,17 +907,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "only-if-exists", memb_name_w, ws.equals,
-        _formatCommonType( header->only_if_exists ), ws.separator,
+        _formatVariable( header->only_if_exists ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -949,13 +960,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "atom", memb_name_w, ws.equals,
-        _formatCommonType( encoding->atom ), ws.separator,
+        _formatVariable( encoding->atom ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1017,26 +1028,26 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        { ChangeProperty::mode_names } ), ws.separator,
+        _formatVariable( header->mode,
+                         { ChangeProperty::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "property", memb_name_w, ws.equals,
-        _formatCommonType( encoding->property ), ws.separator,
+        _formatVariable( encoding->property ), ws.separator,
         ws.memb_indent, "type", memb_name_w, ws.equals,
-        _formatCommonType( encoding->type ), ws.separator,
+        _formatVariable( encoding->type ), ws.separator,
         ws.memb_indent, "format", memb_name_w, ws.equals,
-        _formatInteger( encoding->format ), ws.separator,
+        _formatVariable( encoding->format ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(data length (format units))", memb_name_w, ws.equals,
-            _formatInteger( encoding->data_fmt_unit_len ), ws.separator ),
+            _formatVariable( encoding->data_fmt_unit_len ), ws.separator ),
         ws.memb_indent, "data", memb_name_w, ws.equals,
         data_.str, ws.separator,
         ws.encl_indent
@@ -1079,15 +1090,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "property", memb_name_w, ws.equals,
-        _formatCommonType( encoding->property ), ws.separator,
+        _formatVariable( encoding->property ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1131,24 +1142,24 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "delete", memb_name_w, ws.equals,
-        _formatCommonType( header->delete_ ), ws.separator,
+        _formatVariable( header->delete_ ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "property", memb_name_w, ws.equals,
-        _formatCommonType( encoding->property ), ws.separator,
+        _formatVariable( encoding->property ), ws.separator,
         ws.memb_indent, "type", memb_name_w, ws.equals,
-        _formatCommonType( encoding->type,
-                           { GetProperty::type_names } ), ws.separator,
+        _formatVariable( encoding->type,
+                         { GetProperty::type_names } ), ws.separator,
         ws.memb_indent, "long-offset", memb_name_w, ws.equals,
-        _formatInteger( encoding->long_offset ), ws.separator,
+        _formatVariable( encoding->long_offset ), ws.separator,
         ws.memb_indent, "long-length", memb_name_w, ws.equals,
-        _formatInteger( encoding->long_length ), ws.separator,
+        _formatVariable( encoding->long_length ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1205,19 +1216,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "owner", memb_name_w, ws.equals,
-        _formatCommonType( encoding->owner,
-                           { SetSelectionOwner::owner_names } ), ws.separator,
+        _formatVariable( encoding->owner,
+                         { SetSelectionOwner::owner_names } ), ws.separator,
         ws.memb_indent, "selection", memb_name_w, ws.equals,
-        _formatCommonType( encoding->selection ), ws.separator,
+        _formatVariable( encoding->selection ), ws.separator,
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { SetSelectionOwner::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { SetSelectionOwner::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1258,13 +1269,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "selection", memb_name_w, ws.equals,
-        _formatCommonType( encoding->selection ), ws.separator,
+        _formatVariable( encoding->selection ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1306,23 +1317,23 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "requestor", memb_name_w, ws.equals,
-        _formatCommonType( encoding->requestor ), ws.separator,
+        _formatVariable( encoding->requestor ), ws.separator,
         ws.memb_indent, "selection", memb_name_w, ws.equals,
-        _formatCommonType( encoding->selection ), ws.separator,
+        _formatVariable( encoding->selection ), ws.separator,
         ws.memb_indent, "target", memb_name_w, ws.equals,
-        _formatCommonType( encoding->target ), ws.separator,
+        _formatVariable( encoding->target ), ws.separator,
         ws.memb_indent, "property", memb_name_w, ws.equals,
-        _formatCommonType( encoding->property,
-                           { ConvertSelection::property_names } ), ws.separator,
+        _formatVariable( encoding->property,
+                         { ConvertSelection::property_names } ), ws.separator,
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { ConvertSelection::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { ConvertSelection::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1374,18 +1385,18 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "propagate", memb_name_w, ws.equals,
-        _formatCommonType( header->propagate ), ws.separator,
+        _formatVariable( header->propagate ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "destination", memb_name_w, ws.equals,
-        _formatCommonType( encoding->destination,
-                           { SendEvent::destination_names } ), ws.separator,
+        _formatVariable( encoding->destination,
+                         { SendEvent::destination_names } ), ws.separator,
         ws.memb_indent, "event-mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->event_mask ), ws.separator,
+        _formatVariable( encoding->event_mask ), ws.separator,
         ws.memb_indent, "event", memb_name_w, ws.equals,
         protocol::events::names[ evt_code ], evt_code,
         event.str, ws.separator,
@@ -1432,32 +1443,32 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "owner-events", memb_name_w, ws.equals,
-        _formatCommonType( header->owner_events ), ws.separator,
+        _formatVariable( header->owner_events ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "grab-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->grab_window ), ws.separator,
+        _formatVariable( encoding->grab_window ), ws.separator,
         ws.memb_indent, "event-mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->event_mask ), ws.separator,
+        _formatVariable( encoding->event_mask ), ws.separator,
         ws.memb_indent, "pointer-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->pointer_mode,
-                        { GrabPointer::pointer_mode_names } ), ws.separator,
+        _formatVariable( encoding->pointer_mode,
+                         { GrabPointer::pointer_mode_names } ), ws.separator,
         ws.memb_indent, "keyboard-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->keyboard_mode,
-                        { GrabPointer::keyboard_mode_names } ), ws.separator,
+        _formatVariable( encoding->keyboard_mode,
+                         { GrabPointer::keyboard_mode_names } ), ws.separator,
         ws.memb_indent, "confine-to", memb_name_w, ws.equals,
-        _formatCommonType( encoding->confine_to,
-                           { GrabPointer::confine_to_names } ), ws.separator,
+        _formatVariable( encoding->confine_to,
+                         { GrabPointer::confine_to_names } ), ws.separator,
         ws.memb_indent, "cursor", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cursor,
-                           { GrabPointer::cursor_names } ), ws.separator,
+        _formatVariable( encoding->cursor,
+                         { GrabPointer::cursor_names } ), ws.separator,
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { GrabPointer::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { GrabPointer::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1498,14 +1509,14 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { UngrabPointer::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { UngrabPointer::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1549,34 +1560,34 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "owner-events", memb_name_w, ws.equals,
-        _formatCommonType( header->owner_events ), ws.separator,
+        _formatVariable( header->owner_events ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "grab-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->grab_window ), ws.separator,
+        _formatVariable( encoding->grab_window ), ws.separator,
         ws.memb_indent, "event-mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->event_mask ), ws.separator,
+        _formatVariable( encoding->event_mask ), ws.separator,
         ws.memb_indent, "pointer-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->pointer_mode,
-                        { GrabButton::pointer_mode_names } ), ws.separator,
+        _formatVariable( encoding->pointer_mode,
+                         { GrabButton::pointer_mode_names } ), ws.separator,
         ws.memb_indent, "keyboard-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->keyboard_mode,
-                        { GrabButton::keyboard_mode_names } ), ws.separator,
+        _formatVariable( encoding->keyboard_mode,
+                         { GrabButton::keyboard_mode_names } ), ws.separator,
         ws.memb_indent, "confine-to", memb_name_w, ws.equals,
-        _formatCommonType( encoding->confine_to,
-                           { GrabButton::confine_to_names } ), ws.separator,
+        _formatVariable( encoding->confine_to,
+                         { GrabButton::confine_to_names } ), ws.separator,
         ws.memb_indent, "cursor", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cursor,
-                           { GrabButton::cursor_names } ), ws.separator,
+        _formatVariable( encoding->cursor,
+                         { GrabButton::cursor_names } ), ws.separator,
         ws.memb_indent, "button", memb_name_w, ws.equals,
-        _formatCommonType( encoding->button,
-                           { GrabButton::button_names } ), ws.separator,
+        _formatVariable( encoding->button,
+                         { GrabButton::button_names } ), ws.separator,
         ws.memb_indent, "modifiers", memb_name_w, ws.equals,
-        _formatCommonType( encoding->modifiers ), ws.separator,
+        _formatVariable( encoding->modifiers ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1619,18 +1630,18 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "button", memb_name_w, ws.equals,
-        _formatCommonType( header->button,
-                           { UngrabButton::button_names } ), ws.separator,
+        _formatVariable( header->button,
+                         { UngrabButton::button_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "grab-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->grab_window ), ws.separator,
+        _formatVariable( encoding->grab_window ), ws.separator,
         ws.memb_indent, "modifiers", memb_name_w, ws.equals,
-        _formatCommonType( encoding->modifiers ), ws.separator,
+        _formatVariable( encoding->modifiers ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1671,19 +1682,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cursor", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cursor,
-                           { ChangeActivePointerGrab::cursor_names } ), ws.separator,
+        _formatVariable( encoding->cursor,
+                         { ChangeActivePointerGrab::cursor_names } ), ws.separator,
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { ChangeActivePointerGrab::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { ChangeActivePointerGrab::time_names } ), ws.separator,
         ws.memb_indent, "event-mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->event_mask ), ws.separator,
+        _formatVariable( encoding->event_mask ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1726,24 +1737,24 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "owner-events", memb_name_w, ws.equals,
-        _formatCommonType( header->owner_events ), ws.separator,
+        _formatVariable( header->owner_events ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "grab-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->grab_window ), ws.separator,
+        _formatVariable( encoding->grab_window ), ws.separator,
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { GrabKeyboard::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { GrabKeyboard::time_names } ), ws.separator,
         ws.memb_indent, "pointer-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->pointer_mode,
-                        { GrabKeyboard::pointer_mode_names } ), ws.separator,
+        _formatVariable( encoding->pointer_mode,
+                         { GrabKeyboard::pointer_mode_names } ), ws.separator,
         ws.memb_indent, "keyboard-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->keyboard_mode,
-                        { GrabKeyboard::keyboard_mode_names } ), ws.separator,
+        _formatVariable( encoding->keyboard_mode,
+                         { GrabKeyboard::keyboard_mode_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1784,14 +1795,14 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { UngrabKeyboard::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { UngrabKeyboard::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1832,24 +1843,24 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "owner-events", memb_name_w, ws.equals,
-        _formatCommonType( header->owner_events ), ws.separator,
+        _formatVariable( header->owner_events ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "modifiers", memb_name_w, ws.equals,
-        _formatCommonType( encoding->modifiers ), ws.separator,
+        _formatVariable( encoding->modifiers ), ws.separator,
         ws.memb_indent, "key", memb_name_w, ws.equals,
-        _formatCommonType( encoding->key,
-                           { GrabKey::key_names } ), ws.separator,
+        _formatVariable( encoding->key,
+                         { GrabKey::key_names } ), ws.separator,
         ws.memb_indent, "pointer-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->pointer_mode,
-                        { GrabKey::pointer_mode_names } ), ws.separator,
+        _formatVariable( encoding->pointer_mode,
+                         { GrabKey::pointer_mode_names } ), ws.separator,
         ws.memb_indent, "keyboard-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->keyboard_mode,
-                        { GrabKey::keyboard_mode_names } ), ws.separator,
+        _formatVariable( encoding->keyboard_mode,
+                         { GrabKey::keyboard_mode_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1892,18 +1903,18 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "key", memb_name_w, ws.equals,
-        _formatCommonType( header->key,
-                             UngrabKey::key_names ), ws.separator,
+        _formatVariable( header->key,
+                         UngrabKey::key_names ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "grab-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->grab_window ), ws.separator,
+        _formatVariable( encoding->grab_window ), ws.separator,
         ws.memb_indent, "modifiers", memb_name_w, ws.equals,
-        _formatCommonType( encoding->modifiers ), ws.separator,
+        _formatVariable( encoding->modifiers ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -1946,17 +1957,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        { AllowEvents::mode_names } ), ws.separator,
+        _formatVariable( header->mode,
+                         { AllowEvents::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { AllowEvents::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { AllowEvents::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2045,19 +2056,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "start", memb_name_w, ws.equals,
-        _formatCommonType( encoding->start,
-                           { GetMotionEvents::start_names } ), ws.separator,
+        _formatVariable( encoding->start,
+                         { GetMotionEvents::start_names } ), ws.separator,
         ws.memb_indent, "stop", memb_name_w, ws.equals,
-        _formatCommonType( encoding->stop,
-                           { GetMotionEvents::stop_names } ), ws.separator,
+        _formatVariable( encoding->stop,
+                         { GetMotionEvents::stop_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2098,19 +2109,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "src-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->src_window ), ws.separator,
+        _formatVariable( encoding->src_window ), ws.separator,
         ws.memb_indent, "dst-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->dst_window ), ws.separator,
+        _formatVariable( encoding->dst_window ), ws.separator,
         ws.memb_indent, "src-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_x ), ws.separator,
+        _formatVariable( encoding->src_x ), ws.separator,
         ws.memb_indent, "src-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_y ), ws.separator,
+        _formatVariable( encoding->src_y ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2152,29 +2163,29 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "src-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->src_window,
-                           { WarpPointer::src_window_names } ), ws.separator,
+        _formatVariable( encoding->src_window,
+                         { WarpPointer::src_window_names } ), ws.separator,
         ws.memb_indent, "dst-window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->dst_window,
-                           { WarpPointer::dst_window_names } ), ws.separator,
+        _formatVariable( encoding->dst_window,
+                         { WarpPointer::dst_window_names } ), ws.separator,
         ws.memb_indent, "src-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_x ), ws.separator,
+        _formatVariable( encoding->src_x ), ws.separator,
         ws.memb_indent, "src-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_y ), ws.separator,
+        _formatVariable( encoding->src_y ), ws.separator,
         ws.memb_indent, "src-width", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_width ), ws.separator,
+        _formatVariable( encoding->src_width ), ws.separator,
         ws.memb_indent, "src-height", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_height ), ws.separator,
+        _formatVariable( encoding->src_height ), ws.separator,
         ws.memb_indent, "dst-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_x ), ws.separator,
+        _formatVariable( encoding->dst_x ), ws.separator,
         ws.memb_indent, "dst-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_y ), ws.separator,
+        _formatVariable( encoding->dst_y ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2217,22 +2228,22 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "revert-to", memb_name_w, ws.equals,
-        _formatInteger( header->revert_to,
-                        { SetInputFocus::revert_to_names } ), ws.separator,
+        _formatVariable( header->revert_to,
+                         { SetInputFocus::revert_to_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "focus", memb_name_w, ws.equals,
-        _formatCommonType( encoding->focus,
-                           { SetInputFocus::focus_names,
-                             _EnumNameRange::Bound::MAX,
-                             SetInputFocus::FOCUS_ENUM_MAX } ), ws.separator,
+        _formatVariable( encoding->focus,
+                         { SetInputFocus::focus_names,
+                           _EnumNameRange::Bound::MAX,
+                           SetInputFocus::FOCUS_ENUM_MAX } ), ws.separator,
         ws.memb_indent, "time", memb_name_w, ws.equals,
-        _formatCommonType( encoding->time,
-                           { SetInputFocus::time_names } ), ws.separator,
+        _formatVariable( encoding->time,
+                         { SetInputFocus::time_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2312,17 +2323,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "fid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->fid ), ws.separator,
+        _formatVariable( encoding->fid ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -2365,13 +2376,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "font", memb_name_w, ws.equals,
-        _formatCommonType( encoding->font ), ws.separator,
+        _formatVariable( encoding->font ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2412,13 +2423,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "font", memb_name_w, ws.equals,
-        _formatCommonType( encoding->font ), ws.separator,
+        _formatVariable( encoding->font ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2474,17 +2485,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(odd length)", memb_name_w, ws.equals,
-            _formatCommonType( header->odd_length ), ws.separator ),
+            _formatVariable( header->odd_length ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "font", memb_name_w, ws.equals,
-        _formatCommonType( encoding->font ), ws.separator,
+        _formatVariable( encoding->font ), ws.separator,
         ws.memb_indent, "string", memb_name_w, ws.equals,
         string.str, ws.separator,
         ws.encl_indent
@@ -2565,15 +2576,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(STRs in path)", memb_name_w, ws.equals,
-            _formatInteger( encoding->path_ct ), ws.separator ),
+            _formatVariable( encoding->path_ct ), ws.separator ),
         ws.memb_indent, "path", memb_name_w, ws.equals,
         path.str, ws.separator,
         ws.encl_indent
@@ -2634,21 +2645,21 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "depth", memb_name_w, ws.equals,
-        _formatInteger( header->depth ), ws.separator,
+        _formatVariable( header->depth ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "pid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->pid ), ws.separator,
+        _formatVariable( encoding->pid ), ws.separator,
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2689,13 +2700,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "pixmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->pixmap ), ws.separator,
+        _formatVariable( encoding->pixmap ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2722,37 +2733,46 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateGC::Encoding );
     // followed by LISTofVALUE value-list
-    const std::vector< _VALUETraits > value_traits {
-        /* function              */ { CreateGC::function_names },
+    const std::vector< _ValueTraits > value_traits {
+        /* function              */ {
+            _EnumNameRange{ CreateGC::function_names } },
         /* plane-mask            */ {},
         /* foreground            */ {},
         /* background            */ {},
         /* line-width            */ {},
-        /* line-style            */ { CreateGC::line_style_names },
-        /* cap-style             */ { CreateGC::cap_style_names },
-        /* join-style            */ { CreateGC::join_style_names },
-        /* fill-style            */ { CreateGC::fill_style_names },
-        /* fill-rule             */ { CreateGC::fill_rule_names },
+        /* line-style            */ {
+            _EnumNameRange{ CreateGC::line_style_names } },
+        /* cap-style             */ {
+            _EnumNameRange{ CreateGC::cap_style_names } },
+        /* join-style            */ {
+            _EnumNameRange{ CreateGC::join_style_names } },
+        /* fill-style            */ {
+            _EnumNameRange{ CreateGC::fill_style_names } },
+        /* fill-rule             */ {
+            _EnumNameRange{ CreateGC::fill_rule_names } },
         /* tile                  */ {},
         /* stipple               */ {},
         /* tile-stipple-x-origin */ {},
         /* tile-stipple-y-origin */ {},
         /* font                  */ {},
-        /* subwindow-mode        */ { CreateGC::subwindow_mode_names },
+        /* subwindow-mode        */ {
+            _EnumNameRange{ CreateGC::subwindow_mode_names } },
         /* graphics-exposures    */ {},
         /* clip-x-origin         */ {},
         /* clip-y-origin         */ {},
-        /* clip-mask             */ { CreateGC::clip_mask_names },
+        /* clip-mask             */ {
+            _EnumNameRange{ CreateGC::clip_mask_names } },
         /* dash-offset           */ {},
         /* dashes                */ {},
-        /* arc-mode              */ { CreateGC::arc_mode_names }
+        /* arc-mode              */ {
+            _EnumNameRange{ CreateGC::arc_mode_names } }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        data + request.bytes_parsed, sz - request.bytes_parsed,
         encoding->value_mask, CreateGC::value_types, CreateGC::value_names,
         value_traits, ws.nested() };
-    _ParsingOutputs value_list;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
-                       &value_list );
+    _LISTofVALUEParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -2771,20 +2791,20 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cid ), ws.separator,
+        _formatVariable( encoding->cid ), ws.separator,
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-            _formatInteger( encoding->value_mask, { CreateGC::value_names },
-                            _ValueTraits::BITMASK ), ws.separator ),
+            _formatVariable( encoding->value_mask, { CreateGC::value_names },
+                             _ValueTraits::BITMASK ), ws.separator ),
         ws.memb_indent, "value-list", memb_name_w, ws.equals,
         value_list.str, ws.separator,
         ws.encl_indent
@@ -2813,37 +2833,46 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeGC::Encoding );
     // followed by LISTofVALUE value-list
-    const std::vector< _VALUETraits > value_traits {
-        /* function              */ { ChangeGC::function_names },
+    const std::vector< _ValueTraits > value_traits {
+        /* function              */ {
+            _EnumNameRange{ ChangeGC::function_names } },
         /* plane-mask            */ {},
         /* foreground            */ {},
         /* background            */ {},
         /* line-width            */ {},
-        /* line-style            */ { ChangeGC::line_style_names },
-        /* cap-style             */ { ChangeGC::cap_style_names },
-        /* join-style            */ { ChangeGC::join_style_names },
-        /* fill-style            */ { ChangeGC::fill_style_names },
-        /* fill-rule             */ { ChangeGC::fill_rule_names },
+        /* line-style            */ {
+            _EnumNameRange{ ChangeGC::line_style_names } },
+        /* cap-style             */ {
+            _EnumNameRange{ ChangeGC::cap_style_names } },
+        /* join-style            */ {
+            _EnumNameRange{ ChangeGC::join_style_names } },
+        /* fill-style            */ {
+            _EnumNameRange{ ChangeGC::fill_style_names } },
+        /* fill-rule             */ {
+            _EnumNameRange{ ChangeGC::fill_rule_names } },
         /* tile                  */ {},
         /* stipple               */ {},
         /* tile-stipple-x-origin */ {},
         /* tile-stipple-y-origin */ {},
         /* font                  */ {},
-        /* subwindow-mode        */ { ChangeGC::subwindow_mode_names },
+        /* subwindow-mode        */ {
+            _EnumNameRange{ ChangeGC::subwindow_mode_names } },
         /* graphics-exposures    */ {},
         /* clip-x-origin         */ {},
         /* clip-y-origin         */ {},
-        /* clip-mask             */ { ChangeGC::clip_mask_names },
+        /* clip-mask             */ {
+            _EnumNameRange { ChangeGC::clip_mask_names } },
         /* dash-offset           */ {},
         /* dashes                */ {},
-        /* arc-mode              */ { ChangeGC::arc_mode_names }
+        /* arc-mode              */ {
+            _EnumNameRange{ ChangeGC::arc_mode_names } }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        data + request.bytes_parsed, sz - request.bytes_parsed,
         encoding->value_mask, ChangeGC::value_types, ChangeGC::value_names,
         value_traits, ws.nested() };
-    _ParsingOutputs value_list;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
-                       &value_list );
+    _LISTofVALUEParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -2862,18 +2891,18 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-            _formatInteger( encoding->value_mask, { ChangeGC::value_names },
-                            _ValueTraits::BITMASK ), ws.separator ),
+            _formatVariable( encoding->value_mask, { ChangeGC::value_names },
+                             _ValueTraits::BITMASK ), ws.separator ),
         ws.memb_indent, "value-list", memb_name_w, ws.equals,
         value_list.str, ws.separator,
         ws.encl_indent
@@ -2916,18 +2945,18 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "src-gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->src_gc ), ws.separator,
+        _formatVariable( encoding->src_gc ), ws.separator,
         ws.memb_indent, "dst-gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->dst_gc ), ws.separator,
+        _formatVariable( encoding->dst_gc ), ws.separator,
         ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->value_mask, { CopyGC::value_names },
-                        _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->value_mask, { CopyGC::value_names },
+                         _ValueTraits::BITMASK ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -2976,19 +3005,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "dash-offset", memb_name_w, ws.equals,
-        _formatInteger( encoding->dash_offset ), ws.separator,
+        _formatVariable( encoding->dash_offset ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(dashes length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->dashes_len ), ws.separator ),
+            _formatVariable( encoding->dashes_len ), ws.separator ),
         ws.memb_indent, "dashes", memb_name_w, ws.equals,
         dashes.str, ws.separator,
         ws.encl_indent
@@ -3043,20 +3072,20 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "ordering", memb_name_w, ws.equals,
-        _formatInteger( header->ordering,
-                        { SetClipRectangles::ordering_names } ), ws.separator,
+        _formatVariable( header->ordering,
+                         { SetClipRectangles::ordering_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "clip-x-origin", memb_name_w, ws.equals,
-        _formatInteger( encoding->clip_x_origin ), ws.separator,
+        _formatVariable( encoding->clip_x_origin ), ws.separator,
         ws.memb_indent, "clip-y-origin", memb_name_w, ws.equals,
-        _formatInteger( encoding->clip_y_origin ), ws.separator,
+        _formatVariable( encoding->clip_y_origin ), ws.separator,
         ws.memb_indent, "rectangles", memb_name_w, ws.equals,
         rectangles.str, ws.separator,
         ws.encl_indent
@@ -3097,13 +3126,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -3147,23 +3176,23 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "exposures", memb_name_w, ws.equals,
-        _formatCommonType( header->exposures ), ws.separator,
+        _formatVariable( header->exposures ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -3206,29 +3235,29 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "src-drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->src_drawable ), ws.separator,
+        _formatVariable( encoding->src_drawable ), ws.separator,
         ws.memb_indent, "dst-drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->dst_drawable ), ws.separator,
+        _formatVariable( encoding->dst_drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "src-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_x ), ws.separator,
+        _formatVariable( encoding->src_x ), ws.separator,
         ws.memb_indent, "src-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_y ), ws.separator,
+        _formatVariable( encoding->src_y ), ws.separator,
         ws.memb_indent, "dst-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_x ), ws.separator,
+        _formatVariable( encoding->dst_x ), ws.separator,
         ws.memb_indent, "dst-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_y ), ws.separator,
+        _formatVariable( encoding->dst_y ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -3272,31 +3301,31 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "src-drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->src_drawable ), ws.separator,
+        _formatVariable( encoding->src_drawable ), ws.separator,
         ws.memb_indent, "dst-drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->dst_drawable ), ws.separator,
+        _formatVariable( encoding->dst_drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "src-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_x ), ws.separator,
+        _formatVariable( encoding->src_x ), ws.separator,
         ws.memb_indent, "src-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->src_y ), ws.separator,
+        _formatVariable( encoding->src_y ), ws.separator,
         ws.memb_indent, "dst-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_x ), ws.separator,
+        _formatVariable( encoding->dst_x ), ws.separator,
         ws.memb_indent, "dst-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_y ), ws.separator,
+        _formatVariable( encoding->dst_y ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.memb_indent, "bit-plane", memb_name_w, ws.equals,
-        _formatInteger( encoding->bit_plane ), ws.separator,
+        _formatVariable( encoding->bit_plane ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -3379,15 +3408,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "segments", memb_name_w, ws.equals,
         segments.str, ws.separator,
         ws.encl_indent
@@ -3440,15 +3469,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "rectangles", memb_name_w, ws.equals,
         rectangles.str, ws.separator,
         ws.encl_indent
@@ -3501,15 +3530,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "arcs", memb_name_w, ws.equals,
         arcs.str, ws.separator,
         ws.encl_indent
@@ -3563,21 +3592,21 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "shape", memb_name_w, ws.equals,
-        _formatInteger( encoding->shape,
-                        { FillPoly::shape_names } ), ws.separator,
+        _formatVariable( encoding->shape,
+                         { FillPoly::shape_names } ), ws.separator,
         ws.memb_indent, "coordinate-mode", memb_name_w, ws.equals,
-        _formatInteger( encoding->coordinate_mode,
-                        { FillPoly::coordinate_mode_names } ), ws.separator,
+        _formatVariable( encoding->coordinate_mode,
+                         { FillPoly::coordinate_mode_names } ), ws.separator,
         ws.memb_indent, "points", memb_name_w, ws.equals,
         points.str, ws.separator,
         ws.encl_indent
@@ -3630,15 +3659,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "rectangles", memb_name_w, ws.equals,
         rectangles.str, ws.separator,
         ws.encl_indent
@@ -3691,15 +3720,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "arcs", memb_name_w, ws.equals,
         arcs.str, ws.separator,
         ws.encl_indent
@@ -3752,30 +3781,30 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "format", memb_name_w, ws.equals,
-        _formatInteger( header->format,
-                        { PutImage::format_names } ), ws.separator,
+        _formatVariable( header->format,
+                         { PutImage::format_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.memb_indent, "dst-x", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_x ), ws.separator,
+        _formatVariable( encoding->dst_x ), ws.separator,
         ws.memb_indent, "dst-y", memb_name_w, ws.equals,
-        _formatInteger( encoding->dst_y ), ws.separator,
+        _formatVariable( encoding->dst_y ), ws.separator,
         ws.memb_indent, "left-pad", memb_name_w, ws.equals,
-        _formatInteger( encoding->left_pad ), ws.separator,
+        _formatVariable( encoding->left_pad ), ws.separator,
         ws.memb_indent, "depth", memb_name_w, ws.equals,
-        _formatInteger( encoding->depth ), ws.separator,
+        _formatVariable( encoding->depth ), ws.separator,
         ws.memb_indent, "data", memb_name_w, ws.equals,
         data_len, ws.separator,
         ws.encl_indent
@@ -3821,29 +3850,29 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "format", memb_name_w, ws.equals,
-        _formatInteger( header->format, GetImage::format_names,
-                        _IndexRange( GetImage::FORMAT_ENUM_MIN,
-                                     GetImage::format_names.size() - 1 ) ),
+        _formatVariable( header->format, { GetImage::format_names,
+                                           _EnumNameRange::Bound::MIN,
+                                           GetImage::FORMAT_ENUM_MIN } ),
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.memb_indent, "plane-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->plane_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->plane_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -3894,19 +3923,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "items", memb_name_w, ws.equals,
         items.str, ws.separator,
         ws.encl_indent
@@ -3959,19 +3988,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "items", memb_name_w, ws.equals,
         items.str, ws.separator,
         ws.encl_indent
@@ -4020,23 +4049,23 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(string length)", memb_name_w, ws.equals,
-            _formatInteger( header->string_len ), ws.separator ),
+            _formatVariable( header->string_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "string", memb_name_w, ws.equals,
         string, ws.separator,
         ws.encl_indent
@@ -4065,10 +4094,11 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ImageText16::Encoding );
     // followed by STRING16 string
+    const size_t string_sz {
+        header->string_2B_len * sizeof( protocol::CHAR2B ) };
     const _ParsingOutputs string {
         _parseLISTof< protocol::CHAR2B >(
-            data + request.bytes_parsed,
-            header->string_2B_len * sizeof( protocol::CHAR2B ),
+            data + request.bytes_parsed, string_sz,
             header->string_2B_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += alignment.pad( string.bytes_parsed );
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
@@ -4087,23 +4117,23 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(string len (CHAR2B))", memb_name_w, ws.equals,
-            _formatInteger( header->string_2B_len ), ws.separator ),
+            _formatVariable( header->string_2B_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "gc", memb_name_w, ws.equals,
-        _formatCommonType( encoding->gc ), ws.separator,
+        _formatVariable( encoding->gc ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.memb_indent, "string", memb_name_w, ws.equals,
         string.str, ws.separator,
         ws.encl_indent
@@ -4148,20 +4178,20 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "alloc", memb_name_w, ws.equals,
-        _formatInteger( header->alloc,
-                        { CreateColormap::alloc_names } ), ws.separator,
+        _formatVariable( header->alloc,
+                         { CreateColormap::alloc_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "mid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->mid ), ws.separator,
+        _formatVariable( encoding->mid ), ws.separator,
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         ws.memb_indent, "visual", memb_name_w, ws.equals,
-        _formatCommonType( encoding->visual ), ws.separator,
+        _formatVariable( encoding->visual ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4218,15 +4248,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "mid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->mid ), ws.separator,
+        _formatVariable( encoding->mid ), ws.separator,
         ws.memb_indent, "src-cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->src_cmap ), ws.separator,
+        _formatVariable( encoding->src_cmap ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4315,19 +4345,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "red", memb_name_w, ws.equals,
-        _formatInteger( encoding->red ), ws.separator,
+        _formatVariable( encoding->red ), ws.separator,
         ws.memb_indent, "green", memb_name_w, ws.equals,
-        _formatInteger( encoding->green ), ws.separator,
+        _formatVariable( encoding->green ), ws.separator,
         ws.memb_indent, "blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->blue ), ws.separator,
+        _formatVariable( encoding->blue ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4375,17 +4405,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -4430,19 +4460,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "contiguous", memb_name_w, ws.equals,
-        _formatCommonType( header->contiguous ), ws.separator,
+        _formatVariable( header->contiguous ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "colors", memb_name_w, ws.equals,
-        _formatInteger( encoding->colors ), ws.separator,
+        _formatVariable( encoding->colors ), ws.separator,
         ws.memb_indent, "planes", memb_name_w, ws.equals,
-        _formatInteger( encoding->planes ), ws.separator,
+        _formatVariable( encoding->planes ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4486,23 +4516,23 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "contiguous", memb_name_w, ws.equals,
-        _formatCommonType( header->contiguous ), ws.separator,
+        _formatVariable( header->contiguous ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "colors", memb_name_w, ws.equals,
-        _formatInteger( encoding->colors ), ws.separator,
+        _formatVariable( encoding->colors ), ws.separator,
         ws.memb_indent, "reds", memb_name_w, ws.equals,
-        _formatInteger( encoding->reds ), ws.separator,
+        _formatVariable( encoding->reds ), ws.separator,
         ws.memb_indent, "greens", memb_name_w, ws.equals,
-        _formatInteger( encoding->greens ), ws.separator,
+        _formatVariable( encoding->greens ), ws.separator,
         ws.memb_indent, "blues", memb_name_w, ws.equals,
-        _formatInteger( encoding->blues ), ws.separator,
+        _formatVariable( encoding->blues ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4553,16 +4583,16 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "plane-mask", memb_name_w, ws.equals,
-        _formatInteger( encoding->plane_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( encoding->plane_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "pixels", memb_name_w, ws.equals,
         pixels.str, ws.separator,
         ws.encl_indent
@@ -4615,13 +4645,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "items", memb_name_w, ws.equals,
         items.str, ws.separator,
         ws.encl_indent
@@ -4673,22 +4703,22 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "(do rgb mask)", memb_name_w, ws.equals,
-        _formatInteger( header->do_rgb_mask, { StoreNamedColor::do_rgb_names },
-                        _ValueTraits::BITMASK ), ws.separator,
+        _formatVariable( header->do_rgb_mask, { StoreNamedColor::do_rgb_names },
+                         _ValueTraits::BITMASK ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "pixel", memb_name_w, ws.equals,
-        _formatInteger( encoding->pixel ), ws.separator,
+        _formatVariable( encoding->pixel ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -4740,13 +4770,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         ws.memb_indent, "pixels", memb_name_w, ws.equals,
         pixels.str, ws.separator,
         ws.encl_indent
@@ -4796,17 +4826,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cmap", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cmap ), ws.separator,
+        _formatVariable( encoding->cmap ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -4852,34 +4882,34 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cid ), ws.separator,
+        _formatVariable( encoding->cid ), ws.separator,
         ws.memb_indent, "source", memb_name_w, ws.equals,
-        _formatCommonType( encoding->source ), ws.separator,
+        _formatVariable( encoding->source ), ws.separator,
         ws.memb_indent, "mask", memb_name_w, ws.equals,
-        _formatCommonType( encoding->mask,
-                           { CreateCursor::mask_names } ), ws.separator,
+        _formatVariable( encoding->mask,
+                         { CreateCursor::mask_names } ), ws.separator,
         ws.memb_indent, "fore-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_red ), ws.separator,
+        _formatVariable( encoding->fore_red ), ws.separator,
         ws.memb_indent, "fore-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_green ), ws.separator,
+        _formatVariable( encoding->fore_green ), ws.separator,
         ws.memb_indent, "fore-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_blue ), ws.separator,
+        _formatVariable( encoding->fore_blue ), ws.separator,
         ws.memb_indent, "back-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_red ), ws.separator,
+        _formatVariable( encoding->back_red ), ws.separator,
         ws.memb_indent, "back-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_green ), ws.separator,
+        _formatVariable( encoding->back_green ), ws.separator,
         ws.memb_indent, "back-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_blue ), ws.separator,
+        _formatVariable( encoding->back_blue ), ws.separator,
         ws.memb_indent, "x", memb_name_w, ws.equals,
-        _formatInteger( encoding->x ), ws.separator,
+        _formatVariable( encoding->x ), ws.separator,
         ws.memb_indent, "y", memb_name_w, ws.equals,
-        _formatInteger( encoding->y ), ws.separator,
+        _formatVariable( encoding->y ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4922,34 +4952,34 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cid", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cid ), ws.separator,
+        _formatVariable( encoding->cid ), ws.separator,
         ws.memb_indent, "source-font", memb_name_w, ws.equals,
-        _formatCommonType( encoding->source_font ), ws.separator,
+        _formatVariable( encoding->source_font ), ws.separator,
         ws.memb_indent, "mask-font", memb_name_w, ws.equals,
-        _formatCommonType( encoding->mask_font,
-                           { CreateGlyphCursor::mask_font_names } ), ws.separator,
+        _formatVariable( encoding->mask_font,
+                         { CreateGlyphCursor::mask_font_names } ), ws.separator,
         ws.memb_indent, "source-char", memb_name_w, ws.equals,
-        _formatInteger( encoding->source_char ), ws.separator,
+        _formatVariable( encoding->source_char ), ws.separator,
         ws.memb_indent, "mask-char", memb_name_w, ws.equals,
-        _formatInteger( encoding->mask_char ), ws.separator,
+        _formatVariable( encoding->mask_char ), ws.separator,
         ws.memb_indent, "fore-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_red ), ws.separator,
+        _formatVariable( encoding->fore_red ), ws.separator,
         ws.memb_indent, "fore-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_green ), ws.separator,
+        _formatVariable( encoding->fore_green ), ws.separator,
         ws.memb_indent, "fore-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_blue ), ws.separator,
+        _formatVariable( encoding->fore_blue ), ws.separator,
         ws.memb_indent, "back-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_red ), ws.separator,
+        _formatVariable( encoding->back_red ), ws.separator,
         ws.memb_indent, "back-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_green ), ws.separator,
+        _formatVariable( encoding->back_green ), ws.separator,
         ws.memb_indent, "back-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_blue ), ws.separator,
+        _formatVariable( encoding->back_blue ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -4990,13 +5020,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cursor", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cursor ), ws.separator,
+        _formatVariable( encoding->cursor ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5038,25 +5068,25 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "cursor", memb_name_w, ws.equals,
-        _formatCommonType( encoding->cursor ), ws.separator,
+        _formatVariable( encoding->cursor ), ws.separator,
         ws.memb_indent, "fore-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_red ), ws.separator,
+        _formatVariable( encoding->fore_red ), ws.separator,
         ws.memb_indent, "fore-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_green ), ws.separator,
+        _formatVariable( encoding->fore_green ), ws.separator,
         ws.memb_indent, "fore-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->fore_blue ), ws.separator,
+        _formatVariable( encoding->fore_blue ), ws.separator,
         ws.memb_indent, "back-red", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_red ), ws.separator,
+        _formatVariable( encoding->back_red ), ws.separator,
         ws.memb_indent, "back-green", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_green ), ws.separator,
+        _formatVariable( encoding->back_green ), ws.separator,
         ws.memb_indent, "back-blue", memb_name_w, ws.equals,
-        _formatInteger( encoding->back_blue ), ws.separator,
+        _formatVariable( encoding->back_blue ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5099,20 +5129,20 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "class", memb_name_w, ws.equals,
-        _formatInteger( header->class_,
-                        { QueryBestSize::class_names } ), ws.separator,
+        _formatVariable( header->class_,
+                         { QueryBestSize::class_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "drawable", memb_name_w, ws.equals,
-        _formatCommonType( encoding->drawable ), ws.separator,
+        _formatVariable( encoding->drawable ), ws.separator,
         ws.memb_indent, "width", memb_name_w, ws.equals,
-        _formatInteger( encoding->width ), ws.separator,
+        _formatVariable( encoding->width ), ws.separator,
         ws.memb_indent, "height", memb_name_w, ws.equals,
-        _formatInteger( encoding->height ), ws.separator,
+        _formatVariable( encoding->height ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5158,15 +5188,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(name length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len ), ws.separator ),
         ws.memb_indent, "name", memb_name_w, ws.equals,
         name, ws.separator,
         ws.encl_indent
@@ -5238,17 +5268,17 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "keycode-count", memb_name_w, ws.equals,
-        _formatInteger( header->keycode_count ), ws.separator,
+        _formatVariable( header->keycode_count ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "first-keycode", memb_name_w, ws.equals,
-        _formatCommonType( encoding->first_keycode ), ws.separator,
+        _formatVariable( encoding->first_keycode ), ws.separator,
         ws.memb_indent, "keysyms-per-keycode", memb_name_w, ws.equals,
-        _formatInteger( encoding->keysyms_per_keycode ), ws.separator,
+        _formatVariable( encoding->keysyms_per_keycode ), ws.separator,
         ws.memb_indent, "keysyms", memb_name_w, ws.equals,
         keysyms.str, ws.separator,
         ws.encl_indent
@@ -5291,15 +5321,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "first-keycode", memb_name_w, ws.equals,
-        _formatCommonType( encoding->first_keycode ), ws.separator,
+        _formatVariable( encoding->first_keycode ), ws.separator,
         ws.memb_indent, "count", memb_name_w, ws.equals,
-        _formatInteger( encoding->count ), ws.separator,
+        _formatVariable( encoding->count ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5326,23 +5356,26 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeKeyboardControl::Encoding );
     // followed by LISTofVALUE value-list
-    const std::vector< _VALUETraits > value_traits {
+    const std::vector< _ValueTraits > value_traits {
         /* key-click-percent */ {},
         /* bell-percent      */ {},
         /* bell-pitch        */ {},
         /* bell-duration     */ {},
         /* led               */ {},
-        /* led-mode          */ { ChangeKeyboardControl::led_mode_names,
-                                  _IndexRange{ 0, ChangeKeyboardControl::LED_MODE_ENUM_MAX } },
+        /* led-mode          */ {
+            _EnumNameRange{ ChangeKeyboardControl::led_mode_names,
+                            _EnumNameRange::Bound::MAX,
+                            ChangeKeyboardControl::LED_MODE_ENUM_MAX } },
         /* key               */ {},
-        /* auto-repeat-mode  */ { ChangeKeyboardControl::led_mode_names }
+        /* auto-repeat-mode  */ {
+            _EnumNameRange{ ChangeKeyboardControl::auto_repeat_mode_names } }
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
+        data + request.bytes_parsed, sz - request.bytes_parsed,
         encoding->value_mask, ChangeKeyboardControl::value_types,
         ChangeKeyboardControl::value_names, value_traits, ws.nested() };
-    _ParsingOutputs value_list;
-    _parseLISTofVALUE( value_list_inputs, data + request.bytes_parsed,
-                       &value_list );
+    _LISTofVALUEParsingOutputs value_list;
+    _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
     assert( header->tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -5359,16 +5392,16 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "value-mask", memb_name_w, ws.equals,
-            _formatInteger( encoding->value_mask,
-                            {}, _ValueTraits::BITMASK ), ws.separator ),
+            _formatVariable( encoding->value_mask,
+                             {}, _ValueTraits::BITMASK ), ws.separator ),
         ws.memb_indent, "value-list", memb_name_w, ws.equals,
         value_list.str, ws.separator,
         ws.encl_indent
@@ -5425,13 +5458,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "percent", memb_name_w, ws.equals,
-        _formatInteger( header->percent ), ws.separator,
+        _formatVariable( header->percent ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return request;
@@ -5471,21 +5504,21 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "acceleration-numerator", memb_name_w, ws.equals,
-        _formatInteger( encoding->acceleration_numerator ), ws.separator,
+        _formatVariable( encoding->acceleration_numerator ), ws.separator,
         ws.memb_indent, "acceleration-denominator", memb_name_w, ws.equals,
-        _formatInteger( encoding->acceleration_denominator ), ws.separator,
+        _formatVariable( encoding->acceleration_denominator ), ws.separator,
         ws.memb_indent, "threshold", memb_name_w, ws.equals,
-        _formatInteger( encoding->threshold ), ws.separator,
+        _formatVariable( encoding->threshold ), ws.separator,
         ws.memb_indent, "do-acceleration", memb_name_w, ws.equals,
-        _formatCommonType( encoding->do_acceleration ), ws.separator,
+        _formatVariable( encoding->do_acceleration ), ws.separator,
         ws.memb_indent, "do-threshold", memb_name_w, ws.equals,
-        _formatCommonType( encoding->do_threshold ), ws.separator,
+        _formatVariable( encoding->do_threshold ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5542,21 +5575,21 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "timeout", memb_name_w, ws.equals,
-        _formatInteger( encoding->timeout ), ws.separator,
+        _formatVariable( encoding->timeout ), ws.separator,
         ws.memb_indent, "interval", memb_name_w, ws.equals,
-        _formatInteger( encoding->interval ), ws.separator,
+        _formatVariable( encoding->interval ), ws.separator,
         ws.memb_indent, "prefer-blanking", memb_name_w, ws.equals,
-        _formatInteger( encoding->prefer_blanking,
-                        { SetScreenSaver::prefer_blanking_names } ), ws.separator,
+        _formatVariable( encoding->prefer_blanking,
+                         { SetScreenSaver::prefer_blanking_names } ), ws.separator,
         ws.memb_indent, "allow-exposures", memb_name_w, ws.equals,
-        _formatInteger( encoding->allow_exposures,
-                        { SetScreenSaver::allow_exposures_names } ), ws.separator,
+        _formatVariable( encoding->allow_exposures,
+                         { SetScreenSaver::allow_exposures_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5627,22 +5660,23 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        ChangeHosts::mode_names ), ws.separator,
+        _formatVariable( header->mode,
+                         ChangeHosts::mode_names ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "family", memb_name_w, ws.equals,
-        _formatInteger( encoding->family,
-                        { ChangeHosts::family_names, _EnumNameRange::Bound::MAX,
-                          ChangeHosts::FAMILY_ENUM_MAX } ), ws.separator,
+        _formatVariable( encoding->family,
+                         { ChangeHosts::family_names,
+                           _EnumNameRange::Bound::MAX,
+                           ChangeHosts::FAMILY_ENUM_MAX } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(address length)", memb_name_w, ws.equals,
-            _formatInteger( encoding->address_len ), ws.separator ),
+            _formatVariable( encoding->address_len ), ws.separator ),
         ws.memb_indent, "address", memb_name_w, ws.equals,
         address.str, ws.separator,
         ws.encl_indent
@@ -5699,14 +5733,14 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        { SetAccessControl::mode_names } ), ws.separator,
+        _formatVariable( header->mode,
+                         { SetAccessControl::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return request;
@@ -5745,14 +5779,14 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        { SetCloseDownMode::mode_names } ), ws.separator,
+        _formatVariable( header->mode,
+                         { SetCloseDownMode::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return request;
@@ -5793,14 +5827,14 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "resource", memb_name_w, ws.equals,
-        _formatInteger( encoding->resource,
-                        { KillClient::resource_names } ), ws.separator,
+        _formatVariable( encoding->resource,
+                         { KillClient::resource_names } ), ws.separator,
         ws.encl_indent
         );
     return request;
@@ -5852,19 +5886,19 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "window", memb_name_w, ws.equals,
-        _formatCommonType( encoding->window ), ws.separator,
+        _formatVariable( encoding->window ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(ATOMs in properties)", memb_name_w, ws.equals,
-            _formatInteger( encoding->properties_ct ), ws.separator ),
+            _formatVariable( encoding->properties_ct ), ws.separator ),
         ws.memb_indent, "delta", memb_name_w, ws.equals,
-        _formatInteger( encoding->delta ), ws.separator,
+        _formatVariable( encoding->delta ), ws.separator,
         ws.memb_indent, "properties", memb_name_w, ws.equals,
         properties.str, ws.separator,
         ws.encl_indent
@@ -5905,14 +5939,14 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "mode", memb_name_w, ws.equals,
-        _formatInteger( header->mode,
-                        { ForceScreenSaver::mode_names } ), ws.separator,
+        _formatVariable( header->mode,
+                         { ForceScreenSaver::mode_names } ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return request;
@@ -5959,15 +5993,15 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(map length)", memb_name_w, ws.equals,
-            _formatInteger( header->map_len ), ws.separator ),
+            _formatVariable( header->map_len ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "map", memb_name_w, ws.equals,
         map.str, ws.separator,
         ws.encl_indent
@@ -6033,13 +6067,13 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         ws.memb_indent, "keycodes-per-modifier", memb_name_w, ws.equals,
-        _formatInteger( header->keycodes_per_modifier ), ws.separator,
+        _formatVariable( header->keycodes_per_modifier ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.memb_indent, "keycodes", memb_name_w, ws.equals,
         keycodes.str, ws.separator,
         ws.encl_indent
@@ -6098,11 +6132,11 @@ X11ProtocolParser::_parseRequest<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "opcode", memb_name_w, ws.equals,
-            _formatInteger( header->opcode ), ws.separator ),
+            _formatVariable( header->opcode ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
-            _formatInteger( header->tl_aligned_units ), ws.separator ),
+            _formatVariable( header->tl_aligned_units ), ws.separator ),
         ws.encl_indent
         );
     return request;

@@ -244,11 +244,12 @@ private:
             name_range( name_range_ ), bitmask( bitmask_ ) {}
     };
 
+    // fundamental integers (and protocol aliases thereof)
     template< typename IntT,
                std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
-    std::string _formatInteger( const IntT val,
-                                const _EnumNameRange name_range = {},
-                                const bool bitmask = _ValueTraits::NOT_BITMASK ) {
+    std::string _formatVariable( const IntT val,
+                                 const _EnumNameRange name_range = {},
+                                 const bool bitmask = _ValueTraits::NOT_BITMASK ) {
         const std::string hex_str {
             fmt::format( "{:#0{}x}", std::make_unsigned_t< IntT >( val ),
                          _fmtHexWidth( val ) ) };
@@ -283,32 +284,46 @@ private:
             fmt::format( "{:d}", val );
     }
 
-    std::string _formatCommonType( const protocol::DRAWABLE val,
-                                   const _EnumNameRange name_range = {} );
-    std::string _formatCommonType( const protocol::FONTABLE val,
-                                   const _EnumNameRange name_range = {} );
-    std::string _formatCommonType( const protocol::ATOM val,
-                                   const _EnumNameRange name_range = {} );
-
-    template< typename ProtocolIntT,
-               std::enable_if_t<
-                   std::is_base_of_v< protocol::impl::XID, ProtocolIntT > &&
-                   !std::is_same_v< protocol::ATOM, ProtocolIntT >,
-                   bool > = true >
-    std::string _formatCommonType( const ProtocolIntT val,
-                                   const _EnumNameRange name_range = {} ) {
-        assert( ( val.data & ProtocolIntT::ZERO_BITS ) == 0 );
-        return _formatInteger( val.data, name_range );
+    // non-ATOM ResourceIds
+    template< typename ResourceIdT,
+              std::enable_if_t<
+                  std::is_base_of_v< protocol::impl::ResourceId, ResourceIdT > &&
+                  !std::is_same_v< protocol::ATOM, ResourceIdT >,
+                  bool > = true >
+    std::string _formatVariable( const ResourceIdT var,
+                                 const _EnumNameRange name_range = {} ) {
+        assert( ( var.data & ResourceIdT::ZERO_BITS ) == 0 );
+        return _formatVariable( var.data, name_range );
     }
 
-    template< typename ProtocolIntT,
-               std::enable_if_t<
-                   std::is_base_of_v< protocol::impl::Integer, ProtocolIntT > &&
-                   !std::is_base_of_v< protocol::impl::XID, ProtocolIntT >,
-                   bool > = true >
-    std::string _formatCommonType( const ProtocolIntT val,
-                                   const _EnumNameRange name_range = {} );
+    // only ResourceId with unique definition
+    std::string _formatVariable( const protocol::DRAWABLE var,
+                                  const _EnumNameRange name_range = {} );
+    // union of ResourceId
+    std::string _formatVariable( const protocol::FONTABLE var,
+                                 const _EnumNameRange name_range = {} );
+    // union of ResourceId
+    std::string _formatVariable( const protocol::ATOM var,
+                                 const _EnumNameRange name_range = {} );
 
+    // non-ResourceId protocol int types
+    template< typename ProtocolIntT,
+              std::enable_if_t<
+                  ( std::is_base_of_v< protocol::impl::Integer, ProtocolIntT > &&
+                    !std::is_base_of_v< protocol::impl::ResourceId, ProtocolIntT > ),
+                  bool > = true >
+    std::string _formatVariable( const ProtocolIntT var,
+                                 const _EnumNameRange name_range = {} );
+
+    // plain structs with no variable length suffixes
+    template< typename ProtocolStructT,
+              std::enable_if_t<
+                  std::is_base_of_v< protocol::impl::Struct, ProtocolStructT > &&
+                  !std::is_base_of_v<
+                      protocol::impl::StructWithSuffixes, ProtocolStructT >,
+                  bool > = true >
+    std::string _formatVariable( const ProtocolStructT var,
+                                 const _Whitespace& ws );
 
     ////// LISTof* Formatting
 
@@ -317,50 +332,71 @@ private:
         uint32_t bytes_parsed {};
     };
 
-    // TBD for use with _parseLISTof<>
+    // fundamental integers (and protocol aliases thereof)
     template< typename ProtocolT,
                std::enable_if_t< std::is_integral_v< ProtocolT >,
                                  bool > = true >
     _ParsingOutputs
-    _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const _EnumNameRange name_range = {} ) {
+    _parseListMember( const uint8_t* data, const size_t sz,
+                      const _ValueTraits traits = {} ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
-        _ParsingOutputs outputs;
-        const ProtocolT val { *reinterpret_cast< const ProtocolT* >( data ) };
-        outputs.bytes_parsed = sizeof( ProtocolT );
-        outputs.str = _formatInteger( val, name_range );  // int alias (CARD8, etc)
-        return outputs;
+        const ProtocolT memb { *reinterpret_cast< const ProtocolT* >( data ) };
+        return { _formatVariable( memb, traits.name_range, traits.bitmask ),
+                 sizeof( ProtocolT ) };
     }
 
-    // TBD for use with _parseLISTof<>
+    // protocol integer types (eg ResourceId, Bitmask)
     template< typename ProtocolT,
                std::enable_if_t<
                    std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
                    bool > = true >
     _ParsingOutputs
-    _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const _EnumNameRange name_range = {} ) {
+    _parseListMember( const uint8_t* data, const size_t sz,
+                      const _ValueTraits traits = {} ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
-        _ParsingOutputs outputs;
-        const ProtocolT val { *reinterpret_cast< const ProtocolT* >( data ) };
-        outputs.bytes_parsed = sizeof( ProtocolT );
-        outputs.str = _formatCommonType( val, name_range );  // protocol int types (WINDOW etc)
-        return outputs;
+        const ProtocolT memb { *reinterpret_cast< const ProtocolT* >( data ) };
+        return { _formatVariable( memb, traits.name_range ),
+                 sizeof( ProtocolT ) };
     }
 
-    // TBD for use with _parseLISTof<>
-    template< typename ProtocolT,
-               std::enable_if_t<
-                   ( !std::is_integral_v< ProtocolT > &&
-                     !std::is_base_of_v< protocol::impl::Integer, ProtocolT > ),
-                   bool > = true >
+    // plain structs with no variable length suffixes
+    template< typename ProtocolStructT,
+              std::enable_if_t<
+                  std::is_base_of_v< protocol::impl::Struct, ProtocolStructT > &&
+                  !std::is_base_of_v<
+                      protocol::impl::StructWithSuffixes, ProtocolStructT >,
+                  bool > = true >
     _ParsingOutputs
-    _parseProtocolType( const uint8_t* data, const size_t sz,
-                        const _Whitespace& ws );
+    _parseListMember( const uint8_t* data, const size_t sz,
+                      const _Whitespace& ws ) {
+        assert( data != nullptr );
+        assert( sz >= sizeof( ProtocolStructT ) );
+
+        const ProtocolStructT memb {
+            *reinterpret_cast< const ProtocolStructT* >( data ) };
+        return { _formatVariable( memb, ws ),
+                 sizeof( ProtocolStructT ) };
+    }
+
+    // plain structs with variable length suffixes + TEXTITEM8|16
+    template< typename ProtocolStructT,
+              std::enable_if_t<
+                  // union of StructWithSuffixes and Struct
+                  std::is_same_v< ProtocolStructT,
+                                  protocol::requests::PolyText8::TEXTITEM8 > ||
+                  // union of StructWithSuffixes and Struct
+                  std::is_same_v< ProtocolStructT,
+                                  protocol::requests::PolyText16::TEXTITEM16 > ||
+                  std::is_base_of_v<
+                      protocol::impl::StructWithSuffixes, ProtocolStructT >,
+                  bool > = true >
+    _ParsingOutputs
+    _parseListMember( const uint8_t* data, const size_t sz,
+                      const _Whitespace& ws );
 
     // TBD for LISTs that have no length provided eg PolyText8|16
     template< typename ProtocolT,
@@ -379,7 +415,7 @@ private:
                                     sz == 0 ? "" : ws.separator );
         while ( alignment.pad( outputs.bytes_parsed ) < sz ) {
             const _ParsingOutputs member {
-                _parseProtocolType< ProtocolT >(
+                _parseListMember< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
                     ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
@@ -407,7 +443,7 @@ private:
                                     memb_ct == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < memb_ct; ++i ) {
             const _ParsingOutputs member {
-                _parseProtocolType< ProtocolT >(
+                _parseListMember< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
                     ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
@@ -427,7 +463,7 @@ private:
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
                   const _Whitespace& ws,
-                  const _EnumNameRange name_range = {} ) {
+                  const _ValueTraits traits = {} ) {
         assert( data != nullptr );
 
         _ParsingOutputs outputs;
@@ -435,9 +471,9 @@ private:
                                     memb_ct == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < memb_ct; ++i ) {
             const _ParsingOutputs member {
-                _parseProtocolType< ProtocolT >(
+                _parseListMember< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    name_range ) };
+                    traits ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
                 "{}{}{}", ws.memb_indent, member.str, ws.separator );
@@ -447,134 +483,97 @@ private:
         return outputs;
     }
 
-    // ////// LISTofVALUE Formatting
+    ////// LISTofVALUE Formatting
 
-    // struct _VALUETraits {
-    //     // TBD cannot have union of plain references?
-    //     //   - https://stackoverflow.com/questions/38691282/use-of-union-with-reference
-    //     // union {
-    //     //     const std::vector< std::string_view >& enum_names {};
-    //     //     const std::vector< std::string_view >& flag_names;
-    //     // };
-    //     const std::vector< std::string_view >& enum_names { _TEMP_NO_NAMES };
-    //     const std::vector< std::string_view >& flag_names { enum_names };
-    //     _IndexRange name_index_range {};
-    //     enum { IS_NOT_BITMASK, IS_BITMASK };
-    //     const bool is_mask { IS_NOT_BITMASK };
+    template< typename TupleT >
+    struct _LISTofVALUEParsingInputs {
+        const uint8_t* data;
+        const size_t sz;
+        const uint32_t value_mask;
+        const TupleT& types;
+        const std::vector< std::string_view >& names;
+        const std::vector< _ValueTraits >& traits;
+        const _Whitespace ws;
+        size_t memb_name_w {};
 
-    //     _VALUETraits() {}
-    //     _VALUETraits( const std::vector<std::string_view>& names_,
-    //                   const _IndexRange name_index_range_ = {},
-    //         const bool is_mask_ = IS_NOT_BITMASK ) :
-    //         enum_names( names_ ), flag_names( enum_names ),
-    //         is_mask( is_mask_ ), name_index_range( name_index_range_ ) {
+        _LISTofVALUEParsingInputs() = delete;
+        _LISTofVALUEParsingInputs(
+            const uint8_t* data_,
+            const size_t sz_,
+            const uint32_t value_mask_,
+            const TupleT& types_,
+            const std::vector< std::string_view >& names_,
+            const std::vector< _ValueTraits >& traits_,
+            const _Whitespace ws_ ) :
+            data( data_ ), sz( sz_ ),
+            value_mask( value_mask_ ), types( types_ ), names( names_ ),
+            traits( traits_ ), ws( ws_ ) {
+            assert( data != nullptr );
+            assert( std::tuple_size< TupleT >{} == names.size() &&
+                    names.size() == traits.size() );
+            if ( ws.multiline ) {
+                for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
+                    if ( value_mask & ( 1 << i ) ) {
+                        memb_name_w = std::max( memb_name_w, names[i].size() );
+                    }
+                }
+            }
+        }
+    };
 
-    //         if ( !enum_names.empty() ) {
-    //             if ( name_index_range_.min == _IndexRange::UNINIT )
-    //                 name_index_range.min = 0;
-    //             if ( name_index_range_.max == _IndexRange::UNINIT )
-    //                 name_index_range.max = enum_names.size() - 1;
-    //             assert( name_index_range.min <= name_index_range.max );
-    //         }
-    //     }
-    // };
+    struct _LISTofVALUEParsingOutputs : public _ParsingOutputs {
+        uint32_t value_ct {};
+    };
 
-    // // TBD put mask in parsing inputs, that way we can calc the memb_name_w of
-    // //   widest name _used_, not just overall
-    // // TBD for that matter we could just put data and sz in there as well
-    // template< typename TupleT >
-    // struct _LISTofVALUEParsingInputs {
-    //     const uint32_t value_mask;
-    //     const TupleT& types;
-    //     const std::vector< std::string_view >& names;
-    //     const std::vector< _VALUETraits >& traits;
-    //     const _Whitespace ws;
-    //     size_t memb_name_w {};
+    // tuple iteration allows for run time taversal of heterogeneous list of types
+    // tuple iteration pattern using recursive templating
+    template< size_t I = 0, typename... Args,
+              std::enable_if_t< I == sizeof...( Args ), bool > = true >
+    void _parseLISTofVALUE(
+        const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
+        _LISTofVALUEParsingOutputs* outputs ) {
+        assert( outputs->bytes_parsed ==
+                outputs->value_ct * sizeof( protocol::VALUE ) );
+        if ( inputs.value_mask != 0 ) {
+            outputs->str += inputs.ws.encl_indent;
+        }
+        outputs->str += ']';
+    }
 
-    //     _LISTofVALUEParsingInputs() = delete;
-    //     _LISTofVALUEParsingInputs(
-    //         const uint32_t value_mask_,
-    //         const TupleT& types_,
-    //         const std::vector< std::string_view >& names_,
-    //         const std::vector< _VALUETraits >& traits_,
-    //         const _Whitespace ws_ ) :
-    //         value_mask( value_mask_ ), types( types_ ), names( names_ ),
-    //         traits( traits_ ), ws( ws_ ) {
-    //         assert( std::tuple_size< TupleT >{} == names.size() &&
-    //                 names.size() == traits.size() );
-    //         if ( ws.multiline ) {
-    //             for ( uint32_t i {}, end_i ( names.size() - 1 ); i <= end_i; ++i ) {
-    //                 if ( value_mask & ( 1 << i ) ) {
-    //                     memb_name_w = std::max( memb_name_w, names[i].size() );
-    //                 }
-    //             }
-    //         }
-    //     }
-    // };
+    // tuple iteration pattern using recursive templating
+    template< size_t I = 0, typename... Args,
+              std::enable_if_t< I < sizeof...( Args ), bool > = true >
+    void _parseLISTofVALUE(
+        const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
+        _LISTofVALUEParsingOutputs* outputs ) {
+        if ( I == 0 ) {
+            outputs->str += '[';
+            if ( inputs.value_mask != 0 ) {
+                outputs->str += inputs.ws.separator;
+            }
+        }
+        if ( ( inputs.value_mask & ( 1 << I ) ) == 0 ) {
+            return _parseLISTofVALUE< I + 1, Args... >( inputs, outputs );
+        }
+        outputs->value_ct++;
+        assert( inputs.sz - outputs->bytes_parsed >=
+                sizeof( protocol::VALUE ) );
+        using ValueT = std::remove_reference_t<
+            decltype( std::get< I >( inputs.types ) ) >;
+        const _ParsingOutputs member {
+            _parseListMember< ValueT >(
+                    inputs.data + outputs->bytes_parsed,
+                    inputs.sz - outputs->bytes_parsed,
+                    inputs.traits[ I ] ) };
+        // do not use member.bytes_parsed as all VALUEs are encoded as 4B
+        outputs->bytes_parsed += sizeof( protocol::VALUE );
 
-    // // TBD [u]intXX_t CARDXX INTXX
-    // template< typename ValueT,
-    //            std::enable_if_t< std::is_integral_v< ValueT >, bool > = true >
-    // inline std::string
-    // _formatVALUE(
-    //     const ValueT value, const _VALUETraits& traits ) {
-    //     return traits.is_mask ?
-    //         _formatBitmask( value, traits.enum_names, traits.name_index_range ) :
-    //         _formatInteger( value, traits.flag_names, traits.name_index_range );
-    // }
-
-    // // PIXMAP WINDOW VISUALID COLORMAP  // TBD these don't need to pass names, but no need for overload due to default param
-    // // TIMESTAMP CURSOR ATOM FONT BITGRAVITY WINGRAVITY BOOL SETofEVENT SETofPOINTEREVENT SETofDEVICEEVENT KEYCODE BUTTON SETofKEYMASK SETofKEYBUTMASK POINT RECTANGLE ARC
-    // template< typename ValueT,
-    //            std::enable_if_t< !std::is_integral_v< ValueT >, bool > = true >
-    // inline std::string
-    // _formatVALUE(
-    //     const ValueT value, const _VALUETraits& traits ) {
-    //     return _formatProtocolType( value, traits.enum_names );
-    // }
-
-    // // tuple iteration allows for run time taversal of heterogeneous list of types
-    // // TBD all this may not be necessary - could we just parse all as uint32_t and cast as necessary?
-    // // TBD recommended tuple iteration pattern using recursive templating
-    // template< size_t I = 0, typename... Args,
-    //           std::enable_if_t< I == sizeof...( Args ), bool > = true >
-    // void _parseLISTofVALUE(
-    //     const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-    //     const uint8_t*/* data*/, _ParsingOutputs* outputs ) {
-    //     if ( inputs.value_mask != 0 ) {
-    //         outputs->str += inputs.ws.encl_indent;
-    //     }
-    //     outputs->str += ']';
-    // }
-
-    // // TBD recommended tuple iteration pattern using recursive templating
-    // template< size_t I = 0, typename... Args,
-    //           std::enable_if_t< I < sizeof...( Args ), bool > = true >
-    // void _parseLISTofVALUE(
-    //     const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
-    //     const uint8_t* data, _ParsingOutputs* outputs ) {
-    //     if ( I == 0 ) {
-    //         outputs->str += '[';
-    //         if ( inputs.value_mask != 0 ) {
-    //             outputs->str += inputs.ws.separator;
-    //         }
-    //     }
-    //     if ( ( inputs.value_mask & ( 1 << I ) ) == 0 ) {
-    //         return _parseLISTofVALUE< I + 1, Args... >( inputs, data, outputs );
-    //     }
-    //     using ValueT = std::remove_reference_t<
-    //         decltype( std::get< I >( inputs.types ) ) >;
-    //     const ValueT value { *reinterpret_cast< const ValueT* >( data ) };
-    //     outputs->bytes_parsed += sizeof( protocol::VALUE );
-
-    //     outputs->str += fmt::format(
-    //         "{}{: <{}}{}{}{}",
-    //         inputs.ws.memb_indent, inputs.names[I], inputs.memb_name_w,
-    //         inputs.ws.equals, _formatVALUE( value, inputs.traits[I] ),
-    //         inputs.ws.separator );
-    //     return _parseLISTofVALUE< I + 1, Args... >(
-    //         inputs, data + sizeof( protocol::VALUE ), outputs );
-    // }
+        outputs->str += fmt::format(
+            "{}{: <{}}{}{}{}",
+            inputs.ws.memb_indent, inputs.names[ I ], inputs.memb_name_w,
+            inputs.ws.equals, member.str, inputs.ws.separator );
+        return _parseLISTofVALUE< I + 1, Args... >( inputs, outputs );
+    }
 
     ////// Logging
 

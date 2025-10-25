@@ -1290,7 +1290,7 @@ struct GetMotionEvents : public Request {
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
         // followed by LISTofTIMECOORD events (sizeof(TIMECOORD) * events_ct)B
 
-        struct [[gnu::packed]] TIMECOORD {
+        struct [[gnu::packed]] TIMECOORD : public protocol::impl::Struct {
             TIMESTAMP time;
             INT16     x;
             INT16     y;
@@ -1457,18 +1457,18 @@ struct CloseFont : public Request {
 
 namespace impl {
 
-struct [[gnu::packed]] FONTPROP {
+struct [[gnu::packed]] FONTPROP : public protocol::impl::Struct {
     ATOM     name;
     uint32_t value;  // <32-bits>
 };
 
-struct [[gnu::packed]] CHARINFO {
-    INT16    left_side_bearing;  // left-side-bearing
-    INT16    right_side_bearing;  // right-side-bearing
-    INT16    character_width;  // character-width
-    INT16    ascent;
-    INT16    descent;
-    CARD16   attributes;
+struct [[gnu::packed]] CHARINFO : public protocol::impl::Struct {
+    INT16  left_side_bearing;   // left-side-bearing
+    INT16  right_side_bearing;  // right-side-bearing
+    INT16  character_width;     // character-width
+    INT16  ascent;
+    INT16  descent;
+    CARD16 attributes;
 };
 
 }  // namespace impl
@@ -1968,7 +1968,7 @@ struct PolySegment : public Request {
     };
     // followed by LISTofSEGMENT segments 8nB
 
-    struct [[gnu::packed]] SEGMENT {
+    struct [[gnu::packed]] SEGMENT : public protocol::impl::Struct {
         INT16 x1, y1;
         INT16 x2, y2;
     };
@@ -2143,12 +2143,12 @@ struct PolyText8 : public Request {
     // TBD core X11 font storage: https://www.x.org/wiki/guide/fonts/
     static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM8 {
-        struct [[gnu::packed]] TEXTELT8 {
+        struct [[gnu::packed]] TEXTELT8 : public protocol::impl::StructWithSuffixes {
             uint8_t string_len;  // string length in bytes (cannot be FONT_SHIFT)
             INT8    delta;
         } text_element;
         // followed by STRING8 string string_lenB
-        struct [[gnu::packed]] FONT {
+        struct [[gnu::packed]] FONT : public protocol::impl::Struct {
             uint8_t font_shift;     // font-shift FONT_SHIFT
             uint8_t font_bytes[4];  // font byte 3 (most-significant) to
                                     //   font byte 0 (least-significant)
@@ -2174,12 +2174,12 @@ struct PolyText16 : public Request {
     // TBD core X11 font storage: https://www.x.org/wiki/guide/fonts/
     static constexpr uint8_t FONT_SHIFT { 255 };
     union TEXTITEM16 {
-        struct [[gnu::packed]] TEXTELT16 {
+        struct [[gnu::packed]] TEXTELT16 : public protocol::impl::StructWithSuffixes {
             uint8_t string_2B_len;  // string length in CHAR2B (cannot be FONT_SHIFT)
             INT8    delta;
         } text_element;
         // followed by STRING16 string 2string_lenB
-        struct [[gnu::packed]] FONT {
+        struct [[gnu::packed]] FONT : public protocol::impl::Struct {
             uint8_t font_shift;     // font-shift FONT_SHIFT
             uint8_t font_bytes[4];  // font byte 3 (most-significant) to
                                     //   font byte 0 (least-significant)
@@ -2465,7 +2465,7 @@ struct StoreColors : public Request {
     };
     // followed by LISTofCOLORITEM items 12nB
 
-    struct [[gnu::packed]] COLORITEM {
+    struct [[gnu::packed]] COLORITEM : public protocol::impl::Struct {
         CARD32  pixel;
         CARD16  red;
         CARD16  green;
@@ -2528,7 +2528,7 @@ struct QueryColors : public Request {
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
         // followed by LISTofRGB colors ( 8 * colors_ct )B
 
-        struct [[gnu::packed]] RGB {
+        struct [[gnu::packed]] RGB : public protocol::impl::Struct {
             CARD16  red;
             CARD16  green;
             CARD16  blue;
