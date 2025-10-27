@@ -255,7 +255,7 @@ private:
                          _fmtHexWidth( val ) ) };
 
         if ( bitmask ) {
-            assert( !std::is_signed_v< IntT > );
+            assert( std::is_unsigned_v< IntT > );
             std::string flag_str;
             if ( !name_range.empty() ) {
                 for ( uint32_t i { name_range.min },
@@ -280,7 +280,7 @@ private:
                 name_str;
         }
         return settings.verbose ?
-            hex_str :
+            fmt::format( "{}({:d})", hex_str, val ) :
             fmt::format( "{:d}", val );
     }
 
