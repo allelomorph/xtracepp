@@ -590,7 +590,10 @@ private:
     size_t _logConnResponse(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    size_t _logError(
+    template< typename RequestT >
+    _ParsingOutputs _parseRequest(
+        Connection* conn, const uint8_t* data, const size_t sz );
+    size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     template< typename RequestT >
@@ -609,10 +612,10 @@ private:
     size_t _logEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
 
-    template< typename RequestT >
-    _ParsingOutputs _parseRequest(
+    template< typename ErrorT >
+    _ParsingOutputs _parseError(
         Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logRequest(
+    size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
 public:
