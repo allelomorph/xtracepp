@@ -206,7 +206,8 @@ size_t X11ProtocolParser::_logConnAcceptance(
         ws.memb_indent, "resource-id-base", memb_name_w, ws.equals,
         _formatVariable( encoding->resource_id_base ), ws.separator,
         ws.memb_indent, "resource-id-mask", memb_name_w, ws.equals,
-        _formatVariable( encoding->resource_id_mask ), ws.separator,
+        _formatVariable( encoding->resource_id_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "motion-buffer-size", memb_name_w, ws.equals,
         _formatVariable( encoding->motion_buffer_size ), ws.separator,
         !settings.verbose ? "" : fmt::format(

@@ -211,7 +211,7 @@ X11ProtocolParser::_formatVariable(
     // TBD default to printing as hex due to convoluted encoding, see:
     //   https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Common_Types
     const uint16_t char16_eqv { *reinterpret_cast< const uint16_t* >( &char2B ) };
-    return _formatVariable( char16_eqv, {}, _ValueTraits::BITMASK );
+    return _formatVariable( char16_eqv, {}, _ValueTraits::BITMASK );  // force hex
 }
 
 template<>

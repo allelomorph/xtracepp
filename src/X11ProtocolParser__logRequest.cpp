@@ -305,8 +305,10 @@ X11ProtocolParser::_parseRequest<
         /* backing-pixel         */ {},
         /* override-redirect     */ {},
         /* save-under            */ {},
-        /* event-mask            */ {},
-        /* do-not-propagate-mask */ {},
+        /* event-mask            */ {
+            {}, _ValueTraits::BITMASK },
+        /* do-not-propagate-mask */ {
+            {}, _ValueTraits::BITMASK },
         /* colormap              */ {
             _EnumNameRange{ CreateWindow::colormap_names } },
         /* cursor                */ {
@@ -412,8 +414,10 @@ X11ProtocolParser::_parseRequest<
         /* backing-pixel         */ {},
         /* override-redirect     */ {},
         /* save-under            */ {},
-        /* event-mask            */ {},
-        /* do-not-propagate-mask */ {},
+        /* event-mask            */ {
+            {}, _ValueTraits::BITMASK },
+        /* do-not-propagate-mask */ {
+            {}, _ValueTraits::BITMASK },
         /* colormap              */ {
             _EnumNameRange{ ChangeWindowAttributes::colormap_names } },
         /* cursor                */ {
@@ -2736,7 +2740,8 @@ X11ProtocolParser::_parseRequest<
     const std::vector< _ValueTraits > value_traits {
         /* function              */ {
             _EnumNameRange{ CreateGC::function_names } },
-        /* plane-mask            */ {},
+        /* plane-mask            */ {
+            {}, _ValueTraits::BITMASK },
         /* foreground            */ {},
         /* background            */ {},
         /* line-width            */ {},
@@ -2761,7 +2766,7 @@ X11ProtocolParser::_parseRequest<
         /* clip-x-origin         */ {},
         /* clip-y-origin         */ {},
         /* clip-mask             */ {
-            _EnumNameRange{ CreateGC::clip_mask_names } },
+            _EnumNameRange{ CreateGC::clip_mask_names }, _ValueTraits::BITMASK },
         /* dash-offset           */ {},
         /* dashes                */ {},
         /* arc-mode              */ {
@@ -2836,7 +2841,8 @@ X11ProtocolParser::_parseRequest<
     const std::vector< _ValueTraits > value_traits {
         /* function              */ {
             _EnumNameRange{ ChangeGC::function_names } },
-        /* plane-mask            */ {},
+        /* plane-mask            */ {
+            {}, _ValueTraits::BITMASK },
         /* foreground            */ {},
         /* background            */ {},
         /* line-width            */ {},
@@ -2861,7 +2867,7 @@ X11ProtocolParser::_parseRequest<
         /* clip-x-origin         */ {},
         /* clip-y-origin         */ {},
         /* clip-mask             */ {
-            _EnumNameRange { ChangeGC::clip_mask_names } },
+            _EnumNameRange { ChangeGC::clip_mask_names }, _ValueTraits::BITMASK },
         /* dash-offset           */ {},
         /* dashes                */ {},
         /* arc-mode              */ {

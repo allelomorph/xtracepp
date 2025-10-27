@@ -1613,11 +1613,11 @@ X11ProtocolParser::_parseReply<
             encoding->pixels_ct, ws.nested() ) };
     reply.bytes_parsed += pixels.bytes_parsed;
     // followed by LISTofCARD32 masks
-    // TBD force hex (print as bitmask)?
     const _ParsingOutputs masks {
         _parseLISTof< protocol::CARD32 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            encoding->masks_ct, ws.nested() ) };
+            encoding->masks_ct, ws.nested(),
+            _ValueTraits{ {}, _ValueTraits::BITMASK } ) };  // force hex
     reply.bytes_parsed += pixels.bytes_parsed;
     assert( encoding->header.extra_aligned_units ==
             alignment.units( reply.bytes_parsed -
@@ -2145,7 +2145,8 @@ X11ProtocolParser::_parseReply<
             ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
             _formatVariable( encoding->header.extra_aligned_units ), ws.separator ),
         ws.memb_indent, "led-mask", memb_name_w, ws.equals,
-        _formatVariable( encoding->led_mask ), ws.separator,
+        _formatVariable( encoding->led_mask,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "key-click-percent", memb_name_w, ws.equals,
         _formatVariable( encoding->key_click_percent ), ws.separator,
         ws.memb_indent, "bell-percent", memb_name_w, ws.equals,
