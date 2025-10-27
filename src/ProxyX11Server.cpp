@@ -137,9 +137,9 @@ void ProxyX11Server::_parseDisplayNames() {
     } else {
         in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
         if ( in_displayname == nullptr ) {
-            fmt::print( stderr, "No display specified via --proxydisplay or {}, "
-                        "defaulting to {}\n",
-                        _IN_DISPLAYNAME_ENV_VAR, _DEFAULT_IN_DISPLAYNAME );
+            fmt::println( stderr, "No display specified via --proxydisplay or "
+                          "${}, defaulting to {:?}",
+                          _IN_DISPLAYNAME_ENV_VAR, _DEFAULT_IN_DISPLAYNAME );
             in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
         }
     }
@@ -222,8 +222,8 @@ void ProxyX11Server::_copyAuthentication() {
     if ( xauthority_value == nullptr ) {
         const char* home_value { getenv( HOME_ENV_VAR.data() ) };
         if ( home_value == nullptr ) {
-            fmt::println(
-                stderr, "Could not get HOME environmental variable value to resolve auth path" );
+            fmt::println( stderr, "Could not get HOME environmental variable "
+                          "value to resolve auth path" );
             exit( EXIT_FAILURE );
         }
         _xauth_path =
@@ -240,7 +240,8 @@ void ProxyX11Server::_copyAuthentication() {
     std::ifstream ifs( _xauth_path, std::ios::binary );
     if ( !ifs.good() ) {
         fmt::println(
-            stderr, "Could not open auth file for reading, expected paths: ${} or ${}/{}",
+            stderr, "Could not open auth file for reading, expected "
+            "paths: ${} or ${}/{}",
             XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
         exit( EXIT_FAILURE );
     }
@@ -298,9 +299,9 @@ void ProxyX11Server::_copyAuthentication() {
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
             if ( auth.name != _AUTH_NAME ) {
-                fmt::println(
-                    stderr, "No support for display {:?} auth method {} (expected {})",
-                    _out_display.name, auth.name, _AUTH_NAME );
+                fmt::println( stderr, "No support for display {:?} auth method "
+                              "{} (expected {})",
+                              _out_display.name, auth.name, _AUTH_NAME );
                 exit( EXIT_FAILURE );
             }
             assert( auth.data_len == _AUTH_DATA_SZ );
@@ -336,7 +337,8 @@ void ProxyX11Server::_copyAuthentication() {
     std::ofstream ofs( _xauth_path, std::ios::binary );
     if ( !ofs.good() ) {
         fmt::println(
-            stderr, "Could not open auth file for writing, expected paths: ${} or ${}/{}",
+            stderr, "Could not open auth file for writing, expected paths: "
+            "${} or ${}/{}",
             XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
         exit( EXIT_FAILURE );
     }
@@ -467,10 +469,9 @@ void ProxyX11Server::_processPolledSockets() {
                 bytes_read = conn.bufferPacketFromClient();
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
-                    fmt::println(
-                        settings.log_fs,
-                        "C{:03d}:{}: error reading from client: {}",
-                        conn.id, _parser.CLIENT_TO_SERVER, e.what() );
+                    fmt::println( settings.log_fs,
+                                  "C{:03d}:{}: error reading from client: {}",
+                                  conn.id, _parser.CLIENT_TO_SERVER, e.what() );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -513,10 +514,9 @@ void ProxyX11Server::_processPolledSockets() {
                               conn.id, bytes_written, _parser.SERVER_TO_CLIENT );
             }
         } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
-            fmt::println(
-                settings.log_fs,
-                "C{:03d}: poll failure on client socket: {}",
-                conn.id, *error );
+            fmt::println( settings.log_fs,
+                          "C{:03d}: poll failure on client socket: {}",
+                          conn.id, *error );
             conns_to_close.emplace_back( id );
             continue;
         }
@@ -526,10 +526,9 @@ void ProxyX11Server::_processPolledSockets() {
                 bytes_read = conn.bufferPacketFromServer();
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
-                    fmt::println(
-                        settings.log_fs,
-                        "C{:03d}:{}: error reading from server: {}",
-                        conn.id, _parser.SERVER_TO_CLIENT, e.what() );
+                    fmt::println( settings.log_fs,
+                                  "C{:03d}:{}: error reading from server: {}",
+                                  conn.id, _parser.SERVER_TO_CLIENT, e.what() );
                 }
                 conns_to_close.emplace_back( id );
                 continue;
@@ -719,7 +718,8 @@ int ProxyX11Server::_connectToServer() {
     }
     std::string connect_err;
     switch ( _out_display.ai_family ) {
-    case AF_INET6: [[fallthrough]];
+    case AF_INET6:
+        [[fallthrough]];
     case AF_INET: {
         // At sockets API level, enable sending of keep-alive messages on
         //   connection-oriented sockets.
@@ -732,14 +732,14 @@ int ProxyX11Server::_connectToServer() {
             return -1;
         }
         connect_err = fmt::format(
-            "{}: error connecting to '{}' (resolved to '{}') for display '{}', {}",
+            "{}: error connecting to {:?} (resolved to {:?}) for display {:?}: {}",
             __PRETTY_FUNCTION__, _out_display.hostname,
             _out_display.addrstr, _out_display.name,
             errors::system::message( "connect" ) );
     }   break;
     case AF_UNIX: {
         connect_err = fmt::format(
-            "{}: error connecting to unix socket '{}' for display '{}'), {}",
+            "{}: error connecting to unix socket {:?} for display {:?}: {}",
             __PRETTY_FUNCTION__, _out_display.unaddr.sun_path,
             _out_display.name, errors::system::message( "connect" ) );
     }   break;
@@ -768,7 +768,7 @@ void ProxyX11Server::_openConnection() {
 
     conn.server_fd = _connectToServer();
     if ( conn.server_fd == -1 ) {
-        fmt::println( stderr, "{}: failure to connect to X server for display: {}",
+        fmt::println( stderr, "{}: failure to connect to X server for display: {:?}",
                       __PRETTY_FUNCTION__, _out_display.name );
         conn.closeClientSocket();
         return;

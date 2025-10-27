@@ -127,7 +127,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
-            stderr, "{}: failure to connect to X server for display: {}",
+            stderr, "{}: failure to connect to X server for display: {:?}",
             __PRETTY_FUNCTION__, _out_display.name );
         return;
     }
@@ -135,8 +135,9 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     SocketBuffer sbuffer;
     protocol::WINDOW screen0_root;
     if ( !_authenticateServerConnection( server_fd, &screen0_root ) ) {
-        fmt::println( stderr, "{}: failed to authenticate connection to X server",
-                      __PRETTY_FUNCTION__ );
+        fmt::println(
+            stderr, "{}: failed to authenticate connection to X server",
+            __PRETTY_FUNCTION__ );
         goto close_socket;
     }
 
@@ -242,13 +243,14 @@ ProxyX11Server::_fetchInternedAtoms() {
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
-            stderr, "{}: failure to connect to X server for display: {}",
+            stderr, "{}: failure to connect to X server for display: {:?}",
             __PRETTY_FUNCTION__, _out_display.name );
         exit( EXIT_FAILURE );
     }
     if ( !_authenticateServerConnection( server_fd ) ) {
-        fmt::println( stderr, "{}: failed to authenticate connection to X server",
-                      __PRETTY_FUNCTION__ );
+        fmt::println(
+            stderr, "{}: failed to authenticate connection to X server",
+            __PRETTY_FUNCTION__ );
         close( server_fd );  // sends EOF
         exit( EXIT_FAILURE );
     }
