@@ -1,3 +1,4 @@
+#include <string_view>
 #include <string>        // stoi
 #include <regex>         // smatch regex regex_search
 #include <algorithm>     // transform
@@ -20,7 +21,8 @@
 #include "errors.hpp"
 
 
-DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) {
+DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
+                          const std::string_view& process_name ) {
     assert( display_name != nullptr );
 
     ////// Parse display name into relevant fields
@@ -90,9 +92,10 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
         }
     } else {
         fmt::println(
-            stderr, "Could not parse display name {:?} as one of two valid patterns:\n"
+            stderr, "{}: Could not parse display name {:?} as one of two valid patterns:\n"
             "    [unix:]<socket path>[.<screen number>]\n"
-            "    [[<protocol>/]<hostname>]:<display number>[.<screen number>]", name );
+            "    [[<protocol>/]<hostname>]:<display number>[.<screen number>]",
+            process_name, name );
         exit( EXIT_FAILURE );
     }
     // only passing explcitly passing "inet" as protocol uses IPv4, otherwise
@@ -104,8 +107,8 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
     } else if ( protocol == _UNIX || protocol == _LOCAL ) {
          ai_family = AF_UNIX;
     } else {
-        fmt::println( stderr, "Unrecognized protocol {:?} in display name {:?}",
-                      protocol, name );
+        fmt::println( stderr, "{}: Unrecognized protocol {:?} in display name {:?}",
+                      process_name, protocol, name );
         exit( EXIT_FAILURE );
     }
 
@@ -139,7 +142,7 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
     // node and service params can't both be NULL
     if ( const int gai_ret { getaddrinfo( node, "", &hints, &results ) };
          gai_ret != 0 ) {
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( stderr, "{}: {}: {}", process_name, __PRETTY_FUNCTION__,
                       errors::getaddrinfo::message( gai_ret ) );
         exit( EXIT_FAILURE );
     }
@@ -167,9 +170,8 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction ) 
         }
     }
     if ( viable_result == nullptr ) {
-        fmt::println( stderr, "Could not find viable address for hostname {:?} "
-                      "in display name {:?}",
-                      hostname, name );
+        fmt::println( stderr, "{}: Could not find viable address for hostname {:?} "
+                      "in display name {:?}", process_name, hostname, name );
         exit( EXIT_FAILURE );
     }
     ai_family   = results->ai_family;

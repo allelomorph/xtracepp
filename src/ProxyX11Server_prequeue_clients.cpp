@@ -77,7 +77,8 @@ bool ProxyX11Server::_authenticateServerConnection(
     try {
         pollSingleSocket( server_fd, POLLOUT );
     } catch ( const std::exception& e ) {
-        fmt::println( stderr, "{}", e.what() );
+        fmt::println( stderr, "{}: {}",
+                      settings.process_name, e.what() );
         return false;
     }
     sbuffer.write( server_fd );
@@ -86,7 +87,8 @@ bool ProxyX11Server::_authenticateServerConnection(
     try {
         pollSingleSocket( server_fd, POLLIN );
     } catch ( const std::exception& e ) {
-        fmt::println( stderr, "{}", e.what() );
+        fmt::println( stderr, "{}: {}",
+                      settings.process_name, e.what() );
         return false;
     }
     sbuffer.read( server_fd );
@@ -127,8 +129,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
-            stderr, "{}: failure to connect to X server for display: {:?}",
-            __PRETTY_FUNCTION__, _out_display.name );
+            stderr, "{}: {}: failure to connect to X server for display: {:?}",
+            settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
         return;
     }
 
@@ -136,8 +138,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     protocol::WINDOW screen0_root;
     if ( !_authenticateServerConnection( server_fd, &screen0_root ) ) {
         fmt::println(
-            stderr, "{}: failed to authenticate connection to X server",
-            __PRETTY_FUNCTION__ );
+            stderr, "{}: {}: failed to authenticate connection to X server",
+            settings.process_name, __PRETTY_FUNCTION__ );
         goto close_socket;
     }
 
@@ -162,7 +164,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         try {
             pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
+            fmt::println( stderr, "{}: {}",
+                          settings.process_name, e.what() );
             goto close_socket;
         }
         sbuffer.write( server_fd );
@@ -191,7 +194,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         try {
             pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
+            fmt::println( stderr, "{}: {}",
+                          settings.process_name, e.what() );
             goto close_socket;
         }
         sbuffer.write( server_fd );
@@ -203,7 +207,8 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         try {
             pollSingleSocket( server_fd, POLLIN );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
+            fmt::println( stderr, "{}: {}",
+                          settings.process_name, e.what() );
             goto close_socket;
         }
         sbuffer.read( server_fd );
@@ -243,14 +248,14 @@ ProxyX11Server::_fetchInternedAtoms() {
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
-            stderr, "{}: failure to connect to X server for display: {:?}",
-            __PRETTY_FUNCTION__, _out_display.name );
+            stderr, "{}: {}: failure to connect to X server for display: {:?}",
+            settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
         exit( EXIT_FAILURE );
     }
     if ( !_authenticateServerConnection( server_fd ) ) {
         fmt::println(
-            stderr, "{}: failed to authenticate connection to X server",
-            __PRETTY_FUNCTION__ );
+            stderr, "{}: {}: failed to authenticate connection to X server",
+            settings.process_name, __PRETTY_FUNCTION__ );
         close( server_fd );  // sends EOF
         exit( EXIT_FAILURE );
     }
@@ -354,7 +359,7 @@ ProxyX11Server::_fetchInternedAtoms() {
          sigaction( SIGSEGV, &act, nullptr ) == -1 ||
          sigaction( SIGTERM, &act, nullptr ) == -1 ) {
         fmt::println(
-            stderr, "{}: {}", __PRETTY_FUNCTION__,
+            stderr, "{}: {}: {}", settings.process_name, __PRETTY_FUNCTION__,
             errors::system::message( "sigaction" ) );
         close( server_fd );  // sends EOF
         exit( EXIT_FAILURE );

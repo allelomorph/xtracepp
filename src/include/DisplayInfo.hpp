@@ -75,7 +75,8 @@ public:
     enum class Direction {
         IN, OUT };
     DisplayInfo() {}
-    DisplayInfo( const char* displayname, const Direction direction );
+    DisplayInfo( const char* displayname, const Direction direction,
+                 const std::string_view& process_name );
 };
 
 

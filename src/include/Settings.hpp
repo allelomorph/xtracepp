@@ -47,7 +47,7 @@ public:
     bool readwritedebug           { false };
     bool copyauth                 { true };
     bool keeprunning              { false };
-    bool denyallextensions        { true };   // TBD temp default while debugging core protocol
+    bool denyallextensions        { true };   // TBD temp default until extensions implemented
     bool multiline                { false };
     bool verbose                  { false };
     bool relativetimestamps       { false };
@@ -59,7 +59,7 @@ public:
     const char*   out_displayname { nullptr };
     const char*   in_displayname  { nullptr };
 
-    const char*   app_name        { nullptr };  // argv[0]
+    const char*   process_name    { nullptr };  // argv[0]
     const char**  subcmd_argv     { nullptr };  // argv after --
     int           subcmd_argc     {};           // subcmd_argv arg ct
 

@@ -29,7 +29,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
     assert( argc > 0 );
     assert( argv != nullptr );
 
-    app_name = argv[0];
+    process_name = argv[0];
 
     static constexpr std::string_view help_msg {
         R"({}: intercept, log, and modify (based on user options) packet data going between X server and clients
@@ -56,7 +56,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
 
         if ( optarg != nullptr && optarg[0] == '-' ) {
             fmt::println( stderr, "{}: option arguments may not begin with '-' "
-                          "to prevent option parsing errors", app_name );
+                          "to prevent option parsing errors", process_name );
             exit( EXIT_FAILURE );
         }
         switch ( c ) {
@@ -82,7 +82,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
             if ( log_path != nullptr ) {
                 std::filesystem::remove( log_path );
                 fmt::println( stderr, "{}: -o option may only be used once",
-                              app_name );
+                              process_name );
                 exit( EXIT_FAILURE );
             }
             // TBD consider making log_path into filesystem::path in try/except
@@ -92,7 +92,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
             log_fs = fopen( log_path, "w" );
             if ( log_fs == nullptr ) {
                 fmt::println( stderr, "{}: could not open log file {:?}, {}",
-                              app_name, log_path,
+                              process_name, log_path,
                               errors::system::message( "fopen" ) );
                 exit( EXIT_FAILURE );
             }
@@ -112,7 +112,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         case '\0':
             switch( _long_only_option ) {
             case LO_HELP:
-                fmt::print( help_msg, app_name, app_name );
+                fmt::print( help_msg, process_name, process_name );
                 exit( EXIT_SUCCESS );
             }
             break;
@@ -132,7 +132,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
     if ( unbuffered ) {
         if ( setvbuf( log_fs, nullptr, _IONBF, 0 ) != 0 ) {
             fmt::println( stderr, "{}: {}",
-                          app_name, errors::system::message( "setvbuf" ) );
+                          process_name, errors::system::message( "setvbuf" ) );
             exit( EXIT_FAILURE );
         }
     }
@@ -149,7 +149,7 @@ void Settings::_restoreFileStreamBufferDefaults() {
     assert( log_fs == stdout || log_fs == stderr );
     if ( setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz ) != 0 ) {
         fmt::println( stderr, "{}: {}",
-                      app_name, errors::system::message( "setvbuf" ) );
+                      process_name, errors::system::message( "setvbuf" ) );
         exit( EXIT_FAILURE );
     }
 }

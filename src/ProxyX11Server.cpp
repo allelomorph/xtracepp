@@ -126,7 +126,8 @@ void ProxyX11Server::_parseDisplayNames() {
         out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
     }
     assert( out_displayname != nullptr );
-    _out_display = DisplayInfo( out_displayname, DisplayInfo::Direction::OUT );
+    _out_display = DisplayInfo( out_displayname, DisplayInfo::Direction::OUT,
+                                settings.process_name );
     if ( _out_display.ai_family == AF_UNIX ) {
         out_display_sun_path.store( _out_display.unaddr.sun_path );
     }
@@ -144,7 +145,8 @@ void ProxyX11Server::_parseDisplayNames() {
         }
     }
     assert( in_displayname != nullptr );
-    _in_display = DisplayInfo( in_displayname, DisplayInfo::Direction::IN );
+    _in_display = DisplayInfo( in_displayname, DisplayInfo::Direction::IN,
+                               settings.process_name );
     if ( _in_display.ai_family == AF_UNIX ) {
         in_display_sun_path.store( _in_display.unaddr.sun_path );
     }
@@ -158,7 +160,8 @@ void ProxyX11Server::_parseDisplayNames() {
              sigaction( SIGTERM, &act, nullptr ) == -1 ||
              sigaction( SIGABRT, &act, nullptr ) == -1 ||
              sigaction( SIGSEGV, &act, nullptr ) == -1 ) {
-            fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
+            fmt::println( ::stderr, "{}: {}: {}",
+                          settings.process_name, __PRETTY_FUNCTION__,
                           errors::system::message( "sigaction" ) );
             exit( EXIT_FAILURE );
         }
@@ -222,8 +225,8 @@ void ProxyX11Server::_copyAuthentication() {
     if ( xauthority_value == nullptr ) {
         const char* home_value { getenv( HOME_ENV_VAR.data() ) };
         if ( home_value == nullptr ) {
-            fmt::println( stderr, "Could not get HOME environmental variable "
-                          "value to resolve auth path" );
+            fmt::println( stderr, "{}: Could not get HOME environmental variable "
+                          "value to resolve auth path", settings.process_name );
             exit( EXIT_FAILURE );
         }
         _xauth_path =
@@ -299,8 +302,8 @@ void ProxyX11Server::_copyAuthentication() {
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
             if ( auth.name != _AUTH_NAME ) {
-                fmt::println( stderr, "No support for display {:?} auth method "
-                              "{} (expected {})",
+                fmt::println( stderr, "{}: No support for display {:?} auth method "
+                              "{} (expected {})", settings.process_name,
                               _out_display.name, auth.name, _AUTH_NAME );
                 exit( EXIT_FAILURE );
             }
@@ -311,8 +314,8 @@ void ProxyX11Server::_copyAuthentication() {
             break;
     }
     if ( out_display_auth == nullptr ) {
-        fmt::println( stderr, "Could not find auth data for display {:?}",
-                      _out_display.name );
+        fmt::println( stderr, "{}: Could not find auth data for display {:?}",
+                      settings.process_name, _out_display.name );
         exit( EXIT_FAILURE );
     }
     _XAuthInfo dup_auth { *out_display_auth };
@@ -337,8 +340,8 @@ void ProxyX11Server::_copyAuthentication() {
     std::ofstream ofs( _xauth_path, std::ios::binary );
     if ( !ofs.good() ) {
         fmt::println(
-            stderr, "Could not open auth file for writing, expected paths: "
-            "${} or ${}/{}",
+            stderr, "{}: Could not open auth file for writing, expected paths: "
+            "${} or ${}/{}", settings.process_name,
             XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
         exit( EXIT_FAILURE );
     }
@@ -389,18 +392,21 @@ void ProxyX11Server::_startSubcommandClient() {
     case 0:  // fork succeeded, now in child
         if ( setenv( _OUT_DISPLAYNAME_ENV_VAR.data(),
                      _in_display.name.data(), 1 ) != 0 ) {
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+            fmt::println( stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
+                          settings.process_name,
                           errors::system::message( "setenv" ) );
             exit( EXIT_FAILURE );
         }
         execvp( settings.subcmd_argv[0],
                 const_cast< char* const* >( settings.subcmd_argv ) );
         // child has failed to overtake parent process
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
+                      settings.process_name,
                       errors::system::message( "execvp" ) );
         exit( EXIT_FAILURE );
     case -1:  // still in parent, fork failed
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
+                      settings.process_name,
                       errors::system::message( "fork" ) );
         exit( EXIT_FAILURE );
     default:  // still in parent, fork success
@@ -584,8 +590,8 @@ void ProxyX11Server::_processPolledSockets() {
     if ( _socketReadReady( _listener_fd ) ) {
         _openConnection();
     } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
-        fmt::println( stderr, "{}: poll failure on listening socket: {}",
-                      __PRETTY_FUNCTION__, *error );
+        fmt::println( stderr, "{}: {}: poll failure on listening socket: {}",
+                      settings.process_name, __PRETTY_FUNCTION__, *error );
     }
 }
 
@@ -596,7 +602,8 @@ void ProxyX11Server::_listenForClients() {
             _in_display.ai_family, _in_display.ai_socktype,
             _in_display.ai_protocol ) };
     if ( fd < 0 )  {
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                      __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
         exit( EXIT_FAILURE );
     }
@@ -605,7 +612,8 @@ void ProxyX11Server::_listenForClients() {
         const int off {};
         if ( setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off) ) != 0 ) {
             close( fd );
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+            fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                          __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
             exit( EXIT_FAILURE );
         }
@@ -615,7 +623,8 @@ void ProxyX11Server::_listenForClients() {
         // TBD add TCP_NODELAY here as well?
         if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
             close( fd );
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+            fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                          __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
             exit( EXIT_FAILURE );
         }
@@ -630,13 +639,15 @@ void ProxyX11Server::_listenForClients() {
     }
     if ( bind( fd, &_in_display.ai_addr, _in_display.ai_addrlen ) != 0 ) {
         close( fd );
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
-                          errors::system::message( "bind" ) );
+        fmt::println( stderr, "{}: {}: {}",
+                      settings.process_name, __PRETTY_FUNCTION__,
+                      errors::system::message( "bind" ) );
         exit( EXIT_FAILURE );
     }
     if ( listen( fd, _MAX_PENDING_CONNECTIONS ) != 0 ) {
         close( fd );
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                      __PRETTY_FUNCTION__,
                       errors::system::message( "listen" ) );
         exit( EXIT_FAILURE );
     }
@@ -658,7 +669,8 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
     socklen_t addrlen { _in_display.ai_addrlen };
     const int fd { accept( _listener_fd, &addr, &addrlen ) };
     if ( fd < 0 ) {
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                      __PRETTY_FUNCTION__,
                       errors::system::message( "accept" ) );
         return false;
     }
@@ -669,7 +681,8 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
         if ( inet_ntop( in6addr.sin6_family, &(in6addr.sin6_addr),
                         addrstr, INET6_ADDRSTRLEN ) == nullptr ) {
             close( fd );
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+            fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                          __PRETTY_FUNCTION__,
                           errors::system::message( "inet_ntop" ) );
             return false;
         }
@@ -682,7 +695,8 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
         if ( inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
                         addrstr, INET_ADDRSTRLEN ) == nullptr ) {
             close( fd );
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+            fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                          __PRETTY_FUNCTION__,
                           errors::system::message( "inet_ntop" ) );
             return false;
         }
@@ -732,15 +746,15 @@ int ProxyX11Server::_connectToServer() {
             return -1;
         }
         connect_err = fmt::format(
-            "{}: error connecting to {:?} (resolved to {:?}) for display {:?}: {}",
-            __PRETTY_FUNCTION__, _out_display.hostname,
+            "{}: {}: error connecting to {:?} (resolved to {:?}) for display {:?}: {}",
+            settings.process_name, __PRETTY_FUNCTION__, _out_display.hostname,
             _out_display.addrstr, _out_display.name,
             errors::system::message( "connect" ) );
     }   break;
     case AF_UNIX: {
         connect_err = fmt::format(
-            "{}: error connecting to unix socket {:?} for display {:?}: {}",
-            __PRETTY_FUNCTION__, _out_display.unaddr.sun_path,
+            "{}: {}: error connecting to unix socket {:?} for display {:?}: {}",
+            settings.process_name, __PRETTY_FUNCTION__, _out_display.unaddr.sun_path,
             _out_display.name, errors::system::message( "connect" ) );
     }   break;
     default:
@@ -757,8 +771,8 @@ int ProxyX11Server::_connectToServer() {
 void ProxyX11Server::_openConnection() {
     Connection conn {};
     if ( !_acceptClient( &conn ) ) {
-        fmt::println( stderr, "{}: failure to accept client connection",
-                      __PRETTY_FUNCTION__ );
+        fmt::println( stderr, "{}: {}: failure to accept client connection",
+                      settings.process_name, __PRETTY_FUNCTION__ );
         return;
     }
     assert( conn.client_fd > _listener_fd );
@@ -768,8 +782,8 @@ void ProxyX11Server::_openConnection() {
 
     conn.server_fd = _connectToServer();
     if ( conn.server_fd == -1 ) {
-        fmt::println( stderr, "{}: failure to connect to X server for display: {:?}",
-                      __PRETTY_FUNCTION__, _out_display.name );
+        fmt::println( stderr, "{}: {}: failure to connect to X server for display: {:?}",
+                      settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
         conn.closeClientSocket();
         return;
     }
@@ -822,7 +836,8 @@ int ProxyX11Server::_processClientQueue() {
         //   most frequently expected signals: SIGINT (user), SIGCHLD (child exits)
         if ( poll( _pfds.data(), nfds_t( _pfds.size() ), NO_TIMEOUT ) == -1 ) {
             if ( errno != 0 && errno != EINTR ) {
-                fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+                fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                              __PRETTY_FUNCTION__,
                               errors::system::message( "poll" ) );
                 return EXIT_FAILURE;
             }
