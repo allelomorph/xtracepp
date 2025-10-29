@@ -54,12 +54,9 @@ struct Error : public Response {
     };
     struct [[gnu::packed]] Encoding {
         Header   header;
-        union [[gnu::packed]] {
-            uint32_t _unused1;
-            uint32_t bad_value;
-            CARD32   bad_resource_id;
-            CARD32   bad_atom_id;
-        };
+    private:
+        uint32_t _unused1;
+    public:
         CARD16   minor_opcode;
         CARD8    major_opcode;
     private:
@@ -71,33 +68,77 @@ struct Error : public Response {
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
 
-enum class ValueTypeCode {
-    UNUSED,
-    VALUE,
-    RESOURCE_ID,
-    ATOM_ID
+namespace impl {
+
+struct SimpleError : public Error {};
+
+struct ResourceIdError : public Error {
+    struct [[gnu::packed]] Encoding {
+        Header   header;
+        CARD32   bad_resource_id;
+        CARD16   minor_opcode;
+        CARD8    major_opcode;
+    private:
+        uint8_t  _unused2[21];
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
-// TBD core errors only, these plus extension errors could all be in map
-inline static const std::vector< ValueTypeCode > value_types {
-    ValueTypeCode::UNUSED,       // 0
-    ValueTypeCode::UNUSED,       // 1  REQUEST
-    ValueTypeCode::VALUE,        // 2  VALUE
-    ValueTypeCode::RESOURCE_ID,  // 3  WINDOW
-    ValueTypeCode::RESOURCE_ID,  // 4  PIXMAP
-    ValueTypeCode::ATOM_ID,      // 5  ATOM
-    ValueTypeCode::RESOURCE_ID,  // 6  CURSOR
-    ValueTypeCode::RESOURCE_ID,  // 7  FONT
-    ValueTypeCode::UNUSED,       // 8  MATCH
-    ValueTypeCode::RESOURCE_ID,  // 9  DRAWABLE
-    ValueTypeCode::UNUSED,       // 10 ACCESS
-    ValueTypeCode::UNUSED,       // 11 ALLOC
-    ValueTypeCode::RESOURCE_ID,  // 12 COLORMAP
-    ValueTypeCode::RESOURCE_ID,  // 13 GCONTEXT
-    ValueTypeCode::RESOURCE_ID,  // 14 IDCHOICE
-    ValueTypeCode::UNUSED,       // 15 NAME
-    ValueTypeCode::UNUSED,       // 16 LENGTH
-    ValueTypeCode::UNUSED        // 17 IMPLEMENTATION
+
+}  // namespace impl
+
+struct Request        : public impl::SimpleError {};
+
+struct Value : public Error {
+    struct [[gnu::packed]] Encoding {
+        Header   header;
+        uint32_t bad_value;
+        CARD16   minor_opcode;
+        CARD8    major_opcode;
+    private:
+        uint8_t  _unused[21];
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
 };
+
+struct Window         : public impl::ResourceIdError {};
+
+struct Pixmap         : public impl::ResourceIdError {};
+
+struct Atom : public Error {
+    struct [[gnu::packed]] Encoding {
+        Header   header;
+        CARD32   bad_atom_id;
+        CARD16   minor_opcode;
+        CARD8    major_opcode;
+    private:
+        uint8_t  _unused2[21];
+    };
+    static_assert( sizeof( Encoding ) == ENCODING_SZ );
+};
+
+struct Cursor         : public impl::ResourceIdError {};
+
+struct Font           : public impl::ResourceIdError {};
+
+struct Match          : public impl::SimpleError {};
+
+struct Drawable       : public impl::ResourceIdError {};
+
+struct Access         : public impl::SimpleError {};
+
+struct Alloc          : public impl::SimpleError {};
+
+struct Colormap       : public impl::ResourceIdError {};
+
+struct GContext       : public impl::ResourceIdError {};
+
+struct IdChoice       : public impl::ResourceIdError {};
+
+struct Name           : public impl::SimpleError {};
+
+struct Length         : public impl::SimpleError {};
+
+struct Implementation : public impl::SimpleError {};
 
 // by Error::code
 inline static const std::vector< std::string_view > names {
