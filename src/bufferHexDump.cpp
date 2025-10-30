@@ -16,7 +16,7 @@ std::string bufferHexDump( const uint8_t* data, const size_t sz ) {
     std::string hex_dump;
     const uint8_t* _data { data };
     for ( size_t bytes_to_parse { sz }, address_index {}; bytes_to_parse > 0;
-        address_index += BYTES_PER_ROW ) {
+          address_index += BYTES_PER_ROW ) {
         std::string group1, group2, as_ascii;
         size_t group_sz {
             ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP };
@@ -28,7 +28,7 @@ std::string bufferHexDump( const uint8_t* data, const size_t sz ) {
                                      ( std::isprint( *_data ) ) ? *_data : '.' );
         }
         group_sz =
-                ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP;
+            ( bytes_to_parse < BYTES_PER_GROUP ) ? bytes_to_parse : BYTES_PER_GROUP;
         for ( size_t i {}; i < group_sz;
               ++i, ++_data, --bytes_to_parse ) {
             group2 += fmt::format( "{:02x}{}",

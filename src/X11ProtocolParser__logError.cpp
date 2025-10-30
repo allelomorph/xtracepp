@@ -27,7 +27,7 @@ X11ProtocolParser::_parseError<
     assert( encoding->header.error == SimpleError::ERROR );
     const uint8_t code { encoding->header.code };
     assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+              code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == SimpleError::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -79,7 +79,7 @@ X11ProtocolParser::_parseError<
     assert( encoding->header.error == ResourceIdError::ERROR );
     const uint8_t code { encoding->header.code };
     assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+              code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == ResourceIdError::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -142,7 +142,7 @@ X11ProtocolParser::_parseError<
     assert( encoding->header.error == Value::ERROR );
     const uint8_t code { encoding->header.code };
     assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+              code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == Value::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -214,7 +214,7 @@ X11ProtocolParser::_parseError<
     assert( encoding->header.error == Atom::ERROR );
     const uint8_t code { encoding->header.code };
     assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+              code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == Atom::ENCODING_SZ );
 
     const uint32_t memb_name_w (

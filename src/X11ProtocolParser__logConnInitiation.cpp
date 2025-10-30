@@ -23,7 +23,7 @@ size_t X11ProtocolParser::_logConnInitiation(
     const ConnInitiation::Encoding* encoding {
         reinterpret_cast< const ConnInitiation::Encoding* >( data ) };
     assert( encoding->byte_order == ConnInitiation::MSBFIRST ||
-            encoding->byte_order == ConnInitiation::LSBFIRST );
+              encoding->byte_order == ConnInitiation::LSBFIRST );
     // TBD version error instead of assert?
     assert( encoding->protocol_major_version == protocol::MAJOR_VERSION );
     assert( encoding->protocol_minor_version == protocol::MINOR_VERSION );

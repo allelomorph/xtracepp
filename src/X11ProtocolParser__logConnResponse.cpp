@@ -20,14 +20,14 @@ size_t X11ProtocolParser::_logConnRefusal(
         reinterpret_cast< const ConnRefusal::Header* >( data ) };
     bytes_parsed += sizeof( ConnRefusal::Header );
     assert( header->success ==
-            protocol::connection_setup::ConnResponse::FAILED );
+              protocol::connection_setup::ConnResponse::FAILED );
     // followed by STRING8 reason
     const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         header->reason_len };
     bytes_parsed += alignment.pad( header->reason_len );
     assert( header->following_aligned_units ==
-            alignment.units( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
+              alignment.units( bytes_parsed - sizeof( ConnRefusal::Header ) ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -84,7 +84,7 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
         const ConnRequireFurtherAuthentication::Header* >( data ) };
     bytes_parsed += sizeof( ConnRequireFurtherAuthentication::Header );
     assert( header->success ==
-            protocol::connection_setup::ConnResponse::AUTHENTICATE );
+              protocol::connection_setup::ConnResponse::AUTHENTICATE );
     // followed by STRING8 reason
     const size_t reason_padded_len {
         alignment.size( header->following_aligned_units ) };
@@ -93,8 +93,8 @@ size_t X11ProtocolParser::_logConnRequireFurtherAuthentication(
         reason_padded_len };
     bytes_parsed += reason_padded_len;
     assert( header->following_aligned_units ==
-            alignment.units( bytes_parsed -
-                             sizeof( ConnRequireFurtherAuthentication::Header ) ) );
+              alignment.units( bytes_parsed -
+                               sizeof( ConnRequireFurtherAuthentication::Header ) ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -140,7 +140,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
         reinterpret_cast< const ConnAcceptance::Header* >( data ) };
     bytes_parsed += sizeof( ConnAcceptance::Header );
     assert( header->success ==
-            protocol::connection_setup::ConnResponse::SUCCESS );
+              protocol::connection_setup::ConnResponse::SUCCESS );
     const ConnAcceptance::Encoding* encoding {
         reinterpret_cast< const ConnAcceptance::Encoding* >(
             data + bytes_parsed ) };
@@ -163,7 +163,7 @@ size_t X11ProtocolParser::_logConnAcceptance(
             encoding->roots_ct, ws.nested() ) };
     bytes_parsed += roots.bytes_parsed;
     assert( header->following_aligned_units == alignment.units(
-                bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
+                  bytes_parsed - sizeof( ConnAcceptance::Header ) ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?

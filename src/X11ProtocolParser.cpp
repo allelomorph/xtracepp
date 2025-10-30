@@ -63,13 +63,13 @@ size_t X11ProtocolParser::_logClientPacket(
     assert( data != nullptr );
     assert( sz > 0 );
     assert( conn->status != Connection::CLOSED &&
-            conn->status != Connection::FAILED );
+              conn->status != Connection::FAILED );
 
     size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
         assert( sz >=
-                sizeof( protocol::connection_setup::ConnInitiation::Encoding ) );
+                  sizeof( protocol::connection_setup::ConnInitiation::Encoding ) );
         bytes_parsed = _logConnInitiation( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
@@ -92,7 +92,7 @@ size_t X11ProtocolParser::_logServerPacket(
     assert( data != nullptr );
     assert( sz > 0 );
     assert( conn->status != Connection::CLOSED &&
-            conn->status != Connection::FAILED );
+              conn->status != Connection::FAILED );
 
     size_t bytes_parsed {};
     switch ( conn->status ) {

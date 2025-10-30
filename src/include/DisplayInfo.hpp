@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include <netinet/in.h>  // sockaddr_in INET_ADDRSTRLEN
+#include <netinet/in.h>  // sockaddr_in sockaddr_in6 INET_ADDRSTRLEN
 // TBD <linux/un.h> provides alternative sockaddr_un with UNIX_PATH_MAX
 #include <sys/un.h>      // sockaddr_un
 
@@ -58,13 +58,13 @@ public:
     int ai_family   { _UNSET };
     int ai_socktype { _UNSET };
     int ai_protocol { _UNSET };
-    socklen_t ai_addrlen {};
+    ::socklen_t ai_addrlen {};
     union {
         // including sockaddr in union saves a cast when calling bind(2) or connect(2)
-        sockaddr     ai_addr;
-        sockaddr_in  inaddr;
-        sockaddr_in6 in6addr;
-        sockaddr_un  unaddr {};
+        ::sockaddr     ai_addr;
+        ::sockaddr_in  inaddr;
+        ::sockaddr_in6 in6addr;
+        ::sockaddr_un  unaddr {};
         static_assert( sizeof( unaddr ) > sizeof( ai_addr ) &&
                        sizeof( unaddr ) > sizeof( inaddr ) &&
                        sizeof( unaddr ) > sizeof( in6addr ) );

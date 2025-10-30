@@ -91,7 +91,7 @@ X11ProtocolParser::_parseListMember<
         ws.separator,
         ws.memb_indent, "family", memb_name_w, ws.equals,
         _formatVariable( header->family,
-                        HOST::family_names ), ws.separator,
+                         HOST::family_names ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(address length)", memb_name_w, ws.equals,
@@ -165,7 +165,7 @@ X11ProtocolParser::_parseListMember<
         _formatVariable( encoding->root_visual ), ws.separator,
         ws.memb_indent, "backing-stores", memb_name_w, ws.equals,
         _formatVariable( encoding->backing_stores,
-                        SCREEN::backing_stores_names ), ws.separator,
+                         SCREEN::backing_stores_names ), ws.separator,
         ws.memb_indent, "save-unders", memb_name_w, ws.equals,
         _formatVariable( encoding->save_unders ), ws.separator,
         ws.memb_indent, "root-depth", memb_name_w, ws.equals,
@@ -366,7 +366,7 @@ X11ProtocolParser::_parseListMember<
             ws.memb_indent, "(string length (CHAR2B))", memb_name_w, ws.equals,
             _formatVariable( item.text_element.string_2B_len ), ws.separator ),
         ws.memb_indent, "delta", memb_name_w, ws.equals,
-            _formatVariable( item.text_element.delta ), ws.separator,
+        _formatVariable( item.text_element.delta ), ws.separator,
         ws.memb_indent, "string", memb_name_w, ws.equals,
         string.str, ws.separator,
         ws.encl_indent

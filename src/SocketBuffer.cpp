@@ -23,7 +23,7 @@
 size_t SocketBuffer::write( const int sockfd,
                             const size_t bytes_to_write ) {
     assert( bytes_to_write <= size() );
-    ssize_t bytes_written { send(
+    ssize_t bytes_written { ::send(
             sockfd, data(), bytes_to_write, _MSG_NONE ) };
     if ( bytes_written == -1 ) {
         throw errors::system::exception(
@@ -42,7 +42,7 @@ size_t SocketBuffer::unload( void* output,
                              const size_t bytes_to_unload ) {
     assert( output != nullptr );
     assert( bytes_to_unload <= size() );
-    memcpy( output, data(), bytes_to_unload );
+    ::memcpy( output, data(), bytes_to_unload );
     // bytes written removed (hidden) from front of buffer
     _bytes_written += bytes_to_unload;
     if ( _bytes_written == _bytes_read )
@@ -71,9 +71,9 @@ size_t SocketBuffer::read( const int sockfd,
     size_t tl_bytes_read {};
     ssize_t bytes_read {};
     while ( true ) {
-        bytes_read = recv(
-                sockfd, _buffer.data() + ( _buffer.size() - _bytes_available ),
-                _bytes_available, _MSG_NONE );
+        bytes_read = ::recv(
+            sockfd, _buffer.data() + ( _buffer.size() - _bytes_available ),
+            _bytes_available, _MSG_NONE );
         if ( bytes_read == -1 ) {
             throw errors::system::exception(
                 fmt::format( "{}: {}", __PRETTY_FUNCTION__, "recv" ) );
@@ -108,8 +108,8 @@ size_t SocketBuffer::load( const void* input,
     while ( true ) {
         size_t segment_sz {
             std::min( bytes_to_load - tl_bytes_loaded, _bytes_available ) };
-        memcpy( _buffer.data() + ( _buffer.size() - _bytes_available ),
-                input, segment_sz );
+        ::memcpy( _buffer.data() + ( _buffer.size() - _bytes_available ),
+                  input, segment_sz );
         tl_bytes_loaded += segment_sz;
         if ( segment_sz == _bytes_available ) {
             _buffer.resize( _buffer.size() + _BLOCK_SZ );

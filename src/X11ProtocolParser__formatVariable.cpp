@@ -39,7 +39,7 @@ X11ProtocolParser::_formatVariable(
     assert( ( atom.data & protocol::ATOM::ZERO_BITS ) == 0 );
     if ( !name_range.empty() ) {
         assert( name_range.names == protocol::enum_names::zero_none ||
-                name_range.names == protocol::requests::GetProperty::type_names );
+                  name_range.names == protocol::requests::GetProperty::type_names );
     }
     if ( name_range.in( atom.data ) ) {
         return _formatVariable( atom.data, name_range );
@@ -82,7 +82,7 @@ X11ProtocolParser::_formatVariable(
     const protocol::BITGRAVITY bitgravity,
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     return _formatVariable( bitgravity.data,
-                           { protocol::BITGRAVITY::enum_names } );
+                            { protocol::BITGRAVITY::enum_names } );
 }
 
 template<>
@@ -91,7 +91,7 @@ X11ProtocolParser::_formatVariable(
     const protocol::WINGRAVITY wingravity,
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     return _formatVariable( wingravity.data,
-                           { protocol::WINGRAVITY::enum_names } );
+                            { protocol::WINGRAVITY::enum_names } );
 }
 
 template<>
@@ -100,7 +100,7 @@ X11ProtocolParser::_formatVariable(
     const protocol::BOOL bool_,
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     return _formatVariable( bool_.data,
-                           { protocol::BOOL::enum_names } );
+                            { protocol::BOOL::enum_names } );
 }
 
 template<>
@@ -110,8 +110,8 @@ X11ProtocolParser::_formatVariable(
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     assert( ( setofevent.data & protocol::SETofEVENT::ZERO_BITS ) == 0 );
     return _formatVariable( setofevent.data,
-                           { protocol::SETofEVENT::flag_names },
-                           _ValueTraits::BITMASK );
+                            { protocol::SETofEVENT::flag_names },
+                            _ValueTraits::BITMASK );
 }
 
 template<>
@@ -120,11 +120,11 @@ X11ProtocolParser::_formatVariable(
     const protocol::SETofPOINTEREVENT setofpointerevent,
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     assert( ( setofpointerevent.data &
-              protocol::SETofPOINTEREVENT::ZERO_BITS ) == 0 );
+                protocol::SETofPOINTEREVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatVariable( setofpointerevent.data,
-                           { protocol::SETofPOINTEREVENT::flag_names },
-                           _ValueTraits::BITMASK );
+                            { protocol::SETofPOINTEREVENT::flag_names },
+                            _ValueTraits::BITMASK );
 }
 
 template<>
@@ -133,11 +133,11 @@ X11ProtocolParser::_formatVariable(
     const protocol::SETofDEVICEEVENT setofdeviceevent,
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     assert( ( setofdeviceevent.data &
-              protocol::SETofDEVICEEVENT::ZERO_BITS ) == 0 );
+                protocol::SETofDEVICEEVENT::ZERO_BITS ) == 0 );
     // no need to denote a max flag index for the enum if zero bits validated
     return _formatVariable( setofdeviceevent.data,
-                           { protocol::SETofDEVICEEVENT::flag_names },
-                           _ValueTraits::BITMASK );
+                            { protocol::SETofDEVICEEVENT::flag_names },
+                            _ValueTraits::BITMASK );
 }
 
 template<>
@@ -148,7 +148,7 @@ X11ProtocolParser::_formatVariable(
     // TBD encoding is convoluted, see:
     //   https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#keysym_encoding
     return _formatVariable( keysym.data,
-                           {}, _ValueTraits::BITMASK );  // force hex
+                            {}, _ValueTraits::BITMASK );  // force hex
 }
 
 template<>
@@ -180,8 +180,8 @@ X11ProtocolParser::_formatVariable(
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
     assert( ( setofkeybutmask.data & protocol::SETofKEYBUTMASK::ZERO_BITS ) == 0 );
     return _formatVariable( setofkeybutmask.data,
-                           { protocol::SETofKEYBUTMASK::flag_names },
-                           _ValueTraits::BITMASK );
+                            { protocol::SETofKEYBUTMASK::flag_names },
+                            _ValueTraits::BITMASK );
 }
 
 template<>
@@ -193,15 +193,15 @@ X11ProtocolParser::_formatVariable(
         if ( settings.verbose ) {
             return fmt::format(
                 "{}({})", _formatVariable( setofkeymask.data,
-                                          {}, _ValueTraits::BITMASK ),
+                                           {}, _ValueTraits::BITMASK ),
                 protocol::SETofKEYMASK::anymodifier_flag_name );
         }
         return std::string( protocol::SETofKEYMASK::anymodifier_flag_name );
     }
     assert( ( setofkeymask.data & protocol::SETofKEYMASK::ZERO_BITS ) == 0 );
     return _formatVariable( setofkeymask.data,
-                           { protocol::SETofKEYMASK::flag_names },
-                           _ValueTraits::BITMASK );
+                            { protocol::SETofKEYMASK::flag_names },
+                            _ValueTraits::BITMASK );
 }
 
 template<>
@@ -376,20 +376,20 @@ X11ProtocolParser::_formatVariable(
         _formatVariable( visualtype.visual_id ), ws.separator,
         ws.memb_indent, "class", memb_name_w, ws.equals,
         _formatVariable( visualtype.class_,
-                        VISUALTYPE::class_names ), ws.separator,
+                         VISUALTYPE::class_names ), ws.separator,
         ws.memb_indent, "bits-per-rgb-value", memb_name_w, ws.equals,
         _formatVariable( visualtype.bits_per_rgb_value ), ws.separator,
         ws.memb_indent, "colormap-entries", memb_name_w, ws.equals,
         _formatVariable( visualtype.colormap_entries ), ws.separator,
         ws.memb_indent, "red-mask", memb_name_w, ws.equals,
         _formatVariable( visualtype.red_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "green-mask", memb_name_w, ws.equals,
         _formatVariable( visualtype.green_mask,
-                       {}, _ValueTraits::BITMASK ), ws.separator,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.memb_indent, "blue-mask", memb_name_w, ws.equals,
         _formatVariable( visualtype.blue_mask,
-                        {}, _ValueTraits::BITMASK ), ws.separator,
+                         {}, _ValueTraits::BITMASK ), ws.separator,
         ws.encl_indent
         );
 }

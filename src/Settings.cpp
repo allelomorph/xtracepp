@@ -1,7 +1,7 @@
-#include <unistd.h>  // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
-#include <getopt.h>  // getopt_long
-#include <stdlib.h>  // strtoll exit
-#include <stdio.h>   // fclose fopen setvbuf _IONBF _IOLBF _IOFBF
+#include <unistd.h>      // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
+#include <getopt.h>      // getopt_long
+#include <stdlib.h>      // strtoll ::exit
+#include <stdio.h>       // fclose fopen setvbuf _IONBF _IOLBF _IOFBF
 #include <stdio_ext.h>   // __flbf __fbufsize
 
 #include <cassert>
@@ -17,8 +17,8 @@
 
 
 Settings::~Settings() {
-    fflush( log_fs );
-    if ( log_fs == stdout || log_fs == stderr ) {
+    ::fflush( log_fs );
+    if ( log_fs == stdout || log_fs == ::stderr ) {
         _restoreFileStreamBufferDefaults();
     } else {
         fclose( log_fs );
@@ -48,16 +48,16 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
     --prefetchatoms,      -p                 : first fetch already interned strings to reduce unrecognized ATOMs
 )" };
 
-    for ( char c ( getopt_long( argc, const_cast< char* const* >( argv ),
-                                _optstring.data(), _longopts.data(), nullptr ) );
+    for ( char c ( ::getopt_long( argc, const_cast< char* const* >( argv ),
+                                  _optstring.data(), _longopts.data(), nullptr ) );
           c != -1;
-          c = getopt_long( argc, const_cast< char* const* >( argv ),
-                           _optstring.data(), _longopts.data(), nullptr ) ) {
+          c = ::getopt_long( argc, const_cast< char* const* >( argv ),
+                             _optstring.data(), _longopts.data(), nullptr ) ) {
 
         if ( optarg != nullptr && optarg[0] == '-' ) {
-            fmt::println( stderr, "{}: option arguments may not begin with '-' "
+            fmt::println( ::stderr, "{}: option arguments may not begin with '-' "
                           "to prevent option parsing errors", process_name );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
         switch ( c ) {
         case 'd':
@@ -81,9 +81,9 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         case 'o':
             if ( log_path != nullptr ) {
                 std::filesystem::remove( log_path );
-                fmt::println( stderr, "{}: -o option may only be used once",
+                fmt::println( ::stderr, "{}: -o option may only be used once",
                               process_name );
-                exit( EXIT_FAILURE );
+                ::exit( EXIT_FAILURE );
             }
             // TBD consider making log_path into filesystem::path in try/except
             //     and rethrow exceptions indicating file path formatting errors
@@ -91,10 +91,10 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
             assert( log_path != nullptr && log_path[0] != '\0' );
             log_fs = fopen( log_path, "w" );
             if ( log_fs == nullptr ) {
-                fmt::println( stderr, "{}: could not open log file {:?}, {}",
+                fmt::println( ::stderr, "{}: could not open log file {:?}, {}",
                               process_name, log_path,
                               errors::system::message( "fopen" ) );
-                exit( EXIT_FAILURE );
+                ::exit( EXIT_FAILURE );
             }
             break;
         case 'm':
@@ -112,18 +112,20 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         case '\0':
             switch( _long_only_option ) {
             case LO_HELP:
-                fmt::print( help_msg, process_name, process_name );
-                exit( EXIT_SUCCESS );
+                fmt::print( ::stderr, help_msg, process_name, process_name );
+                ::exit( EXIT_SUCCESS );
             }
             break;
-        case ':': [[fallthrough]];
-        case '?': [[fallthrough]];
+        case ':':
+            [[fallthrough]];
+        case '?':
+            [[fallthrough]];
         default:
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
     }
 
-    if ( optind < argc && argv[optind] != std::string_view( "--" ) ) {
+    if ( ::optind < argc && argv[ ::optind ] != std::string_view( "--" ) ) {
         subcmd_argc = argc - optind;
         subcmd_argv = argv + optind;
     }
@@ -131,25 +133,25 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
     _recordFileStreamBufferDefaults();
     if ( unbuffered ) {
         if ( setvbuf( log_fs, nullptr, _IONBF, 0 ) != 0 ) {
-            fmt::println( stderr, "{}: {}",
+            fmt::println( ::stderr, "{}: {}",
                           process_name, errors::system::message( "setvbuf" ) );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
     }
 }
 
 void Settings::_recordFileStreamBufferDefaults() {
-    assert( log_fs == stdout || log_fs == stderr );
-    _log_fs_buffer_sz = __fbufsize( log_fs );
-    _log_fs_mode = __flbf( log_fs ) ? _IOLBF :
+    assert( log_fs == ::stdout || log_fs == ::stderr );
+    _log_fs_buffer_sz = ::__fbufsize( log_fs );
+    _log_fs_mode = ::__flbf( log_fs ) ? _IOLBF :
         _log_fs_buffer_sz == 0 ? _IONBF : _IOFBF;
 }
 
 void Settings::_restoreFileStreamBufferDefaults() {
-    assert( log_fs == stdout || log_fs == stderr );
-    if ( setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz ) != 0 ) {
-        fmt::println( stderr, "{}: {}",
+    assert( log_fs == stdout || log_fs == ::stderr );
+    if ( ::setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz ) != 0 ) {
+        fmt::println( ::stderr, "{}: {}",
                       process_name, errors::system::message( "setvbuf" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
 }

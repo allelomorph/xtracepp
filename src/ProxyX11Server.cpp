@@ -18,6 +18,7 @@
 #include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO _exit
 #include <signal.h>      // sigaction sigaction() SIGCHLD CLD_EXITED siginfo_t
 #include <netdb.h>       // 'struct addrinfo' getaddrinfo freeaddrinfo
+#include <stdio.h>       // rename
 
 #include <fmt/format.h>
 
@@ -32,7 +33,7 @@ static std::atomic_int  child_retval  {};
 static_assert( decltype( child_running )::is_always_lock_free );
 static_assert( decltype( child_retval )::is_always_lock_free );
 
-static void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
+static void handleSIGCHLD( int sig, ::siginfo_t* info, void*/* ucontext*/ ) {
     assert( sig == SIGCHLD );
     assert( info != nullptr );
     assert( child_running.load() == true );
@@ -41,7 +42,8 @@ static void handleSIGCHLD( int sig, siginfo_t* info, void*/* ucontext*/ ) {
     case CLD_EXITED:
         child_retval.store( info->si_status );
         break;
-    case CLD_KILLED: [[fallthrough]];
+    case CLD_KILLED:
+        [[fallthrough]];
     case CLD_DUMPED:
         static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
         child_retval.store(
@@ -66,29 +68,29 @@ static_assert( decltype( xauth_bup_path )::is_always_lock_free );
 //   listed as signal-safe
 static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
-            sig == SIGABRT || sig == SIGSEGV );
+              sig == SIGABRT || sig == SIGSEGV );
     // No error checking on unlink as we are are about to make a sudden
     //   _exit anyway
     if ( const char* indisp_sun_path { in_display_sun_path.load() };
          indisp_sun_path != nullptr ) {
-        unlink( indisp_sun_path );
+        ::unlink( indisp_sun_path );
     }
     if ( const char* outdisp_sun_path { out_display_sun_path.load() };
          outdisp_sun_path != nullptr ) {
-        unlink( outdisp_sun_path );
+        ::unlink( outdisp_sun_path );
     }
     // restore original xauth file
     if ( const char* xauth_path_ { xauth_path.load() },
          * xauth_bup_path_ { xauth_bup_path.load() };
          xauth_path_ != nullptr && xauth_bup_path_ != nullptr ) {
-        rename( xauth_bup_path_, xauth_path_ );
+        ::rename( xauth_bup_path_, xauth_path_ );
     }
     static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
-    _exit( _SIGNAL_RETVAL_OFFSET + sig );
+    ::_exit( _SIGNAL_RETVAL_OFFSET + sig );
 }
 
 ProxyX11Server::~ProxyX11Server() {
-    close( _listener_fd );
+    ::close( _listener_fd );
     if ( _in_display.ai_family == AF_UNIX )
         std::filesystem::remove( _in_display.unaddr.sun_path );
     if ( _out_display.ai_family == AF_UNIX )
@@ -138,7 +140,7 @@ void ProxyX11Server::_parseDisplayNames() {
     } else {
         in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
         if ( in_displayname == nullptr ) {
-            fmt::println( stderr, "No display specified via --proxydisplay or "
+            fmt::println( ::stderr, "No display specified via --proxydisplay or "
                           "${}, defaulting to {:?}",
                           _IN_DISPLAYNAME_ENV_VAR, _DEFAULT_IN_DISPLAYNAME );
             in_displayname = _DEFAULT_IN_DISPLAYNAME.data();
@@ -154,16 +156,16 @@ void ProxyX11Server::_parseDisplayNames() {
     if ( out_display_sun_path.load() != nullptr ||
          in_display_sun_path.load() != nullptr ) {
         // `struct` needed to disambiguate from sigaction(2)
-        struct sigaction act {};
+        struct ::sigaction act {};
         act.sa_handler = &handleTerminatingSignal;
-        if ( sigaction( SIGINT, &act, nullptr ) == -1 ||
-             sigaction( SIGTERM, &act, nullptr ) == -1 ||
-             sigaction( SIGABRT, &act, nullptr ) == -1 ||
-             sigaction( SIGSEGV, &act, nullptr ) == -1 ) {
+        if ( ::sigaction( SIGINT, &act, nullptr ) == -1 ||
+             ::sigaction( SIGTERM, &act, nullptr ) == -1 ||
+             ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
+             ::sigaction( SIGSEGV, &act, nullptr ) == -1 ) {
             fmt::println( ::stderr, "{}: {}: {}",
                           settings.process_name, __PRETTY_FUNCTION__,
                           errors::system::message( "sigaction" ) );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
     }
 }
@@ -213,7 +215,7 @@ public:
 
 void ProxyX11Server::_copyAuthentication() {
     assert( !_in_display.name.empty() &&
-            !_out_display.name.empty() );
+              !_out_display.name.empty() );
 
     ////// get auth path
 
@@ -225,9 +227,9 @@ void ProxyX11Server::_copyAuthentication() {
     if ( xauthority_value == nullptr ) {
         const char* home_value { getenv( HOME_ENV_VAR.data() ) };
         if ( home_value == nullptr ) {
-            fmt::println( stderr, "{}: Could not get HOME environmental variable "
+            fmt::println( ::stderr, "{}: Could not get HOME environmental variable "
                           "value to resolve auth path", settings.process_name );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
         _xauth_path =
             fmt::format( "{}/{}", home_value, XAUTHORITY_DEFAULT_FILENAME );
@@ -243,10 +245,10 @@ void ProxyX11Server::_copyAuthentication() {
     std::ifstream ifs( _xauth_path, std::ios::binary );
     if ( !ifs.good() ) {
         fmt::println(
-            stderr, "Could not open auth file for reading, expected "
+            ::stderr, "Could not open auth file for reading, expected "
             "paths: ${} or ${}/{}",
             XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
 
     std::vector< _XAuthInfo > xauth_entries;
@@ -302,10 +304,10 @@ void ProxyX11Server::_copyAuthentication() {
         }
         if ( std::strtol( auth.display, nullptr, 10 ) == _out_display.display ) {
             if ( auth.name != _AUTH_NAME ) {
-                fmt::println( stderr, "{}: No support for display {:?} auth method "
+                fmt::println( ::stderr, "{}: No support for display {:?} auth method "
                               "{} (expected {})", settings.process_name,
                               _out_display.name, auth.name, _AUTH_NAME );
-                exit( EXIT_FAILURE );
+                ::exit( EXIT_FAILURE );
             }
             assert( auth.data_len == _AUTH_DATA_SZ );
             out_display_auth = &auth;
@@ -314,15 +316,15 @@ void ProxyX11Server::_copyAuthentication() {
             break;
     }
     if ( out_display_auth == nullptr ) {
-        fmt::println( stderr, "{}: Could not find auth data for display {:?}",
+        fmt::println( ::stderr, "{}: Could not find auth data for display {:?}",
                       settings.process_name, _out_display.name );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
     _XAuthInfo dup_auth { *out_display_auth };
     const std::string display_str { fmt::format( "{}", _in_display.display ) };
     dup_auth.display_len = display_str.size();
-    dup_auth.display_len_nbo = htons( dup_auth.display_len );
-    memcpy( dup_auth.display, display_str.data(), display_str.size() );
+    dup_auth.display_len_nbo = ::htons( dup_auth.display_len );
+    ::memcpy( dup_auth.display, display_str.data(), display_str.size() );
     dup_auth.display[ dup_auth.display_len ] = '\0';
     if ( in_display_auth != nullptr ) {  // revise existing PROXYDISPLAY entry
         *in_display_auth = dup_auth;
@@ -331,7 +333,7 @@ void ProxyX11Server::_copyAuthentication() {
     }
     // Collect copy of auth data for use by setup clients run prior to main
     //   queue (eg atom prefetching)
-    memcpy( _auth_data, out_display_auth->data, _AUTH_DATA_SZ );
+    ::memcpy( _auth_data, out_display_auth->data, _AUTH_DATA_SZ );
 
     ////// write auth entries back to file
 
@@ -340,10 +342,10 @@ void ProxyX11Server::_copyAuthentication() {
     std::ofstream ofs( _xauth_path, std::ios::binary );
     if ( !ofs.good() ) {
         fmt::println(
-            stderr, "{}: Could not open auth file for writing, expected paths: "
+            ::stderr, "{}: Could not open auth file for writing, expected paths: "
             "${} or ${}/{}", settings.process_name,
             XAUTHORITY_ENV_VAR, HOME_ENV_VAR, XAUTHORITY_DEFAULT_FILENAME );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
     for ( const _XAuthInfo& auth : xauth_entries ) {
         ofs.write( (char*)&auth.family_nbo,
@@ -376,39 +378,39 @@ void ProxyX11Server::_startSubcommandClient() {
     if ( settings.subcmd_argc == 0 )
         return;
     // `struct` needed to disambiguate from sigaction(2)
-    struct sigaction act {};
+    struct ::sigaction act {};
     // registering a signal handler which should upon SIGCHLD populate its
     //   siginfo_t* parameter with the same info as waitid()
     act.sa_sigaction = &handleSIGCHLD;
     // waive need to wait for child processes terminating normally or via signal
     act.sa_flags = SA_SIGINFO | SA_NOCLDSTOP | SA_NOCLDWAIT;
-    if ( sigaction( SIGCHLD, &act, nullptr ) == -1 ) {
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+    if ( ::sigaction( SIGCHLD, &act, nullptr ) == -1 ) {
+        fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "sigaction" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
-    _child_pid = fork();
+    _child_pid = ::fork();
     switch ( _child_pid ) {
     case 0:  // fork succeeded, now in child
-        if ( setenv( _OUT_DISPLAYNAME_ENV_VAR.data(),
-                     _in_display.name.data(), 1 ) != 0 ) {
-            fmt::println( stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
+        if ( ::setenv( _OUT_DISPLAYNAME_ENV_VAR.data(),
+                       _in_display.name.data(), 1 ) != 0 ) {
+            fmt::println( ::stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
                           settings.process_name,
                           errors::system::message( "setenv" ) );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
-        execvp( settings.subcmd_argv[0],
-                const_cast< char* const* >( settings.subcmd_argv ) );
+        ::execvp( settings.subcmd_argv[0],
+                  const_cast< char* const* >( settings.subcmd_argv ) );
         // child has failed to overtake parent process
-        fmt::println( stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
+        fmt::println( ::stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
                       settings.process_name,
                       errors::system::message( "execvp" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     case -1:  // still in parent, fork failed
-        fmt::println( stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
+        fmt::println( ::stderr, "{}: {}: {}", __PRETTY_FUNCTION__,
                       settings.process_name,
                       errors::system::message( "fork" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     default:  // still in parent, fork success
         _child_used = true;
         child_running.store( true );
@@ -424,7 +426,7 @@ ProxyX11Server::_socketPollError( const int fd ) {
         ( revents & POLLHUP )  ? "hang up" :
         ( revents & POLLNVAL ) ? "invalid fd (not open)" :
         ( revents & POLLPRI )  ? "exceptional condition" :
-                                 "" };
+        "" };
     if ( err_msg.empty() )
         return std::nullopt;
     return err_msg;
@@ -432,15 +434,15 @@ ProxyX11Server::_socketPollError( const int fd ) {
 
 void ProxyX11Server::_addSocketToPoll( const int fd, const short events/* = _POLLNONE*/ ) {
     assert( _pfds_i_by_fd.find( fd ) == _pfds_i_by_fd.end() );
-    _pfds.emplace_back( pollfd{ fd, events, 0 } );
+    _pfds.emplace_back( ::pollfd{ fd, events, 0 } );
     _pfds_i_by_fd.emplace( fd, _pfds.size() - 1 );
 }
 
 void ProxyX11Server::_updatePollFlags() {
     for ( auto& [ id, conn ] : _connections ) {
-        pollfd& client_pfd {
+        ::pollfd& client_pfd {
             _pfds.at( _pfds_i_by_fd.at( conn.client_fd ) ) };
-        pollfd& server_pfd {
+        ::pollfd& server_pfd {
             _pfds.at( _pfds_i_by_fd.at( conn.server_fd ) ) };
         client_pfd.events = POLLPRI;
         server_pfd.events = POLLPRI;
@@ -590,7 +592,7 @@ void ProxyX11Server::_processPolledSockets() {
     if ( _socketReadReady( _listener_fd ) ) {
         _openConnection();
     } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
-        fmt::println( stderr, "{}: {}: poll failure on listening socket: {}",
+        fmt::println( ::stderr, "{}: {}: poll failure on listening socket: {}",
                       settings.process_name, __PRETTY_FUNCTION__, *error );
     }
 }
@@ -598,35 +600,35 @@ void ProxyX11Server::_processPolledSockets() {
 void ProxyX11Server::_listenForClients() {
     // TBD TCP if AF_INET, but SOCK_STREAM still supported if AF_UNIX, see:
     //   https://oswalt.dev/2025/08/unix-domain-sockets/
-    const int fd { socket(
+    const int fd { ::socket(
             _in_display.ai_family, _in_display.ai_socktype,
             _in_display.ai_protocol ) };
     if ( fd < 0 )  {
-        fmt::println( stderr, "{}: {}: {}", settings.process_name,
+        fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                       __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
     switch ( _in_display.ai_family ) {
     case AF_INET6: {
         const int off {};
-        if ( setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off) ) != 0 ) {
-            close( fd );
-            fmt::println( stderr, "{}: {}: {}", settings.process_name,
+        if ( ::setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off) ) != 0 ) {
+            ::close( fd );
+            fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                           __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
     }   [[fallthrough]];
     case AF_INET: {
         const int on { 1 };
         // TBD add TCP_NODELAY here as well?
-        if ( setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
-            close( fd );
-            fmt::println( stderr, "{}: {}: {}", settings.process_name,
+        if ( ::setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
+            ::close( fd );
+            fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                           __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
     }   break;
     case AF_UNIX:
@@ -637,19 +639,19 @@ void ProxyX11Server::_listenForClients() {
     default:
         break;
     }
-    if ( bind( fd, &_in_display.ai_addr, _in_display.ai_addrlen ) != 0 ) {
-        close( fd );
-        fmt::println( stderr, "{}: {}: {}",
+    if ( ::bind( fd, &_in_display.ai_addr, _in_display.ai_addrlen ) != 0 ) {
+        ::close( fd );
+        fmt::println( ::stderr, "{}: {}: {}",
                       settings.process_name, __PRETTY_FUNCTION__,
                       errors::system::message( "bind" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
-    if ( listen( fd, _MAX_PENDING_CONNECTIONS ) != 0 ) {
-        close( fd );
-        fmt::println( stderr, "{}: {}: {}", settings.process_name,
+    if ( ::listen( fd, _MAX_PENDING_CONNECTIONS ) != 0 ) {
+        ::close( fd );
+        fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                       __PRETTY_FUNCTION__,
                       errors::system::message( "listen" ) );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
     _listener_fd = fd;
 }
@@ -661,15 +663,15 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
     assert( conn != nullptr );
     std::string client_desc;
     union {
-        sockaddr     addr;
-        sockaddr_in  inaddr;
-        sockaddr_in6 in6addr;
-        sockaddr_un  unaddr {};  // TBD default initialize this member as it is largest in linux
+        ::sockaddr     addr;
+        ::sockaddr_in  inaddr;
+        ::sockaddr_in6 in6addr;
+        ::sockaddr_un  unaddr {};  // TBD default initialize this member as it is largest in linux
     };
-    socklen_t addrlen { _in_display.ai_addrlen };
-    const int fd { accept( _listener_fd, &addr, &addrlen ) };
+    ::socklen_t addrlen { _in_display.ai_addrlen };
+    const int fd { ::accept( _listener_fd, &addr, &addrlen ) };
     if ( fd < 0 ) {
-        fmt::println( stderr, "{}: {}: {}", settings.process_name,
+        fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                       __PRETTY_FUNCTION__,
                       errors::system::message( "accept" ) );
         return false;
@@ -677,31 +679,31 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
     switch ( addr.sa_family ) {
     case AF_INET6: {
         assert( addrlen == sizeof( in6addr ) );
-        char addrstr[ INET6_ADDRSTRLEN ] {};
-        if ( inet_ntop( in6addr.sin6_family, &(in6addr.sin6_addr),
-                        addrstr, INET6_ADDRSTRLEN ) == nullptr ) {
-            close( fd );
-            fmt::println( stderr, "{}: {}: {}", settings.process_name,
-                          __PRETTY_FUNCTION__,
-                          errors::system::message( "inet_ntop" ) );
-            return false;
-        }
-        client_desc = fmt::format( "[{}]:{}", addrstr,
-                                   ntohs( in6addr.sin6_port ) );
+            char addrstr[ INET6_ADDRSTRLEN ] {};
+            if ( ::inet_ntop( in6addr.sin6_family, &(in6addr.sin6_addr),
+                              addrstr, INET6_ADDRSTRLEN ) == nullptr ) {
+                ::close( fd );
+                fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
+                              __PRETTY_FUNCTION__,
+                              errors::system::message( "inet_ntop" ) );
+                return false;
+            }
+            client_desc = fmt::format( "[{}]:{}", addrstr,
+                                       ntohs( in6addr.sin6_port ) );
     }   break;
     case AF_INET: {
         assert( addrlen == sizeof( inaddr ) );
-        char addrstr[ INET_ADDRSTRLEN ] {};
-        if ( inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
-                        addrstr, INET_ADDRSTRLEN ) == nullptr ) {
-            close( fd );
-            fmt::println( stderr, "{}: {}: {}", settings.process_name,
-                          __PRETTY_FUNCTION__,
-                          errors::system::message( "inet_ntop" ) );
-            return false;
-        }
-        client_desc = fmt::format( "{}:{}", addrstr,
-                                   ntohs( inaddr.sin_port ) );
+            char addrstr[ INET_ADDRSTRLEN ] {};
+            if ( ::inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
+                              addrstr, INET_ADDRSTRLEN ) == nullptr ) {
+                ::close( fd );
+                fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
+                              __PRETTY_FUNCTION__,
+                              errors::system::message( "inet_ntop" ) );
+                return false;
+            }
+            client_desc = fmt::format( "{}:{}", addrstr,
+                                       ntohs( inaddr.sin_port ) );
     }   break;
     case AF_UNIX: {
         // TBD sun_path will likely always be unpopulated by connect(2), see:
@@ -710,7 +712,7 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
         //   path given to bind(2) before listen(2) (would be the same for all
         //   clients connecting via _in_display, so not a great client id)
         assert( std::string_view( unaddr.sun_path ).empty() );
-        client_desc = { "unknown(local)" };
+            client_desc = { "unknown(local)" };
     }   break;
     default:
         break;
@@ -723,10 +725,10 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
 int ProxyX11Server::_connectToServer() {
     // TBD TCP if AF_INET, but SOCK_STREAM still supported if AF_UNIX, see:
     //   https://oswalt.dev/2025/08/unix-domain-sockets/
-    const int fd { socket( _out_display.ai_family, _out_display.ai_socktype,
-                           _out_display.ai_protocol) };
+    const int fd { ::socket( _out_display.ai_family, _out_display.ai_socktype,
+                             _out_display.ai_protocol) };
     if ( fd < 0 )  {
-        fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
         return -1;
     }
@@ -738,10 +740,10 @@ int ProxyX11Server::_connectToServer() {
         // At sockets API level, enable sending of keep-alive messages on
         //   connection-oriented sockets.
         const int on { 1 };
-        if ( setsockopt( fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on) ) != 0 ||
-             setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
-            close( fd );
-            fmt::println( stderr, "{}: {}", __PRETTY_FUNCTION__,
+        if ( ::setsockopt( fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on) ) != 0 ||
+             ::setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
+            ::close( fd );
+            fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
             return -1;
         }
@@ -760,9 +762,9 @@ int ProxyX11Server::_connectToServer() {
     default:
         break;
     }
-    if ( connect( fd, &_out_display.ai_addr, _out_display.ai_addrlen ) != 0 ) {
-        close( fd );
-        fmt::println( stderr, connect_err );
+    if ( ::connect( fd, &_out_display.ai_addr, _out_display.ai_addrlen ) != 0 ) {
+        ::close( fd );
+        fmt::println( ::stderr, connect_err );
         return -1;
     }
     return fd;
@@ -771,18 +773,18 @@ int ProxyX11Server::_connectToServer() {
 void ProxyX11Server::_openConnection() {
     Connection conn {};
     if ( !_acceptClient( &conn ) ) {
-        fmt::println( stderr, "{}: {}: failure to accept client connection",
+        fmt::println( ::stderr, "{}: {}: failure to accept client connection",
                       settings.process_name, __PRETTY_FUNCTION__ );
         return;
     }
     assert( conn.client_fd > _listener_fd );
     assert( !conn.client_desc.empty() );
-    fmt::println( stderr, "Connected to client: {}",
+    fmt::println( ::stderr, "Connected to client: {}",
                   conn.client_desc );
 
     conn.server_fd = _connectToServer();
     if ( conn.server_fd == -1 ) {
-        fmt::println( stderr, "{}: {}: failure to connect to X server for display: {:?}",
+        fmt::println( ::stderr, "{}: {}: failure to connect to X server for display: {:?}",
                       settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
         conn.closeClientSocket();
         return;
@@ -833,10 +835,10 @@ int ProxyX11Server::_processClientQueue() {
     while ( child_running.load() || !_connections.empty() || settings.keeprunning ) {
         _updatePollFlags();
         // TBD blocks until polled fds have new events or interrupted by signal;
-        //   most frequently expected signals: SIGINT (user), SIGCHLD (child exits)
-        if ( poll( _pfds.data(), nfds_t( _pfds.size() ), NO_TIMEOUT ) == -1 ) {
+        //   most frequently expected signals: SIGINT (user), SIGCHLD (child ::exits)
+        if ( ::poll( _pfds.data(), nfds_t( _pfds.size() ), NO_TIMEOUT ) == -1 ) {
             if ( errno != 0 && errno != EINTR ) {
-                fmt::println( stderr, "{}: {}: {}", settings.process_name,
+                fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                               __PRETTY_FUNCTION__,
                               errors::system::message( "poll" ) );
                 return EXIT_FAILURE;

@@ -169,7 +169,7 @@ message( const std::string& msg/* = {}*/ ) {
     return fmt::format( "{}{}errno {}: {}",
                         msg, msg.empty() ? "" : ": ",
                         detail::errno_names.at( errno ),
-                        strerror( errno ) );
+                        ::strerror( errno ) );
 }
 
 const std::system_error
@@ -194,7 +194,7 @@ Category::name() const noexcept {
 
 std::string
 Category::message( int i ) const {
-    return gai_strerror( i );
+    return ::gai_strerror( i );
 }
 
 static const std::unordered_map<
@@ -232,7 +232,7 @@ message( const int gai_ret, const std::string& msg/* = {}*/ ) {
     return fmt::format( "{}: retval {}: {}",
                         msg.empty() ? "getaddrinfo" : msg,
                         detail::gai_error_names.at( gai_ret ),
-                        gai_strerror( gai_ret ) );
+                        ::gai_strerror( gai_ret ) );
 }
 
 const std::system_error

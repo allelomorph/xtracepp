@@ -473,8 +473,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetWindowAttributes::Header ) );
     assert( reinterpret_cast< const GetWindowAttributes::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETWINDOWATTRIBUTES );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETWINDOWATTRIBUTES );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -489,8 +489,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( DestroyWindow::Header ) );
     assert( reinterpret_cast< const DestroyWindow::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::DESTROYWINDOW );
+                  data )->opcode ==
+              protocol::requests::opcodes::DESTROYWINDOW );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -505,8 +505,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( DestroySubwindows::Header ) );
     assert( reinterpret_cast< const DestroySubwindows::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::DESTROYSUBWINDOWS );
+                  data )->opcode ==
+              protocol::requests::opcodes::DESTROYSUBWINDOWS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -626,8 +626,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( MapWindow::Header ) );
     assert( reinterpret_cast< const MapWindow::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::MAPWINDOW );
+                  data )->opcode ==
+              protocol::requests::opcodes::MAPWINDOW );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -642,8 +642,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( MapSubwindows::Header ) );
     assert( reinterpret_cast< const MapSubwindows::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::MAPSUBWINDOWS );
+                  data )->opcode ==
+              protocol::requests::opcodes::MAPSUBWINDOWS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -658,8 +658,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( UnmapWindow::Header ) );
     assert( reinterpret_cast< const UnmapWindow::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::UNMAPWINDOW );
+                  data )->opcode ==
+              protocol::requests::opcodes::UNMAPWINDOW );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -674,8 +674,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( UnmapSubwindows::Header ) );
     assert( reinterpret_cast< const UnmapSubwindows::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::UNMAPSUBWINDOWS );
+                  data )->opcode ==
+              protocol::requests::opcodes::UNMAPSUBWINDOWS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -860,8 +860,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( QueryTree::Header ) );
     assert( reinterpret_cast< const QueryTree::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::QUERYTREE );
+                  data )->opcode ==
+              protocol::requests::opcodes::QUERYTREE );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -1180,8 +1180,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( ListProperties::Header ) );
     assert( reinterpret_cast< const ListProperties::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::LISTPROPERTIES );
+                  data )->opcode ==
+              protocol::requests::opcodes::LISTPROPERTIES );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -1988,8 +1988,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GrabServer::Header ) );
     assert( reinterpret_cast< const GrabServer::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GRABSERVER );
+                  data )->opcode ==
+              protocol::requests::opcodes::GRABSERVER );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -2004,8 +2004,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( UngrabServer::Header ) );
     assert( reinterpret_cast< const UngrabServer::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::UNGRABSERVER );
+                  data )->opcode ==
+              protocol::requests::opcodes::UNGRABSERVER );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -2020,8 +2020,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( QueryPointer::Header ) );
     assert( reinterpret_cast< const QueryPointer::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::QUERYPOINTER );
+                  data )->opcode ==
+              protocol::requests::opcodes::QUERYPOINTER );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -2264,8 +2264,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetInputFocus::Header ) );
     assert( reinterpret_cast< const GetInputFocus::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETINPUTFOCUS );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETINPUTFOCUS );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -2280,8 +2280,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( QueryKeymap::Header ) );
     assert( reinterpret_cast< const QueryKeymap::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::QUERYKEYMAP );
+                  data )->opcode ==
+              protocol::requests::opcodes::QUERYKEYMAP );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -2518,8 +2518,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( ListFonts::Header ) );
     assert( reinterpret_cast< const ListFonts::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::LISTFONTS );
+                  data )->opcode ==
+              protocol::requests::opcodes::LISTFONTS );
     return _parseRequest< ListFontsRequest >( conn, data, sz );
 }
 
@@ -2534,8 +2534,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( ListFontsWithInfo::Header ) );
     assert( reinterpret_cast< const ListFontsWithInfo::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::LISTFONTSWITHINFO );
+                  data )->opcode ==
+              protocol::requests::opcodes::LISTFONTSWITHINFO );
     return _parseRequest< ListFontsRequest >( conn, data, sz );
 }
 
@@ -2607,8 +2607,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetFontPath::Header ) );
     assert( reinterpret_cast< const GetFontPath::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETFONTPATH );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETFONTPATH );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -3348,8 +3348,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( PolyPoint::Header ) );
     assert( reinterpret_cast< const PolyPoint::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::POLYPOINT );
+                  data )->opcode ==
+              protocol::requests::opcodes::POLYPOINT );
     return _parseRequest< PolyPointRequest >( conn, data, sz );
 }
 
@@ -3364,8 +3364,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( PolyLine::Header ) );
     assert( reinterpret_cast< const PolyLine::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::POLYLINE );
+                  data )->opcode ==
+              protocol::requests::opcodes::POLYLINE );
     return _parseRequest< PolyPointRequest >( conn, data, sz );
 }
 
@@ -4214,8 +4214,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( FreeColormap::Header ) );
     assert( reinterpret_cast< const FreeColormap::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::FREECOLORMAP );
+                  data )->opcode ==
+              protocol::requests::opcodes::FREECOLORMAP );
     return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
 
@@ -4279,8 +4279,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( InstallColormap::Header ) );
     assert( reinterpret_cast< const InstallColormap::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::INSTALLCOLORMAP );
+                  data )->opcode ==
+              protocol::requests::opcodes::INSTALLCOLORMAP );
     return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
 
@@ -4295,8 +4295,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( UninstallColormap::Header ) );
     assert( reinterpret_cast< const UninstallColormap::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::UNINSTALLCOLORMAP );
+                  data )->opcode ==
+              protocol::requests::opcodes::UNINSTALLCOLORMAP );
     return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
 
@@ -4311,8 +4311,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( ListInstalledColormaps::Header ) );
     assert( reinterpret_cast< const ListInstalledColormaps::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS );
+                  data )->opcode ==
+              protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -5221,8 +5221,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( ListExtensions::Header ) );
     assert( reinterpret_cast< const ListExtensions::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::LISTEXTENSIONS );
+                  data )->opcode ==
+              protocol::requests::opcodes::LISTEXTENSIONS );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -5426,8 +5426,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetKeyboardControl::Header ) );
     assert( reinterpret_cast< const GetKeyboardControl::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETKEYBOARDCONTROL );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETKEYBOARDCONTROL );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -5541,8 +5541,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetPointerControl::Header ) );
     assert( reinterpret_cast< const GetPointerControl::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETPOINTERCONTROL );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETPOINTERCONTROL );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -5612,8 +5612,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetScreenSaver::Header ) );
     assert( reinterpret_cast< const GetScreenSaver::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETSCREENSAVER );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETSCREENSAVER );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -5701,8 +5701,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( ListHosts::Header ) );
     assert( reinterpret_cast< const ListHosts::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::LISTHOSTS );
+                  data )->opcode ==
+              protocol::requests::opcodes::LISTHOSTS );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -6026,8 +6026,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetPointerMapping::Header ) );
     assert( reinterpret_cast< const GetPointerMapping::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETPOINTERMAPPING );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETPOINTERMAPPING );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -6098,8 +6098,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( GetModifierMapping::Header ) );
     assert( reinterpret_cast< const GetModifierMapping::Header* >(
-                data )->opcode ==
-            protocol::requests::opcodes::GETMODIFIERMAPPING );
+                  data )->opcode ==
+              protocol::requests::opcodes::GETMODIFIERMAPPING );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 

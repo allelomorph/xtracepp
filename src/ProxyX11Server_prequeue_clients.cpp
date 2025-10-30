@@ -23,7 +23,7 @@
 static void pollSingleSocket(
     const int socket_fd, const short events, int timeout = -1 ) {
     assert( events == POLLIN || events == POLLOUT ||
-            events == POLLIN | POLLOUT );
+              events == POLLIN | POLLOUT );
     const      nfds_t   nfds { 1 };
     /*struct */pollfd   pfds[1];
     pfds[0].fd = socket_fd;
@@ -32,7 +32,7 @@ static void pollSingleSocket(
         timeout = DEFAULT_POLL_TIMEOUT_MS;
 
     pfds[0].events = events;
-    switch ( poll( pfds, nfds, timeout ) ) {
+    switch ( ::poll( pfds, nfds, timeout ) ) {
     case 0:
         throw std::runtime_error(
             fmt::format( "{}: poll timeout in {} ms",
@@ -72,12 +72,12 @@ bool ProxyX11Server::_authenticateServerConnection(
     sbuffer.load( _AUTH_NAME.data(), _parser.alignment.pad( _AUTH_NAME.size() ) );
     sbuffer.load( _auth_data, _parser.alignment.pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
-        sizeof(init_encoding) + _parser.alignment.pad( _AUTH_NAME.size() ) +
-            _parser.alignment.pad( _AUTH_DATA_SZ ) );
+              sizeof(init_encoding) + _parser.alignment.pad( _AUTH_NAME.size() ) +
+              _parser.alignment.pad( _AUTH_DATA_SZ ) );
     try {
         pollSingleSocket( server_fd, POLLOUT );
     } catch ( const std::exception& e ) {
-        fmt::println( stderr, "{}: {}",
+        fmt::println( ::stderr, "{}: {}",
                       settings.process_name, e.what() );
         return false;
     }
@@ -87,7 +87,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     try {
         pollSingleSocket( server_fd, POLLIN );
     } catch ( const std::exception& e ) {
-        fmt::println( stderr, "{}: {}",
+        fmt::println( ::stderr, "{}: {}",
                       settings.process_name, e.what() );
         return false;
     }
@@ -106,7 +106,7 @@ bool ProxyX11Server::_authenticateServerConnection(
          init_encoding.protocol_minor_version )
         return false;
     assert( sbuffer.size() == _parser.alignment.size(
-                accept_header.following_aligned_units ) );
+                  accept_header.following_aligned_units ) );
     ConnAcceptance::Encoding accept_encoding {};
     sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
     // skip over vendor
@@ -129,7 +129,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
-            stderr, "{}: {}: failure to connect to X server for display: {:?}",
+            ::stderr, "{}: {}: failure to connect to X server for display: {:?}",
             settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
         return;
     }
@@ -138,7 +138,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     protocol::WINDOW screen0_root;
     if ( !_authenticateServerConnection( server_fd, &screen0_root ) ) {
         fmt::println(
-            stderr, "{}: {}: failed to authenticate connection to X server",
+            ::stderr, "{}: {}: failed to authenticate connection to X server",
             settings.process_name, __PRETTY_FUNCTION__ );
         goto close_socket;
     }
@@ -160,11 +160,11 @@ void ProxyX11Server::_fetchCurrentServerTime() {
             /*XCB_EVENT_MASK_PROPERTY_CHANGE*/ 1 << 22 };
         sbuffer.load( value_list, sizeof( value_list ) );
         assert( sbuffer.size() == ChangeWindowAttributes::BASE_ENCODING_SZ +
-                sizeof( protocol::VALUE ) );
+                  sizeof( protocol::VALUE ) );
         try {
             pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}: {}",
+            fmt::println( ::stderr, "{}: {}",
                           settings.process_name, e.what() );
             goto close_socket;
         }
@@ -194,7 +194,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         try {
             pollSingleSocket( server_fd, POLLOUT );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}: {}",
+            fmt::println( ::stderr, "{}: {}",
                           settings.process_name, e.what() );
             goto close_socket;
         }
@@ -207,7 +207,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         try {
             pollSingleSocket( server_fd, POLLIN );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}: {}",
+            fmt::println( ::stderr, "{}: {}",
                           settings.process_name, e.what() );
             goto close_socket;
         }
@@ -234,10 +234,10 @@ close_socket:
 
 static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
-            sig == SIGABRT || sig == SIGSEGV );
-    write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
+              sig == SIGABRT || sig == SIGSEGV );
+    ::write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
     static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
-    _exit( _SIGNAL_RETVAL_OFFSET + sig );
+    ::_exit( _SIGNAL_RETVAL_OFFSET + sig );
 }
 
 std::vector< std::string >
@@ -248,34 +248,35 @@ ProxyX11Server::_fetchInternedAtoms() {
     if( server_fd < 0 ) {
         // TBD exception
         fmt::println(
-            stderr, "{}: {}: failure to connect to X server for display: {:?}",
+            ::stderr, "{}: {}: failure to connect to X server for display: {:?}",
             settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
-        exit( EXIT_FAILURE );
+        ::exit( EXIT_FAILURE );
     }
     if ( !_authenticateServerConnection( server_fd ) ) {
         fmt::println(
-            stderr, "{}: {}: failed to authenticate connection to X server",
+            ::stderr, "{}: {}: failed to authenticate connection to X server",
             settings.process_name, __PRETTY_FUNCTION__ );
-        close( server_fd );  // sends EOF
-        exit( EXIT_FAILURE );
+        ::close( server_fd );  // sends EOF
+        ::exit( EXIT_FAILURE );
     }
 
     constexpr char CSI[ sizeof( "\x1b[" ) ] { "\x1b[" };
     // TBD standardize which stream all non-log messages are going to
-    fmt::print( stderr, "fetching interned ATOMs: " );
-    fmt::print( stderr, "{}?25l", CSI );  // hide cursor
+    fmt::print( ::stderr, "fetching interned ATOMs: " );
+    fmt::print( ::stderr, "{}?25l", CSI );  // hide cursor
     // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
-    struct sigaction act {};
+    // `struct` needed to disambiguate from sigaction(2)
+    struct ::sigaction act {};
     act.sa_handler = &handleTerminatingSignal;
-    if ( sigaction( SIGABRT, &act, nullptr ) == -1 ||
-         sigaction( SIGINT, &act, nullptr ) == -1  ||
-         sigaction( SIGSEGV, &act, nullptr ) == -1 ||
-         sigaction( SIGTERM, &act, nullptr ) == -1 ) {
+    if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
+         ::sigaction( SIGINT, &act, nullptr ) == -1  ||
+         ::sigaction( SIGSEGV, &act, nullptr ) == -1 ||
+         ::sigaction( SIGTERM, &act, nullptr ) == -1 ) {
         fmt::println(
-            stderr, "{}: {}", __PRETTY_FUNCTION__,
+            ::stderr, "{}: {}", __PRETTY_FUNCTION__,
             errors::system::message( "sigaction" ) );
-        close( server_fd );  // sends EOF
-        exit( EXIT_FAILURE );
+        ::close( server_fd );  // sends EOF
+        ::exit( EXIT_FAILURE );
     }
 
     GetAtomName::Header req_header {};
@@ -298,9 +299,9 @@ ProxyX11Server::_fetchInternedAtoms() {
         try {
             pollSingleSocket( server_fd, POLLOUT, 500 );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
-            close( server_fd );  // sends EOF
-            exit( EXIT_FAILURE );
+            fmt::println( ::stderr, "{}", e.what() );
+            ::close( server_fd );  // sends EOF
+            ::exit( EXIT_FAILURE );
         }
         sbuffer.write( server_fd );
 
@@ -310,9 +311,9 @@ ProxyX11Server::_fetchInternedAtoms() {
         try {
             pollSingleSocket( server_fd, POLLIN, 500 );
         } catch ( const std::exception& e ) {
-            fmt::println( stderr, "{}", e.what() );
+            fmt::println( ::stderr, "{}", e.what() );
             close( server_fd );  // sends EOF
-            exit( EXIT_FAILURE );
+            ::exit( EXIT_FAILURE );
         }
         sbuffer.read( server_fd );
         assert( sbuffer.size() >= sizeof( rep_encoding ) );
@@ -324,9 +325,9 @@ ProxyX11Server::_fetchInternedAtoms() {
             // expect Atom error at end of first contiguous region of server's ATOMs
             if ( err_encoding.header.code == protocol::errors::codes::ATOM ) {
                 // need newline after cursor looping horizontally
-                fmt::println( stderr, "" );
+                fmt::println( ::stderr, "" );
             } else {
-                fmt::println( stderr, "failed atom prefech with X error {}, "
+                fmt::println( ::stderr, "failed atom prefech with X error {}, "
                               "reverting to default atom lookup",
                               protocol::errors::names[ err_encoding.header.code ] );
                 fetched_atoms.clear();
@@ -337,7 +338,7 @@ ProxyX11Server::_fetchInternedAtoms() {
         assert( rep_encoding.header.reply == protocol::requests::Reply::REPLY );
         assert( rep_encoding.header.sequence_num == i );
         assert( rep_encoding.header.extra_aligned_units ==
-                _parser.alignment.units( _parser.alignment.pad( rep_encoding.name_len ) ) );
+                  _parser.alignment.units( _parser.alignment.pad( rep_encoding.name_len ) ) );
         assert( sbuffer.size() < STRINGBUF_SZ );
         assert( sbuffer.size() == _parser.alignment.pad( rep_encoding.name_len ) );
         sbuffer.unload( stringbuf, sbuffer.size() );
@@ -347,22 +348,22 @@ ProxyX11Server::_fetchInternedAtoms() {
 
         // Update ATOM counter in place to keep user aware of progress
         static constexpr int COUNTER_W { 5 };
-        fmt::print( stderr, "{:{}d}{}{}D",  // \x1b[#D right # cols
+        fmt::print( ::stderr, "{:{}d}{}{}D",  // \x1b[#D right # cols
                     i, COUNTER_W, CSI, COUNTER_W );
     }
 
-    fmt::print( stderr, "{}?25h", CSI );  // show cursor
+    fmt::print( ::stderr, "{}?25h", CSI );  // show cursor
     // restore default signal behavior
     act.sa_handler = SIG_DFL;
-    if ( sigaction( SIGABRT, &act, nullptr ) == -1 ||
-         sigaction( SIGINT, &act, nullptr ) == -1  ||
-         sigaction( SIGSEGV, &act, nullptr ) == -1 ||
-         sigaction( SIGTERM, &act, nullptr ) == -1 ) {
+    if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
+         ::sigaction( SIGINT, &act, nullptr ) == -1  ||
+         ::sigaction( SIGSEGV, &act, nullptr ) == -1 ||
+         ::sigaction( SIGTERM, &act, nullptr ) == -1 ) {
         fmt::println(
-            stderr, "{}: {}: {}", settings.process_name, __PRETTY_FUNCTION__,
+            ::stderr, "{}: {}: {}", settings.process_name, __PRETTY_FUNCTION__,
             errors::system::message( "sigaction" ) );
-        close( server_fd );  // sends EOF
-        exit( EXIT_FAILURE );
+        ::close( server_fd );  // sends EOF
+        ::exit( EXIT_FAILURE );
     }
 
     return fetched_atoms;
