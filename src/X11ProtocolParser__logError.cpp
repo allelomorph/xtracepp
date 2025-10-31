@@ -125,8 +125,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Request >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Request;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Request > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Request::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Request::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::REQUEST );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 template<>
@@ -190,8 +197,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Window >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::Window;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, Window > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Window::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Window::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::WINDOW );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -199,8 +213,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Pixmap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::Pixmap;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, Pixmap > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Pixmap::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Pixmap::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::PIXMAP );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -264,8 +285,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Cursor >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::Cursor;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, Cursor > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Cursor::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Cursor::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::CURSOR );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -273,8 +301,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Font >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::Font;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, Font > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Font::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Font::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::FONT );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -282,8 +317,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Match >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Match;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Match > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Match::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Match::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::MATCH );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 template<>
@@ -291,8 +333,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Drawable >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::Drawable;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, Drawable > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Drawable::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Drawable::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::DRAWABLE );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -300,8 +349,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Access >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Access;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Access > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Access::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Access::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::ACCESS );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 template<>
@@ -309,8 +365,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Alloc >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Alloc;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Alloc > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Alloc::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Alloc::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::ALLOC );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 template<>
@@ -318,8 +381,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Colormap >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::Colormap;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, Colormap > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Colormap::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Colormap::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::COLORMAP );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -327,8 +397,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::GContext >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::GContext;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, GContext > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( GContext::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const GContext::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::GCONTEXT );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -336,8 +413,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::IdChoice >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::ResourceIdError >( conn, data, sz );
+    using protocol::errors::IdChoice;
+    using protocol::errors::impl::ResourceIdError;
+    static_assert( std::is_base_of_v< ResourceIdError, IdChoice > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( IdChoice::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const IdChoice::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::IDCHOICE );
+    return _parseError< ResourceIdError >( conn, data, sz );
 }
 
 template<>
@@ -345,8 +429,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Name >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Name;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Name > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Name::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Name::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::NAME );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 template<>
@@ -354,8 +445,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Length >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Length;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Length > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Length::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Length::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::LENGTH );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 template<>
@@ -363,8 +461,15 @@ X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Implementation >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    return _parseError<
-        protocol::errors::impl::SimpleError >( conn, data, sz );
+    using protocol::errors::Implementation;
+    using protocol::errors::impl::SimpleError;
+    static_assert( std::is_base_of_v< SimpleError, Implementation > );
+    assert( data != nullptr );
+    assert( sz >= sizeof( Implementation::Header ) );
+    assert( _hostByteOrder( reinterpret_cast< const Implementation::Header* >(
+                                data )->code, conn->byteswap ) ==
+            protocol::errors::codes::IMPLEMENTATION );
+    return _parseError< SimpleError >( conn, data, sz );
 }
 
 size_t
