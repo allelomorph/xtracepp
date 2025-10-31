@@ -679,40 +679,39 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
     switch ( addr.sa_family ) {
     case AF_INET6: {
         assert( addrlen == sizeof( in6addr ) );
-            char addrstr[ INET6_ADDRSTRLEN ] {};
-            if ( ::inet_ntop( in6addr.sin6_family, &(in6addr.sin6_addr),
-                              addrstr, INET6_ADDRSTRLEN ) == nullptr ) {
-                ::close( fd );
-                fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
-                              __PRETTY_FUNCTION__,
-                              errors::system::message( "inet_ntop" ) );
-                return false;
-            }
-            client_desc = fmt::format( "[{}]:{}", addrstr,
-                                       ntohs( in6addr.sin6_port ) );
+        char addrstr[ INET6_ADDRSTRLEN ] {};
+        if ( ::inet_ntop( in6addr.sin6_family, &(in6addr.sin6_addr),
+                          addrstr, INET6_ADDRSTRLEN ) == nullptr ) {
+            ::close( fd );
+            fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
+                          __PRETTY_FUNCTION__,
+                          errors::system::message( "inet_ntop" ) );
+            return false;
+        }
+        client_desc = fmt::format( "[{}]:{}", addrstr,
+                                   ntohs( in6addr.sin6_port ) );
     }   break;
     case AF_INET: {
         assert( addrlen == sizeof( inaddr ) );
-            char addrstr[ INET_ADDRSTRLEN ] {};
-            if ( ::inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
-                              addrstr, INET_ADDRSTRLEN ) == nullptr ) {
-                ::close( fd );
-                fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
-                              __PRETTY_FUNCTION__,
-                              errors::system::message( "inet_ntop" ) );
-                return false;
-            }
-            client_desc = fmt::format( "{}:{}", addrstr,
-                                       ntohs( inaddr.sin_port ) );
+        char addrstr[ INET_ADDRSTRLEN ] {};
+        if ( ::inet_ntop( inaddr.sin_family, &(inaddr.sin_addr),
+                          addrstr, INET_ADDRSTRLEN ) == nullptr ) {
+            ::close( fd );
+            fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
+                          __PRETTY_FUNCTION__,
+                          errors::system::message( "inet_ntop" ) );
+            return false;
+        }
+        client_desc = fmt::format( "{}:{}", addrstr,
+                                   ntohs( inaddr.sin_port ) );
     }   break;
     case AF_UNIX: {
-        // TBD sun_path will likely always be unpopulated by connect(2), see:
+        // sun_path will likely always be unpopulated by connect(2), see:
         //   - https://stackoverflow.com/q/17090043
-        //   we could call getsockname, but that would only provide the socket
-        //   path given to bind(2) before listen(2) (would be the same for all
-        //   clients connecting via _in_display, so not a great client id)
         assert( std::string_view( unaddr.sun_path ).empty() );
-            client_desc = { "unknown(local)" };
+        //   in testing, getpeername also returns an empty unix socket path,
+        //   so instead we assign a generic name
+        client_desc = { "unknown(local)" };
     }   break;
     default:
         break;
