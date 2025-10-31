@@ -37,6 +37,7 @@ public:
     uint16_t       sequence {}; // Request sequence number, should match real server
                                 //   starts at 1 after first call to registerRequest
 
+    bool byteswap {};
     // const bool bigendian;
 
     // connection states are:

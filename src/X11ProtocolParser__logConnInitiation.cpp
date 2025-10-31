@@ -12,7 +12,7 @@
 
 
 size_t X11ProtocolParser::_logConnInitiation(
-    const Connection* conn, const uint8_t* data, const size_t sz ) {
+    Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::connection_setup::ConnInitiation;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -23,22 +23,38 @@ size_t X11ProtocolParser::_logConnInitiation(
     const ConnInitiation::Encoding* encoding {
         reinterpret_cast< const ConnInitiation::Encoding* >( data ) };
     assert( encoding->byte_order == ConnInitiation::MSBFIRST ||
-              encoding->byte_order == ConnInitiation::LSBFIRST );
+            encoding->byte_order == ConnInitiation::LSBFIRST );
+    // determine if host byte order is same as client ( potentially different
+    //   with remote clients )
+    // TBD could use std::endian with C++20
+    const bool little_endian { [](){
+        const uint32_t i { 1 };
+        const uint8_t* arr {
+            reinterpret_cast< const uint8_t* >( &i ) };
+        return ( arr[0] == 1 );
+    }() };
+    const bool byteswap { little_endian !=
+                          ( encoding->byte_order == ConnInitiation::LSBFIRST ) };
+    conn->byteswap = byteswap;
     // TBD version error instead of assert?
-    assert( encoding->protocol_major_version == protocol::MAJOR_VERSION );
-    assert( encoding->protocol_minor_version == protocol::MINOR_VERSION );
+    assert( _hostByteOrder( encoding->protocol_major_version, byteswap ) ==
+            protocol::MAJOR_VERSION );
+    assert( _hostByteOrder( encoding->protocol_minor_version, byteswap ) ==
+            protocol::MINOR_VERSION );
     bytes_parsed += sizeof( ConnInitiation::Encoding );
     // followed by STRING8 authorization-protocol-name
+    const uint16_t name_len { _hostByteOrder( encoding->name_len, byteswap ) };
     const std::string_view auth_protocol_name {
         reinterpret_cast< const char* >( data + bytes_parsed ),
-        encoding->name_len };
-    bytes_parsed += alignment.pad( encoding->name_len );
+        name_len };
+    bytes_parsed += alignment.pad( name_len );
     // followed by STRING8 authorization-protocol-data
+    const uint16_t data_len { _hostByteOrder( encoding->data_len, byteswap ) };
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
-            data + bytes_parsed, encoding->data_len,
-            encoding->data_len, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    bytes_parsed += alignment.pad( encoding->data_len );
+            data + bytes_parsed, data_len, data_len,
+            byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
+    bytes_parsed += alignment.pad( data_len );
     assert( bytes_parsed == sz );  // (should not be batched with other packetss)
 
     const uint32_t memb_name_w (
@@ -57,22 +73,23 @@ size_t X11ProtocolParser::_logConnInitiation(
         conn->id, bytes_parsed, CLIENT_TO_SERVER, conn->client_desc,
         ws.separator,
         ws.memb_indent, "byte-order", memb_name_w, ws.equals,
-        _formatVariable( ( encoding->byte_order == ConnInitiation::MSBFIRST ) ? 0 : 1,
+        _formatVariable( uint8_t( encoding->byte_order ==
+                                  ConnInitiation::MSBFIRST ), byteswap,
                          { ConnInitiation::byte_order_names } ), ws.separator,
         ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
-        _formatVariable( encoding->protocol_major_version ), ws.separator,
+        _formatVariable( encoding->protocol_major_version, byteswap ), ws.separator,
         ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
-        _formatVariable( encoding->protocol_minor_version ), ws.separator,
+        _formatVariable( encoding->protocol_minor_version, byteswap ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(authorization-protocol-name length)",
             memb_name_w, ws.equals,
-            _formatVariable( encoding->name_len ), ws.separator ),
+            _formatVariable( encoding->name_len, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(authorization-protocol-data length)",
             memb_name_w, ws.equals,
-            _formatVariable( encoding->data_len ), ws.separator ),
+            _formatVariable( encoding->data_len, byteswap ), ws.separator ),
         ws.memb_indent, "authorization-protocol-name", memb_name_w, ws.equals,
         auth_protocol_name, ws.separator,
         ws.memb_indent, "authorization-protocol-data", memb_name_w, ws.equals,

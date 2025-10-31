@@ -2,18 +2,18 @@
 #define X11PROTOCOLPARSER_HPP
 
 
-#include <tuple>  // tuple_sz
+#include <tuple>          // tuple_size
 #include <string>
 #include <string_view>
-#include <type_traits>  // enable_if_t remove_reference_t
+#include <type_traits>    // enable_if_t remove_reference_t
 #include <vector>
-#include <algorithm>  // max
+#include <algorithm>      // max
 #include <limits>
 #include <unordered_map>
 
 #include <cassert>
 
-#include <stdio.h>  // stdout
+#include <stdio.h>        // stdout
 
 #include <fmt/format.h>
 
@@ -48,6 +48,7 @@ private:
         }
     };
 
+
     ////// Atom Internment
 
     struct _StashedStringID {
@@ -77,16 +78,15 @@ private:
     //   server, indexed by ATOM. Should contain:
     //   - all protocol predefined atoms (1 "PRIMARY" - 68 "WM_TRANSIENT_FOR")
     //   - any atoms in InternAtom requests made by any client during main queue
-    //   - optionally with --prefetchatoms, all already interned strings in the
+    //   - optionally with --prefetchatoms, all server interned strings in the
     //     first contiguous range of ATOMs starting with 1
     std::unordered_map< uint32_t, std::string > _interned_atoms;
 
-    // only atom string known at InternAtom request parsing
     void
     _stashString( const _StashedStringID ss_id, const std::string_view str );
-    // when parsing InternAtom reply, then string and ATOM can be joined
     void
     _internStashedAtom( const _StashedStringID sa_id, const protocol::ATOM atom );
+
 
     ////// Non-data Text Formatting
 
@@ -164,13 +164,30 @@ private:
     };
     _Whitespace _ROOT_WS { 0, settings.multiline };
 
+
     ////// Individual Data Field Formatting
 
     template< typename ScalarT,
-              std::enable_if_t<std::is_scalar_v<ScalarT>, bool> = true >
+              std::enable_if_t< std::is_scalar_v< ScalarT >, bool > = true >
     inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
         // fmt counts "0x" as part of width when using '#'
         return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
+    }
+
+    template< typename IntT,
+              std::enable_if_t< std::is_integral_v< IntT > &&
+                                sizeof( IntT ) <= sizeof( uint32_t ),
+                  bool > = true >
+    inline IntT _hostByteOrder( const IntT val, const bool byteswap ) {
+        switch ( sizeof( IntT ) ) {
+        case sizeof( uint32_t ):
+            return byteswap ? __builtin_bswap32( val ) : val;
+        case sizeof( uint16_t ):
+            return byteswap ? __builtin_bswap16( val ) : val;
+        default:
+            break;
+        }
+        return val;  // sizeof( uint8_t )
     }
 
     class _EnumNameRange {
@@ -247,12 +264,13 @@ private:
     // fundamental integers (and protocol aliases thereof)
     template< typename IntT,
               std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
-    std::string _formatVariable( const IntT val,
+    std::string _formatVariable( const IntT encoded_val, const bool byteswap,
                                  const _EnumNameRange name_range = {},
                                  const bool bitmask = _ValueTraits::NOT_BITMASK ) {
         const std::string hex_str {
-            fmt::format( "{:#0{}x}", std::make_unsigned_t< IntT >( val ),
-                         _fmtHexWidth( val ) ) };
+            fmt::format( "{:#0{}x}", std::make_unsigned_t< IntT >( encoded_val ),
+                         _fmtHexWidth( encoded_val ) ) };
+        const IntT val { _hostByteOrder( encoded_val, byteswap ) };
 
         if ( bitmask ) {
             assert( std::is_unsigned_v< IntT > );
@@ -291,19 +309,23 @@ private:
                   !std::is_same_v< protocol::ATOM, ResourceIdT >,
                   bool > = true >
     std::string _formatVariable( const ResourceIdT var,
+                                 const bool byteswap,
                                  const _EnumNameRange name_range = {} ) {
         assert( ( var.data & ResourceIdT::ZERO_BITS ) == 0 );
-        return _formatVariable( var.data, name_range );
+        return _formatVariable( var.data, byteswap, name_range );
     }
 
     // only ResourceId with unique definition
     std::string _formatVariable( const protocol::DRAWABLE var,
+                                 const bool byteswap,
                                  const _EnumNameRange name_range = {} );
     // union of ResourceId
     std::string _formatVariable( const protocol::FONTABLE var,
+                                 const bool byteswap,
                                  const _EnumNameRange name_range = {} );
     // union of ResourceId
     std::string _formatVariable( const protocol::ATOM var,
+                                 const bool byteswap,
                                  const _EnumNameRange name_range = {} );
 
     // non-ResourceId protocol int types
@@ -313,6 +335,7 @@ private:
                     !std::is_base_of_v< protocol::impl::ResourceId, ProtocolIntT > ),
                   bool > = true >
     std::string _formatVariable( const ProtocolIntT var,
+                                 const bool byteswap,
                                  const _EnumNameRange name_range = {} );
 
     // plain structs with no variable length suffixes
@@ -323,7 +346,9 @@ private:
                       protocol::impl::StructWithSuffixes, ProtocolStructT >,
                   bool > = true >
     std::string _formatVariable( const ProtocolStructT var,
+                                 const bool byteswap,
                                  const _Whitespace& ws );
+
 
     ////// LISTof* Formatting
 
@@ -337,13 +362,14 @@ private:
               std::enable_if_t< std::is_integral_v< ProtocolT >,
                                 bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz,
+    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
                       const _ValueTraits traits = {} ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
         const ProtocolT memb { *reinterpret_cast< const ProtocolT* >( data ) };
-        return { _formatVariable( memb, traits.name_range, traits.bitmask ),
+        return { _formatVariable( memb, byteswap,
+                                  traits.name_range, traits.bitmask ),
                  sizeof( ProtocolT ) };
     }
 
@@ -353,13 +379,13 @@ private:
                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
                   bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz,
+    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
                       const _ValueTraits traits = {} ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
         const ProtocolT memb { *reinterpret_cast< const ProtocolT* >( data ) };
-        return { _formatVariable( memb, traits.name_range ),
+        return { _formatVariable( memb, byteswap, traits.name_range ),
                  sizeof( ProtocolT ) };
     }
 
@@ -371,14 +397,14 @@ private:
                       protocol::impl::StructWithSuffixes, ProtocolStructT >,
                   bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz,
+    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
                       const _Whitespace& ws ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolStructT ) );
 
         const ProtocolStructT memb {
             *reinterpret_cast< const ProtocolStructT* >( data ) };
-        return { _formatVariable( memb, ws ),
+        return { _formatVariable( memb, byteswap, ws ),
                  sizeof( ProtocolStructT ) };
     }
 
@@ -395,7 +421,7 @@ private:
                       protocol::impl::StructWithSuffixes, ProtocolStructT >,
                   bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz,
+    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
                       const _Whitespace& ws );
 
     // TBD for LISTs that have no length provided eg PolyText8|16
@@ -406,7 +432,7 @@ private:
                   bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz,
-                  const _Whitespace& ws,
+                  const bool byteswap, const _Whitespace& ws,
                   const bool force_membs_singleline = _Whitespace::DEFAULT ) {
         assert( data != nullptr );
 
@@ -417,7 +443,7 @@ private:
             const _ParsingOutputs member {
                 _parseListMember< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    ws.nested( force_membs_singleline ) ) };
+                    byteswap, ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
                 "{}{}{}", ws.memb_indent, member.str, ws.separator );
@@ -434,7 +460,7 @@ private:
                   bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
-                  const _Whitespace& ws,
+                  const bool byteswap, const _Whitespace& ws,
                   const bool force_membs_singleline = _Whitespace::DEFAULT ) {
         assert( data != nullptr );
 
@@ -445,7 +471,7 @@ private:
             const _ParsingOutputs member {
                 _parseListMember< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    ws.nested( force_membs_singleline ) ) };
+                    byteswap, ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
                 "{}{}{}", ws.memb_indent, member.str, ws.separator );
@@ -462,7 +488,7 @@ private:
                   bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
-                  const _Whitespace& ws,
+                  const bool byteswap, const _Whitespace& ws,
                   const _ValueTraits traits = {} ) {
         assert( data != nullptr );
 
@@ -473,7 +499,7 @@ private:
             const _ParsingOutputs member {
                 _parseListMember< ProtocolT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-                    traits ) };
+                    byteswap, traits ) };
             outputs.bytes_parsed += member.bytes_parsed;
             outputs.str += fmt::format(
                 "{}{}{}", ws.memb_indent, member.str, ws.separator );
@@ -482,6 +508,7 @@ private:
             "{}]", memb_ct == 0 ? "" : ws.encl_indent );
         return outputs;
     }
+
 
     ////// LISTofVALUE Formatting
 
@@ -493,6 +520,7 @@ private:
         const TupleT& types;
         const std::vector< std::string_view >& names;
         const std::vector< _ValueTraits >& traits;
+        const bool byteswap;
         const _Whitespace ws;
         size_t memb_name_w {};
 
@@ -501,9 +529,10 @@ private:
             const uint8_t* data_, const size_t sz_, const uint32_t value_mask_,
             const TupleT& types_, const std::vector< std::string_view >& names_,
             const std::vector< _ValueTraits >& traits_,
-            const _Whitespace ws_ ) :
+            const bool byteswap_ , const _Whitespace ws_ ) :
             data( data_ ), sz( sz_ ), value_mask( value_mask_ ),
-            types( types_ ), names( names_ ), traits( traits_ ), ws( ws_ ) {
+            types( types_ ), names( names_ ), traits( traits_ ),
+            byteswap( byteswap_ ), ws( ws_ ) {
 
             assert( data != nullptr );
             assert( std::tuple_size< TupleT >{} == names.size() &&
@@ -560,7 +589,7 @@ private:
         const _ParsingOutputs member {
             _parseListMember< ValueT >(
                 inputs.data + outputs->bytes_parsed,
-                inputs.sz - outputs->bytes_parsed,
+                inputs.sz - outputs->bytes_parsed, inputs.byteswap,
                 inputs.traits[ I ] ) };
         // do not use member.bytes_parsed as all VALUEs are encoded as 4B
         outputs->bytes_parsed += sizeof( protocol::VALUE );
@@ -572,6 +601,7 @@ private:
         return _parseLISTofVALUE< I + 1, Args... >( inputs, outputs );
     }
 
+
     ////// Logging
 
     size_t _logClientPacket(
@@ -580,7 +610,7 @@ private:
         Connection* conn, uint8_t* data, const size_t sz );
 
     size_t _logConnInitiation(
-        const Connection* conn, const uint8_t* data, const size_t sz );
+        Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logConnRefusal(
         Connection* conn, const uint8_t* data, const size_t sz );
     size_t _logConnRequireFurtherAuthentication(

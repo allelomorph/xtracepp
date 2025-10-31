@@ -21,13 +21,16 @@ X11ProtocolParser::_parseError<
 
     _ParsingOutputs error;
     const _Whitespace& ws { _ROOT_WS };
+    const bool byteswap { conn->byteswap };
     const SimpleError::Encoding* encoding {
         reinterpret_cast< const SimpleError::Encoding* >( data ) };
     error.bytes_parsed += sizeof( SimpleError::Encoding );
-    assert( encoding->header.error == SimpleError::ERROR );
-    const uint8_t code { encoding->header.code };
+    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+            SimpleError::ERROR );
+    const uint8_t code {
+        _hostByteOrder( encoding->header.code, byteswap ) };
     assert( code >= protocol::errors::codes::MIN &&
-              code <= protocol::errors::codes::MAX );
+            code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == SimpleError::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -43,19 +46,19 @@ X11ProtocolParser::_parseError<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "error", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.error ), ws.separator ),
+            _formatVariable( encoding->header.error, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.code ), ws.separator ),
+            _formatVariable( encoding->header.code, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num, byteswap ), ws.separator ),
         ws.memb_indent, "(minor opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->minor_opcode ), ws.separator,
+        _formatVariable( encoding->minor_opcode, byteswap ), ws.separator,
         ws.memb_indent, "(major opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->major_opcode ), ws.separator,
+        _formatVariable( encoding->major_opcode, byteswap ), ws.separator,
         ws.encl_indent
         );
     return error;
@@ -73,11 +76,13 @@ X11ProtocolParser::_parseError<
 
     _ParsingOutputs error;
     const _Whitespace& ws { _ROOT_WS };
+    const bool byteswap { conn->byteswap };
     const ResourceIdError::Encoding* encoding {
         reinterpret_cast< const ResourceIdError::Encoding* >( data ) };
     error.bytes_parsed += sizeof( ResourceIdError::Encoding );
-    assert( encoding->header.error == ResourceIdError::ERROR );
-    const uint8_t code { encoding->header.code };
+    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+            ResourceIdError::ERROR );
+    const uint8_t code { _hostByteOrder( encoding->header.code, byteswap ) };
     assert( code >= protocol::errors::codes::MIN &&
               code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == ResourceIdError::ENCODING_SZ );
@@ -95,21 +100,21 @@ X11ProtocolParser::_parseError<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "error", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.error ), ws.separator ),
+            _formatVariable( encoding->header.error, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.code ), ws.separator ),
+            _formatVariable( encoding->header.code, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num, byteswap ), ws.separator ),
         ws.memb_indent, "(bad resource id)", memb_name_w, ws.equals,
-        _formatVariable( encoding->bad_resource_id ), ws.separator,
+        _formatVariable( encoding->bad_resource_id, byteswap ), ws.separator,
         ws.memb_indent, "(minor opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->minor_opcode ), ws.separator,
+        _formatVariable( encoding->minor_opcode, byteswap ), ws.separator,
         ws.memb_indent, "(major opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->major_opcode ), ws.separator,
+        _formatVariable( encoding->major_opcode, byteswap ), ws.separator,
         ws.encl_indent
         );
     return error;
@@ -136,13 +141,15 @@ X11ProtocolParser::_parseError<
 
     _ParsingOutputs error;
     const _Whitespace& ws { _ROOT_WS };
+    const bool byteswap { conn->byteswap };
     const Value::Encoding* encoding {
         reinterpret_cast< const Value::Encoding* >( data ) };
     error.bytes_parsed += sizeof( Value::Encoding );
-    assert( encoding->header.error == Value::ERROR );
+    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+            Value::ERROR );
     const uint8_t code { encoding->header.code };
     assert( code >= protocol::errors::codes::MIN &&
-              code <= protocol::errors::codes::MAX );
+            code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == Value::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -158,21 +165,21 @@ X11ProtocolParser::_parseError<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "error", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.error ), ws.separator ),
+            _formatVariable( encoding->header.error, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.code ), ws.separator ),
+            _formatVariable( encoding->header.code, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num, byteswap ), ws.separator ),
         ws.memb_indent, "(bad value)", memb_name_w, ws.equals,
-        _formatVariable( encoding->bad_value ), ws.separator,
+        _formatVariable( encoding->bad_value, byteswap ), ws.separator,
         ws.memb_indent, "(minor opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->minor_opcode ), ws.separator,
+        _formatVariable( encoding->minor_opcode, byteswap ), ws.separator,
         ws.memb_indent, "(major opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->major_opcode ), ws.separator,
+        _formatVariable( encoding->major_opcode, byteswap ), ws.separator,
         ws.encl_indent
         );
     return error;
@@ -208,13 +215,15 @@ X11ProtocolParser::_parseError<
 
     _ParsingOutputs error;
     const _Whitespace& ws { _ROOT_WS };
+    const bool byteswap { conn->byteswap };
     const Atom::Encoding* encoding {
         reinterpret_cast< const Atom::Encoding* >( data ) };
     error.bytes_parsed += sizeof( Atom::Encoding );
-    assert( encoding->header.error == Atom::ERROR );
-    const uint8_t code { encoding->header.code };
+    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+            Atom::ERROR );
+    const uint8_t code { _hostByteOrder( encoding->header.code, byteswap ) };
     assert( code >= protocol::errors::codes::MIN &&
-              code <= protocol::errors::codes::MAX );
+            code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == Atom::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -230,21 +239,21 @@ X11ProtocolParser::_parseError<
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "error", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.error ), ws.separator ),
+            _formatVariable( encoding->header.error, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.code ), ws.separator ),
+            _formatVariable( encoding->header.code, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
-            _formatVariable( encoding->header.sequence_num ), ws.separator ),
+            _formatVariable( encoding->header.sequence_num, byteswap ), ws.separator ),
         ws.memb_indent, "(bad atom id)", memb_name_w, ws.equals,
-        _formatVariable( encoding->bad_atom_id ), ws.separator,
+        _formatVariable( encoding->bad_atom_id, byteswap ), ws.separator,
         ws.memb_indent, "(minor opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->minor_opcode ), ws.separator,
+        _formatVariable( encoding->minor_opcode, byteswap ), ws.separator,
         ws.memb_indent, "(major opcode)", memb_name_w, ws.equals,
-        _formatVariable( encoding->major_opcode ), ws.separator,
+        _formatVariable( encoding->major_opcode, byteswap ), ws.separator,
         ws.encl_indent
         );
     return error;
@@ -366,10 +375,13 @@ X11ProtocolParser::_logError(
     assert( data != nullptr );
     assert( sz >= sizeof( Error::Encoding ) );
 
+    const bool byteswap { conn->byteswap };
     const Error::Encoding* encoding {
         reinterpret_cast< const Error::Encoding* >( data ) };
-    assert( encoding->header.error == Error::ERROR );
-    const uint8_t code { encoding->header.code };
+    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+            Error::ERROR );
+    const uint8_t code {
+        _hostByteOrder( encoding->header.code, byteswap ) };
 
     _ParsingOutputs error;
     switch ( code ) {
@@ -452,6 +464,7 @@ X11ProtocolParser::_logError(
                   protocol::errors::names.at( code ), code,
                   error.str );
     // presume that no more messages will relate to this request
-    conn->unregisterRequest( encoding->header.sequence_num );
+    conn->unregisterRequest(
+        _hostByteOrder( encoding->header.sequence_num, byteswap ) );
     return error.bytes_parsed;
 }
