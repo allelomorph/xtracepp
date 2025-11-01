@@ -609,15 +609,8 @@ private:
     size_t _logServerPacket(
         Connection* conn, uint8_t* data, const size_t sz );
 
-    size_t _logConnInitiation(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConnRefusal(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConnRequireFurtherAuthentication(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConnAcceptance(
-        Connection* conn, const uint8_t* data, const size_t sz );
-    size_t _logConnResponse(
+    template< typename ConnectionSetupT >
+    size_t _logConnectionSetup(
         Connection* conn, const uint8_t* data, const size_t sz );
 
     template< typename RequestT >

@@ -359,7 +359,7 @@ X11ProtocolParser::_formatVariable(
 template<>
 std::string
 X11ProtocolParser::_formatVariable(
-    const protocol::connection_setup::ConnAcceptance::FORMAT format,
+    const protocol::connection_setup::Acceptance::FORMAT format,
     const bool byteswap, const _Whitespace& ws ) {
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : sizeof( "bits-per-pixel" ) - 1 );
@@ -381,11 +381,11 @@ X11ProtocolParser::_formatVariable(
 template<>
 std::string
 X11ProtocolParser::_formatVariable(
-    const protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::\
+    const protocol::connection_setup::Acceptance::SCREEN::DEPTH::\
     VISUALTYPE visualtype, const bool byteswap,
     const _Whitespace& ws ) {
     using VISUALTYPE =
-        protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH::VISUALTYPE;
+        protocol::connection_setup::Acceptance::SCREEN::DEPTH::VISUALTYPE;
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : sizeof( "bits-per-rgb-value" ) - 1 );
     return fmt::format(

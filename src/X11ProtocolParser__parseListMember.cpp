@@ -112,11 +112,11 @@ X11ProtocolParser::_parseListMember<
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
-    protocol::connection_setup::ConnAcceptance::SCREEN >(
+    protocol::connection_setup::Acceptance::SCREEN >(
         const uint8_t* data, const size_t sz, const bool byteswap,
         const _Whitespace& ws ) {
     using SCREEN =
-        protocol::connection_setup::ConnAcceptance::SCREEN;
+        protocol::connection_setup::Acceptance::SCREEN;
     assert( data != nullptr );
     assert( sz >= sizeof( SCREEN::Encoding ) );
 
@@ -193,10 +193,10 @@ X11ProtocolParser::_parseListMember<
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
-    protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH >(
+    protocol::connection_setup::Acceptance::SCREEN::DEPTH >(
         const uint8_t* data, const size_t sz, const bool byteswap,
         const _Whitespace& ws ) {
-    using DEPTH = protocol::connection_setup::ConnAcceptance::SCREEN::DEPTH;
+    using DEPTH = protocol::connection_setup::Acceptance::SCREEN::DEPTH;
     assert( data != nullptr );
     assert( sz >= sizeof( DEPTH::Encoding ) );
 

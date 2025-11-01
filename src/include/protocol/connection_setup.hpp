@@ -8,7 +8,7 @@ namespace protocol {
 
 namespace connection_setup {
 
-struct ConnInitiation {
+struct Initiation {
     struct [[gnu::packed]] Encoding {
         CARD8    byte_order;              // MSBFIRST or LSBFIRST
     private:
@@ -33,7 +33,7 @@ struct ConnInitiation {
         protocol::enum_names::byte_order };
 };
 
-struct ConnResponse {
+struct Response {
     struct [[gnu::packed]] Header {
         uint8_t  success;
     private:
@@ -55,10 +55,10 @@ struct ConnResponse {
         "Authenticate"
     };
 
-    virtual ~ConnResponse() = 0;
+    virtual ~Response() = 0;
 };
 
-struct ConnRefusal : public ConnResponse {
+struct Refusal : public Response {
     struct [[gnu::packed]] Header {
         uint8_t  success;                  // 0 ServerResponse::FAILED
         uint8_t  reason_len;               // reason length in bytes
@@ -69,12 +69,12 @@ struct ConnRefusal : public ConnResponse {
     // followed by STRING8 reason pad(Header.reason_len * 4)
 };
 
-struct ConnRequireFurtherAuthentication : public ConnResponse {
+struct RequireFurtherAuthentication : public Response {
     // Header.success == 2 connection_setup::AUTHENTICATE
     // followed by STRING8 reason (Header.following_aligned_units * 4)B
 };
 
-struct ConnAcceptance : public ConnResponse {
+struct Acceptance : public Response {
     struct [[gnu::packed]] Header {
         uint8_t  success;                  // 1 ServerResponse::SUCCESS
     private:

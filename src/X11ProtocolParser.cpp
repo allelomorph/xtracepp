@@ -63,20 +63,18 @@ size_t X11ProtocolParser::_logClientPacket(
     assert( data != nullptr );
     assert( sz > 0 );
     assert( conn->status != Connection::CLOSED &&
-              conn->status != Connection::FAILED );
+            conn->status != Connection::FAILED );
 
     size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
-        assert( sz >=
-                  sizeof( protocol::connection_setup::ConnInitiation::Encoding ) );
-        bytes_parsed = _logConnInitiation( conn, data, sz );
+        bytes_parsed = _logConnectionSetup<
+            protocol::connection_setup::Initiation >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
         // authentication negotiation
         break;
     case Connection::OPEN:
-        assert( sz >= sizeof( protocol::requests::Request::Header ) );
         bytes_parsed = _logRequest( conn, data, sz );
         break;
     default:
@@ -92,20 +90,22 @@ size_t X11ProtocolParser::_logServerPacket(
     assert( data != nullptr );
     assert( sz > 0 );
     assert( conn->status != Connection::CLOSED &&
-              conn->status != Connection::FAILED );
+            conn->status != Connection::FAILED );
 
     size_t bytes_parsed {};
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
-        bytes_parsed = _logConnResponse( conn, data, sz );
+        bytes_parsed = _logConnectionSetup<
+            protocol::connection_setup::Response >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
         // TBD authentication negotiation, not sure how to parse packets
         break;
     case Connection::OPEN: {
         assert( sz >= sizeof( protocol::Response::Header ) );
-        switch ( reinterpret_cast< const protocol::Response::Header* >(
-                     data )->prefix ) {
+        switch ( _hostByteOrder(
+                     reinterpret_cast< const protocol::Response::Header* >(
+                         data )->prefix, conn->byteswap ) ) {
         case protocol::Response::ERROR_PREFIX:
             bytes_parsed = _logError( conn, data, sz );
             assert( bytes_parsed == protocol::errors::Error::ENCODING_SZ );

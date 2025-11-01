@@ -60,9 +60,9 @@ bool ProxyX11Server::_authenticateServerConnection(
     const int server_fd, protocol::WINDOW* screen0_root/* = nullptr*/ ) {
 
     SocketBuffer sbuffer;
-    using protocol::connection_setup::ConnInitiation;
-    ConnInitiation::Encoding init_encoding {};
-    init_encoding.byte_order = ConnInitiation::LSBFIRST;
+    using protocol::connection_setup::Initiation;
+    Initiation::Encoding init_encoding {};
+    init_encoding.byte_order = Initiation::LSBFIRST;
     init_encoding.protocol_major_version = protocol::MAJOR_VERSION;
     init_encoding.protocol_minor_version = protocol::MINOR_VERSION;
     init_encoding.name_len = _AUTH_NAME.size();
@@ -92,12 +92,12 @@ bool ProxyX11Server::_authenticateServerConnection(
         return false;
     }
     sbuffer.read( server_fd );
-    using protocol::connection_setup::ConnResponse;
-    using protocol::connection_setup::ConnAcceptance;
-    assert( sbuffer.size() >= sizeof( ConnAcceptance::Header ) );
-    ConnAcceptance::Header accept_header {};
-    sbuffer.unload( &accept_header, sizeof( ConnAcceptance::Header ) );
-    if ( accept_header.success != ConnResponse::SUCCESS )
+    using protocol::connection_setup::Response;
+    using protocol::connection_setup::Acceptance;
+    assert( sbuffer.size() >= sizeof( Acceptance::Header ) );
+    Acceptance::Header accept_header {};
+    sbuffer.unload( &accept_header, sizeof( Acceptance::Header ) );
+    if ( accept_header.success != Response::SUCCESS )
         return false;
     if ( accept_header.protocol_major_version !=
          init_encoding.protocol_major_version )
@@ -107,17 +107,17 @@ bool ProxyX11Server::_authenticateServerConnection(
         return false;
     assert( sbuffer.size() == _parser.alignment.size(
                   accept_header.following_aligned_units ) );
-    ConnAcceptance::Encoding accept_encoding {};
-    sbuffer.unload( &accept_encoding, sizeof( ConnAcceptance::Encoding ) );
+    Acceptance::Encoding accept_encoding {};
+    sbuffer.unload( &accept_encoding, sizeof( Acceptance::Encoding ) );
     // skip over vendor
     sbuffer.unload( _parser.alignment.pad( accept_encoding.vendor_len ) );
     // skip over pixmap-formats
     sbuffer.unload( accept_encoding.pixmap_formats_ct *
-                    sizeof( ConnAcceptance::FORMAT ) );
+                    sizeof( Acceptance::FORMAT ) );
     // get WINDOW for root window of first screen
     assert( accept_encoding.roots_ct >= 1 );
-    ConnAcceptance::SCREEN::Encoding screen_encoding;
-    sbuffer.unload( &screen_encoding, sizeof( ConnAcceptance::SCREEN::Encoding ) );
+    Acceptance::SCREEN::Encoding screen_encoding;
+    sbuffer.unload( &screen_encoding, sizeof( Acceptance::SCREEN::Encoding ) );
     if ( screen0_root != nullptr )
         *screen0_root = screen_encoding.root;
     sbuffer.clear();
