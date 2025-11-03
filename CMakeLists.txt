@@ -10,6 +10,11 @@ xtrace C source by Bernhard Link et al.."
 
 #set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(Getcmake_utils)
 include(Getfmt)
+
 add_subdirectory(src)
-add_subdirectory(test)
+
+if(XTRACEPP_BUILD_TESTING)
+  add_subdirectory(test)
+endif()
