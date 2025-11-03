@@ -238,7 +238,8 @@ private:
                 return false;
             if ( names.empty() )
                 return false;
-            return ( val >= min && val <= max );
+            return ( std::make_unsigned_t< IntT >( val ) >= min &&
+                     std::make_unsigned_t< IntT >( val ) <= max );
         }
         template< typename IntT,
                   std::enable_if_t< std::is_integral_v< IntT >, bool > = true >

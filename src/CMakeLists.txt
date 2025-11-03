@@ -1,6 +1,10 @@
 # newest features used: TBD
 cmake_minimum_required(VERSION 3.14)
 
+if(NOT COMMAND set_strict_compile_options)
+  include(SetStrictCompileOptions)
+endif()
+
 add_executable(xtracepp
   bufferHexDump.cpp
   errors.cpp
@@ -19,6 +23,13 @@ add_executable(xtracepp
   X11ProtocolParser__logEvent.cpp
   X11ProtocolParser__logReply.cpp
   X11ProtocolParser__parseListMember.cpp
+)
+
+set_strict_compile_options(xtracepp)
+set_target_properties(xtracepp PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
 )
 
 target_include_directories(xtracepp PRIVATE

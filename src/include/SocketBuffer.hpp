@@ -20,7 +20,9 @@
 
 class SocketBuffer {
 private:
-    static constexpr int _BLOCK_SZ { 2048 };
+    static constexpr size_t _BLOCK_SZ { 2048 };
+    static constexpr size_t _READ_ALL { std::numeric_limits< size_t >::max() };
+
     static constexpr int _MSG_NONE { 0 };
 
     std::vector<uint8_t> _buffer;

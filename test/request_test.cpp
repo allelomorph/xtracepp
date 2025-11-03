@@ -807,9 +807,10 @@ int main( const int argc, const char* const* argv ) {
     case STORECOLORS:              {  //  89
         const xcb_colormap_t  cmap      {};
         const uint32_t        items_len { 2 };
+        // TBD use C++20 for member dot initialization
         const xcb_coloritem_t items[2]  {
-            { 1, 2, 3, 4, XCB_COLOR_FLAG_GREEN },
-            { 5, 6, 7, 8, XCB_COLOR_FLAG_RED | XCB_COLOR_FLAG_BLUE },
+            { 1, 2, 3, 4, XCB_COLOR_FLAG_GREEN, /*pad0*/0 },
+            { 5, 6, 7, 8, XCB_COLOR_FLAG_RED | XCB_COLOR_FLAG_BLUE, /*pad0*/0 }
         };
         xcb_store_colors(
             connection, cmap, items_len, items );
@@ -843,8 +844,6 @@ int main( const int argc, const char* const* argv ) {
         const xcb_cursor_t cid         {};
         const xcb_pixmap_t source      {};
         const xcb_pixmap_t mask        {};
-        const uint16_t     source_char {};
-        const uint16_t     mask_char   {};
         const uint16_t     fore_red    {};
         const uint16_t     fore_green  {};
         const uint16_t     fore_blue   {};

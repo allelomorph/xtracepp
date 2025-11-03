@@ -6429,7 +6429,7 @@ X11ProtocolParser::_parseRequest<
     assert( sz >= NoOperation::BASE_ENCODING_SZ );
 
     _ParsingOutputs request {};
-    const _Whitespace& ws { ws };
+    const _Whitespace& ws { _ROOT_WS };
     const bool byteswap { conn->byteswap };
     const NoOperation::Header* header {
         reinterpret_cast< const NoOperation::Header* >( data ) };

@@ -23,18 +23,23 @@
 size_t SocketBuffer::write( const int sockfd,
                             const size_t bytes_to_write ) {
     assert( bytes_to_write <= size() );
-    ssize_t bytes_written { ::send(
+    const ssize_t send_sz_ { ::send(
             sockfd, data(), bytes_to_write, _MSG_NONE ) };
-    if ( bytes_written == -1 ) {
+    if ( send_sz_ == -1 ) {
         throw errors::system::exception(
             fmt::format( "{}: {}", __PRETTY_FUNCTION__, "send" ) );
     }
-    assert( static_cast< size_t >( bytes_written ) == bytes_to_write );
+    const size_t send_sz ( send_sz_ );
+    assert( send_sz == bytes_to_write );
     // bytes written removed (hidden) from front of buffer
-    _bytes_written += bytes_written;
+    _bytes_written += send_sz;
     if ( _bytes_written == _bytes_read )
         clear();
-    return bytes_written;
+    return send_sz;
+}
+
+size_t SocketBuffer::write( const int sockfd ) {
+    return write( sockfd, size() );
 }
 
 // TBD direct manual buffer unload for simple clients used during init
@@ -59,31 +64,29 @@ size_t SocketBuffer::unload( const size_t bytes_to_unload ) {
     return bytes_to_unload;
 }
 
-size_t SocketBuffer::write( const int sockfd ) {
-    return write( sockfd, size() );
-}
-
 // TBD determine if append reads are necessary
 //   (can we guarantee that the server or client will always alternately flag read/write readiness?)
 size_t SocketBuffer::read( const int sockfd,
                            const size_t bytes_to_read ) {
-    assert( _bytes_available > 0 );
     size_t tl_bytes_read {};
-    ssize_t bytes_read {};
-    while ( true ) {
-        bytes_read = ::recv(
-            sockfd, _buffer.data() + ( _buffer.size() - _bytes_available ),
-            _bytes_available, _MSG_NONE );
-        if ( bytes_read == -1 ) {
+    while ( tl_bytes_read < bytes_to_read ) {
+        const size_t max_recv_sz {
+            std::min( bytes_to_read - tl_bytes_read, _bytes_available ) };
+        const ssize_t recv_sz_ {
+            ::recv( sockfd, _buffer.data() + ( _buffer.size() - _bytes_available ),
+                    max_recv_sz, _MSG_NONE ) };
+        if ( recv_sz_ == -1 ) {
             throw errors::system::exception(
                 fmt::format( "{}: {}", __PRETTY_FUNCTION__, "recv" ) );
         }
-        tl_bytes_read += bytes_read;
-        if ( bytes_read == _bytes_available ) {
+        const size_t recv_sz ( recv_sz_ );
+        assert( recv_sz <= max_recv_sz );
+        tl_bytes_read += recv_sz;
+        if ( recv_sz == _bytes_available ) {
             _buffer.resize( _buffer.size() + _BLOCK_SZ );
             _bytes_available = _BLOCK_SZ;
         } else {
-            _bytes_available -= bytes_read;
+            _bytes_available -= recv_sz;
             break;
         }
     }
@@ -96,7 +99,7 @@ size_t SocketBuffer::read( const int sockfd ) {
         _buffer.resize( _buffer.size() + _BLOCK_SZ );
         _bytes_available = _BLOCK_SZ;
     }
-    return read( sockfd, _bytes_available );
+    return read( sockfd, _READ_ALL );
 }
 
 // TBD direct manual buffer load for simple clients used during init
@@ -105,8 +108,8 @@ size_t SocketBuffer::load( const void* input,
     assert( input != nullptr );
     assert( _bytes_available > 0 );
     size_t tl_bytes_loaded {};
-    while ( true ) {
-        size_t segment_sz {
+    while ( tl_bytes_loaded < bytes_to_load ) {
+        const size_t segment_sz {
             std::min( bytes_to_load - tl_bytes_loaded, _bytes_available ) };
         ::memcpy( _buffer.data() + ( _buffer.size() - _bytes_available ),
                   input, segment_sz );

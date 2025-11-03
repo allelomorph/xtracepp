@@ -23,7 +23,7 @@
 static void pollSingleSocket(
     const int socket_fd, const short events, int timeout = -1 ) {
     assert( events == POLLIN || events == POLLOUT ||
-              events == POLLIN | POLLOUT );
+            events == ( POLLIN | POLLOUT ) );
     const      nfds_t   nfds { 1 };
     /*struct */pollfd   pfds[1];
     pfds[0].fd = socket_fd;
