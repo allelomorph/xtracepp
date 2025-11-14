@@ -30,17 +30,10 @@ struct Category final : public std::error_category {
     name() const noexcept final;
 
     std::string
-    message( int i ) const final;
+    message( const int code ) const final;
 };
 
 }  // namespace errors::getaddrinfo::detail
-
-const std::error_category& category();
-
-inline const std::error_code
-errorCode( const int e ) {
-    return std::error_code{ e, category() };
-}
 
 std::string
 message( const int gai_ret, const std::string& msg = {} );

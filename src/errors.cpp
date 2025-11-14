@@ -193,8 +193,8 @@ Category::name() const noexcept {
 }
 
 std::string
-Category::message( int i ) const {
-    return ::gai_strerror( i );
+Category::message( const int code ) const {
+    return ::gai_strerror( code );
 }
 
 static const std::unordered_map<
@@ -221,11 +221,6 @@ static const std::unordered_map<
 
 }  // namepace errors::getaddrinfo::detail
 
-const std::error_category& category() {
-    static detail::Category instance;
-    return instance;
-}
-
 std::string
 message( const int gai_ret, const std::string& msg/* = {}*/ ) {
     assert( gai_ret < 0 );
@@ -238,8 +233,9 @@ message( const int gai_ret, const std::string& msg/* = {}*/ ) {
 const std::system_error
 exception( const int gai_ret, const std::string& msg/* = {}*/ ) {
     assert( gai_ret < 0 );
+    static const detail::Category category {};
     return std::system_error(
-        errorCode( gai_ret ), message( gai_ret, msg ) );
+        std::error_code{ gai_ret, category }, message( gai_ret, msg ) );
 }
 
 
