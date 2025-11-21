@@ -193,8 +193,8 @@ Category::name() const noexcept {
 }
 
 std::string
-Category::message( const int code ) const {
-    return ::gai_strerror( code );
+Category::message( const int gai_ret ) const {
+    return ::gai_strerror( gai_ret );
 }
 
 static const std::unordered_map<

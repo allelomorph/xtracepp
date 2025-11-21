@@ -1,6 +1,9 @@
 #ifndef X11PROTOCOLPARSER_HPP
 #define X11PROTOCOLPARSER_HPP
 
+/**
+ * @file X11ProtocolParser.hpp
+ */
 
 #include <tuple>          // tuple_size
 #include <string>
@@ -25,41 +28,81 @@
 #include "protocol/connection_setup.hpp"
 
 
+/**
+ * @brief Parses server and client data packets sent encoded in the X11 protocol,
+ *   logging them to an output file stream.
+ */
 class X11ProtocolParser {
 private:
-    ////// Encoding Memory Alignment
-
-    // https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Syntactic_Conventions_b
-    // "where E is some expression, and pad(E) is the number of bytes needed to
-    //   round E up to a multiple of four."
+    /**
+     * @brief Calculator for converting raw byte counts to and from 4-byte
+     *   [alignment units] commonly used in encoding.
+     * [alignment units]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Syntactic_Conventions_b
+     */
     class _Alignment {
     private:
+        /**
+         * @brief Alignment size in bytes.
+         */
         static constexpr size_t _ALIGN { 4 };
 
     public:
+        /**
+         * @brief Pads a raw byte count to nearest larger multiple of 4.
+         * @param sz raw byte count
+         * @return sz padded to aligned size (nearest larger multiple of 4)
+         */
         inline size_t pad( const size_t sz ) {
             return sz + ( ( _ALIGN - ( sz % _ALIGN ) ) % _ALIGN );
         }
+        /**
+         * @brief Converts a raw byte count to alignment unit count once padded.
+         * @param sz raw byte count
+         * @return padded sz in alignment units
+         */
         inline size_t units( const size_t sz ) {
             return pad( sz ) / _ALIGN;
         }
+        /**
+         * @brief Converts alignment unit count to byte count.
+         * @param units alignment unit count
+         * @return units in bytes
+         */
         inline size_t size( const size_t units ) {
             return units * _ALIGN;
         }
     };
-
-
-    ////// Atom Internment
-
+    /**
+     * @brief Bundles [connection](#Connection) ID and request sequence number
+     *   to create unique server-wide ID for any request made.
+     * @ingroup atom_internment
+     */
     struct _StashedStringID {
+        /**
+         * @brief [Connection](#Connection) unique serial number.
+         */
         uint32_t conn_id {};
+        /**
+         * @brief Request serial number, unique for a on a given
+         *   [connection](#Connection).
+         */
         uint16_t seq_num {};
-
+        /**
+         * @brief Equivalence operator to allow use as a hashmap key.
+         */
         bool operator==( const _StashedStringID& other ) const {
             return this->conn_id == other.conn_id &&
                 this->seq_num == other.seq_num;
         }
+        /**
+         * @brief Hashing functor to allow use as a hashmap key.
+         */
         struct Hash {
+            /**
+             * @brief Function call operator to allow use as a functor.
+             */
+            // TBD is there a better way to combine hashes?
+            //   - https://stackoverflow.com/questions/35985960/
             size_t operator()( const _StashedStringID& sa_id ) const noexcept {
                 const size_t h1 { std::hash<uint32_t>{}( sa_id.conn_id ) };
                 const size_t h2 { std::hash<uint16_t>{}( sa_id.seq_num ) };
@@ -67,48 +110,113 @@ private:
             }
         };
     };
-    // Temporary storage of strings defined in requests that are then needed for
-    //   operations in the corresponding reply (eg InternAtom and QueryExtension.)
-    //   Indexed by combination of connection ID + sequence number of request.
+    /**
+     * @brief Temporary storage for strings defined in requests that are then
+     *  later needed for when parsing the corresponding reply (eg InternAtom
+     *   and QueryExtension).
+     * @ingroup atom_internment
+     */
     std::unordered_map< _StashedStringID, std::string_view,
                         _StashedStringID::Hash >
     _stashed_strings;
-
-    // Internment of strings at least partially mirroring that of actual X
-    //   server, indexed by ATOM. Should contain:
-    //   - all protocol predefined atoms (1 "PRIMARY" - 68 "WM_TRANSIENT_FOR")
-    //   - any atoms in InternAtom requests made by any client during main queue
-    //   - optionally with --prefetchatoms, all server interned strings in the
-    //     first contiguous range of ATOMs starting with 1
-    std::unordered_map< uint32_t, std::string > _interned_atoms;
-
+    /**
+     * @brief Temporarily store a string encoded in a request that will be
+     *   needed when parsing its reply.
+     * @param ss_id unique identifier combining connection id + request
+     *   sequence number
+     * @param str string to be stored
+     * @ingroup atom_internment
+     */
     void
     _stashString( const _StashedStringID ss_id, const std::string_view str );
+    /**
+     * @brief Internment of strings at least partially mirroring that of actual
+     *   X server, indexed by ATOM.
+     * Should contain:
+     *   - all protocol predefined atoms (1 "PRIMARY" - 68 "WM_TRANSIENT_FOR")
+     *   - any atoms in InternAtom requests made by any client during main queue
+     *   - optionally with --prefetchatoms, all server interned strings in the
+     *     first contiguous range of ATOMs starting with 1
+     * @ingroup atom_internment
+     */
+    std::unordered_map< uint32_t, std::string > _interned_atoms;
+    /**
+     * @brief Moves string from temporary storage to local internment as atom.
+     * @param sa_id unique identifier for combining connection id + request
+     *   sequence number
+     * @param atom ATOM XId to map string onto
+     * @ingroup atom_internment
+     */
     void
     _internStashedAtom( const _StashedStringID sa_id, const protocol::ATOM atom );
 
-
-    ////// Non-data Text Formatting
-
 public:
-    // made accessible to ProxyX11Server for use in error messages
+    // CLIENT_TO_SERVER and SERVER_TO_CLIENT need to be accessible to
+    //   ProxyX11Server for use in error messages
+    /**
+     * @brief Log formatting token indicating X server-bound packet.
+     * @ingroup non_data_text_formatting
+     */
     static constexpr std::string_view CLIENT_TO_SERVER { "s<c" };
+    /**
+     * @brief Log formatting token indicating client-bound packet.
+     * @ingroup non_data_text_formatting
+     */
     static constexpr std::string_view SERVER_TO_CLIENT { "s>c" };
 
 private:
+    /**
+     * @brief Manages variable whitespace and formatting based on
+     *   [verbosity](#Settings::verbose) and parentheses nesting depth.
+     * @ingroup non_data_text_formatting
+     */
     class _Whitespace {
     private:
-        static constexpr uint8_t _TAB_SZ { 2 };  // in spaces/bytes
+        /**
+         * @brief Tab size in space chars/bytes.
+         */
+        static constexpr uint8_t _TAB_SZ { 2 };
+        /**
+         * @brief Number of tabs a struct/list/array member should be indented
+         *   from its brackets/parentheses.
+         */
         static constexpr uint8_t _MEMBER_TAB_OFFSET  { 1 };
+        /**
+         * @brief Number of tabs a nested struct/list/array should be indented
+         *   from its parent.
+         */
         static constexpr uint8_t _NESTING_TAB_OFFSET { 1 };
-
+        /**
+         * @brief Equals sign token when in singleline mode
+         *   ([multiline](#Settings::multiline) is `false`).
+         */
         static constexpr std::string_view _SL_EQUALS    { "=" };
+        /**
+         * @brief General separator token when in singleline mode
+         *   ([multiline](#Settings::multiline) is `false`).
+         */
         static constexpr std::string_view _SL_SEPARATOR { " " };
+        /**
+         * @brief Equals sign token when in multiline mode
+         *   ([multiline](#Settings::multiline) is `true`).
+         */
         static constexpr std::string_view _ML_EQUALS    { " = " };
+        /**
+         * @brief General separator token when in multiline mode
+         *   ([multiline](#Settings::multiline) is `true`).
+         */
         static constexpr std::string_view _ML_SEPARATOR { "\n" };
-
+        /**
+         * @brief Records [multiline](#Settings::multiline) setting used in root
+         *   nesting level, and by default in all other nesting levels.
+         */
         bool _default_multiline {};
-
+        /**
+         * @brief Private ctor used to implement [nested](#nested).
+         * @param base_tab_ct_ tab count at current nesting level
+         * @param default_multiline_ multiline setting of nesting root
+         * @param multiline_ (arbitrary) multiline setting of current nesting level
+         */
         _Whitespace( const uint8_t base_tab_ct_, const bool default_multiline_,
                      const bool multiline_ ) :
             _default_multiline( default_multiline_ ),
@@ -120,7 +228,11 @@ private:
                 !multiline_ ? "" : _tabIndent( base_tab_ct + _MEMBER_TAB_OFFSET ) ),
             equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
             separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
-
+        /**
+         * @brief Generates indentation tokens.
+         * @param tab_ct tab count of indent
+         * @return indentation token
+         */
         inline std::string_view
         _tabIndent( const uint8_t tab_ct ) {
             static constexpr std::string_view WHITESPACE {
@@ -133,14 +245,38 @@ private:
         }
 
     public:
+        /**
+         * @brief Multiline setting of current nesting level.
+         */
         bool             multiline   {};
+        /**
+         * @brief Tab count at current nesting level.
+         */
         uint8_t          base_tab_ct {};
+        /**
+         * @brief Indentation token for struct/list/array brackets/parentheses
+         *   at current nesting level.
+         */
         std::string_view encl_indent;
+        /**
+         * @brief Indentation token for struct/list/array members at current
+         *   nesting level.
+         */
         std::string_view memb_indent;
+        /**
+         * @brief Equals sign token.
+         */
         std::string_view equals;
+        /**
+         * @brief General separator token.
+         */
         std::string_view separator;
-
         _Whitespace() = delete;
+        /**
+         * @brief Primary ctor.
+         * @param base_tab_ct_ tab count at current nesting level
+         * @param multiline_ (arbitrary) multiline setting of current nesting level
+         */
         _Whitespace( const uint8_t base_tab_ct_, const bool multiline_ ) :
             _default_multiline( multiline_ ),
             multiline( multiline_ ),
@@ -151,8 +287,17 @@ private:
                 !multiline_ ? "" : _tabIndent( base_tab_ct_ + _MEMBER_TAB_OFFSET ) ),
             equals( multiline_ ? _ML_EQUALS : _SL_EQUALS ),
             separator( multiline_ ? _ML_SEPARATOR : _SL_SEPARATOR ) {}
-
+        /**
+         * @brief Constants used to sweeten the syntax of [nested](#nested)
+         *   parameter `force_singleline`.
+         */
         enum { DEFAULT, FORCE_SINGLELINE };
+        /**
+         * @brief Create new _Whitespace at the next nesting level.
+         * @param force_singleline whether to arbitrarily format next nesting
+         *   level as singleline
+         * @return new _Whitespace at the next nesting level
+         */
         inline _Whitespace
         nested( const bool force_singleline = DEFAULT ) const {
             return _Whitespace (
@@ -162,18 +307,32 @@ private:
                 false : _default_multiline );
         }
     };
+    /**
+     * @brief Whitespace format for parentheses nesting depth 0.
+     * @ingroup non_data_text_formatting
+     */
     _Whitespace _ROOT_WS { 0, settings.multiline };
-
-
-    ////// Individual Data Field Formatting
-
+    /**
+     * @brief Determines field width in characters for fmt library printing of
+     *   "{:#0x}"
+     * @tparam ScalarT scalar type of val
+     * @param val scalar to format
+     * @ingroup individual_data_field_formatting
+     */
     template< typename ScalarT,
               std::enable_if_t< std::is_scalar_v< ScalarT >, bool > = true >
     inline constexpr size_t _fmtHexWidth( const ScalarT val ) {
         // fmt counts "0x" as part of width when using '#'
         return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
     }
-
+    // TBD caret in template params ruins Doxygen parsing
+    /**
+     * @brief Byteswaps an integral value depending on params.
+     * @tparam IntegralT integral type of val, up to 4 bytes
+     * @param val integral to byteswap
+     * @param byteswap whether to byteswap
+     * @ingroup individual_data_field_formatting
+     */
     template< typename IntT,
               std::enable_if_t< std::is_integral_v< IntT > &&
                                 sizeof( IntT ) <= sizeof( uint32_t ),
@@ -189,16 +348,31 @@ private:
         }
         return val;  // sizeof( uint8_t )
     }
-
+    /**
+     * @brief Describes range for which a value has enum names.
+     * @ingroup individual_data_field_formatting
+     */
     class _EnumNameRange {
     public:
+        /**
+         * @brief Differentiates lower and upper bounds when using single-bound
+         *   ctor.
+         */
         enum class Bound { MIN, MAX };
 
     private:
+        /**
+         * @brief Sentinel to indicate uninitialized bounds.
+         */
         static constexpr uint32_t _UNINIT {
             std::numeric_limits< uint32_t >::max() };
+        /**
+         * @brief Sentinel to indicate empty name array.
+         */
         inline static const std::vector< std::string_view > _NO_NAMES {};
-
+        /**
+         * @brief Implementation of corresponding ctor.
+         */
         _EnumNameRange
         _ctorHelper( const std::vector< std::string_view >& names_,
                      const Bound bound, const uint32_t value ) {
@@ -207,17 +381,32 @@ private:
             assert( bound == Bound::MAX );
             return _EnumNameRange( names_, 0, value );
         }
+        /**
+         * @brief Implementation of corresponding ctor.
+         */
         _EnumNameRange
         _ctorHelper( const std::vector< std::string_view >& names_ ) {
             return _EnumNameRange( names_, 0, names_.size() - 1 );
         }
 
     public:
+        /**
+         * @brief Enum names by value.
+         */
         const std::vector< std::string_view >& names { _NO_NAMES };
+        /**
+         * @brief Minimum enum value used.
+         */
         uint32_t min { _UNINIT };
+        /**
+         * @brief Maximum enum value used.
+         */
         uint32_t max { _UNINIT };
 
         _EnumNameRange() {}
+        /**
+         * @brief Ctor to define both lower and upper bound of enum values.
+         */
         _EnumNameRange( const std::vector< std::string_view >& names_,
                         const uint32_t min_, const uint32_t max_ ) :
             names( names_ ), min( min_ ), max( max_ ) {
@@ -225,12 +414,23 @@ private:
             assert( max < names_.size() );
             assert( min <= max );
         }
+        /**
+         * @brief Ctor to define either lower and upper bound of enum values.
+         */
         _EnumNameRange( const std::vector< std::string_view >& names_,
                         const Bound bound, const uint32_t value ) :
             _EnumNameRange( _ctorHelper( names_, bound, value ) ) {}
+        /**
+         * @brief Ctor implying all enum values in names array used.
+         */
         _EnumNameRange( const std::vector< std::string_view >& names_ ) :
             _EnumNameRange( _ctorHelper( names_ ) ) {}
-
+        /**
+         * @brief Determines if a value is in the range.
+         * @tparam IntT integral type of val
+         * @param val integral to test
+         * @return whether value is in range
+         */
         template< typename IntT,
                   std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
         inline bool in( const IntT val ) const {
@@ -241,28 +441,59 @@ private:
             return ( std::make_unsigned_t< IntT >( val ) >= min &&
                      std::make_unsigned_t< IntT >( val ) <= max );
         }
+        /**
+         * @brief Finds enum name at value.
+         * @tparam IntT integral type of val
+         * @param val integral to find in range
+         * @return enum name at value, or empty string if out of range
+         */
         template< typename IntT,
                   std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
         inline std::string_view at( const IntT val ) const {
             return in( val ) ? names[ val ] : "";
         }
+        /**
+         * @brief Determines if range is empty.
+         * @return whether range is empty
+         */
         inline bool empty() const {
             return names.empty();
         }
     };
-
+    /**
+     * @brief Bundles enum name range and bitmask status to be passed into
+     *   higher-level parsing functions.
+     * @ingroup individual_data_field_formatting
+     */
     struct _ValueTraits {
+        /**
+         * @brief Range of values with named enum.
+         */
         _EnumNameRange name_range {};
+        /**
+         * @brief Whether value should be parsed as a bitmask.
+         */
         bool           bitmask    { false };
-
+        /**
+         * @brief Syntax-sweetening constants for ctor param `bitmask`.
+         */
         enum { NOT_BITMASK, BITMASK };
         _ValueTraits() {}
         _ValueTraits( const _EnumNameRange name_range_,
                       const bool bitmask_ = NOT_BITMASK ) :
             name_range( name_range_ ), bitmask( bitmask_ ) {}
     };
-
-    // fundamental integers (and protocol aliases thereof)
+    /**
+     * @brief Format plain integers or protocol integer aliases (eg CARD8) based
+     *   on settings and params.
+     * @tparam IntT integral type of val
+     * @param encoded_val integral to format
+     * @param byteswap whether to byteswap before formatting
+     * @param name_range range of values for which `encoded_val` has enum name
+     * @param bitmask whether `encoded_val` is a bitmask
+     * @return formatted string representing `encoded_val`
+     * @ingroup individual_data_field_formatting
+     */
     template< typename IntT,
               std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
     std::string _formatVariable( const IntT encoded_val, const bool byteswap,
@@ -302,8 +533,15 @@ private:
             fmt::format( "{}({:d})", hex_str, val ) :
             fmt::format( "{:d}", val );
     }
-
-    // non-ATOM ResourceIds
+    /**
+     * @brief Format non-ATOM X ID/resource ID value based on settings and params.
+     * @tparam ResourceIdT non-ATOM protocol resource ID type (eg WINDOW)
+     * @param var variable to format
+     * @param byteswap whether to byteswap before formatting
+     * @param name_range range of values for which `var` has enum names
+     * @return formatted string representing `var`
+     * @ingroup individual_data_field_formatting
+     */
     template< typename ResourceIdT,
               std::enable_if_t<
                   std::is_base_of_v< protocol::impl::ResourceId, ResourceIdT > &&
@@ -315,21 +553,56 @@ private:
         assert( ( var.data & ResourceIdT::ZERO_BITS ) == 0 );
         return _formatVariable( var.data, byteswap, name_range );
     }
-
-    // only ResourceId with unique definition
+    /**
+     * @brief Format protocol type DRAWABLE based on settings and params.
+     * @param var DRAWABLE to format
+     * @param byteswap whether to byteswap before formatting
+     * @param name_range range of values for which `var` has enum names
+     * @return formatted string representing `var`
+     * @note DRAWABLE not appropriate for `ResourceIdT` template due to it being
+     *   implmented as a union of WINDOW and PIXMAP.
+     * @ingroup individual_data_field_formatting
+     */
     std::string _formatVariable( const protocol::DRAWABLE var,
                                  const bool byteswap,
                                  const _EnumNameRange name_range = {} );
-    // union of ResourceId
+    /**
+     * @brief Format protocol type FONTABLE based on settings and params.
+     * @param var FONTABLE to format
+     * @param byteswap whether to byteswap before formatting
+     * @param name_range range of values for which `var` has enum names
+     * @return formatted string representing `var`
+     * @note FONTABLE not appropriate for `ResourceIdT` template due to it being
+     *   implmented as a union of FONT and GCONTEXT.
+     * @ingroup individual_data_field_formatting
+     */
     std::string _formatVariable( const protocol::FONTABLE var,
                                  const bool byteswap,
                                  const _EnumNameRange name_range = {} );
-    // union of ResourceId
+    /**
+     * @brief Format protocol resource ID type ATOM based on settings and params.
+     * @param var ATOM to format
+     * @param byteswap whether to byteswap before formatting
+     * @param name_range range of values for which `var` has enum names
+     * @return formatted string representing `var`
+     * @note ATOM not appropriate for `ResourceIdT` template due to special
+     *   handling required for internment and stashing (see
+     *   [_internStashedAtom](#_internStashedAtom).)
+     * @ingroup individual_data_field_formatting
+     */
     std::string _formatVariable( const protocol::ATOM var,
                                  const bool byteswap,
                                  const _EnumNameRange name_range = {} );
-
-    // non-ResourceId protocol int types
+    /**
+     * @brief Format non-resource ID protocol integer type (eg TIMESTAMP) based
+     *   on settings and params.
+     * @tparam ProtocolIntT non-resource ID protocol integer type
+     * @param var to format
+     * @param byteswap whether to byteswap before formatting
+     * @param name_range range of values for which `var` has enum names
+     * @return formatted string representing `var`
+     * @ingroup individual_data_field_formatting
+     */
     template< typename ProtocolIntT,
               std::enable_if_t<
                   ( std::is_base_of_v< protocol::impl::Integer, ProtocolIntT > &&
@@ -338,8 +611,16 @@ private:
     std::string _formatVariable( const ProtocolIntT var,
                                  const bool byteswap,
                                  const _EnumNameRange name_range = {} );
-
-    // plain structs with no variable length suffixes
+    /**
+     * @brief Format simple (no variable length suffix) protocol struct types
+     *   (eg ARC) based on settings and params.
+     * @tparam ProtocolStructT simple protocol struct type
+     * @param var to format
+     * @param byteswap whether to byteswap before formatting
+     * @param ws whitespace formatting based on settings and indentation
+     * @return formatted string representing `var`
+     * @ingroup individual_data_field_formatting
+     */
     template< typename ProtocolStructT,
               std::enable_if_t<
                   std::is_base_of_v< protocol::impl::Struct, ProtocolStructT > &&
@@ -349,16 +630,30 @@ private:
     std::string _formatVariable( const ProtocolStructT var,
                                  const bool byteswap,
                                  const _Whitespace& ws );
-
-
-    ////// LISTof* Formatting
-
+    /**
+     * @brief Bundles formatted string output with count of bytes parsed into
+     *   single return type for higher-level parsing functions.
+     * @ingroup LISTofT_formatting
+     */
     struct _ParsingOutputs {
         std::string str       {};
         uint32_t bytes_parsed {};
     };
-
-    // fundamental integers (and protocol aliases thereof)
+    // TBD all overloads of _parseListMember currently break Doxygen by making
+    //   false links to `const`, `conn`, the `c"` at the end of
+    //   CLIENT_TO_SERVER and SERVER_TO_CLIENT, and more, all reference linking
+    //   to first overload of _parseListMember
+    /**
+     * @brief Parse plain integer or protocol integer alias (eg CARD8) from raw
+     *   bytes, based on settings and params.
+     * @tparam ProtocolT plain integer or protocol integer alias (eg CARD8)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param traits enum name range and bitmask status of `var`
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
     template< typename ProtocolT,
               std::enable_if_t< std::is_integral_v< ProtocolT >,
                                 bool > = true >
@@ -373,8 +668,19 @@ private:
                                   traits.name_range, traits.bitmask ),
                  sizeof( ProtocolT ) };
     }
-
     // protocol integer types (eg ResourceId, Bitmask)
+    /**
+     * @brief Parse protocol integer type (not alias) (eg WINDOW TIMESTAMP
+     *   SETofEVENT) from raw bytes, based on settings and params.
+     * @tparam ProtocolT protocol integer types (not aliases) (eg WINDOW
+     *   TIMESTAMP SETofEVENT)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param traits enum name range and bitmask status of `var`
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
     template< typename ProtocolT,
               std::enable_if_t<
                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
@@ -389,8 +695,17 @@ private:
         return { _formatVariable( memb, byteswap, traits.name_range ),
                  sizeof( ProtocolT ) };
     }
-
-    // plain structs with no variable length suffixes
+    /**
+     * @brief Parse simple (no variable length suffix) protocol struct type
+     *   (eg ARC) from raw bytes, based on settings and params.
+     * @tparam ProtocolStructT simple protocol struct integer type (eg ARC)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param ws whitespace formatting based on settings and indentation
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
     template< typename ProtocolStructT,
               std::enable_if_t<
                   std::is_base_of_v< protocol::impl::Struct, ProtocolStructT > &&
@@ -408,8 +723,19 @@ private:
         return { _formatVariable( memb, byteswap, ws ),
                  sizeof( ProtocolStructT ) };
     }
-
-    // plain structs with variable length suffixes + TEXTITEM8|16
+    /**
+     * @brief Parse protocol struct type with variable length suffix (eg STR)
+     *   or union containing such a struct (eg TEXTITEM8) from raw bytes, based
+     *   on settings and params.
+     * @tparam ProtocolStructT variable length protocol struct type (eg STR),
+     *   TEXTITEM8|16
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param ws whitespace formatting based on settings and indentation
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
     template< typename ProtocolStructT,
               std::enable_if_t<
                   // union of StructWithSuffixes and Struct
@@ -424,8 +750,19 @@ private:
     _ParsingOutputs
     _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
                       const _Whitespace& ws );
-
-    // TBD for LISTs that have no length provided eg PolyText8|16
+    /**
+     * @brief Parse LISTof* from raw bytes, based on settings and params, when
+     *   no count of list members is provided (eg PolyText8|16).
+     * @tparam ProtocolT protocol type of list members
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param ws whitespace formatting based on settings and indentation
+     * @param force_membs_singleline whether to format list members as singleline,
+     *   independent of LIST whitespace formatting
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
     template< typename ProtocolT,
               std::enable_if_t<
                   ( !std::is_integral_v< ProtocolT > &&
@@ -453,7 +790,19 @@ private:
             "{}]", outputs.bytes_parsed == 0 ? "" : ws.encl_indent );
         return outputs;
     }
-
+    /**
+     * @brief Parse LISTof* from raw bytes, based on settings and params, when
+     *   T is a protocol non-integer type (eg ARC STR).
+     * @tparam ProtocolT protocol type of list members
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param ws whitespace formatting based on settings and indentation
+     * @param force_membs_singleline whether to format list members as singleline,
+     *   independent of LIST whitespace formatting
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
     template< typename ProtocolT,
               std::enable_if_t<
                   ( !std::is_integral_v< ProtocolT > &&
@@ -481,11 +830,23 @@ private:
             "{}]", memb_ct == 0 ? "" : ws.encl_indent );
         return outputs;
     }
-
-    template< typename ProtocolT,
+    /**
+     * @brief Parse LISTof* from raw bytes, based on settings and params, when
+     *   T is a plain integer, protocol integer alias (eg CARD8), or protocol
+     *   integer type (eg WINDOW).
+     * @tparam IntegerT integer type of list members
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @param byteswap whether to byteswap before formatting
+     * @param ws whitespace formatting based on settings and indentation
+     * @param traits enum name range and bitmask status of list member type
+     * @return formatted string and count of bytes parsed
+     * @ingroup LISTofT_formatting
+     */
+    template< typename IntegerT,
               std::enable_if_t<
-                  std::is_integral_v< ProtocolT > ||
-                  std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
+                  std::is_integral_v< IntegerT > ||
+                  std::is_base_of_v< protocol::impl::Integer, IntegerT >,
                   bool > = true >
     _ParsingOutputs
     _parseLISTof( const uint8_t* data, const size_t sz, const uint16_t memb_ct,
@@ -498,7 +859,7 @@ private:
                                     memb_ct == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < memb_ct; ++i ) {
             const _ParsingOutputs member {
-                _parseListMember< ProtocolT >(
+                _parseListMember< IntegerT >(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
                     byteswap, traits ) };
             outputs.bytes_parsed += member.bytes_parsed;
@@ -509,20 +870,50 @@ private:
             "{}]", memb_ct == 0 ? "" : ws.encl_indent );
         return outputs;
     }
-
-
-    ////// LISTofVALUE Formatting
-
+    /**
+     * @brief Bundles all inputs needed by [_parseLISTofVALUE](#_parseLISTofVALUE).
+     * @tparam TupleT type of tuple containing all list member types
+     * @ingroup LISTofVALUE_formatting
+     */
     template< typename TupleT >
     struct _LISTofVALUEParsingInputs {
+        /**
+         * @brief Bytes to parse.
+         */
         const uint8_t* data;
+        /**
+         * @brief Maximum bytes available to parse.
+         */
         const size_t sz;
+        /**
+         * @brief Bitmask where a 1 at a given bit index indicates that the
+         *   VALUE of the corresponding index in [types](#types),
+         *   [names](#names), and [traits](#traits) appears in the list.
+         */
         const uint32_t value_mask;
+        /**
+         * @brief Heterogeneous list of LISTofVALUE member types.
+         */
         const TupleT& types;
+        /**
+         * @brief List of LISTofVALUE member names.
+         */
         const std::vector< std::string_view >& names;
+        /**
+         * @brief List of LISTofVALUE member value traits for use in parsing.
+         */
         const std::vector< _ValueTraits >& traits;
+        /**
+         * @brief Whether VALUEs must be byte-swapped before logging.
+         */
         const bool byteswap;
+        /**
+         * @brief Whitespace formatting for list.
+         */
         const _Whitespace ws;
+        /**
+         * @brief Field width in chars of longest list member name.
+         */
         size_t memb_name_w {};
 
         _LISTofVALUEParsingInputs() = delete;
@@ -547,13 +938,26 @@ private:
             }
         }
     };
-
+    /**
+     * @brief Bundles all outputs of [_parseLISTofVALUE](#_parseLISTofVALUE).
+     * @ingroup LISTofVALUE_formatting
+     */
     struct _LISTofVALUEParsingOutputs : public _ParsingOutputs {
+        /**
+         * @brief Count of VALUEs in LISTofVALUE.
+         */
         uint32_t value_ct {};
     };
-
-    // tuple iteration allows for run time taversal of heterogeneous list of types
-    // tuple iteration pattern using recursive templating
+    /**
+     * @brief Parse LISTofVALUE from raw bytes, based on settings and params.
+     * @tparam I index of current tuple member
+     * @param inputs see [_LISTofVALUEParsingInputs](#_LISTofVALUEParsingInputs)
+     * @param outputs[out] see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
+     * @note Employs tuple iteration pattern using recursive templating, allowing
+     *   for runtime traversal of tuple members. This overload is the recursive
+     *   base case, ending recursion once index I has reached the tuple size.
+     * @ingroup LISTofVALUE_formatting
+     */
     template< size_t I = 0, typename... Args,
               std::enable_if_t< I == sizeof...( Args ), bool > = true >
     void _parseLISTofVALUE(
@@ -566,8 +970,16 @@ private:
         }
         outputs->str += ']';
     }
-
-    // tuple iteration pattern using recursive templating
+    // TBD caret in template params ruins Doxygen parsing
+    /**
+     * @brief Parse LISTofVALUE from raw bytes, based on settings and params.
+     * @tparam I index of current tuple member
+     * @param inputs see [_LISTofVALUEParsingInputs](#_LISTofVALUEParsingInputs)
+     * @param outputs[out] see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
+     * @note Employs tuple iteration pattern using recursive templating, allowing
+     *   for runtime traversal of tuple members.
+     * @ingroup LISTofVALUE_formatting
+     */
     template< size_t I = 0, typename... Args,
               std::enable_if_t< I < sizeof...( Args ), bool > = true >
     void _parseLISTofVALUE(
@@ -601,58 +1013,178 @@ private:
             inputs.ws.equals, member.str, inputs.ws.separator );
         return _parseLISTofVALUE< I + 1, Args... >( inputs, outputs );
     }
-
-
-    ////// Logging
-
+    /**
+     * @brief Parse server-bound client packet as X11 message, and print it to
+     *   log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     size_t _logClientPacket(
             Connection* conn, uint8_t* data, const size_t sz );
+    /**
+     * @brief Parse client-bound server packet as X11 message, and print it to
+     *   log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     size_t _logServerPacket(
         Connection* conn, uint8_t* data, const size_t sz );
-
+    /**
+     * @brief Parse X11 connection setup message, and print it to log file stream.
+     * @tparam ConnectionSetupT type of connection setup message encoding (eg
+     *   protocol::connection_setup::Acceptance)
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     template< typename ConnectionSetupT >
     size_t _logConnectionSetup(
         Connection* conn, const uint8_t* data, const size_t sz );
-
+    /**
+     * @brief Parse X11 request from raw bytes.
+     * @tparam RequestT type of request encoding (eg protocol::requests::InternAtom)
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return formatted string and bytes parsed
+     * @ingroup logging
+     */
     template< typename RequestT >
     _ParsingOutputs _parseRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
+    /**
+     * @brief Parse X11 request, and print it to log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     size_t _logRequest(
         Connection* conn, const uint8_t* data, const size_t sz );
-
+    /**
+     * @brief Parse X11 reply from raw bytes.
+     * @tparam RequestT type of request encoding (eg protocol::requests::InternAtom)
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return formatted string and bytes parsed
+     * @ingroup logging
+     */
     template< typename RequestT >
     _ParsingOutputs _parseReply(
         Connection* conn, const uint8_t* data, const size_t sz );
+    /**
+     * @brief Parse X11 reply, and print it to log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     size_t _logReply(
         Connection* conn, const uint8_t* data, const size_t sz );
-
+    /**
+     * @brief Parse X11 event from raw bytes.
+     * @tparam EventT type of event encoding (eg protocol::events::KeyPress)
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return formatted string and bytes parsed
+     * @ingroup logging
+     */
     template< typename EventT >
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );
+    /**
+     * @brief Parse X11 event from raw bytes.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return formatted string and bytes parsed
+     * @note This function is a wrapper around its templated equivalent, used to
+     *   accommodate parsing of both normal event encoding and events passed as
+     *   data members of a SendEvent request.
+     * @ingroup logging
+     */
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
         const _Whitespace& indents );
+    /**
+     * @brief Parse X11 event, and print it to log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     size_t _logEvent(
         Connection* conn, const uint8_t* data, const size_t sz );
-
+    /**
+     * @brief Parse X11 error from raw bytes.
+     * @tparam ErrorT type of error encoding (eg protocol::errors::Value)
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return formatted string and bytes parsed
+     * @ingroup logging
+     */
     template< typename ErrorT >
     _ParsingOutputs _parseError(
         Connection* conn, const uint8_t* data, const size_t sz );
+    /**
+     * @brief Parse X11 error, and print it to log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
 public:
+    /**
+     * @brief Parse server-bound client packets as X11 messages, and print them to
+     *   log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @return bytes parsed
+     * @ingroup logging
+     */
+    size_t logClientPackets( Connection* conn );
+    /**
+     * @brief Parse client-bound server packets as X11 messages, and print them to
+     *   log file stream.
+     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @return bytes parsed
+     * @ingroup logging
+     */
+    size_t logServerPackets( Connection* conn );
+    /**
+     * @brief Encoding memory alignment calculator.
+     */
     _Alignment alignment;
-
+    /**
+     * @brief User settings imported from [ProxyX11Server](#ProxyX11Server).
+     */
     Settings settings;
-
-    X11ProtocolParser() {}
-
+    /**
+     * @brief Import settings from [ProxyX11Server](#ProxyX11Server) during startup.
+     * @param settings_ reference to server settings
+     * @param fetched_atoms reference atom strings fetched from actual X server,
+     *   representing contiguous interned ATOMs from 1 to n
+     */
     void importSettings( const Settings& settings_,
                          const std::vector< std::string >& fetched_atoms );
-    size_t logClientPackets( Connection* conn );
-    size_t logServerPackets( Connection* conn );
 };
 
 

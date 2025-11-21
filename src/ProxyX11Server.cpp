@@ -68,7 +68,7 @@ static_assert( decltype( xauth_bup_path )::is_always_lock_free );
 //   listed as signal-safe
 static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
-              sig == SIGABRT || sig == SIGSEGV );
+            sig == SIGABRT || sig == SIGSEGV );
     // No error checking on unlink as we are are about to make a sudden
     //   _exit anyway
     if ( const char* indisp_sun_path { in_display_sun_path.load() };
@@ -170,46 +170,98 @@ void ProxyX11Server::_parseDisplayNames() {
     }
 }
 
-// per https://gitlab.freedesktop.org/alanc/libxau/-/blob/master/README
-// """
-// The .Xauthority file is a binary file consisting of a sequence of entries
-// in the following format:
-
-// 2 bytes      Family value (second byte is as in protocol HOST)
-// 2 bytes	address length (always MSB first)
-// A bytes	host address (as in protocol HOST)
-// 2 bytes	display "number" length (always MSB first)
-// S bytes	display "number" string
-// 2 bytes	name length (always MSB first)
-// N bytes	authorization name string
-// 2 bytes	data length (always MSB first)
-// D bytes	authorization data string
-// """
+/**
+ * @brief Contains data to encode an `xauth(1)` file [entry].
+ * ```
+ * The .Xauthority file is a binary file consisting of a sequence of entries
+ * in the following format:
+ *
+ * 	2 bytes		Family value (second byte is as in protocol HOST)
+ * 	2 bytes		address length (always MSB first)
+ * 	A bytes		host address (as in protocol HOST)
+ * 	2 bytes		display "number" length (always MSB first)
+ * 	S bytes		display "number" string
+ * 	2 bytes		name length (always MSB first)
+ * 	N bytes		authorization name string
+ * 	2 bytes		data length (always MSB first)
+ * 	D bytes		authorization data string
+ * ```
+ * [entry]: https://gitlab.freedesktop.org/alanc/libxau/-/blob/master/README
+ */
 struct ProxyX11Server::_XAuthInfo {
 private:
-    static constexpr uint8_t _NAME_MAX { 255 };  // TBD should be same as POSIX NAME_MAX
-    static constexpr uint8_t _HOST_NAME_MAX { 64 };  // TBD should be same as POSIX HOST_NAME_MAX
+    /**
+     * @brief Local copy of POSIX `NAME_MAX`, or max bytes in a filename.
+     */
+    static constexpr uint8_t _NAME_MAX { 255 };
+    /**
+     * @brief Local copy of POSIX `HOST_NAME_MAX`, or max bytes in a hostname.
+     */
+    static constexpr uint8_t _HOST_NAME_MAX { 64 };
+
 public:
-    // TBD nbo = network byte order (MSB first)
-    // TBD important to note that family in .Xauthority refers to Xlib Family*
-    //   values (eg FamilyInternet, see generated X.h,) and does not correspond
-    //   with AF_* socket.h macros
-    // TBD in testing xauth reads/writes family as MSB first, even if README
-    //   above is not explicit
+    /**
+     * @brief Xlib Family value.
+     * @note
+     *   1. `family` in `xauth(1)` file entries refers to Xlib `Family*` values,
+     *   (eg `FamilyInternet`) and does not correspond with `AF_*` `socket(2)` macros
+     *   2. during development it was found that `family` is also encoded MSB first,
+     *   despite its [description] ambiguously referencing [HOST](#protocol::HOST)
+     * [description]: https://gitlab.freedesktop.org/alanc/libxau/-/blob/master/README
+     */
     uint16_t family          {};
+    /**
+     * @brief [family](#family) in network byte order, or MSB first.
+     */
     uint16_t family_nbo      {};
+    /**
+     * @brief Host address string length in bytes.
+     */
     uint16_t addr_len        {};
+    /**
+     * @brief [addr_len](#addr_len) in network byte order, or MSB first.
+     */
     uint16_t addr_len_nbo    {};
+    /**
+     * @brief Display number string length in bytes.
+     */
     uint16_t display_len     {};
+    /**
+     * @brief [display_len](#display_len) in network byte order, or MSB first.
+     */
     uint16_t display_len_nbo {};
+    /**
+     * @brief Authorization name string length in bytes.
+     */
     uint16_t name_len        {};
+    /**
+     * @brief [name_len](#name_len) in network byte order, or MSB first.
+     */
     uint16_t name_len_nbo    {};
+    /**
+     * @brief Authorization data length in bytes.
+     */
     uint16_t data_len        {};
+    /**
+     * @brief [data_len](#data_len) in network byte order, or MSB first.
+     */
     uint16_t data_len_nbo    {};
     // TBD if using tcp without ssh, a URI could be much longer than 64 chars
+    /**
+     * @brief Host address C string buffer.
+     */
     char addr[_HOST_NAME_MAX]    {};
+    /**
+     * @brief Display number C string buffer.
+     */
     char display[_HOST_NAME_MAX] {};
+    /**
+     * @brief Authorization name C string buffer.
+     */
     char name[_NAME_MAX]         {};
+    /**
+     * @brief Authorization data C string buffer.
+     */
     char data[_AUTH_DATA_SZ]     {};
 };
 
@@ -459,13 +511,6 @@ void ProxyX11Server::_updatePollFlags() {
     }
 }
 
-/*
- * second loop over connections to:
- *   - receive new packets
- *   - parse current packets
- *   - send current packets
- *   - close any connections that failed or detected EOF in either socket
- */
 void ProxyX11Server::_processPolledSockets() {
     std::vector< int > conns_to_close;
     for ( auto& [ id, conn ] : _connections ) {
