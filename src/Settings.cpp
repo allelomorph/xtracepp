@@ -18,7 +18,7 @@
 
 Settings::~Settings() {
     ::fflush( log_fs );
-    if ( log_fs == stdout || log_fs == ::stderr ) {
+    if ( log_fs == ::stdout || log_fs == ::stderr ) {
         _restoreFileStreamBufferDefaults();
     } else {
         fclose( log_fs );
