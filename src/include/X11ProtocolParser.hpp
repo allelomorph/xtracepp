@@ -29,6 +29,37 @@
 
 
 /**
+ * @brief Obscures `operator<` to prevent Doxygen (v1.9.8) parsing it as an
+ *   opening caret in template parameters.
+ */
+#define _LESSTHAN <
+
+/**
+ * @brief Obscures `operator<=` to prevent Doxygen (v1.9.8) parsing it as an
+ *   opening caret in template parameters.
+ */
+#define _LESSTHANOREQUALTO <=
+
+/**
+ * @brief Obscures [_parseListMember](#X11ProtocolParser::_parseListMember)
+ *   template specialization syntax to prevent Doxygen (v1.9.8) parsing
+ *   bug.
+ *   @warning When Doxygen (v1.9.8) parses a documented, templated function
+ *   after it was defined in the same header, for (minimal) example:
+ *   ```
+ *   //\! @brief Text.
+ *   //\!
+ *   template< typename T >
+ *   void _ppp() {}
+ *   _ppp< U >();
+ *   ```
+ *   many random tokens (for example `const`, `static`, `size_t` in this header)
+ *   are reference-linked to the first overload of that function.
+ * @param type_ type to pass to template
+ */
+#define _PARSELISTMEMBER( type_ ) _parseListMember< type_ >
+
+/**
  * @brief Parses server and client data packets sent encoded in the X11 protocol,
  *   logging them to an output file stream.
  */
@@ -325,17 +356,18 @@ private:
         // fmt counts "0x" as part of width when using '#'
         return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
     }
-    // TBD caret in template params ruins Doxygen parsing
     /**
      * @brief Byteswaps an integral value depending on params.
      * @tparam IntegralT integral type of val, up to 4 bytes
      * @param val integral to byteswap
      * @param byteswap whether to byteswap
+     * @note [_LESSTHANOREQUAL](#_LESSTHANOREQUAL) macro used to circumvent
+     *   Doxygen (v1.9.8) parsing bug.
      * @ingroup individual_data_field_formatting
      */
     template< typename IntT,
               std::enable_if_t< std::is_integral_v< IntT > &&
-                                sizeof( IntT ) <= sizeof( uint32_t ),
+                                sizeof( IntT ) _LESSTHANOREQUALTO sizeof( uint32_t ),
                   bool > = true >
     inline IntT _hostByteOrder( const IntT val, const bool byteswap ) {
         switch ( sizeof( IntT ) ) {
@@ -639,10 +671,6 @@ private:
         std::string str       {};
         uint32_t bytes_parsed {};
     };
-    // TBD all overloads of _parseListMember currently break Doxygen by making
-    //   false links to `const`, `conn`, the `c"` at the end of
-    //   CLIENT_TO_SERVER and SERVER_TO_CLIENT, and more, all reference linking
-    //   to first overload of _parseListMember
     /**
      * @brief Parse plain integer or protocol integer alias (eg CARD8) from raw
      *   bytes, based on settings and params.
@@ -761,6 +789,8 @@ private:
      * @param force_membs_singleline whether to format list members as singleline,
      *   independent of LIST whitespace formatting
      * @return formatted string and count of bytes parsed
+     * @note [_PARSELISTMEMBER](#_PARSELISTMEMBER) macro used to circumvent
+     *   Doxygen (v1.9.8) parsing bug.
      * @ingroup LISTofT_formatting
      */
     template< typename ProtocolT,
@@ -779,7 +809,7 @@ private:
                                     sz == 0 ? "" : ws.separator );
         while ( alignment.pad( outputs.bytes_parsed ) < sz ) {
             const _ParsingOutputs member {
-                _parseListMember< ProtocolT >(
+                _PARSELISTMEMBER( ProtocolT )(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
                     byteswap, ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
@@ -801,6 +831,8 @@ private:
      * @param force_membs_singleline whether to format list members as singleline,
      *   independent of LIST whitespace formatting
      * @return formatted string and count of bytes parsed
+     * @note [_PARSELISTMEMBER](#_PARSELISTMEMBER) macro used to circumvent
+     *   Doxygen (v1.9.8) parsing bug.
      * @ingroup LISTofT_formatting
      */
     template< typename ProtocolT,
@@ -819,7 +851,7 @@ private:
                                     memb_ct == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < memb_ct; ++i ) {
             const _ParsingOutputs member {
-                _parseListMember< ProtocolT >(
+                _PARSELISTMEMBER( ProtocolT )(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
                     byteswap, ws.nested( force_membs_singleline ) ) };
             outputs.bytes_parsed += member.bytes_parsed;
@@ -841,6 +873,8 @@ private:
      * @param ws whitespace formatting based on settings and indentation
      * @param traits enum name range and bitmask status of list member type
      * @return formatted string and count of bytes parsed
+     * @note [_PARSELISTMEMBER](#_PARSELISTMEMBER) macro used to circumvent
+     *   Doxygen (v1.9.8) parsing bug.
      * @ingroup LISTofT_formatting
      */
     template< typename IntegerT,
@@ -859,7 +893,7 @@ private:
                                     memb_ct == 0 ? "" : ws.separator );
         for ( uint16_t i {}; i < memb_ct; ++i ) {
             const _ParsingOutputs member {
-                _parseListMember< IntegerT >(
+                _PARSELISTMEMBER( IntegerT )(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
                     byteswap, traits ) };
             outputs.bytes_parsed += member.bytes_parsed;
@@ -970,7 +1004,6 @@ private:
         }
         outputs->str += ']';
     }
-    // TBD caret in template params ruins Doxygen parsing
     /**
      * @brief Parse LISTofVALUE from raw bytes, based on settings and params.
      * @tparam I index of current tuple member
@@ -978,10 +1011,12 @@ private:
      * @param outputs[out] see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
      * @note Employs tuple iteration pattern using recursive templating, allowing
      *   for runtime traversal of tuple members.
+     * @note [_LESSTHAN](#_LESSTHAN) macro used to circumvent Doxygen (v1.9.8)
+     *   parsing bug.
      * @ingroup LISTofVALUE_formatting
      */
     template< size_t I = 0, typename... Args,
-              std::enable_if_t< I < sizeof...( Args ), bool > = true >
+              std::enable_if_t< I _LESSTHAN sizeof...( Args ), bool > = true >
     void _parseLISTofVALUE(
         const _LISTofVALUEParsingInputs< std::tuple< Args... > >& inputs,
         _LISTofVALUEParsingOutputs* outputs ) {
@@ -1000,7 +1035,7 @@ private:
         using ValueT = std::remove_reference_t<
             decltype( std::get< I >( inputs.types ) ) >;
         const _ParsingOutputs member {
-            _parseListMember< ValueT >(
+            _PARSELISTMEMBER( ValueT )(
                 inputs.data + outputs->bytes_parsed,
                 inputs.sz - outputs->bytes_parsed, inputs.byteswap,
                 inputs.traits[ I ] ) };
@@ -1186,6 +1221,10 @@ public:
     void importSettings( const Settings& settings_,
                          const std::vector< std::string >& fetched_atoms );
 };
+
+#undef _LESSTHAN
+#undef _LESSTHANOREQUALTO
+#undef _PARSELISTMEMBER
 
 
 #endif  // X11PROTOCOLPARSER_HPP
