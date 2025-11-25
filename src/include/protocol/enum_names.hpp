@@ -1,21 +1,26 @@
 #ifndef PROTOCOL_ENUM_NAMES_HPP
 #define PROTOCOL_ENUM_NAMES_HPP
 
+/**
+ * @file enum_names.hpp Enum names shared across serveral protocol value fields.
+ * @see [X protocol encoding](https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#protocol_encoding)
+ * @note If a set of names are unique to a field, they are stored with that
+ *   respective encoding.
+ */
 
 #include <vector>
 #include <string_view>
 
 namespace protocol {
 
-// enum names shared accross serveral protocol value fields - if a set of names
-//   are unique to a field, they are stored with that encoding
-
 namespace enum_names {
-
-////// Connection Setup
 
 // HOST.family 1B
 // Req 109 ChangeHosts.family 1B (max 2)
+/**
+ * @brief `Family*` constant names without `Family` prefix.
+ * @ingroup connection_setup
+ */
 inline const
 std::vector<std::string_view> host_family {
     "Internet",           // 0
@@ -29,17 +34,23 @@ std::vector<std::string_view> host_family {
 
 // ConnInitiation::Header::byte_order 1B
 // ConnAcceptance::Encoding::image_byte_order 1B
+/**
+ * @brief Byte order constant names.
+ * @ingroup connection_setup
+ */
 inline const
 std::vector<std::string_view> byte_order {
     "LSBFirst",  // 0
     "MSBFirst"   // 1
 };
 
-////// Requests, Events
-
 // Req 001 CreateWindow.class 2B
 // Req 002 ChangeWindowAttributes.class 2B
 // Req 003 GetWindowAttributes - Reply.class 2B (min 1)
+/**
+ * @brief Class enum names in window requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> window_class {
     "CopyFromParent",  // 0
@@ -53,6 +64,10 @@ std::vector<std::string_view> window_class {
 // Req 002 ChangeWindowAttributes.VALUE.border-pixmap PIXMAP
 // Req 001 CreateWindow.VALUE.colormap COLORMAP
 // Req 002 ChangeWindowAttributes.VALUE.colormap COLORMAP
+/**
+ * @brief Visual enum names in window requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> zero_copy_from_parent {
     "CopyFromParent"  // 0
@@ -60,6 +75,10 @@ std::vector<std::string_view> zero_copy_from_parent {
 
 // Req 001 CreateWindow.value-mask 4B BITMASK
 // Req 002 ChangeWindowAttributes.value-mask 4B BITMASK
+/**
+ * @brief value-mask flag names in window requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> window_attribute_value_mask {
     "background-pixmap",      // 1 <<  0
@@ -81,6 +100,10 @@ std::vector<std::string_view> window_attribute_value_mask {
 
 // Req 001 CreateWindow.VALUE.background-pixmap PIXMAP
 // Req 002 ChangeWindowAttributes.VALUE.background-pixmap PIXMAP
+/**
+ * @brief LISTofVALUE background-pixmap enum names in window requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> window_attribute_background_pixmap {
     "None",           // 0
@@ -90,6 +113,10 @@ std::vector<std::string_view> window_attribute_background_pixmap {
 // Req 001 CreateWindow.VALUE.backing-store 1B
 // Req 002 ChangeWindowAttributes.VALUE.backing-store 1B
 // Req 003 GetWindowAttributes - Reply.backing-store 1B
+/**
+ * @brief LISTofVALUE backing-store enum names in window requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> window_attribute_backing_store {
     "NotUseful",   // 0
@@ -130,6 +157,11 @@ std::vector<std::string_view> window_attribute_backing_store {
 // Evt  23 ConfigureRequest.sibling WINDOW
 // Evt  31 SelectionNotify.property ATOM
 // Evt  32 ColormapNotify.colormap COLORMAP
+/**
+ * @brief Generic enum name equating zero to none.
+ * @ingroup requests
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> zero_none {
     "None"  // 0
@@ -137,6 +169,10 @@ std::vector<std::string_view> zero_none {
 
 // Req 006 ChangeSaveSet.mode 1B
 // Req 109 ChangeHosts.mode 1B
+/**
+ * @brief Mode enum names in change requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> change_mode {
     "Insert",  // 0
@@ -145,6 +181,11 @@ std::vector<std::string_view> change_mode {
 
 // Req 012 ConfigureWindow.value-mask 2B BITMASK
 // Evt  23 ConfigureRequest.value-mask 2B BITMASK
+/**
+ * @brief value-mask flag names in configure requests.
+ * @ingroup requests
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> window_value_mask {
     "x",             // 1 << 0
@@ -158,6 +199,11 @@ std::vector<std::string_view> window_value_mask {
 
 // Req 012 ConfigureWindow.VALUE.stack-mode 1B
 // Evt  23 ConfigureRequest.stack-mode 1B
+/**
+ * @brief stack-mode enum names in configure requests.
+ * @ingroup requests
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> window_value_stack_mode {
     "Above",     // 0
@@ -169,6 +215,10 @@ std::vector<std::string_view> window_value_stack_mode {
 
 // Req 028 GrabButton.button BUTTON
 // Req 029 UngrabButton.button BUTTON
+/**
+ * @brief Button enum names in grab button requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> button {
     "AnyButton",  // 0
@@ -176,6 +226,10 @@ std::vector<std::string_view> button {
 
 // Req 026 GrabPointer - Reply.status 1B
 // Req 031 GrabKeyboard - Reply.status 1B
+/**
+ * @brief Status enum names in grab request.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> grab_status {
     "Success",         // 0
@@ -193,6 +247,10 @@ std::vector<std::string_view> grab_status {
 // Req 031 GrabKeyboard.keyboard-mode 1B
 // Req 033 GrabKey.pointer-mode 1B
 // Req 033 GrabKey.keyboard-mode 1B
+/**
+ * @brief Mode enum names in grab requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> input_mode {
     "Synchronous",  // 0
@@ -201,6 +259,10 @@ std::vector<std::string_view> input_mode {
 
 // Req 033 GrabKey.key KEYCODE
 // Req 034 UngrabKey.key KEYCODE
+/**
+ * @brief Key enum names for grab requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> key {
     "AnyKey"  // 0
@@ -219,6 +281,11 @@ std::vector<std::string_view> key {
 // Req 042 SetInputFocus.time TIMESTAMP
 // Evt  30 SelectionRequest.time TIMESTAMP
 // Evt  31 SelectionNotify.time TIMESTAMP
+/**
+ * @brief Generic enum name for TIMESTAMPs.
+ * @ingroup requests
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> time {
     "CurrentTime"  // 0
@@ -228,6 +295,10 @@ std::vector<std::string_view> time {
 // Req 042 SetInputFocus.focus WINDOW (max 1)
 // Req 043 GetInputFocus - Reply.revert-to 1B
 // Req 043 GetInputFocus - Reply.focus WINDOW (max 1)
+/**
+ * @brief revert-to/focus enum names in input focus requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> input_focus {
     "None",         // 0
@@ -238,6 +309,10 @@ std::vector<std::string_view> input_focus {
 // Req 047 QueryFont - Reply.draw-direction 1B
 // Req 048 QueryTextExtents - Reply.draw-direction 1B
 // Req 050 ListFontsWithInfo - Reply.draw-direction 1B
+/**
+ * @brief draw-direction enum names in font request replies.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> draw_direction {
     "LeftToRight",  // 0
@@ -247,6 +322,10 @@ std::vector<std::string_view> draw_direction {
 // Req 055 CreateGC.value-mask 4B BITMASK
 // Req 056 ChangeGC.value-mask 4B BITMASK
 // Req 057 CopyGC.value-mask 4B BITMASK
+/**
+ * @brief value-mask flag names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_mask {
     "function",               // 1 <<  0
@@ -276,6 +355,10 @@ std::vector<std::string_view> gc_value_mask {
 
 // Req 055 CreateGC.VALUE.function 1B
 // Req 056 ChangeGC.VALUE.function 1B
+/**
+ * @brief LISTofVALUE function enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_function {
     "Clear",         //  0
@@ -298,6 +381,10 @@ std::vector<std::string_view> gc_value_function {
 
 // Req 055 CreateGC.VALUE.line-style 1B
 // Req 056 ChangeGC.VALUE.line-style 1B
+/**
+ * @brief LISTofVALUE line-style enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_line_style {
     "Solid",      // 0
@@ -307,6 +394,10 @@ std::vector<std::string_view> gc_value_line_style {
 
 // Req 055 CreateGC.VALUE.cap-style 1B
 // Req 056 ChangeGC.VALUE.cap-style 1B
+/**
+ * @brief LISTofVALUE cap-style enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_cap_style {
     "NotLast",    // 0
@@ -317,6 +408,10 @@ std::vector<std::string_view> gc_value_cap_style {
 
 // Req 055 CreateGC.VALUE.join-style 1B
 // Req 056 ChangeGC.VALUE.join-style 1B
+/**
+ * @brief LISTofVALUE join-style enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_join_style {
     "Miter",  // 0
@@ -326,6 +421,10 @@ std::vector<std::string_view> gc_value_join_style {
 
 // Req 055 CreateGC.VALUE.fill-style 1B
 // Req 056 ChangeGC.VALUE.fill-style 1B
+/**
+ * @brief LISTofVALUE fill-style enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_fill_style {
     "Solid",          // 0
@@ -336,6 +435,10 @@ std::vector<std::string_view> gc_value_fill_style {
 
 // Req 055 CreateGC.VALUE.fill-rule 1B
 // Req 056 ChangeGC.VALUE.fill-rule 1B
+/**
+ * @brief LISTofVALUE fill-rule enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_fill_rule {
     "EvenOdd",  // 0
@@ -344,6 +447,10 @@ std::vector<std::string_view> gc_value_fill_rule {
 
 // Req 055 CreateGC.VALUE.subwindow-mode 1B
 // Req 056 ChangeGC.VALUE.subwindow-mode 1B
+/**
+ * @brief LISTofVALUE subwindow-mode enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_subwindow_mode {
     "ClipByChildren",   // 0
@@ -352,6 +459,10 @@ std::vector<std::string_view> gc_value_subwindow_mode {
 
 // Req 055 CreateGC.VALUE.arc-mode 1B
 // Req 056 ChangeGC.VALUE.arc-mode 1B
+/**
+ * @brief LISTofVALUE arc-mode enum names in GC requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> gc_value_arc_mode {
     "Chord",    // 0
@@ -361,6 +472,10 @@ std::vector<std::string_view> gc_value_arc_mode {
 // Req 064 PolyPoint.coordinate-mode 1B
 // Req 065 PolyLine.coordinate-mode 1B
 // Req 069 FillPoly.coordinate-mode 1B
+/**
+ * @brief coordinate-mode enum names in poly requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> poly_coordinate_mode {
     "Origin",   // 0
@@ -369,6 +484,10 @@ std::vector<std::string_view> poly_coordinate_mode {
 
 // Req 072 PutImage.format 1B
 // Req 073 GetImage.format 1B (never 0)
+/**
+ * @brief Format enum names in image requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> image_format {
     "Bitmap",    // 0
@@ -378,6 +497,10 @@ std::vector<std::string_view> image_format {
 
 // Req 089 StoreColors.COLORITEM.do-red/do-green/do-blue 1B
 // Req 090 StoreNamedColor.do-red/do-green/do-blue 1B
+/**
+ * @brief RGB flag names in store color requests.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> do_rgb_mask {
     "do-red",    // 1 << 0  // 0 False 1 True
@@ -388,6 +511,10 @@ std::vector<std::string_view> do_rgb_mask {
 // Req 102 ChangeKeyboardControl.VALUE.led-mode 1B (max 1)
 // Req 102 ChangeKeyboardControl.VALUE.auto-repeat-mode 1B
 // Req 103 GetKeyboardControl - Reply.global-auto-repeat 1B (max 1)
+/**
+ * @brief Generic enum names representing off/on boolean + default.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> off_on {
     "Off",     // 0
@@ -399,6 +526,10 @@ std::vector<std::string_view> off_on {
 // Req 107 SetScreenSaver.allow-exposures 1B
 // Req 108 GetScreenSaver - Reply.prefer-blanking 1B (max 1)
 // Req 108 GetScreenSaver - Reply.allow-exposures 1B (max 1)
+/**
+ * @brief Generic enum names representing no/yes boolean + default.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> no_yes {
     "No",      // 0
@@ -408,6 +539,10 @@ std::vector<std::string_view> no_yes {
 
 // Req 116 SetPointerMapping - Reply.status 1B (max 1)
 // Req 118 SetModifierMapping - Reply.status 1B
+/**
+ * @brief Status enum names in set mapping request replies.
+ * @ingroup requests
+ */
 inline const
 std::vector<std::string_view> mapping_status {
     "Success",  // 0
@@ -419,6 +554,10 @@ std::vector<std::string_view> mapping_status {
 // Evt  08 LeaveNotify.mode 1B (max 2)
 // Evt  09 FocusIn.mode 1B
 // Evt  10 FocusOut.mode 1B
+/**
+ * @brief Mode enum names in focus/notify events.
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> focus_mode {
     "Normal",       // 0
@@ -429,6 +568,10 @@ std::vector<std::string_view> focus_mode {
 
 // Evt  07 EnterNotify.same-screen/focus 1B
 // Evt  08 LeaveNotify.same-screen/focus 1B
+/**
+ * @brief same-screen/focus flag names in notify events.
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> focus_same_screen_mask {
     "focus",       // 1 << 0  // 0 False 1 True
@@ -439,6 +582,10 @@ std::vector<std::string_view> focus_same_screen_mask {
 // Evt  08 LeaveNotify.detail 1B (max 4)
 // Evt  09 FocusIn.detail 1B
 // Evt  10 FocusOut.detail 1B
+/**
+ * @brief Detail enum names in focus/notify events.
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> focus_detail {
     "Ancestor",          // 0
@@ -453,6 +600,10 @@ std::vector<std::string_view> focus_detail {
 
 // Evt  26 CirculateNotify.place 1B
 // Evt  27 CirculateRequest.place 1B
+/**
+ * @brief Place enum names in circulate events.
+ * @ingroup events
+ */
 inline const
 std::vector<std::string_view> circulate_place {
     "Top",    // 0

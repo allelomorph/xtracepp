@@ -1,6 +1,10 @@
 #ifndef PROTOCOL_ATOMS_HPP
 #define PROTOCOL_ATOMS_HPP
 
+/**
+ * @file atoms.hpp
+ * @see [X protocol](https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Predefined_Atoms)
+ */
 
 #include <cstdint>
 #include <array>
@@ -8,18 +12,24 @@
 
 #include "common_types.hpp"
 
-// https://www.x.org/releases/current/doc/xproto/x11protocol.pdf
-// Appendix B. Protocol Encoding: Predefined Atoms
 
 namespace protocol {
 
 namespace atoms {
 
+/**
+ * @brief Constant representing empty ATOM.
+ */
 inline constexpr
 uint32_t NONE {};
 
 namespace predefined {
 
+/**
+ * @brief Constants representing all core X11 predefined
+ *   [ATOM](#protocol::ATOM) [codes].
+ * [codes]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#protocol_encoding
+ */
 enum {
     PRIMARY                 = 1,
     SECONDARY,            //  2
@@ -91,9 +101,18 @@ enum {
     WM_TRANSIENT_FOR      // 68
 };
 
+/**
+ * @brief Constant representing max X11 predefined ATOM [code].
+ * [code]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#protocol_encoding
+ */
 inline constexpr
 uint32_t MAX ( WM_TRANSIENT_FOR );
 
+/**
+ * @brief [Predefined] ATOM strings, indexed by their [codes].
+ * [Predefined]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Predefined_Atoms
+ * [codes]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#protocol_encoding
+ */
 inline constexpr
 std::array< std::string_view, MAX + 1 > strings {
     "",
