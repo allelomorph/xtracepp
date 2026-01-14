@@ -44,7 +44,7 @@
  * @brief Obscures [_parseListMember](#X11ProtocolParser::_parseListMember)
  *   template specialization syntax to prevent Doxygen (v1.9.8) parsing
  *   bug.
- *   @warning When Doxygen (v1.9.8) parses a documented, templated function
+ * @warning When Doxygen (v1.9.8) parses a documented, templated function
  *   after it was defined in the same header, for (minimal) example:
  *   ```
  *   //\! @brief Text.
@@ -361,7 +361,7 @@ private:
      * @tparam IntegralT integral type of val, up to 4 bytes
      * @param val integral to byteswap
      * @param byteswap whether to byteswap
-     * @note [_LESSTHANOREQUAL](#_LESSTHANOREQUAL) macro used to circumvent
+     * @note [_LESSTHANOREQUALTO](#_LESSTHANOREQUALTO) macro used to circumvent
      *   Doxygen (v1.9.8) parsing bug.
      * @ingroup individual_data_field_formatting
      */
@@ -511,6 +511,11 @@ private:
          */
         enum { NOT_BITMASK, BITMASK };
         _ValueTraits() {}
+        /**
+         * @brief Expected ctor.
+         * @param name_range_ range of values with named enum
+         * @param bitmask_ whether value should be parsed as a bitmask
+         */
         _ValueTraits( const _EnumNameRange name_range_,
                       const bool bitmask_ = NOT_BITMASK ) :
             name_range( name_range_ ), bitmask( bitmask_ ) {}
@@ -668,7 +673,13 @@ private:
      * @ingroup LISTofT_formatting
      */
     struct _ParsingOutputs {
+        /**
+         * @brief Formatted string.
+         */
         std::string str       {};
+        /**
+         * @brief Total data bytes parsed.
+         */
         uint32_t bytes_parsed {};
     };
     /**
@@ -826,6 +837,7 @@ private:
      * @tparam ProtocolT protocol type of list members
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
+     * @param memb_ct number of items in list
      * @param byteswap whether to byteswap before formatting
      * @param ws whitespace formatting based on settings and indentation
      * @param force_membs_singleline whether to format list members as singleline,
@@ -869,6 +881,7 @@ private:
      * @tparam IntegerT integer type of list members
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
+     * @param memb_ct number of items in list
      * @param byteswap whether to byteswap before formatting
      * @param ws whitespace formatting based on settings and indentation
      * @param traits enum name range and bitmask status of list member type
@@ -951,6 +964,17 @@ private:
         size_t memb_name_w {};
 
         _LISTofVALUEParsingInputs() = delete;
+        /**
+         * @brief Default constructor.
+         * @param data_ bytes to parse
+         * @param sz_ maximum bytes available to parse
+         * @param value_mask_ bitmask indicating list membership
+         * @param types_ heterogeneous list of LISTofVALUE member types
+         * @param names_ list of LISTofVALUE member names
+         * @param traits_ list of LISTofVALUE member value traits
+         * @param byteswap_ whether VALUEs must be byte-swapped before logging
+         * @param ws_ whitespace formatting for list
+         */
         _LISTofVALUEParsingInputs(
             const uint8_t* data_, const size_t sz_, const uint32_t value_mask_,
             const TupleT& types_, const std::vector< std::string_view >& names_,
@@ -986,7 +1010,7 @@ private:
      * @brief Parse LISTofVALUE from raw bytes, based on settings and params.
      * @tparam I index of current tuple member
      * @param inputs see [_LISTofVALUEParsingInputs](#_LISTofVALUEParsingInputs)
-     * @param outputs[out] see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
+     * @param[out] outputs see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
      * @note Employs tuple iteration pattern using recursive templating, allowing
      *   for runtime traversal of tuple members. This overload is the recursive
      *   base case, ending recursion once index I has reached the tuple size.
@@ -1008,7 +1032,7 @@ private:
      * @brief Parse LISTofVALUE from raw bytes, based on settings and params.
      * @tparam I index of current tuple member
      * @param inputs see [_LISTofVALUEParsingInputs](#_LISTofVALUEParsingInputs)
-     * @param outputs[out] see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
+     * @param[out] outputs see [_LISTofVALUEParsingOutputs](#_LISTofVALUEParsingOutputs)
      * @note Employs tuple iteration pattern using recursive templating, allowing
      *   for runtime traversal of tuple members.
      * @note [_LESSTHAN](#_LESSTHAN) macro used to circumvent Doxygen (v1.9.8)
@@ -1051,7 +1075,7 @@ private:
     /**
      * @brief Parse server-bound client packet as X11 message, and print it to
      *   log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1062,7 +1086,7 @@ private:
     /**
      * @brief Parse client-bound server packet as X11 message, and print it to
      *   log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1074,7 +1098,7 @@ private:
      * @brief Parse X11 connection setup message, and print it to log file stream.
      * @tparam ConnectionSetupT type of connection setup message encoding (eg
      *   protocol::connection_setup::Acceptance)
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1086,7 +1110,7 @@ private:
     /**
      * @brief Parse X11 request from raw bytes.
      * @tparam RequestT type of request encoding (eg protocol::requests::InternAtom)
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return formatted string and bytes parsed
@@ -1097,7 +1121,7 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     /**
      * @brief Parse X11 request, and print it to log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1108,7 +1132,7 @@ private:
     /**
      * @brief Parse X11 reply from raw bytes.
      * @tparam RequestT type of request encoding (eg protocol::requests::InternAtom)
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return formatted string and bytes parsed
@@ -1119,7 +1143,7 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     /**
      * @brief Parse X11 reply, and print it to log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1130,9 +1154,10 @@ private:
     /**
      * @brief Parse X11 event from raw bytes.
      * @tparam EventT type of event encoding (eg protocol::events::KeyPress)
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
+     * @param indents whitespace formatting to use
      * @return formatted string and bytes parsed
      * @ingroup logging
      */
@@ -1142,9 +1167,10 @@ private:
         const _Whitespace& indents );
     /**
      * @brief Parse X11 event from raw bytes.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
+     * @param indents whitespace formatting to use
      * @return formatted string and bytes parsed
      * @note This function is a wrapper around its templated equivalent, used to
      *   accommodate parsing of both normal event encoding and events passed as
@@ -1156,7 +1182,7 @@ private:
         const _Whitespace& indents );
     /**
      * @brief Parse X11 event, and print it to log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1167,7 +1193,7 @@ private:
     /**
      * @brief Parse X11 error from raw bytes.
      * @tparam ErrorT type of error encoding (eg protocol::errors::Value)
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return formatted string and bytes parsed
@@ -1178,7 +1204,7 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
     /**
      * @brief Parse X11 error, and print it to log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
      * @return bytes parsed
@@ -1191,7 +1217,7 @@ public:
     /**
      * @brief Parse server-bound client packets as X11 messages, and print them to
      *   log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @return bytes parsed
      * @ingroup logging
      */
@@ -1199,7 +1225,7 @@ public:
     /**
      * @brief Parse client-bound server packets as X11 messages, and print them to
      *   log file stream.
-     * @param conn[in,out] status of current connection, see [Connection](#Connection)
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @return bytes parsed
      * @ingroup logging
      */

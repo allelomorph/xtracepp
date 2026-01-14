@@ -28,6 +28,7 @@ struct Response {
          */
         uint8_t prefix;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused;
     public:
         /**

@@ -30,6 +30,7 @@ struct Event : public Response {
          *    [core](#codes::Codes) or extension event code. */
         uint8_t code;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused;
     public:
         /** @brief [Serial number on current connection](#Connection::sequence)
@@ -43,6 +44,7 @@ struct Event : public Response {
         /** @brief Included prefix. */
         Header  header;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[28];
     };
     /** @brief Expected size in bytes of [Encoding](#Encoding). */
@@ -193,6 +195,7 @@ struct InputEvent : public Event {
         /** @brief Protocol name: same-screen. */
         BOOL            same_screen;
     private:
+        /** @brief Ignored bytes. */
         uint8_t         _unused;
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -313,6 +316,7 @@ struct FocusEvent : public Event {
          *    3=WhileGrabbed. */
         uint8_t mode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[23];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -402,6 +406,7 @@ struct MotionNotify : public Event {
         /** @brief Protocol name: same-screen. */
         BOOL            same_screen;
     private:
+        /** @brief Ignored bytes. */
         uint8_t         _unused;
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -497,6 +502,7 @@ struct Expose : public Event {
         /** @brief Protocol name: count. */
         CARD16  count;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[14];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -530,6 +536,7 @@ struct GraphicsExposure : public Event {
         /** @brief Protocol name: major-opcode. */
         CARD8    major_opcode;  // CopyArea, CopyPlane, or extension
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[11];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -552,6 +559,7 @@ struct NoExposure : public Event {
         /** @brief Protocol name: major-opcode. */
         CARD8    major_opcode;  // CopyArea, CopyPlane, or extension
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -573,6 +581,7 @@ struct VisibilityNotify : public Event {
          *    1=PartiallyObscured 2=FullyObscured. */
         uint8_t state;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[23];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -612,6 +621,7 @@ struct CreateNotify : public Event {
         /** @brief Protocol name: override-redirect. */
         BOOL    override_redirect;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[9];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -632,6 +642,7 @@ struct DestroyNotify : public Event {
         /** @brief Protocol name: window. */
         WINDOW  window;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[20];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -654,6 +665,7 @@ struct UnmapNotify : public Event {
         /** @brief Protocol name: from-configure. */
         BOOL    from_configure;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[19];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -676,6 +688,7 @@ struct MapNotify : public Event {
         /** @brief Protocol name: override-redirect. */
         BOOL    override_redirect;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[19];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -696,6 +709,7 @@ struct MapRequest : public Event {
         /** @brief Protocol name: window. */
         WINDOW  window;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[20];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -724,6 +738,7 @@ struct ReparentNotify : public Event {
         /** @brief Protocol name: override-redirect. */
         BOOL    override_redirect;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[11];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -758,10 +773,11 @@ struct ConfigureNotify : public Event {
         /** @brief Protocol name: override-redirect. */
         BOOL    override_redirect;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[5];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
-
+    /** @brief [above-sibling](#Encoding::above_sibling) enum names. */
     inline static const
     std::vector< std::string_view >& above_sibling_names {
         protocol::enum_names::zero_none };
@@ -810,6 +826,7 @@ struct ConfigureRequest : public Event {
          *  @note Value masks can be different sizes, 2B here. */
         uint16_t value_mask;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[4];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -846,6 +863,7 @@ struct GravityNotify : public Event {
         /** @brief Protocol name: y. */
         INT16   y;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[16];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -868,6 +886,7 @@ struct ResizeRequest : public Event {
         /** @brief Protocol name: height. */
         CARD16  height;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[20];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -888,11 +907,13 @@ struct CirculateNotify : public Event {
         /** @brief Protocol name: window. */
         WINDOW  window;
     private:
+        /** @brief Ignored bytes. */
         WINDOW  _unused1;
     public:
         /** @brief Protocol name: place; uses enum: 0=Top 1=Bottom. */
         uint8_t place;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused2[15];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -917,11 +938,13 @@ struct CirculateRequest : public Event {
         /** @brief Protocol name: window. */
         WINDOW   window;
     private:
+        /** @brief Ignored bytes. */
         uint32_t _unused1;
     public:
         /** @brief Protocol name: place; uses enum: 0=Top 1=Bottom. */
         uint8_t  place;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused2[15];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -950,6 +973,7 @@ struct PropertyNotify : public Event {
         /** @brief Protocol name: state; uses enum: 0=NewValue 1=Deleted. */
         uint8_t   state;
     private:
+        /** @brief Ignored bytes. */
         uint8_t   _unused[15];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -978,6 +1002,7 @@ struct SelectionClear : public Event {
         /** @brief Protocol name: selection. */
         ATOM      selection;
     private:
+        /** @brief Ignored bytes. */
         uint8_t   _unused[16];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -1006,6 +1031,7 @@ struct SelectionRequest : public Event {
         /** @brief Protocol name: property; uses enum: 0=None. */
         ATOM      property;
     private:
+        /** @brief Ignored bytes. */
         uint8_t   _unused[4];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -1040,6 +1066,7 @@ struct SelectionNotify : public Event {
         /** @brief Protocol name: property; uses enum 0=None. */
         ATOM      property;
     private:
+        /** @brief Ignored bytes. */
         uint8_t   _unused[8];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -1072,6 +1099,7 @@ struct ColormapNotify : public Event {
         /** @brief Protocol name: state; uses enum 0=Uninstalled 1=Installed. */
         uint8_t  state;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[18];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -1137,6 +1165,7 @@ struct MappingNotify : public Event {
         /** @brief Protocol name: count. */
         CARD8   count;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[25];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );

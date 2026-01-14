@@ -199,6 +199,7 @@ struct Reply : public Response {
         /** @brief Identifies message as reply; should always equal [REPLY](#REPLY). */
         uint8_t  reply;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused;
     public:
         /** @brief [Serial number on current connection](#Connection::sequence)
@@ -214,6 +215,7 @@ struct Reply : public Response {
         /** @brief Included prefix. */
         Header  header;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[24];
     };
     /** @brief Identifies message as reply when found in
@@ -586,6 +588,7 @@ struct GetWindowAttributes : public impl::SimpleWindowRequest {
             /** @brief Protocol name: do-not-propagate-mask. */
             SETofDEVICEEVENT do_not_propagate_mask;
         private:
+            /** @brief Ignored bytes. */
             uint8_t          _unused[2];
         };
         static_assert( sizeof( Encoding ) ==
@@ -734,6 +737,7 @@ struct ConfigureWindow : public Request {
         /** @brief Protocol name: value-mask (2B BITMASK, n bits set to 1). */
         uint16_t value_mask;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief List of all parseable types potentially stored as VALUEs in
@@ -851,6 +855,7 @@ struct GetGeometry : public Request {
             /** @brief Protocol name: border-width. */
             CARD16   border_width;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[10];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -884,6 +889,7 @@ struct QueryTree : public impl::SimpleWindowRequest {
             /** @brief `children` length in [WINDOW](#protocol::WINDOW)s. */
             uint16_t children_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[14];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -918,6 +924,7 @@ struct InternAtom : public Request {
         /** @brief Length of `name` in bytes. */
         uint16_t  name_len;
     private:
+        /** @brief Ignored bytes. */
         uint8_t   _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -937,6 +944,7 @@ struct InternAtom : public Request {
             /** @brief Protocol name: atom; uses enum: 0=None. */
             ATOM    atom;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused2[20];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -980,6 +988,7 @@ struct GetAtomName : public Request {
             /** @brief Length of `name` in bytes. */
             uint16_t name_len;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[22];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1017,6 +1026,7 @@ struct ChangeProperty : public Request {
         /** @brief Protocol name: format; size of format units in bits (0,8,16,32). */
         CARD8   format;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[3];
     public:
         /** @brief Length of `data` in format units. */
@@ -1130,6 +1140,7 @@ struct GetProperty : public Request {
             /** @brief Length of `value` in format units. */
             CARD32   value_fmt_unit_len;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[12];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1167,6 +1178,7 @@ struct ListProperties : public impl::SimpleWindowRequest {
             /** @brief Length of `atoms` in ATOMs. */
             uint16_t atoms_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[22];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1213,6 +1225,7 @@ struct GetSelectionOwner : public Request {
      * @brief Fixed encoding after [Header](#Request::Header).
      */
     struct [[gnu::packed]] Encoding {
+        /** @brief Protocol name: selection. */
         ATOM selection;
     };
     /** @brief Total encoding size in bytes. */
@@ -1232,6 +1245,7 @@ struct GetSelectionOwner : public Request {
             /** @brief Protocol name: owner; uses enum: 0=None. */
             WINDOW  owner;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[20];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1294,7 +1308,7 @@ struct SendEvent : public Request {
     /**
      * @brief Fixed encoding between [Header](#Header) and suffix.
      * @note Followed by suffix:
-     *   - [Event](#protocol::Event) of 32B
+     *   - [Event](#protocol::events::Event) of 32B
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: destination; uses enum: 0=PointerWindow
@@ -1405,10 +1419,11 @@ struct GrabPointer : public Request {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
-        /** @brief [status](#Encoding::status) enum names. */
+        /** @brief [status](#Header::status) enum names. */
         inline static const
         std::vector< std::string_view >& status_names {
             protocol::enum_names::grab_status };
@@ -1473,6 +1488,7 @@ struct GrabButton : public Request {
         /** @brief Protocol name: button; uses enum: 0=AnyButton. */
         BUTTON            button;
     private:
+        /** @brief Ignored bytes. */
         uint8_t           unused;
     public:
         /** @brief Protocol name: modifiers; may use special flag
@@ -1529,6 +1545,7 @@ struct UngrabButton : public Request {
          *   [AnyModifier](#SETofKEYMASK::ANYMODIFIER). */
         SETofKEYMASK modifiers;
     private:
+        /** @brief Ignored bytes. */
         uint8_t      _unused[2];
     };
     /** @brief [button](#Header::button) enum names. */
@@ -1557,6 +1574,7 @@ struct ChangeActivePointerGrab : public Request {
         /** @brief Protocol name: event-mask. */
         SETofPOINTEREVENT event_mask;
     private:
+        /** @brief Ignored bytes. */
         uint8_t           _unused[2];
     };
     /** @brief [cursor](#Encoding::cursor) enum names. */
@@ -1602,6 +1620,7 @@ struct GrabKeyboard : public Request {
          *   0=Synchronous 1=Asynchronous. */
         uint8_t   keyboard_mode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t   _unused[2];
     };
     /** @brief [time](#Encoding::time) enum names. */
@@ -1644,12 +1663,14 @@ struct GrabKeyboard : public Request {
          * @brief Fixed encoding, including [Header](#Header).
          */
         struct [[gnu::packed]] Encoding {
+            /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
-        /** @brief [status](#Encoding::status) enum names. */
+        /** @brief [status](#Header::status) enum names. */
         inline static const
         std::vector< std::string_view >& status_names {
             protocol::enum_names::grab_status };
@@ -1711,6 +1732,7 @@ struct GrabKey : public Request {
          *   0=Synchronous 1=Asynchronous. */
         uint8_t      keyboard_mode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t      _unused[3];
     };
     /** @brief [key](#Encoding::key) enum names. */
@@ -1755,6 +1777,7 @@ struct UngrabKey : public Request {
          *   [AnyModifier](#SETofKEYMASK::ANYMODIFIER). */
         SETofKEYMASK modifiers;
     private:
+        /** @brief Ignored bytes. */
         uint8_t      _unused[2];
     };
     /** @brief [key](#Header::key) enum names. */
@@ -1890,6 +1913,7 @@ struct QueryPointer : public impl::SimpleWindowRequest {
             /** @brief Protocol name: mask. */
             SETofKEYBUTMASK mask;
         private:
+            /** @brief Ignored bytes. */
             uint8_t         _unused[6];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1945,6 +1969,7 @@ struct GetMotionEvents : public Request {
             /** @brief `events` suffix length in [TIMECOORD](#TIMECOORD)s. */
             uint32_t events_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[20];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1952,8 +1977,11 @@ struct GetMotionEvents : public Request {
          * @brief Time coordinate record in suffix `events`.
          */
         struct [[gnu::packed]] TIMECOORD : public protocol::impl::Struct {
+            /** @brief Protocol name: time. */
             TIMESTAMP time;
+            /** @brief Protocol name: x. */
             INT16     x;
+            /** @brief Protocol name: y. */
             INT16     y;
         };
     };
@@ -2014,6 +2042,7 @@ struct TranslateCoordinates : public Request {
             /** @brief Protocol name: dst-y. */
             INT16   dst_y;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[16];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -2144,6 +2173,7 @@ struct GetInputFocus : public impl::SimpleRequest {
             /** @brief Protocol name: focus; uses enum: 0=None 1=PointerRoot. */
             WINDOW  focus;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -2202,6 +2232,7 @@ struct OpenFont : public Request {
         /** @brief Length of suffix `name` in bytes. */
         uint16_t name_len;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -2229,6 +2260,7 @@ struct CloseFont : public Request {
 
 namespace impl {
 
+// TBD wrap in interface class for QueryFont, ListFontsWithInfo?
 /**
  * @brief Represents encoding of type used in replies to core font requests (eg
  *   QueryFont, ListFontsWithInfo).
@@ -2299,11 +2331,13 @@ struct QueryFont : public Request {
             /** @brief Protocol name: min-bounds. */
             CHARINFO min_bounds;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused1[4];
         public:
             /** @brief Protocol name: max-bounds. */
             CHARINFO max_bounds;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused2[4];
         public:
             /** @brief Protocol name: min-char-or-byte2. */
@@ -2408,6 +2442,7 @@ struct QueryTextExtents : public Request {
             /** @brief Protocol name: overall-right. */
             INT32   overall_right;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[4];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -2449,7 +2484,7 @@ struct ListFontsRequest : public Request {
  * @brief Represents X11 %ListFonts request [encoding].
  * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
  *   LISTFONTS(49) and `tl_aligned_units` of 2+pad(Encoding::pattern_len)/4.
- *   [Encoding](#ListFontsRequest::Encoding) followed by `STRING8 pattern` of
+ *   [Encoding](#impl::ListFontsRequest::Encoding) followed by `STRING8 pattern` of
  *   pad(Encoding::pattern_len)B.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
@@ -2471,6 +2506,7 @@ struct ListFonts : public impl::ListFontsRequest {
             /** @brief Length of suffix `names` in [STR](#protocol::STR)s. */
             CARD16  names_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused2[22];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -2480,7 +2516,7 @@ struct ListFonts : public impl::ListFontsRequest {
  * @brief Represents X11 %ListFontsWithInfo request [encoding].
  * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
  *   LISTFONTSWITHINFO(50) and `tl_aligned_units` of 2+pad(Encoding::pattern_len)/4.
- *   [Encoding](#ListFontsRequest::Encoding) followed by `STRING8 pattern` of
+ *   [Encoding](#impl::ListFontsRequest::Encoding) followed by `STRING8 pattern` of
  *   pad(Encoding::pattern_len)B.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
@@ -2527,11 +2563,13 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
             /** @brief Protocol name: min-bounds. */
             CHARINFO min_bounds;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused1[4];
         public:
             /** @brief Protocol name: max-bounds. */
             CHARINFO max_bounds;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused2[4];
         public:
             /** @brief Protocol name: min-char-or-byte2. */
@@ -2582,6 +2620,7 @@ struct SetFontPath : public Request {
         /** @brief Length of suffix `path` in [STR](#protocol::STR)s. */
         CARD16  path_ct;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -2613,6 +2652,7 @@ struct GetFontPath : public impl::SimpleRequest {
             /** @brief Length of suffix `path` in [STR](#protocol::STR)s. */
             CARD16  path_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -2764,7 +2804,7 @@ struct GCRequest : public Request {
  */
 struct CreateGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding between [Header](#impl::GCRequest::Header) and suffix.
+     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
      * @note Followed by suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -2788,7 +2828,7 @@ struct CreateGC : public impl::GCRequest {
  */
 struct ChangeGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding between [Header](#impl::GCRequest::Header) and suffix.
+     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
      * @note Followed by suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -2810,7 +2850,7 @@ struct ChangeGC : public impl::GCRequest {
  */
 struct CopyGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding after [Header](#impl::GCRequest::Header).
+     * @brief Fixed encoding after [Header](#Request::Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-gc. */
@@ -3095,8 +3135,14 @@ struct PolySegment : public Request {
      * @brief Segment coordinates in suffix `segments`.
      */
     struct [[gnu::packed]] SEGMENT : public protocol::impl::Struct {
-        INT16 x1, y1;
-        INT16 x2, y2;
+        /** @brief Protocol name: x1. */
+        INT16 x1;
+        /** @brief Protocol name: y1. */
+        INT16 y1;
+        /** @brief Protocol name: x2. */
+        INT16 x2;
+        /** @brief Protocol name: y2. */
+        INT16 y2;
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
@@ -3169,6 +3215,7 @@ struct FillPoly : public Request {
         /** @brief Protocol name: coordinate-mode; uses enum: 0=Origin 1=Previous. */
         uint8_t  coordinate_mode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief [shape](#Encoding::shape) enum names. */
@@ -3269,6 +3316,7 @@ struct PutImage : public Request {
         /** @brief Protocol name: depth. */
         CARD8    depth;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief [format](#Header::format) enum names. */
@@ -3312,11 +3360,11 @@ struct GetImage : public Request {
         /** @brief Protocol name: plane-mask. */
         CARD32   plane_mask;
     };
-    /** @brief [format](#Heading::format) enum names. */
+    /** @brief [format](#Header::format) enum names. */
     inline static const
     std::vector< std::string_view >& format_names {
         protocol::enum_names::image_format };
-    /** @brief [format](#Heading::format) minimum value to use enum. */
+    /** @brief [format](#Header::format) minimum value to use enum. */
     static constexpr uint8_t FORMAT_ENUM_MIN { 1 };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
@@ -3352,6 +3400,7 @@ struct GetImage : public Request {
             /** @brief Protocol name: visual; uses enum: 0=None. */
             VISUALID visual;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3692,6 +3741,7 @@ struct ListInstalledColormaps : public impl::SimpleWindowRequest {
             /** @brief Length of suffix `cmaps` in [COLORMAP](#protocol::COLORMAP)s. */
             uint16_t cmaps_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3717,6 +3767,7 @@ struct AllocColor : public Request {
         /** @brief Protocol name: blue. */
         CARD16   blue;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes. */
@@ -3740,11 +3791,13 @@ struct AllocColor : public Request {
             /** @brief Protocol name: blue. */
             CARD16  blue;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused1[2];
         public:
             /** @brief Protocol name: pixel. */
             CARD32  pixel;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused2[12];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3768,6 +3821,7 @@ struct AllocNamedColor : public Request {
         /** @brief Length of suffix `name` in bytes. */
         uint16_t name_len;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -3799,6 +3853,7 @@ struct AllocNamedColor : public Request {
             /** @brief Protocol name: visual-blue. */
             CARD16  visual_blue;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[8];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3853,6 +3908,7 @@ struct AllocColorCells : public Request {
             /** @brief Length of suffix `masks` in CARD32s. */
             uint16_t masks_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3908,6 +3964,7 @@ struct AllocColorPlanes : public Request {
             /** @brief Length of suffix `pixels` in CARD32s. */
             uint16_t pixels_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused1[2];
         public:
             /** @brief Protocol name: red-mask. */
@@ -3917,6 +3974,7 @@ struct AllocColorPlanes : public Request {
             /** @brief Protocol name: blue-mask. */
             CARD32   blue_mask;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused2[8];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3976,6 +4034,7 @@ struct StoreColors : public Request {
          *    0x04=do-blue (0xF8 bits unused). */
         uint8_t do_rgb_mask;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused;
     public:
         /** @brief [do_rgb_mask](#do_rgb_mask) flag names. */
@@ -4019,13 +4078,14 @@ struct StoreNamedColor : public Request {
         /** @brief Length of suffix `name` in bytes. */
         uint16_t name_len;
     private:
+        /** @brief Ignored bytes. */
         uint16_t _unused;
     };
-    /** @brief [do_rgb_mask](#do_rgb_mask) flag names. */
+    /** @brief [do_rgb_mask](#Header::do_rgb_mask) flag names. */
     inline static const
     std::vector< std::string_view >& do_rgb_names {
         protocol::enum_names::do_rgb_mask };
-    /** @brief [do_rgb_mask](#do_rgb_mask) bits which should always be 0. */
+    /** @brief [do_rgb_mask](#Header::do_rgb_mask) bits which should always be 0. */
     static constexpr uint8_t DO_RGB_ZERO_BITS { 0xF8 };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
@@ -4063,6 +4123,7 @@ struct QueryColors : public Request {
             /** @brief Length of suffix `colors` in [RGB](#RGB)s. */
             uint16_t colors_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t  _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4077,6 +4138,7 @@ struct QueryColors : public Request {
             /** @brief Protocol name: blue. */
             CARD16  blue;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[2];
         };
     };
@@ -4102,6 +4164,7 @@ struct LookupColor : public Request {
         /** @brief Length of suffix `name` in bytes. */
         uint16_t name_len;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /**
@@ -4128,6 +4191,7 @@ struct LookupColor : public Request {
             /** @brief Protocol name: visual-blue. */
             CARD16  visual_blue;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[12];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4295,7 +4359,7 @@ struct QueryBestSize : public Request {
         /** @brief Protocol name: height. */
         CARD16   height;
     };
-    /** @brief [class](#Heading::class_) enum names. */
+    /** @brief [class](#Header::class_) enum names. */
     inline static const
     std::vector< std::string_view > class_names {
         "Cursor",  // 0
@@ -4321,6 +4385,7 @@ struct QueryBestSize : public Request {
             /** @brief Protocol name: height. */
             CARD16  height;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4342,6 +4407,7 @@ struct QueryExtension : public Request {
         /** @brief Length of suffix `name` in bytes. */
         uint16_t name_len;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffixes). */
@@ -4367,6 +4433,7 @@ struct QueryExtension : public Request {
             /** @brief Protocol name: first-error. */
             CARD8   first_error;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4408,6 +4475,7 @@ struct ListExtensions : public impl::SimpleRequest {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4440,6 +4508,7 @@ struct ChangeKeyboardMapping : public Request {
         /** @brief Protocol name: keysyms-per-keycode; affects length of suffix `keysyms`. */
         uint8_t keysyms_per_keycode;  // m
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -4462,6 +4531,7 @@ struct GetKeyboardMapping : public Request {
         /** @brief Protocol name: count. */
         uint8_t count;  // m
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffixes). */
@@ -4498,6 +4568,7 @@ struct GetKeyboardMapping : public Request {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4605,6 +4676,7 @@ struct GetKeyboardControl : public impl::SimpleRequest {
             /** @brief Protocol name: bell-duration. */
             CARD16  bell_duration;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[2];
         public:
             /** @brief Protocol name: auto-repeats (fixed length LISTofCARD8). */
@@ -4690,6 +4762,7 @@ struct GetPointerControl : public impl::SimpleRequest {
             /** @brief Protocol name: threshold. */
             CARD16  threshold;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[18];
         };
     };
@@ -4714,6 +4787,7 @@ struct SetScreenSaver : public Request {
         /** @brief Protocol name: allow-exposures; uses enum: 0=No 1=Yes 2=Default. */
         uint8_t allow_exposures;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[2];
     };
     /** @brief [prefer-blanking](#Encoding::prefer_blanking) enum names. */
@@ -4755,6 +4829,7 @@ struct GetScreenSaver : public impl::SimpleRequest {
             /** @brief Protocol name: allow-exposures; uses enum: 0=No 1=Yes. */
             uint8_t allow_exposures;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[18];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4799,6 +4874,7 @@ struct ChangeHosts : public Request {
         /** @brief Protocol name: family; uses enum: 0=Internet 1=DECnet 2=Chaos. */
         uint8_t  family;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused;
     public:
         /** @brief Length of suffix `address` in bytes. */
@@ -4858,6 +4934,7 @@ struct ListHosts : public impl::SimpleRequest {
             /** @brief Length of suffix `hosts` in [HOST](#protocol::HOST)s. */
             CARD16  hosts_ct;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5044,6 +5121,7 @@ struct SetPointerMapping : public Request {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5091,6 +5169,7 @@ struct GetPointerMapping : public impl::SimpleRequest {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5148,6 +5227,7 @@ struct SetModifierMapping : public Request {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5194,6 +5274,7 @@ struct GetModifierMapping : public impl::SimpleRequest {
             /** @brief Included prefix. */
             Header  header;
         private:
+            /** @brief Ignored bytes. */
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5212,6 +5293,7 @@ struct GetModifierMapping : public impl::SimpleRequest {
  */
 struct NoOperation : public impl::SimpleRequest {
 };
+        /** @brief Ignored bytes. */
 
 }  // namespace requests
 

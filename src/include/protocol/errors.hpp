@@ -76,6 +76,7 @@ struct Error : public Response {
         /** @brief Included prefix. */
         Header   header;
     private:
+        /** @brief Ignored bytes. */
         uint32_t _unused1;
     public:
         /** @brief Major opcode of relavant request. */
@@ -83,6 +84,7 @@ struct Error : public Response {
         /** @brief Minor opcode of relavant request. */
         CARD8    major_opcode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused2[21];
     };
     /** @brief Identifies message as error when found in
@@ -120,6 +122,7 @@ struct ResourceIdError : public Error {
         /** @brief Minor opcode of relavant request. */
         CARD8    major_opcode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused2[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -150,6 +153,7 @@ struct Value : public Error {
         /** @brief Minor opcode of relavant request. */
         CARD8    major_opcode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -173,6 +177,7 @@ struct Atom : public Error {
      * @brief Complete fixed encoding, including [Error::Header](#Error::Header).
      */
     struct [[gnu::packed]] Encoding {
+        /** @brief Included prefix. */
         Header   header;
         /** @brief Value of [ATOM](#protocol::ATOM) that caused error. */
         CARD32   bad_atom_id;
@@ -181,6 +186,7 @@ struct Atom : public Error {
         /** @brief Minor opcode of relavant request. */
         CARD8    major_opcode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused2[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );

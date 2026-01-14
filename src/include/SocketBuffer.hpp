@@ -76,6 +76,7 @@ public:
     size_t write( const int sockfd );
     /**
      * @brief Discard bytes from buffer without [write](#write).
+     * @param output destination data pointer
      * @param bytes_to_unload bytes to discard
      * @return bytes discarded
      */
@@ -102,6 +103,7 @@ public:
     size_t read( const int sockfd );
     /**
      * @brief Directly write bytes to buffer, without [read](#read).
+     * @param input source data pointer
      * @param bytes_to_load bytes to write
      * @return bytes written
      */

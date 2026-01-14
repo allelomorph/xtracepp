@@ -47,21 +47,27 @@ public:
     /**
      * @brief Client address string.
      * @note Format for:
-     *   - `AF_INET`: xxx.xxx.xxx.xxx:<port>
-     *   - `AF_INET6`: [xxxx:xxxx::xxxx...]:<port>
-     *   - `AF_UNIX`: <socket file path>\|"unknown(local)"
+     *   - `AF_INET`:  xxx.xxx.xxx.xxx:port
+     *   - `AF_INET6`: [xxxx:xxxx::xxxx...]:port
+     *   - `AF_UNIX`:  socket file path\|"unknown(local)"
      */
     std::string    client_desc;
     /**
      * @brief Socket `accept(2)`ed from client.
      */
     int            client_fd { _FD_CLOSED };
+    /**
+     * @brief Temporarily stores data read from [client_fd](#client_fd).
+     */
     SocketBuffer   client_buffer;
     /**
      * @brief Socket `connect(2)`ed to server.
      * [connect]: https://www.man7.org/linux/man-pages/man2/connect.2.html
      */
     int            server_fd { _FD_CLOSED };
+    /**
+     * @brief Temporarily stores data read from [server_fd](#server_fd).
+     */
     SocketBuffer   server_buffer;
     /**
      * @brief Serial number of last request processed.

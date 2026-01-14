@@ -33,6 +33,7 @@ struct Initiation {
          */
         CARD8    byte_order;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused1;
     public:
         /** @brief Protocol name: protocol-major-version. */
@@ -44,6 +45,7 @@ struct Initiation {
         /** @brief `authorization-protocol-data` length in bytes. */
         uint16_t data_len;
     private:
+        /** @brief Ignored bytes. */
         uint16_t _unused2;
     };
 
@@ -64,6 +66,7 @@ struct Initiation {
 };
 
 // TBD add ALIGN similar to protocol::Response::ALIGN
+// TBD rename to InitResponse to disambiguate from protocol::Response
 /**
  * @brief Interface class providing generic header for [Refusal](#Refusal),
  *   [RequireFurtherAuthentication](#RequireFurtherAuthentication),
@@ -80,7 +83,9 @@ struct Response {
          */
         uint8_t  success;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused1;
+        /** @brief Ignored bytes. */
         uint16_t _unused2[2];
     public:
         /** @brief Length of suffix after header in 4B units. */
@@ -120,7 +125,7 @@ struct Refusal : public Response {
      *   [pad](#X11ProtocolParser::_Alignment::pad)([reason_len](#reason_len))B
      */
     struct [[gnu::packed]] Header {
-        /** @brief Should always equal [FAILED](#Response::success::FAILED). */
+        /** @brief Should always equal [FAILED](#connection_setup::Response::success). */
         uint8_t  success;
         /** @brief `reason` length in bytes. */
         uint8_t  reason_len;
@@ -139,7 +144,7 @@ struct Refusal : public Response {
  * [authentication]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
  * @note Uses [Reponse::Header](#Response::Header):
  *   - [success](##Response::Header::success) should always equal
- *     [AUTHENTICATE](#Response::success::AUTHENTICATE)
+ *     [AUTHENTICATE](#Response::success)
  *   - followed by suffix:
  *     - `STRING8 reason` of [pad](#X11ProtocolParser::_Alignment::pad)(
  *     [following_aligned_units](#Response::Header::following_aligned_units) * 4)B
@@ -156,9 +161,10 @@ struct Acceptance : public Response {
      * @brief Fixed encoding prefix.
      */
     struct [[gnu::packed]] Header {
-        /** @brief Should always equal [SUCCESS](#Response::success::SUCCESS). */
+        /** @brief Should always equal [SUCCESS](#connection_setup::Response::success). */
         uint8_t  success;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused;
     public:
         /** @brief Protocol name: protocol-major-version. */
@@ -208,6 +214,7 @@ struct Acceptance : public Response {
         /** @brief Protocol name: max-keycode. */
         KEYCODE  max_keycode;
     private:
+        /** @brief Ignored bytes. */
         uint8_t  _unused2[4];
     };
     /**
@@ -235,6 +242,7 @@ struct Acceptance : public Response {
         /** @brief Protocol name: scanline-pad. */
         CARD8   scanline_pad;
     private:
+        /** @brief Ignored bytes. */
         uint8_t _unused[5];
     };
     /**
@@ -305,11 +313,13 @@ struct Acceptance : public Response {
                 /** @brief Protocol name: depth. */
                 CARD8    depth;
             private:
+                /** @brief Ignored bytes. */
                 uint8_t  _unused1;
             public:
                 /** @brief `visuals` length in [VISUALTYPE](#VISUALTYPE)s. */
                 uint16_t visuals_ct;
             private:
+                /** @brief Ignored bytes. */
                 uint8_t  _unused2[4];
             };
             /**
@@ -331,6 +341,7 @@ struct Acceptance : public Response {
                 /** @brief Protocol name: blue-mask. */
                 CARD32   blue_mask;
             private:
+                /** @brief Ignored bytes. */
                 uint8_t  _unused[4];
             public:
                 /**

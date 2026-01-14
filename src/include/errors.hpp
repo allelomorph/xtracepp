@@ -27,7 +27,7 @@ message( const std::string& msg = {} );
  * @brief Creates a more verbose `std::system_error` for C stdlib `errno`.
  * @param msg prefix to appear at start of exception message
  * @return `std::system_error` with message in format of
- *   [errors::system::message](#errors::system::message)
+ *   errors::system::message
  */
 const std::system_error
 exception( const std::string& msg = {} );
@@ -81,7 +81,7 @@ message( const int gai_ret, const std::string& msg = {} );
  * @param gai_ret return value of `getaddrinfo(3)`
  * @param msg prefix to appear at start of exception message
  * @return `std::system_error` with message in format of
- *   [errors::getaddrinfo::message](#errors::getaddrinfo::message)
+ *   errors::getaddrinfo::message
  */
 const std::system_error
 exception( const int gai_ret, const std::string& msg = {} );

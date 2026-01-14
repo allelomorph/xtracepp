@@ -132,8 +132,8 @@ private:
      * @param[in]  server_fd file descriptor of X server
      * @param[out] screen0_root if not default `nullptr`,
      *   [WINDOW](#protocol::WINDOW) pointed to set to `root` field of
-     *   first [SCREEN](#protocol::SCREEN) in LISTofSCREEN `roots` at end of
-     *   server's [acceptance] of initial handshake
+     *   first [SCREEN](#protocol::connection_setup::Acceptance::SCREEN) in
+     *   LISTofSCREEN `roots` at end of server's [acceptance] of initial handshake
      * @return `true` if successful, `false` if not
      * [acceptance]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
      * @ingroup pre_queue_setup_clients

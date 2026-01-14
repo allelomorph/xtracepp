@@ -27,23 +27,23 @@ private:
      */
     static constexpr int _UNSET { -1 };
     /**
-     * @brief Possible [protocol](#protocol) value.
+     * @brief Possible [protocol](#DisplayInfo::protocol) value.
      */
     static constexpr std::string_view _UNIX  { "unix" };
     /**
-     * @brief Possible [protocol](#protocol) value.
+     * @brief Possible [protocol](#DisplayInfo::protocol) value.
      */
     static constexpr std::string_view _TCP   { "tcp" };
     /**
-     * @brief Possible [protocol](#protocol) value.
+     * @brief Possible [protocol](#DisplayInfo::protocol) value.
      */
     static constexpr std::string_view _LOCAL { "local" };
     /**
-     * @brief Possible [protocol](#protocol) value.
+     * @brief Possible [protocol](#DisplayInfo::protocol) value.
      */
     static constexpr std::string_view _INET  { "inet" };
     /**
-     * @brief Possible [protocol](#protocol) value.
+     * @brief Possible [protocol](#DisplayInfo::protocol) value.
      */
     static constexpr std::string_view _INET6 { "inet6" };
     /**
