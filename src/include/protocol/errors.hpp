@@ -70,7 +70,7 @@ struct Error : public Response {
         CARD16  sequence_num;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -108,7 +108,7 @@ struct SimpleError : public Error {};
  */
 struct ResourceIdError : public Error {
     /**
-     * @brief Complete fixed encoding, inlcuding [Error::Header](#Error::Header).
+     * @brief Complete fixed encoding, including [Error::Header](#Error::Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -138,7 +138,7 @@ struct Request        : public impl::SimpleError {};
  */
 struct Value : public Error {
     /**
-     * @brief Complete fixed encoding, inlcuding [Error::Header](#Error::Header).
+     * @brief Complete fixed encoding, including [Error::Header](#Error::Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -170,7 +170,7 @@ struct Pixmap         : public impl::ResourceIdError {};
  */
 struct Atom : public Error {
     /**
-     * @brief Complete fixed encoding, inlcuding [Error::Header](#Error::Header).
+     * @brief Complete fixed encoding, including [Error::Header](#Error::Header).
      */
     struct [[gnu::packed]] Encoding {
         Header   header;

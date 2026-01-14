@@ -37,7 +37,7 @@ struct Event : public Response {
         CARD16  sequence_num;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -167,7 +167,7 @@ struct InputEvent : public Event {
         CARD16          sequence_num;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -225,7 +225,7 @@ struct BoundaryEvent : public Event {
         CARD16          sequence_num;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -302,7 +302,7 @@ struct FocusEvent : public Event {
         CARD16  sequence_num;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -376,7 +376,7 @@ struct MotionNotify : public Event {
         CARD16  sequence_num;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
@@ -462,7 +462,7 @@ struct KeymapNotify : public Event {
         uint8_t code;
     };
     /**
-     * @brief Complete fixed encoding, inlcuding [Header](#Header).
+     * @brief Complete fixed encoding, including [Header](#Header).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
