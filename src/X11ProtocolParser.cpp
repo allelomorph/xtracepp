@@ -44,7 +44,7 @@ void X11ProtocolParser::importSettings(
     _ROOT_WS = _Whitespace{ 0, settings_.multiline };
     settings = settings_;
     assert( settings.log_fs != nullptr );
-    assert( !feof( settings.log_fs ) && !ferror( settings_.log_fs ) );
+    assert( !::feof( settings.log_fs ) && !::ferror( settings_.log_fs ) );
 
     uint32_t i { 1 };
     for ( ; i <= protocol::atoms::predefined::MAX; ++i ) {

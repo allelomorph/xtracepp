@@ -190,7 +190,7 @@ private:
      *   array passable as `poll(2)` param `fds`.
      * @ingroup socket_polling
      */
-    std::vector< pollfd >   _pfds;
+    std::vector< ::pollfd > _pfds;
     /**
      * @brief Maps socket polling status (referenced by index in
      *   [_pfds](#_pfds)) to open file descriptors.
