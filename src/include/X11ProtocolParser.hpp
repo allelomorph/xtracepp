@@ -402,24 +402,6 @@ private:
          * @brief Sentinel to indicate empty name array.
          */
         inline static const std::vector< std::string_view > _NO_NAMES {};
-        /**
-         * @brief Implementation of corresponding ctor.
-         */
-        _EnumNameRange
-        _ctorHelper( const std::vector< std::string_view >& names_,
-                     const Bound bound, const uint32_t value ) {
-            if ( bound == Bound::MIN )
-                return _EnumNameRange( names_, value, names_.size() - 1 );
-            assert( bound == Bound::MAX );
-            return _EnumNameRange( names_, 0, value );
-        }
-        /**
-         * @brief Implementation of corresponding ctor.
-         */
-        _EnumNameRange
-        _ctorHelper( const std::vector< std::string_view >& names_ ) {
-            return _EnumNameRange( names_, 0, names_.size() - 1 );
-        }
 
     public:
         /**
@@ -451,12 +433,14 @@ private:
          */
         _EnumNameRange( const std::vector< std::string_view >& names_,
                         const Bound bound, const uint32_t value ) :
-            _EnumNameRange( _ctorHelper( names_, bound, value ) ) {}
+            _EnumNameRange( names_,
+                            bound == Bound::MIN ? value : 0,
+                            bound == Bound::MIN ? names_.size() - 1 : value ) {}
         /**
          * @brief Ctor implying all enum values in names array used.
          */
         _EnumNameRange( const std::vector< std::string_view >& names_ ) :
-            _EnumNameRange( _ctorHelper( names_ ) ) {}
+            _EnumNameRange( names_, 0, names_.size() - 1 ) {}
         /**
          * @brief Determines if a value is in the range.
          * @tparam IntT integral type of val
