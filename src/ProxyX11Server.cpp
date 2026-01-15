@@ -862,13 +862,17 @@ void ProxyX11Server::_closeConnections( const std::vector< int >& ids ) {
         _connections.erase( id );
     }
     // zip _pfds array to _pfds_i_by_fd keys
-    _pfds.resize( _pfds_i_by_fd.size() );
+    std::vector< pollfd > new_pfds;
     int i {};
     for ( auto& [ fd, pfds_i ] : _pfds_i_by_fd ) {
-        _pfds[i].fd = fd;
+        const pollfd& pfd { _pfds.at( pfds_i ) };
+        assert( pfd.fd == fd );
+        new_pfds.emplace_back( pfd );
         pfds_i = i;
         ++i;
     }
+    _pfds = std::move( new_pfds );
+    // listener should still be open even if all connections were closed
     assert( !_pfds_i_by_fd.empty() );
 }
 
