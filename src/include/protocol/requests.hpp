@@ -2712,7 +2712,6 @@ struct FreePixmap : public Request {
 
 namespace impl {
 
-// TBD pure virtual dtor
 /**
  * @brief Represents shared [encoding] of GCONTEXT requests that use a value-list,
  *   (eg CreateGC, ChangeGC).
@@ -2792,6 +2791,7 @@ struct GCRequest : public Request {
     inline static const
     std::vector< std::string_view >& arc_mode_names {
         protocol::enum_names::gc_value_arc_mode };
+    virtual ~GCRequest() = 0;
 };
 
 }  // namespace impl
@@ -3056,7 +3056,6 @@ struct CopyPlane : public Request {
 
 namespace impl {
 
-// TBD pure virtual dtor
 /**
  * @brief Represents shared [encoding] of simple Poly* requests (eg PolyPoint,
  *   PolyLine).
@@ -3092,6 +3091,7 @@ struct PolyPointRequest : public Request {
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
+    virtual ~PolyPointRequest() = 0;
 };
 
 }  // namespace impl
@@ -3638,7 +3638,6 @@ struct CreateColormap : public Request {
 namespace impl {
 
 // TBD StoreColors, QueryColors?
-// TBD pure virtual dtor
 /**
  * @brief Represents shared [encoding] of simple COLORMAP requests (eg
  *   FreeColormap).
@@ -3655,6 +3654,7 @@ struct SimpleCmapRequest : public Request {
     /** @brief Total encoding size in bytes (before suffixes). */
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
+    virtual ~SimpleCmapRequest() = 0;
 };
 
 }  // namespace impl

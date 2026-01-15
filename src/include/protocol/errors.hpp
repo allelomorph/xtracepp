@@ -51,7 +51,6 @@ int MAX { IMPLEMENTATION };
 
 }  // namespace codes
 
-// TBD add pure virtual dtor
 /**
  * @brief Interface class providing default [encoding] for protocol errors.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
@@ -93,17 +92,18 @@ struct Error : public Response {
     /** @brief Expected size in bytes of [Encoding](#Encoding). */
     static constexpr uint32_t ENCODING_SZ { 32 };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
+    virtual ~Error() = 0;
 };
 
 namespace impl {
 
-// TBD add pure virtual dtor
 /**
  * @brief Represents shared default [encoding] of errors.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
  */
-struct SimpleError : public Error {};
-// TBD add pure virtual dtor
+struct SimpleError : public Error {
+    virtual ~SimpleError() = 0;
+};
 /**
  * @brief Represents shared [encoding] of XID/resource ID errors.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
@@ -126,6 +126,8 @@ struct ResourceIdError : public Error {
         uint8_t  _unused2[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
+
+    virtual ~ResourceIdError() = 0;
 };
 
 }  // namespace impl

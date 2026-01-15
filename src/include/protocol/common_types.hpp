@@ -39,6 +39,8 @@ using VALUE  = CARD32;
 
 namespace impl {
 
+// TBD while these are used as interface classes, we can't use pure virtual
+//   dtors as they add 8 bytes to the packed size of child classes
 /**
  * @brief Parent class to allow template filtering of protocol types via
  *   inheritance; represents protocol integer types.
