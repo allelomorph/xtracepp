@@ -78,53 +78,53 @@ struct [[gnu::packed]] StructWithSuffixes : public Struct {};
 }  // namespace impl
 
 /**
- * @brief Typed integer representing X11 WINDOW.
+ * @brief Typed integer representing X11 %WINDOW.
  */
 struct [[gnu::packed]] WINDOW : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 PIXMAP.
+ * @brief Typed integer representing X11 %PIXMAP.
  */
 struct [[gnu::packed]] PIXMAP : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 CURSOR.
+ * @brief Typed integer representing X11 %CURSOR.
  */
 struct [[gnu::packed]] CURSOR : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 FONT.
+ * @brief Typed integer representing X11 %FONT.
  */
 struct [[gnu::packed]] FONT : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 GCONTEXT.
+ * @brief Typed integer representing X11 %GCONTEXT.
  */
 struct [[gnu::packed]] GCONTEXT : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 COLORMAP.
+ * @brief Typed integer representing X11 %COLORMAP.
  */
 struct [[gnu::packed]] COLORMAP : public impl::ResourceId {};
 /**
- * @brief Union representing X11 DRAWABLE.
+ * @brief Union representing X11 %DRAWABLE.
  */
 union [[gnu::packed]] DRAWABLE {
     WINDOW window;
     PIXMAP pixmap;
 };
 /**
- * @brief Union representing X11 FONTABLE.
+ * @brief Union representing X11 %FONTABLE.
  */
 union [[gnu::packed]] FONTABLE {
     FONT     font;
     GCONTEXT gcontext;
 };
 /**
- * @brief Typed integer representing X11 ATOM.
+ * @brief Typed integer representing X11 %ATOM.
  */
 struct [[gnu::packed]] ATOM : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 VISUALID.
+ * @brief Typed integer representing X11 %VISUALID.
  */
 struct [[gnu::packed]] VISUALID : public impl::ResourceId {};
 /**
- * @brief Typed integer representing X11 TIMESTAMP.
+ * @brief Typed integer representing X11 %TIMESTAMP.
  */
 struct [[gnu::packed]] TIMESTAMP : public impl::Integer {
     /**
@@ -133,7 +133,7 @@ struct [[gnu::packed]] TIMESTAMP : public impl::Integer {
     CARD32 data;
 };
 /**
- * @brief Typed integer representing X11 BITGRAVITY.
+ * @brief Typed integer representing X11 %BITGRAVITY.
  */
 struct [[gnu::packed]] BITGRAVITY : public impl::Integer {
     /**
@@ -159,7 +159,7 @@ struct [[gnu::packed]] BITGRAVITY : public impl::Integer {
     };
 };
 /**
- * @brief Typed integer representing X11 WINGRAVITY.
+ * @brief Typed integer representing X11 %WINGRAVITY.
  */
 struct [[gnu::packed]] WINGRAVITY : public impl::Integer {
     /**
@@ -185,7 +185,7 @@ struct [[gnu::packed]] WINGRAVITY : public impl::Integer {
     };
 };
 /**
- * @brief Typed integer representing X11 BOOL.
+ * @brief Typed integer representing X11 %BOOL.
  */
 struct [[gnu::packed]] BOOL : public impl::Integer {
     /**
@@ -245,7 +245,7 @@ struct [[gnu::packed]] SETofEVENTBase : public impl::Bitmask {
 }  // namespace impl
 
 /**
- * @brief Typed integer bitmask representing X11 SETofEVENT.
+ * @brief Typed integer bitmask representing X11 %SETofEVENT.
  */
 struct [[gnu::packed]] SETofEVENT : public impl::SETofEVENTBase {
     /**
@@ -258,7 +258,7 @@ struct [[gnu::packed]] SETofEVENT : public impl::SETofEVENTBase {
     static constexpr uint32_t ZERO_BITS { 0xFE000000 };
 };
 /**
- * @brief Typed integer bitmask representing X11 SETofPOINTEREVENT.
+ * @brief Typed integer bitmask representing X11 %SETofPOINTEREVENT.
  */
 struct [[gnu::packed]] SETofPOINTEREVENT : public impl::SETofEVENTBase {
     /**
@@ -272,7 +272,7 @@ struct [[gnu::packed]] SETofPOINTEREVENT : public impl::SETofEVENTBase {
     static constexpr uint32_t ZERO_BITS { 0xFFFF8003 };
 };
 /**
- * @brief Typed integer bitmask representing X11 SETofDEVICEEVENT.
+ * @brief Typed integer bitmask representing X11 %SETofDEVICEEVENT.
  */
 struct [[gnu::packed]] SETofDEVICEEVENT : public impl::SETofEVENTBase {
     /**
@@ -286,7 +286,7 @@ struct [[gnu::packed]] SETofDEVICEEVENT : public impl::SETofEVENTBase {
     static constexpr uint32_t ZERO_BITS { 0xFFFFC0B0 };
 };
 /**
- * @brief Typed integer representing X11 KEYSYM.
+ * @brief Typed integer representing X11 %KEYSYM.
  */
 struct [[gnu::packed]] KEYSYM : public impl::Integer {
     /**
@@ -295,7 +295,7 @@ struct [[gnu::packed]] KEYSYM : public impl::Integer {
     CARD32 data;
 };
 /**
- * @brief Typed integer representing X11 KEYCODE.
+ * @brief Typed integer representing X11 %KEYCODE.
  */
 struct [[gnu::packed]] KEYCODE : public impl::Integer {
     /**
@@ -304,7 +304,7 @@ struct [[gnu::packed]] KEYCODE : public impl::Integer {
     CARD8 data;
 };
 /**
- * @brief Typed integer representing X11 BUTTON.
+ * @brief Typed integer representing X11 %BUTTON.
  */
 struct [[gnu::packed]] BUTTON : public impl::Integer {
     /**
@@ -313,7 +313,7 @@ struct [[gnu::packed]] BUTTON : public impl::Integer {
     CARD8 data;
 };
 /**
- * @brief Typed integer bitmask representing X11 SETofKEYBUTMASK.
+ * @brief Typed integer bitmask representing X11 %SETofKEYBUTMASK.
  */
 struct [[gnu::packed]] SETofKEYBUTMASK : public impl::Bitmask {
     /**
@@ -345,7 +345,7 @@ struct [[gnu::packed]] SETofKEYBUTMASK : public impl::Bitmask {
     };
 };
 /**
- * @brief Typed integer bitmask representing X11 SETofKEYMASK.
+ * @brief Typed integer bitmask representing X11 %SETofKEYMASK.
  */
 struct [[gnu::packed]] SETofKEYMASK : public SETofKEYBUTMASK {
     /**
@@ -371,7 +371,7 @@ struct [[gnu::packed]] SETofKEYMASK : public SETofKEYBUTMASK {
 // };
 
 /**
- * @brief Encapsulates X11 CHAR2B.
+ * @brief Encapsulates X11 %CHAR2B.
  */
 struct [[gnu::packed]] CHAR2B : public impl::Struct {
     /** @brief First byte of encoding. */
@@ -384,7 +384,7 @@ struct [[gnu::packed]] CHAR2B : public impl::Struct {
 // using STRING16 = LISTofCHAR2B
 
 /**
- * @brief Encapsulates X11 POINT.
+ * @brief Encapsulates X11 %POINT.
  */
 struct [[gnu::packed]] POINT : public impl::Struct {
     /** @brief x coordinate of upper-left corner. */
@@ -393,7 +393,7 @@ struct [[gnu::packed]] POINT : public impl::Struct {
     INT16 y;
 };
 /**
- * @brief Encapsulates X11 RECTANGLE.
+ * @brief Encapsulates X11 %RECTANGLE.
  */
 struct [[gnu::packed]] RECTANGLE : public impl::Struct {
     /** @brief x coordinate of upper-left corner. */
@@ -406,7 +406,7 @@ struct [[gnu::packed]] RECTANGLE : public impl::Struct {
     CARD16 height;
 };
 /**
- * @brief Encapsulates X11 ARC.
+ * @brief Encapsulates X11 %ARC.
  */
 struct [[gnu::packed]] ARC : public impl::Struct {
     /** @brief x coordinate of upper-left corner of bounding rectangle. */
@@ -425,11 +425,11 @@ struct [[gnu::packed]] ARC : public impl::Struct {
     INT16  angle2;
 };
 /**
- * @brief Represents X11 HOST.
+ * @brief Represents X11 %HOST.
  */
 struct HOST : public impl::StructWithSuffixes {
     /**
-     * @brief Fixed encoding of X11 HOST.
+     * @brief Fixed encoding of X11 %HOST.
      * @note Followed by suffixes:
      *   - `LISTofBYTE address` of
      *     [pad](#X11ProtocolParser::_Alignment::pad)([address_len](#address_len))B
@@ -455,11 +455,11 @@ struct HOST : public impl::StructWithSuffixes {
         protocol::enum_names::host_family };
 };
 /**
- * @brief Represents X11 STR.
+ * @brief Represents X11 %STR.
  */
 struct STR : public impl::StructWithSuffixes {
     /**
-     * @brief Fixed encoding of X11 STR.
+     * @brief Fixed encoding of X11 %STR.
      * @note Followed by suffixes:
      *   - `STRING8 name` of
      *     [pad](#X11ProtocolParser::_Alignment::pad)([name_len](#name_len))B
