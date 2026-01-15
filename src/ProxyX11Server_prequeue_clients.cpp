@@ -235,9 +235,9 @@ close_socket:
 static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
+    // show cursor if currently hidden
     ::write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
-    static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
-    ::_exit( _SIGNAL_RETVAL_OFFSET + sig );
+    ::_exit( ProxyX11Server::SIGNAL_RETVAL_OFFSET + sig );
 }
 
 std::vector< std::string >

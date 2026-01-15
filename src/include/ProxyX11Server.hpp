@@ -36,6 +36,11 @@ public:
      *   variables.
      */
     Settings settings;
+    /**
+     * @brief Added to signal values to disambiguate signal termination from
+     *   other exit codes.
+     */
+    static constexpr int SIGNAL_RETVAL_OFFSET { 128 };
 
     ProxyX11Server() {}
     ~ProxyX11Server();
@@ -49,7 +54,8 @@ public:
      * @brief Begin operation.
      * @return `EXIT_SUCCESS` by default, `EXIT_FAILURE` on error. If using
      *   subcommand child process but not `--keeprunning`, child return value or
-     *   signal value + 128 if child stopped by signal.
+     *   signal value + [SIGNAL_RETVAL_OFFSET](#SIGNAL_RETVAL_OFFSET) if child
+     *   stopped by signal.
      */
     int run();
 

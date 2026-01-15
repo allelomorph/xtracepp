@@ -45,9 +45,8 @@ static void handleSIGCHLD( int sig, ::siginfo_t* info, void*/* ucontext*/ ) {
     case CLD_KILLED:
         [[fallthrough]];
     case CLD_DUMPED:
-        static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
         child_retval.store(
-            _SIGNAL_RETVAL_OFFSET + info->si_status );
+            ProxyX11Server::SIGNAL_RETVAL_OFFSET + info->si_status );
         break;
     default:
         // CLD_TRAPPED CLD_STOPPED CLD_CONTINUED
@@ -85,8 +84,7 @@ static void handleTerminatingSignal( int sig ) {
          xauth_path_ != nullptr && xauth_bup_path_ != nullptr ) {
         ::rename( xauth_bup_path_, xauth_path_ );
     }
-    static constexpr int _SIGNAL_RETVAL_OFFSET { 128 };
-    ::_exit( _SIGNAL_RETVAL_OFFSET + sig );
+    ::_exit( ProxyX11Server::SIGNAL_RETVAL_OFFSET + sig );
 }
 
 ProxyX11Server::~ProxyX11Server() {
