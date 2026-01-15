@@ -772,7 +772,7 @@ int ProxyX11Server::_connectToServer() {
     if ( fd < 0 )  {
         fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
                       errors::system::message( "socket" ) );
-        return -1;
+        return _UNINIT_FD;
     }
     std::string connect_err;
     switch ( _out_display.ai_family ) {
@@ -787,7 +787,7 @@ int ProxyX11Server::_connectToServer() {
             ::close( fd );
             fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
                           errors::system::message( "setsockopt" ) );
-            return -1;
+            return _UNINIT_FD;
         }
         connect_err = fmt::format(
             "{}: {}: error connecting to {:?} (resolved to {:?}) for display {:?}: {}",
@@ -807,7 +807,7 @@ int ProxyX11Server::_connectToServer() {
     if ( ::connect( fd, &_out_display.ai_addr, _out_display.ai_addrlen ) != 0 ) {
         ::close( fd );
         fmt::println( ::stderr, connect_err );
-        return -1;
+        return _UNINIT_FD;
     }
     return fd;
 }
