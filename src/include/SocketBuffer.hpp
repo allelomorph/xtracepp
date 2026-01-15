@@ -31,11 +31,12 @@ private:
      */
     static constexpr size_t _BLOCK_SZ { 2048 };
     /**
-     * @brief Macro indicating a read of all bytes available from socket.
+     * @brief Indicates a read of all bytes available from socket when passed
+     *   as second param to [read](#read).
      */
     static constexpr size_t _READ_ALL { std::numeric_limits< size_t >::max() };
     /**
-     * @brief Macro indicating no MSG_* flags used with send(2).
+     * @brief Indicates no MSG_* flags used with `send(2)`.
      */
     static constexpr int _MSG_NONE { 0 };
     /**
@@ -62,7 +63,7 @@ public:
         assert( !_buffer.empty() ); }
     /**
      * @brief Writes bytes from buffer to `sockfd`.
-     * @param sockfd fd to send(2) bytes
+     * @param sockfd fd to `send(2)` bytes
      * @param bytes_to_write bytes expected to write
      * @return bytes written
      */
@@ -70,7 +71,7 @@ public:
                   const size_t bytes_to_write );
     /**
      * @brief Writes all bytes from buffer to `sockfd`.
-     * @param sockfd fd to send(2) bytes
+     * @param sockfd fd to `send(2)` bytes
      * @return bytes written
      */
     size_t write( const int sockfd );
@@ -89,7 +90,7 @@ public:
     size_t unload( const size_t bytes_to_unload );
     /**
      * @brief Read bytes from `sockfd` into buffer.
-     * @param sockfd fd from which to recv(2) bytes
+     * @param sockfd fd from which to `recv(2)` bytes
      * @param bytes_to_read bytes expected to read
      * @return bytes read
      */
@@ -97,7 +98,7 @@ public:
                  const size_t bytes_to_read );
     /**
      * @brief Read all available bytes from `sockfd` into buffer.
-     * @param sockfd fd from which to recv(2) bytes
+     * @param sockfd fd from which to `recv(2)` bytes
      * @return bytes read
      */
     size_t read( const int sockfd );
