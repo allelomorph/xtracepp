@@ -180,11 +180,11 @@ public:
         ::sockaddr_in  inaddr;
         ::sockaddr_in6 in6addr;
         ::sockaddr_un  unaddr {};
-        static_assert( sizeof( unaddr ) > sizeof( ai_addr ) &&
-                       sizeof( unaddr ) > sizeof( inaddr ) &&
-                       sizeof( unaddr ) > sizeof( in6addr ) );
-        static_assert( sizeof( unaddr.sun_path ) == _UNIX_PATH_MAX );
     };
+    static_assert( sizeof( unaddr ) > sizeof( ai_addr ) &&
+                   sizeof( unaddr ) > sizeof( inaddr ) &&
+                   sizeof( unaddr ) > sizeof( in6addr ) );
+    static_assert( sizeof( unaddr.sun_path ) == _UNIX_PATH_MAX );
     /**
      * @brief View into address buffer populated by `inet_ntop(3)`.
      */
