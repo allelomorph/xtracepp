@@ -7,6 +7,7 @@
 
 #include <string>
 #include <string_view>
+#include <regex>
 
 #include <netinet/in.h>  // sockaddr_in sockaddr_in6 INET_ADDRSTRLEN
 // TBD <linux/un.h> provides alternative sockaddr_un with UNIX_PATH_MAX
@@ -65,15 +66,22 @@ private:
     static constexpr std::string_view
                             _UNIX_SOCKET_PATH_PREFIX { "/tmp/.X11-unix/X" };
     /**
-     * @brief `char` buffer for use with `inet_ntop(3)`.
+     * @brief Unix socket-based display name parsing regex.
+     * @note libX11 and libxcb both parse display names with call chains
+     *   ending in [_xcb_parse_display], which contains this [undocumented]
+     *   pattern for unix socket-based display names:  
+     *     [`unix:`]socket_path[`.`screen_number]
+     *
+     *   [_xcb_parse_display]: https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/e81b999a/src/xcb_util.c#L160
+     *   [undocumented]: https://www.x.org/releases/X11R7.7/doc/libX11/libX11/libX11.html#Opening_the_Display
      */
-    char _addrstr_buf[ INET6_ADDRSTRLEN ] {};
+    inline static const std::regex _UNIX_REGEX {
+        "^(?:(unix):)?"      // [protocol:]
+        "(.+?)"              // socket_path
+        "(?:\\.([0-9]+))?$"  // [.screen_number]
+    };
     /**
-     * @brief Whether display name string matches the unix socket pattern.
-     */
-    bool _unix_pattern {};
-    /**
-     * @brief Regex group match indices (from 1) of unix socket pattern.
+     * @brief Regex group match indices (from 1) of [unix socket pattern](#_UNIX_REGEX).
      */
     enum {
         _UNIX_PROTOCOL_GROUP_I = 1,
@@ -81,7 +89,28 @@ private:
         _UNIX_SCREEN_GROUP_I
     };
     /**
-     * @brief Regex group match indices (from 1) of default pattern.
+     * @brief Default hostname or URI-based display name parsing regex.
+     * @note libX11 and libxcb both parse display names with call chains
+     *   ending in [_xcb_parse_display], which contains this [documented]
+     *   TCP pattern (minus DECnet) for hostname or URI-based display names
+     *   (defaulting to a unix sockets if no hostname is provided):  
+     *     [[protocol`/`]hostname\|URI]`:`display_number[`.`screen_number]
+     *
+     *   [_xcb_parse_display]: https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/e81b999a/src/xcb_util.c#L160
+     *   [documented]: https://www.x.org/releases/X11R7.7/doc/libX11/libX11/libX11.html#Opening_the_Display
+     */
+    inline static const std::regex _DEFAULT_REGEX {
+        "^(?:"
+            "(?:([a-zA-Z6]+)/)?"  // [ [<protocol>/]
+            "([^\\s]+?)"          // <hostname/URI> ]
+        ")?"
+        "(?="
+            ":([0-9]+)"           // :<display number>
+            "(?:\\.([0-9]+))?"    // [.<screen number>]
+        "$)"
+    };
+    /**
+     * @brief Regex group match indices (from 1) of [default pattern](#_DEFAULT_REGEX).
      */
     enum {
         _PROTOCOL_GROUP_I = 1,
@@ -89,6 +118,14 @@ private:
         _DISPLAY_GROUP_I,
         _SCREEN_GROUP_I
     };
+    /**
+     * @brief `char` buffer for use with `inet_ntop(3)`.
+     */
+    char _addrstr_buf[ INET6_ADDRSTRLEN ] {};
+    /**
+     * @brief Whether display name string matches the unix socket pattern.
+     */
+    bool _unix_pattern {};
 
 public:
     /**

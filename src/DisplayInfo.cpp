@@ -1,6 +1,6 @@
 #include <string_view>
 #include <string>        // stoi
-#include <regex>         // smatch regex regex_search
+#include <regex>         // smatch regex_search
 #include <algorithm>     // transform
 
 #include <cassert>
@@ -28,40 +28,11 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
     ////// Parse display name into relevant fields
 
     name = std::string( display_name );
-    // libX11 and libxcb both parse display names with call chains ending in
-    //   _xcb_parse_display, which supports two methods: an undocumented pattern
-    //   for explicit passing of a unix socket:
-    //
-    //     [unix:]<socket path>[.<screen number>]
-    //
-    //   and the documented pattern for TCP/DECnet (defaulting to unix sockets
-    //   when no hostname is provided):
-    //
-    //     [[<protocol>/]<hostname>]:[:]<display number>[.<screen number>]
-    //
-    //   see:
-    //     - https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/e81b999a/src/xcb_util.c#L160
-    //     - https://www.x.org/releases/X11R7.7/doc/libX11/libX11/libX11.html#Opening_the_Display
-    std::regex unix_regex {
-        "^(?:(unix):)?"      // [<protocol>:]
-        "(.+?)"              // <socket path>
-        "(?:\\.([0-9]+))?$"  // [.<screen number>]
-    };
-    std::regex default_regex {
-        "^(?:"
-            "(?:([a-zA-Z6]+)/)?"  // [ [<protocol>/]
-            "([^\\s]+?)"          // <hostname/URI> ]
-        ")?"
-        "(?="
-            ":([0-9]+)"           // :<display number>
-            "(?:\\.([0-9]+))?"    // [.<screen number>]
-        "$)"
-    };
     std::smatch match;
     // TBD not providing default display or screen of 0 as in libxcb/libX11
     // `struct` needed to disambiguate from stat(2)
     if ( struct ::stat st {};
-         std::regex_search( name, match, unix_regex ) &&
+         std::regex_search( name, match, _UNIX_REGEX ) &&
          ::stat( match[ _UNIX_SOCKET_PATH_GROUP_I ].str().data(), &st ) == 0 &&
          st.st_mode & S_IFSOCK ) {
         _unix_pattern = true;
@@ -71,7 +42,7 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
              !screen_str.empty() ) {
             screen  = std::stoi( screen_str );
         }
-    } else if ( std::regex_search( name, match, default_regex ) ) {
+    } else if ( std::regex_search( name, match, _DEFAULT_REGEX ) ) {
         protocol = match[ _PROTOCOL_GROUP_I ];
         std::transform( protocol.begin(), protocol.end(), protocol.begin(),
                         []( unsigned char c ){ return std::tolower( c ); } );
@@ -99,8 +70,7 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
                       process_name, name );
         ::exit( EXIT_FAILURE );
     }
-    // only passing explcitly passing "inet" as protocol uses IPv4, otherwise
-    //   default to IPv6 with IPv4 support
+    // default to IPv6 with IPv4 support, unless explicitly passing "inet" as protocol
     if ( protocol == _INET6 || protocol == _TCP ) {
         ai_family = AF_INET6;
     } else if ( protocol == _INET ) {
