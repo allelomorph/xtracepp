@@ -3410,75 +3410,20 @@ struct GetImage : public Request {
             protocol::enum_names::zero_none };
     };
 };
-// TBD PolyText interface class with Encoding, FONT_SHIFT, and FONT?
+
+namespace impl {
+
 /**
- * @brief Represents X11 %PolyText8 request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYTEXT8(74) and `tl_aligned_units` of 4+pad(n)/4.
+ * @brief Represents shared [encoding] of PolyText requests (eg PolyText8,
+ *   PolyText16).
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
-struct PolyText8 : public Request {
+struct PolyTextRequest : public Request {
     /**
      * @brief Fixed encoding between [Header](#Request::Header) and suffix.
      * @note Followed by suffix:
      *   - `LISTofTEXTITEM8 items` of pad(n)B
-     */
-    struct [[gnu::packed]] Encoding {
-        /** @brief Protocol name: drawable. */
-        DRAWABLE drawable;
-        /** @brief Protocol name: gc. */
-        GCONTEXT gc;
-        /** @brief Protocol name: x. */
-        INT16    x;
-        /** @brief Protocol name: y. */
-        INT16    y;
-    };
-    // TBD core X11 font storage: https://www.x.org/wiki/guide/fonts/
-    // TBD move FONT_SHIFT to FONT?
-    /** @brief Sentinel value to differentiate [FONT](#TEXTITEM8::FONT) from
-     *   [TEXTELT8](#TEXTITEM8::TEXTELT8). */
-    static constexpr uint8_t FONT_SHIFT { 255 };
-    /**
-     * @brief Members of suffix `items`, encodes either variable length string
-     *   or 4 byte font code in NBO.
-     */
-    union TEXTITEM8 {
-        /**
-         * @brief Variable length string TEXTITEM8 variant.
-         * @note Followed by suffix:
-         *   - `STRING8 string` of string_lenB
-         */
-        struct [[gnu::packed]] TEXTELT8 : public protocol::impl::StructWithSuffixes {
-            /** @brief Length of suffix `string` in bytes (cannot equal FONT_SHIFT). */
-            uint8_t string_len;
-            /** @brief Protocol name: delta. */
-            INT8    delta;
-        } text_element;
-        /**
-         * @brief NBO font code TEXTITEM8 variant.
-         */
-        struct [[gnu::packed]] FONT : public protocol::impl::Struct {
-            /** @brief Protocol name: font-shift (must equal FONT_SHIFT). */
-            uint8_t font_shift;
-            /** @brief Font code convertible to (protocol::FONT)[#protocol::FONT],
-             *   from most- to least-significant byte (network byte order). */
-            uint8_t font_bytes[4];
-        } font;
-    };
-    /** @brief Total encoding size in bytes (before suffix). */
-    static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
-};
-/**
- * @brief Represents X11 %PolyText16 request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYTEXT16(75) and `tl_aligned_units` of 4+pad(n)/4.
- * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
- */
-struct PolyText16 : public Request {
-    /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     *     or
      *   - `LISTofTEXTITEM16 items` of pad(n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -3491,41 +3436,85 @@ struct PolyText16 : public Request {
         /** @brief Protocol name: y. */
         INT16    y;
     };
-    // TBD core X11 font storage: https://www.x.org/wiki/guide/fonts/
-    // TBD move FONT_SHIFT to FONT?
-    /** @brief Sentinel value to differentiate [FONT](#TEXTITEM16::FONT) from
-     *   [TEXTELT16](#TEXTITEM16::TEXTELT16). */
-    static constexpr uint8_t FONT_SHIFT { 255 };
     /**
-     * @brief Members of suffix `items`, encodes either variable length string
-     *   or 4 byte font code in NBO.
+     * @brief Stores X11 font code in network byte order; used in
+     *   [TEXTITEM8](#PolyText8::TEXTITEM8) and [TEXTITEM16](#PolyText16::TEXTITEM16)
+     *   unions.
+     * @see [X11 fonts](https://www.x.org/wiki/guide/fonts/)
      */
-    union TEXTITEM16 {
-        /**
-         * @brief Variable length string TEXTITEM16 variant.
-         * @note Followed by suffix:
-         *   - `STRING16 string` of 2string_lenB
-         */
-        struct [[gnu::packed]] TEXTELT16 : public protocol::impl::StructWithSuffixes {
-            /** @brief Length of suffix `string` in CHAR2B (cannot equal FONT_SHIFT). */
-            uint8_t string_2B_len;
-            /** @brief Protocol name: delta. */
-            INT8    delta;
-        } text_element;
-        /**
-         * @brief NBO font code TEXTITEM16 variant.
-         */
-        struct [[gnu::packed]] FONT : public protocol::impl::Struct {
-            /** @brief Protocol name: font-shift (must equal FONT_SHIFT). */
-            uint8_t font_shift;
-            /** @brief Font code convertible to (protocol::FONT)[#protocol::FONT],
-             *   from most- to least-significant byte (network byte order). */
-            uint8_t font_bytes[4];
-        } font;
+    struct [[gnu::packed]] FONT : public protocol::impl::Struct {
+        /** @brief Sentinel value to differentiate by first byte from
+         *   alternative TEXTELT union members. */
+        static constexpr uint8_t FONT_SHIFT { 255 };
+        /** @brief Protocol name: font-shift (must equal #FONT_SHIFT). */
+        uint8_t font_shift;
+        /** @brief Font code convertible to [protocol::FONT](#protocol::FONT),
+         *   from most- to least-significant byte (network byte order). */
+        uint8_t font_bytes[4];
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
         sizeof( Header ) + sizeof( Encoding ) };
+    virtual ~PolyTextRequest() = 0;
+};
+
+}  // namespace impl
+
+/**
+ * @brief Represents X11 %PolyText8 request [encoding].
+ * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
+ *   POLYTEXT8(74) and `tl_aligned_units` of 4+pad(n)/4.
+ *   [Encoding](#PolyTextRequest::Encoding) followed by suffix:
+ *   - `LISTofTEXTITEM8 items` of pad(n)B
+ * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
+ */
+struct PolyText8 : public impl::PolyTextRequest {
+    /**
+     * @brief [Encoding](#PolyTextRequest::Encoding) suffix list members.
+     */
+    union TEXTITEM8 {
+        impl::PolyTextRequest::FONT font;
+        /**
+         * @brief Header for variable length single-byte char string.
+         * @note Followed by suffix:
+         *   - `STRING8 string` of string_lenB
+         */
+        struct [[gnu::packed]] TEXTELT8 : public protocol::impl::StructWithSuffixes {
+            /** @brief Length of suffix `string` in bytes (cannot equal
+             *    [FONT_SHIFT](#PolyTextRequest::FONT::FONT_SHIFT)). */
+            uint8_t string_len;
+            /** @brief Protocol name: delta. */
+            INT8    delta;
+        } text_element;
+    };
+};
+/**
+ * @brief Represents X11 %PolyText16 request [encoding].
+ * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
+ *   POLYTEXT16(75) and `tl_aligned_units` of 4+pad(n)/4.
+ *   [Encoding](#PolyTextRequest::Encoding) followed by suffix:
+ *   - `LISTofTEXTITEM16 items` of pad(n)B
+ * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
+ */
+struct PolyText16 : public impl::PolyTextRequest {
+    /**
+     * @brief [Encoding](#PolyTextRequest::Encoding) suffix list members.
+     */
+    union TEXTITEM16 {
+        impl::PolyTextRequest::FONT font;
+        /**
+         * @brief Header for variable length 2-byte char string.
+         * @note Followed by suffix:
+         *   - `STRING16 string` of 2string_lenB
+         */
+        struct [[gnu::packed]] TEXTELT16 : public protocol::impl::StructWithSuffixes {
+            /** @brief Length of suffix `string` in [CHAR2B](#protocol::CHAR2B)
+             *    (cannot equal [FONT_SHIFT](#PolyTextRequest::FONT::FONT_SHIFT)). */
+            uint8_t string_2B_len;
+            /** @brief Protocol name: delta. */
+            INT8    delta;
+        } text_element;
+    };
 };
 /**
  * @brief Represents X11 %ImageText8 request [encoding].

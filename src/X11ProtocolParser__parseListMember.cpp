@@ -252,8 +252,8 @@ X11ProtocolParser::_parseListMember<
     const PolyText8::TEXTITEM8 item {
         *reinterpret_cast< const PolyText8::TEXTITEM8* >( data ) };
     if ( _hostByteOrder( item.font.font_shift, byteswap ) ==
-         PolyText8::FONT_SHIFT ) {
-        outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::FONT );
+         PolyText8::FONT::FONT_SHIFT ) {
+        outputs.bytes_parsed += sizeof( PolyText8::FONT );
         // font bytes in array from MSB to LSB
         // TBD (can't use brace init here due to issues with
         //   protocol::impl::Integer ctor and how its children must stay
@@ -328,8 +328,8 @@ X11ProtocolParser::_parseListMember<
     const PolyText16::TEXTITEM16 item {
         *reinterpret_cast< const PolyText16::TEXTITEM16* >( data ) };
     if ( _hostByteOrder( item.font.font_shift, byteswap ) ==
-         PolyText16::FONT_SHIFT ) {
-        outputs.bytes_parsed += sizeof( PolyText16::TEXTITEM16::FONT );
+         PolyText16::FONT::FONT_SHIFT ) {
+        outputs.bytes_parsed += sizeof( PolyText16::FONT );
         // font bytes in array from MSB to LSB
         // TBD (can't use brace init here due to issues with
         //   protocol::impl::Integer ctor and how its children must stay
