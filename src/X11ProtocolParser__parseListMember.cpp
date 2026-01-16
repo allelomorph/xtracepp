@@ -263,8 +263,9 @@ X11ProtocolParser::_parseListMember<
             *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) );
 
         const uint32_t memb_name_w (
-            !ws.multiline ? 0 :
-            sizeof( settings.verbose ? "font-shift" : "font" ) - 1 );
+            !ws.multiline ? 0 : ( settings.verbose ?
+                                  sizeof( "font-shift" ) :
+                                  sizeof( "font" ) ) - 1 );
         outputs.str += fmt::format(
             "{{{}"
             "{}"
