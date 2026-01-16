@@ -29,9 +29,7 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
 
     name = std::string( display_name );
     std::smatch match;
-    // TBD not providing default display or screen of 0 as in libxcb/libX11
-    // `struct` needed to disambiguate from stat(2)
-    if ( struct ::stat st {};
+    if ( struct ::stat st {};  // `struct` needed to disambiguate from stat(2)
          std::regex_search( name, match, _UNIX_REGEX ) &&
          ::stat( match[ _UNIX_SOCKET_PATH_GROUP_I ].str().data(), &st ) == 0 &&
          st.st_mode & S_IFSOCK ) {
@@ -40,19 +38,13 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
         socket_path   = match[ _UNIX_SOCKET_PATH_GROUP_I ];
         if ( const std::string screen_str { match[ _UNIX_SCREEN_GROUP_I ] };
              !screen_str.empty() ) {
-            screen  = std::stoi( screen_str );
+            screen = std::stoi( screen_str );
         }
     } else if ( std::regex_search( name, match, _DEFAULT_REGEX ) ) {
         protocol = match[ _PROTOCOL_GROUP_I ];
         std::transform( protocol.begin(), protocol.end(), protocol.begin(),
                         []( unsigned char c ){ return std::tolower( c ); } );
         hostname = match[ _HOSTNAME_GROUP_I ];
-        // "protocol" here is only for internal reference, as it:
-        //   - may not map to IPPROTO macros one would pass to socket(2), see:
-        //     - ip(7)
-        //     - protocols(5)
-        //   - is ignored by libX11/libxcb, see:
-        //     - https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/e81b999a/src/xcb_util.c#L238
         if ( protocol.empty() ) {
             protocol = hostname.empty() ? _LOCAL : _TCP;
         }
@@ -65,8 +57,8 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
     } else {
         fmt::println( ::stderr,
                       "{}: Could not parse display name {:?} as one of two valid patterns:\n"
-                      "    [unix:]<socket path>[.<screen number>]\n"
-                      "    [[<protocol>/]<hostname>]:<display number>[.<screen number>]",
+                      "    [`unix:`]socket_path[`.`screen_number]\n"
+                      "    [[protocol`/`]hostname|URI]`:`display_number[`.`screen_number]",
                       process_name, name );
         ::exit( EXIT_FAILURE );
     }
@@ -82,6 +74,10 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
                       process_name, protocol, name );
         ::exit( EXIT_FAILURE );
     }
+    assert( display != _UNSET );
+    // defaulting to screen of 0 as in libxcb/libX11
+    if ( screen == _UNSET )
+        screen = 0;
 
     ////// Get socket info for later calls to bind(2) or connect(2)
 

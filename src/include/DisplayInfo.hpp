@@ -10,12 +10,12 @@
 #include <regex>
 
 #include <netinet/in.h>  // sockaddr_in sockaddr_in6 INET_ADDRSTRLEN
-// TBD <linux/un.h> provides alternative sockaddr_un with UNIX_PATH_MAX
+// linux/un.h provides a more straightforward definition of sockaddr_un
+//   along with UNIX_PATH_MAX, but sys/un.h seems more portable as it is the
+//   header referenced in sockaddr(3type)
 #include <sys/un.h>      // sockaddr_un
 
 
-// TBD how does this compare to libX11 Display (_XDisplay)?
-//   - https://github.com/mirror/libX11/blob/master/include/X11/Xlibint.h#L72
 /**
  * @brief Encapsulates X display name parsing.
  * @note `ai_` prefixed members are named after corresponding `addrinfo`
@@ -133,8 +133,10 @@ public:
      */
     std::string name;
     /**
-     * @brief Protocol name token extracted from [name](#name); roughly maps to
-     *   `socket(2)` `AF_*` macros.
+     * @brief Protocol name token extracted from [name](#name), used to help set
+     *   [ai_family](#ai_family).
+     * @note [Ignored] by libX11/libxcb.
+     * [Ignored]: https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/e81b999a/src/xcb_util.c#L238
      */
     std::string protocol;
     /**
@@ -193,8 +195,8 @@ public:
      * @brief Differentiates IN display (logging proxy server) from OUT
      *   display (actual X server).
      */
-    enum class Direction {
-        IN, OUT };
+    enum class Direction { IN, OUT };
+
     DisplayInfo() {}
     /**
      * @brief Parses X display name into tokens used in logging messages and
