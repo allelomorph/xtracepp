@@ -64,7 +64,7 @@ public:
     /**
      * @brief Writes bytes from buffer to `sockfd`.
      * @param sockfd fd to `send(2)` bytes
-     * @param bytes_to_write bytes expected to write
+     * @param bytes_to_write n bytes expected to write
      * @return bytes written
      */
     size_t write( const int sockfd,
@@ -76,22 +76,24 @@ public:
      */
     size_t write( const int sockfd );
     /**
-     * @brief Discard bytes from buffer without [write](#write).
-     * @param output destination data pointer
-     * @param bytes_to_unload bytes to discard
+     * @brief Directly write bytes to another buffer, instead of to fd as with
+     *   [write](#write).
+     * @param[out] output destination buffer
+     * @param bytes_to_unload n bytes to write
      * @return bytes discarded
      */
     size_t unload( void* output,
                    const size_t bytes_to_unload );
     /**
-     * @brief Discard all bytes from buffer without [write](#write).
+     * @brief Discard bytes from buffer without [write](#write).
+     * @param bytes_to_unload n bytes to unload
      * @return bytes discarded
      */
     size_t unload( const size_t bytes_to_unload );
     /**
      * @brief Read bytes from `sockfd` into buffer.
      * @param sockfd fd from which to `recv(2)` bytes
-     * @param bytes_to_read bytes expected to read
+     * @param bytes_to_read n bytes to read
      * @return bytes read
      */
     size_t read( const int sockfd,
@@ -103,9 +105,10 @@ public:
      */
     size_t read( const int sockfd );
     /**
-     * @brief Directly write bytes to buffer, without [read](#read).
-     * @param input source data pointer
-     * @param bytes_to_load bytes to write
+     * @brief Directly read bytes from another buffer, instead of from fd as
+     *   with [read](#read).
+     * @param input source buffer
+     * @param bytes_to_load n bytes to read
      * @return bytes written
      */
     size_t load( const void* input,

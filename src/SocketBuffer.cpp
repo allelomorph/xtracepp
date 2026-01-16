@@ -19,7 +19,6 @@
  */
 
 
-// TBD determine if partial writes are really needed
 size_t SocketBuffer::write( const int sockfd,
                             const size_t bytes_to_write ) {
     assert( bytes_to_write <= size() );
@@ -42,7 +41,6 @@ size_t SocketBuffer::write( const int sockfd ) {
     return write( sockfd, size() );
 }
 
-// TBD direct manual buffer unload for simple clients used during init
 size_t SocketBuffer::unload( void* output,
                              const size_t bytes_to_unload ) {
     assert( output != nullptr );
@@ -64,8 +62,6 @@ size_t SocketBuffer::unload( const size_t bytes_to_unload ) {
     return bytes_to_unload;
 }
 
-// TBD determine if append reads are necessary
-//   (can we guarantee that the server or client will always alternately flag read/write readiness?)
 size_t SocketBuffer::read( const int sockfd,
                            const size_t bytes_to_read ) {
     size_t tl_bytes_read {};
@@ -102,7 +98,6 @@ size_t SocketBuffer::read( const int sockfd ) {
     return read( sockfd, _READ_ALL );
 }
 
-// TBD direct manual buffer load for simple clients used during init
 size_t SocketBuffer::load( const void* input,
                            const size_t bytes_to_load ) {
     assert( input != nullptr );
