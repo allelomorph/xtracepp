@@ -85,8 +85,6 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
                               process_name );
                 ::exit( EXIT_FAILURE );
             }
-            // TBD consider making log_path into filesystem::path in try/except
-            //     and rethrow exceptions indicating file path formatting errors
             log_path = optarg;
             assert( log_path != nullptr && log_path[0] != '\0' );
             log_fs = fopen( log_path, "w" );

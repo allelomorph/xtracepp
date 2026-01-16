@@ -106,9 +106,10 @@ public:
      * @brief Current connection state.
      */
     Status status { UNESTABLISHED };
-
+    /**
+     * @brief Default ctor; assigns [id](#id) and [start_time](#start_time).
+     */
     Connection();
-    ~Connection();
     /**
      * @brief Closes client-facing socket.
      */

@@ -167,8 +167,8 @@ public:
      */
     ::time_t ref_unix_time {};
     /**
-     * @brief Flushes [log_fs](#log_fs), closes it if from file, otherwise
-     *   restores original buffering settings.
+     * @brief Flushes [log_fs](#log_fs), closes it if opened from file,
+     *   restores original system file stream buffering settings.
      */
     ~Settings();
     /**
