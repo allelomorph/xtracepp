@@ -52,6 +52,31 @@ int MAX { IMPLEMENTATION };
 }  // namespace codes
 
 /**
+ * @brief Name strings for all core error [codes].
+ * [codes]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
+ */
+inline static const std::vector< std::string_view > names {
+    "",                // 0
+    "Request",         // 1
+    "Value",           // 2
+    "Window",          // 3
+    "Pixmap",          // 4
+    "Atom",            // 5
+    "Cursor",          // 6
+    "Font",            // 7
+    "Match",           // 8
+    "Drawable",        // 9
+    "Access",          // 10
+    "Alloc",           // 11
+    "Colormap",        // 12
+    "GContext",        // 13
+    "IDChoice",        // 14
+    "Name",            // 15
+    "Length",          // 16
+    "Implementation"   // 17
+};
+
+/**
  * @brief Interface class providing default [encoding] for protocol errors.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
  */
@@ -253,31 +278,6 @@ struct Length         : public impl::SimpleError {};
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
  */
 struct Implementation : public impl::SimpleError {};
-// TBD move closer to Codes
-/**
- * @brief Name strings for all core error [codes].
- * [codes]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
- */
-inline static const std::vector< std::string_view > names {
-    "",                // 0
-    "Request",         // 1
-    "Value",           // 2
-    "Window",          // 3
-    "Pixmap",          // 4
-    "Atom",            // 5
-    "Cursor",          // 6
-    "Font",            // 7
-    "Match",           // 8
-    "Drawable",        // 9
-    "Access",          // 10
-    "Alloc",           // 11
-    "Colormap",        // 12
-    "GContext",        // 13
-    "IDChoice",        // 14
-    "Name",            // 15
-    "Length",          // 16
-    "Implementation"   // 17
-};
 
 }  // namespace errors
 

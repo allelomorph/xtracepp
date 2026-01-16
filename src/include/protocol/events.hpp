@@ -454,9 +454,6 @@ struct FocusOut : public impl::FocusEvent {
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Events
  */
 struct KeymapNotify : public Event {
-    // TBD maybe we could glean sequence from last event? "This event is
-    //   reported to clients selecting KeymapState on a window and is generated
-    //   immediately after every EnterNotify and FocusIn."
     /**
      * @brief Fixed encoding prefix.
      * @warning %KeymapNotify is exceptional in that it does not encode a
@@ -512,7 +509,6 @@ struct Expose : public Event {
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Events
  */
 struct GraphicsExposure : public Event {
-    // TBD major/minor opcode fields allow skipping lookup by conn id/seq
     /**
      * @brief Complete fixed encoding, uses [Event::Header](#Event::Header).
      */
