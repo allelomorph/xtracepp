@@ -31,7 +31,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SimpleRequest::Header* >( data ) };
     request.bytes_parsed += sizeof( SimpleRequest::Header );
     // SimpleRequest is header-only
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -74,7 +74,7 @@ X11ProtocolParser::_parseRequest<
         reinterpret_cast< const SimpleWindowRequest::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SimpleWindowRequest::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -123,12 +123,12 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ListFontsRequest::Encoding );
     // followed by STRING8 pattern
-    const auto pattern_len { _hostByteOrder( encoding->pattern_len, byteswap ) };
+    const auto pattern_len { _ordered( encoding->pattern_len, byteswap ) };
     const std::string_view pattern {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         pattern_len };
     request.bytes_parsed += alignment.pad( pattern_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -186,7 +186,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyPointRequest::Encoding );
     // followed by LISTofPOINT points
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t points_sz {
         alignment.size( tl_aligned_units ) - PolyPointRequest::BASE_ENCODING_SZ };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
@@ -247,13 +247,13 @@ X11ProtocolParser::_parseRequest<
     const SimpleCmapRequest::Header* header {
         reinterpret_cast< const SimpleCmapRequest::Header* >( data ) };
     request.bytes_parsed += sizeof( SimpleCmapRequest::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FREECOLORMAP );
     const SimpleCmapRequest::Encoding* encoding {
         reinterpret_cast< const SimpleCmapRequest::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SimpleCmapRequest::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -297,7 +297,7 @@ X11ProtocolParser::_parseRequest<
     const CreateWindow::Header* header {
         reinterpret_cast< const CreateWindow::Header* >( data ) };
     request.bytes_parsed += sizeof( CreateWindow::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CREATEWINDOW );
     const CreateWindow::Encoding* encoding {
         reinterpret_cast< const CreateWindow::Encoding* >(
@@ -330,13 +330,13 @@ X11ProtocolParser::_parseRequest<
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
         data + request.bytes_parsed, sz - request.bytes_parsed,
-        _hostByteOrder( encoding->value_mask, byteswap ),
+        _ordered( encoding->value_mask, byteswap ),
         CreateWindow::value_types, CreateWindow::value_names, value_traits,
         byteswap, ws.nested() };
     _LISTofVALUEParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -410,7 +410,7 @@ X11ProtocolParser::_parseRequest<
     const ChangeWindowAttributes::Header* header {
         reinterpret_cast< const ChangeWindowAttributes::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeWindowAttributes::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES );
     const ChangeWindowAttributes::Encoding* encoding {
         reinterpret_cast< const ChangeWindowAttributes::Encoding* >(
@@ -443,13 +443,13 @@ X11ProtocolParser::_parseRequest<
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
         data + request.bytes_parsed, sz - request.bytes_parsed,
-        _hostByteOrder( encoding->value_mask, byteswap ),
+        _ordered( encoding->value_mask, byteswap ),
         ChangeWindowAttributes::value_types, ChangeWindowAttributes::value_names,
         value_traits, byteswap, ws.nested() };
     _LISTofVALUEParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -492,8 +492,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, GetWindowAttributes > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetWindowAttributes::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetWindowAttributes::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetWindowAttributes::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETWINDOWATTRIBUTES );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -508,9 +508,9 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, DestroyWindow > );
     assert( data != nullptr );
     assert( sz >= sizeof( DestroyWindow::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const DestroyWindow::Header* >(
-                                data )->opcode, conn->byteswap ) ==
-              protocol::requests::opcodes::DESTROYWINDOW );
+    assert( _ordered( reinterpret_cast< const DestroyWindow::Header* >(
+                          data )->opcode, conn->byteswap ) ==
+            protocol::requests::opcodes::DESTROYWINDOW );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -524,9 +524,9 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, DestroySubwindows > );
     assert( data != nullptr );
     assert( sz >= sizeof( DestroySubwindows::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const DestroySubwindows::Header* >(
-                                data )->opcode, conn->byteswap ) ==
-              protocol::requests::opcodes::DESTROYSUBWINDOWS );
+    assert( _ordered( reinterpret_cast< const DestroySubwindows::Header* >(
+                          data )->opcode, conn->byteswap ) ==
+            protocol::requests::opcodes::DESTROYSUBWINDOWS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -546,13 +546,13 @@ X11ProtocolParser::_parseRequest<
     const ChangeSaveSet::Header* header {
         reinterpret_cast< const ChangeSaveSet::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeSaveSet::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGESAVESET );
     const ChangeSaveSet::Encoding* encoding {
         reinterpret_cast< const ChangeSaveSet::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeSaveSet::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -601,13 +601,13 @@ X11ProtocolParser::_parseRequest<
     const ReparentWindow::Header* header {
         reinterpret_cast< const ReparentWindow::Header* >( data ) };
     request.bytes_parsed += sizeof( ReparentWindow::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::REPARENTWINDOW );
     const ReparentWindow::Encoding* encoding {
         reinterpret_cast< const ReparentWindow::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ReparentWindow::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -651,9 +651,9 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, MapWindow > );
     assert( data != nullptr );
     assert( sz >= sizeof( MapWindow::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const MapWindow::Header* >(
-                                data )->opcode, conn->byteswap ) ==
-              protocol::requests::opcodes::MAPWINDOW );
+    assert( _ordered( reinterpret_cast< const MapWindow::Header* >(
+                          data )->opcode, conn->byteswap ) ==
+            protocol::requests::opcodes::MAPWINDOW );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -667,8 +667,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, MapSubwindows > );
     assert( data != nullptr );
     assert( sz >= sizeof( MapSubwindows::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const MapSubwindows::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const MapSubwindows::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::MAPSUBWINDOWS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -683,8 +683,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, UnmapWindow > );
     assert( data != nullptr );
     assert( sz >= sizeof( UnmapWindow::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const UnmapWindow::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const UnmapWindow::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::UNMAPWINDOW );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -699,8 +699,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, UnmapSubwindows > );
     assert( data != nullptr );
     assert( sz >= sizeof( UnmapSubwindows::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const UnmapSubwindows::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const UnmapSubwindows::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::UNMAPSUBWINDOWS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -721,7 +721,7 @@ X11ProtocolParser::_parseRequest<
     const ConfigureWindow::Header* header {
         reinterpret_cast< const ConfigureWindow::Header* >( data ) };
     request.bytes_parsed += sizeof( ConfigureWindow::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CONFIGUREWINDOW );
     const ConfigureWindow::Encoding* encoding {
         reinterpret_cast< const ConfigureWindow::Encoding* >(
@@ -740,13 +740,13 @@ X11ProtocolParser::_parseRequest<
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
         data + request.bytes_parsed, sz - request.bytes_parsed,
-        _hostByteOrder( encoding->value_mask, byteswap ),
+        _ordered( encoding->value_mask, byteswap ),
         ConfigureWindow::value_types, ConfigureWindow::value_names, value_traits,
         byteswap, ws.nested() };
     _LISTofVALUEParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -795,13 +795,13 @@ X11ProtocolParser::_parseRequest<
     const CirculateWindow::Header* header {
         reinterpret_cast< const CirculateWindow::Header* >( data ) };
     request.bytes_parsed += sizeof( CirculateWindow::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CIRCULATEWINDOW );
     const CirculateWindow::Encoding* encoding {
         reinterpret_cast< const CirculateWindow::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CirculateWindow::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -850,13 +850,13 @@ X11ProtocolParser::_parseRequest<
     const GetGeometry::Header* header {
         reinterpret_cast< const GetGeometry::Header* >( data ) };
     request.bytes_parsed += sizeof( GetGeometry::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETGEOMETRY );
     const GetGeometry::Encoding* encoding {
         reinterpret_cast< const GetGeometry::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetGeometry::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -895,8 +895,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, QueryTree > );
     assert( data != nullptr );
     assert( sz >= sizeof( QueryTree::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const QueryTree::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const QueryTree::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::QUERYTREE );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -917,19 +917,19 @@ X11ProtocolParser::_parseRequest<
     const InternAtom::Header* header {
         reinterpret_cast< const InternAtom::Header* >( data ) };
     request.bytes_parsed += sizeof( InternAtom::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::INTERNATOM );
     const InternAtom::Encoding* encoding {
         reinterpret_cast< const InternAtom::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( InternAtom::Encoding );
     // followed by STRING8 name
-    const auto name_len { _hostByteOrder( encoding->name_len, byteswap ) };
+    const auto name_len { _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
     request.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     // Stash copy of atom until reply comes in - at that time we will include it
@@ -985,13 +985,13 @@ X11ProtocolParser::_parseRequest<
     const GetAtomName::Header* header {
         reinterpret_cast< const GetAtomName::Header* >( data ) };
     request.bytes_parsed += sizeof( GetAtomName::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETATOMNAME );
     const GetAtomName::Encoding* encoding {
         reinterpret_cast< const GetAtomName::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetAtomName::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1035,20 +1035,20 @@ X11ProtocolParser::_parseRequest<
     const ChangeProperty::Header* header {
         reinterpret_cast< const ChangeProperty::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeProperty::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEPROPERTY );
     const ChangeProperty::Encoding* encoding {
         reinterpret_cast< const ChangeProperty::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeProperty::Encoding );
-    const auto format { _hostByteOrder( encoding->format, byteswap ) };
+    const auto format { _ordered( encoding->format, byteswap ) };
     assert( format <= 32 && format % 8 == 0 );
     // followed by LISTofBYTE data
     const uint32_t data_len {
-        _hostByteOrder( encoding->data_fmt_unit_len, byteswap ) *
+        _ordered( encoding->data_fmt_unit_len, byteswap ) *
         ( format / 8 ) };
     _ParsingOutputs data_;
-    if ( _hostByteOrder( encoding->type.data, byteswap ) ==
+    if ( _ordered( encoding->type.data, byteswap ) ==
          protocol::atoms::predefined::STRING ) {
         data_.str = fmt::format(
             "{:?}", std::string_view{
@@ -1061,7 +1061,7 @@ X11ProtocolParser::_parseRequest<
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) );
     }
     request.bytes_parsed += alignment.pad( data_.bytes_parsed );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1124,13 +1124,13 @@ X11ProtocolParser::_parseRequest<
     const DeleteProperty::Header* header {
         reinterpret_cast< const DeleteProperty::Header* >( data ) };
     request.bytes_parsed += sizeof( DeleteProperty::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::DELETEPROPERTY );
     const DeleteProperty::Encoding* encoding {
         reinterpret_cast< const DeleteProperty::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( DeleteProperty::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1176,13 +1176,13 @@ X11ProtocolParser::_parseRequest<
     const GetProperty::Header* header {
         reinterpret_cast< const GetProperty::Header* >( data ) };
     request.bytes_parsed += sizeof( GetProperty::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETPROPERTY );
     const GetProperty::Encoding* encoding {
         reinterpret_cast< const GetProperty::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetProperty::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1234,8 +1234,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, ListProperties > );
     assert( data != nullptr );
     assert( sz >= sizeof( ListProperties::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const ListProperties::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const ListProperties::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::LISTPROPERTIES );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -1256,13 +1256,13 @@ X11ProtocolParser::_parseRequest<
     const SetSelectionOwner::Header* header {
         reinterpret_cast< const SetSelectionOwner::Header* >( data ) };
     request.bytes_parsed += sizeof( SetSelectionOwner::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETSELECTIONOWNER );
     const SetSelectionOwner::Encoding* encoding {
         reinterpret_cast< const SetSelectionOwner::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetSelectionOwner::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1312,13 +1312,13 @@ X11ProtocolParser::_parseRequest<
     const GetSelectionOwner::Header* header {
         reinterpret_cast< const GetSelectionOwner::Header* >( data ) };
     request.bytes_parsed += sizeof( GetSelectionOwner::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETSELECTIONOWNER );
     const GetSelectionOwner::Encoding* encoding {
         reinterpret_cast< const GetSelectionOwner::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetSelectionOwner::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1362,13 +1362,13 @@ X11ProtocolParser::_parseRequest<
     const ConvertSelection::Header* header {
         reinterpret_cast< const ConvertSelection::Header* >( data ) };
     request.bytes_parsed += sizeof( ConvertSelection::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CONVERTSELECTION );
     const ConvertSelection::Encoding* encoding {
         reinterpret_cast< const ConvertSelection::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ConvertSelection::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1423,7 +1423,7 @@ X11ProtocolParser::_parseRequest<
     const SendEvent::Header* header {
         reinterpret_cast< const SendEvent::Header* >( data ) };
     request.bytes_parsed += sizeof( SendEvent::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SENDEVENT );
     const SendEvent::Encoding* encoding {
         reinterpret_cast< const SendEvent::Encoding* >(
@@ -1431,13 +1431,13 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( SendEvent::Encoding );
     // followed by Event
     const uint8_t evt_code {
-        _hostByteOrder( reinterpret_cast< const protocol::events::Event::Header* >(
-                            data + request.bytes_parsed )->code, byteswap ) };
+        _ordered( reinterpret_cast< const protocol::events::Event::Header* >(
+                      data + request.bytes_parsed )->code, byteswap ) };
     const _ParsingOutputs event { _parseEvent(
             conn, data + request.bytes_parsed,
             protocol::events::Event::ENCODING_SZ, ws.nested() ) };
     request.bytes_parsed += event.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1492,13 +1492,13 @@ X11ProtocolParser::_parseRequest<
     const GrabPointer::Header* header {
         reinterpret_cast< const GrabPointer::Header* >( data ) };
     request.bytes_parsed += sizeof( GrabPointer::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GRABPOINTER );
     const GrabPointer::Encoding* encoding {
         reinterpret_cast< const GrabPointer::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabPointer::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1564,13 +1564,13 @@ X11ProtocolParser::_parseRequest<
     const UngrabPointer::Header* header {
         reinterpret_cast< const UngrabPointer::Header* >( data ) };
     request.bytes_parsed += sizeof( UngrabPointer::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::UNGRABPOINTER );
     const UngrabPointer::Encoding* encoding {
         reinterpret_cast< const UngrabPointer::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabPointer::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1615,13 +1615,13 @@ X11ProtocolParser::_parseRequest<
     const GrabButton::Header* header {
         reinterpret_cast< const GrabButton::Header* >( data ) };
     request.bytes_parsed += sizeof( GrabButton::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GRABBUTTON );
     const GrabButton::Encoding* encoding {
         reinterpret_cast< const GrabButton::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabButton::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1689,13 +1689,13 @@ X11ProtocolParser::_parseRequest<
     const UngrabButton::Header* header {
         reinterpret_cast< const UngrabButton::Header* >( data ) };
     request.bytes_parsed += sizeof( UngrabButton::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::UNGRABBUTTON );
     const UngrabButton::Encoding* encoding {
         reinterpret_cast< const UngrabButton::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabButton::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1746,13 +1746,13 @@ X11ProtocolParser::_parseRequest<
     const ChangeActivePointerGrab::Header* header {
         reinterpret_cast< const ChangeActivePointerGrab::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeActivePointerGrab::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEACTIVEPOINTERGRAB );
     const ChangeActivePointerGrab::Encoding* encoding {
         reinterpret_cast< const ChangeActivePointerGrab::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangeActivePointerGrab::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1802,13 +1802,13 @@ X11ProtocolParser::_parseRequest<
     const GrabKeyboard::Header* header {
         reinterpret_cast< const GrabKeyboard::Header* >( data ) };
     request.bytes_parsed += sizeof( GrabKeyboard::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GRABKEYBOARD );
     const GrabKeyboard::Encoding* encoding {
         reinterpret_cast< const GrabKeyboard::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabKeyboard::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1865,13 +1865,13 @@ X11ProtocolParser::_parseRequest<
     const UngrabKeyboard::Header* header {
         reinterpret_cast< const UngrabKeyboard::Header* >( data ) };
     request.bytes_parsed += sizeof( UngrabKeyboard::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::UNGRABKEYBOARD );
     const UngrabKeyboard::Encoding* encoding {
         reinterpret_cast< const UngrabKeyboard::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabKeyboard::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1916,13 +1916,13 @@ X11ProtocolParser::_parseRequest<
     const GrabKey::Header* header {
         reinterpret_cast< const GrabKey::Header* >( data ) };
     request.bytes_parsed += sizeof( GrabKey::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GRABKEY );
     const GrabKey::Encoding* encoding {
         reinterpret_cast< const GrabKey::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GrabKey::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -1977,13 +1977,13 @@ X11ProtocolParser::_parseRequest<
     const UngrabKey::Header* header {
         reinterpret_cast< const UngrabKey::Header* >( data ) };
     request.bytes_parsed += sizeof( UngrabKey::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::UNGRABKEY );
     const UngrabKey::Encoding* encoding {
         reinterpret_cast< const UngrabKey::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( UngrabKey::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2034,13 +2034,13 @@ X11ProtocolParser::_parseRequest<
     const AllowEvents::Header* header {
         reinterpret_cast< const AllowEvents::Header* >( data ) };
     request.bytes_parsed += sizeof( AllowEvents::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::ALLOWEVENTS );
     const AllowEvents::Encoding* encoding {
         reinterpret_cast< const AllowEvents::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllowEvents::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2084,8 +2084,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GrabServer > );
     assert( data != nullptr );
     assert( sz >= sizeof( GrabServer::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GrabServer::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GrabServer::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GRABSERVER );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -2101,8 +2101,8 @@ X11ProtocolParser::_parseRequest<
     assert( data != nullptr );
     assert( sz >= sizeof( UngrabServer::Header ) );
     assert( reinterpret_cast< const UngrabServer::Header* >(
-                  data )->opcode ==
-              protocol::requests::opcodes::UNGRABSERVER );
+                data )->opcode ==
+            protocol::requests::opcodes::UNGRABSERVER );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
 
@@ -2116,9 +2116,9 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, QueryPointer > );
     assert( data != nullptr );
     assert( sz >= sizeof( QueryPointer::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const QueryPointer::Header* >(
-                                data )->opcode, conn->byteswap ) ==
-              protocol::requests::opcodes::QUERYPOINTER );
+    assert( _ordered( reinterpret_cast< const QueryPointer::Header* >(
+                          data )->opcode, conn->byteswap ) ==
+            protocol::requests::opcodes::QUERYPOINTER );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
 
@@ -2138,13 +2138,13 @@ X11ProtocolParser::_parseRequest<
     const GetMotionEvents::Header* header {
         reinterpret_cast< const GetMotionEvents::Header* >( data ) };
     request.bytes_parsed += sizeof( GetMotionEvents::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETMOTIONEVENTS );
     const GetMotionEvents::Encoding* encoding {
         reinterpret_cast< const GetMotionEvents::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetMotionEvents::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2194,13 +2194,13 @@ X11ProtocolParser::_parseRequest<
     const TranslateCoordinates::Header* header {
         reinterpret_cast< const TranslateCoordinates::Header* >( data ) };
     request.bytes_parsed += sizeof( TranslateCoordinates::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::TRANSLATECOORDINATES );
     const TranslateCoordinates::Encoding* encoding {
         reinterpret_cast< const TranslateCoordinates::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( TranslateCoordinates::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2250,13 +2250,13 @@ X11ProtocolParser::_parseRequest<
     const WarpPointer::Header* header {
         reinterpret_cast< const WarpPointer::Header* >( data ) };
     request.bytes_parsed += sizeof( WarpPointer::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::WARPPOINTER );
     const WarpPointer::Encoding* encoding {
         reinterpret_cast< const WarpPointer::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( WarpPointer::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2317,13 +2317,13 @@ X11ProtocolParser::_parseRequest<
     const SetInputFocus::Header* header {
         reinterpret_cast< const SetInputFocus::Header* >( data ) };
     request.bytes_parsed += sizeof( SetInputFocus::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETINPUTFOCUS );
     const SetInputFocus::Encoding* encoding {
         reinterpret_cast< const SetInputFocus::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetInputFocus::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2372,8 +2372,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetInputFocus > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetInputFocus::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetInputFocus::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetInputFocus::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETINPUTFOCUS );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -2388,8 +2388,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, QueryKeymap > );
     assert( data != nullptr );
     assert( sz >= sizeof( QueryKeymap::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const QueryKeymap::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const QueryKeymap::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::QUERYKEYMAP );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -2410,19 +2410,19 @@ X11ProtocolParser::_parseRequest<
     const OpenFont::Header* header {
         reinterpret_cast< const OpenFont::Header* >( data ) };
     request.bytes_parsed += sizeof( OpenFont::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::OPENFONT );
     const OpenFont::Encoding* encoding {
         reinterpret_cast< const OpenFont::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( OpenFont::Encoding );
     // followed by STRING8 name
-    const auto name_len { _hostByteOrder( encoding->name_len, byteswap ) };
+    const auto name_len { _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
     request.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2474,13 +2474,13 @@ X11ProtocolParser::_parseRequest<
     const CloseFont::Header* header {
         reinterpret_cast< const CloseFont::Header* >( data ) };
     request.bytes_parsed += sizeof( CloseFont::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CLOSEFONT );
     const CloseFont::Encoding* encoding {
         reinterpret_cast< const CloseFont::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CloseFont::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2524,13 +2524,13 @@ X11ProtocolParser::_parseRequest<
     const QueryFont::Header* header {
         reinterpret_cast< const QueryFont::Header* >( data ) };
     request.bytes_parsed += sizeof( QueryFont::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::QUERYFONT );
     const QueryFont::Encoding* encoding {
         reinterpret_cast< const QueryFont::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryFont::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2574,7 +2574,7 @@ X11ProtocolParser::_parseRequest<
     const QueryTextExtents::Header* header {
         reinterpret_cast< const QueryTextExtents::Header* >( data ) };
     request.bytes_parsed += sizeof( QueryTextExtents::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::QUERYTEXTEXTENTS );
     const QueryTextExtents::Encoding* encoding {
         reinterpret_cast< const QueryTextExtents::Encoding* >(
@@ -2583,12 +2583,12 @@ X11ProtocolParser::_parseRequest<
     // followed by STRING16 string
     //   first calc padded string length due to ambiguity around odd-length
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t string_sz { alignment.size( tl_aligned_units ) -
                              QueryTextExtents::BASE_ENCODING_SZ };
     const size_t string_len {
         ( string_sz / sizeof( protocol::CHAR2B/*char16_t*/ ) ) -
-        ( _hostByteOrder( header->odd_length.data, byteswap ) ? 1 : 0 ) };
+        ( _ordered( header->odd_length.data, byteswap ) ? 1 : 0 ) };
     _ParsingOutputs string {
         _parseLISTof< protocol::CHAR2B >(
             data + request.bytes_parsed, string_sz, string_len,
@@ -2639,8 +2639,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< ListFontsRequest, ListFonts > );
     assert( data != nullptr );
     assert( sz >= sizeof( ListFonts::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const ListFonts::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const ListFonts::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::LISTFONTS );
     return _parseRequest< ListFontsRequest >( conn, data, sz );
 }
@@ -2655,8 +2655,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< ListFontsRequest, ListFontsWithInfo > );
     assert( data != nullptr );
     assert( sz >= sizeof( ListFontsWithInfo::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const ListFontsWithInfo::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const ListFontsWithInfo::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::LISTFONTSWITHINFO );
     return _parseRequest< ListFontsRequest >( conn, data, sz );
 }
@@ -2677,7 +2677,7 @@ X11ProtocolParser::_parseRequest<
     const SetFontPath::Header* header {
         reinterpret_cast< const SetFontPath::Header* >( data ) };
     request.bytes_parsed += sizeof( SetFontPath::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETFONTPATH );
     const SetFontPath::Encoding* encoding {
         reinterpret_cast< const SetFontPath::Encoding* >(
@@ -2687,10 +2687,10 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
             data + request.bytes_parsed, sz - request.bytes_parsed,
-            _hostByteOrder( encoding->path_ct, byteswap ),
+            _ordered( encoding->path_ct, byteswap ),
             byteswap, ws.nested() ) };
     request.bytes_parsed += alignment.pad( path.bytes_parsed );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2732,8 +2732,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetFontPath > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetFontPath::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetFontPath::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetFontPath::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETFONTPATH );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -2754,13 +2754,13 @@ X11ProtocolParser::_parseRequest<
     const CreatePixmap::Header* header {
         reinterpret_cast< const CreatePixmap::Header* >( data ) };
     request.bytes_parsed += sizeof( CreatePixmap::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CREATEPIXMAP );
     const CreatePixmap::Encoding* encoding {
         reinterpret_cast< const CreatePixmap::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreatePixmap::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2814,13 +2814,13 @@ X11ProtocolParser::_parseRequest<
     const FreePixmap::Header* header {
         reinterpret_cast< const FreePixmap::Header* >( data ) };
     request.bytes_parsed += sizeof( FreePixmap::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FREEPIXMAP );
     const FreePixmap::Encoding* encoding {
         reinterpret_cast< const FreePixmap::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreePixmap::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2864,7 +2864,7 @@ X11ProtocolParser::_parseRequest<
     const CreateGC::Header* header {
         reinterpret_cast< const CreateGC::Header* >( data ) };
     request.bytes_parsed += sizeof( CreateGC::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CREATEGC );
     const CreateGC::Encoding* encoding {
         reinterpret_cast< const CreateGC::Encoding* >(
@@ -2908,13 +2908,13 @@ X11ProtocolParser::_parseRequest<
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
         data + request.bytes_parsed, sz - request.bytes_parsed,
-        _hostByteOrder( encoding->value_mask, byteswap ),
+        _ordered( encoding->value_mask, byteswap ),
         CreateGC::value_types, CreateGC::value_names, value_traits,
         byteswap, ws.nested() };
     _LISTofVALUEParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -2970,7 +2970,7 @@ X11ProtocolParser::_parseRequest<
     const ChangeGC::Header* header {
         reinterpret_cast< const ChangeGC::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeGC::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEGC );
     const ChangeGC::Encoding* encoding {
         reinterpret_cast< const ChangeGC::Encoding* >(
@@ -3014,13 +3014,13 @@ X11ProtocolParser::_parseRequest<
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
         data + request.bytes_parsed, sz - request.bytes_parsed,
-        _hostByteOrder( encoding->value_mask, byteswap ),
+        _ordered( encoding->value_mask, byteswap ),
         ChangeGC::value_types, ChangeGC::value_names, value_traits,
         byteswap, ws.nested() };
     _LISTofVALUEParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3074,13 +3074,13 @@ X11ProtocolParser::_parseRequest<
     const CopyGC::Header* header {
         reinterpret_cast< const CopyGC::Header* >( data ) };
     request.bytes_parsed += sizeof( CopyGC::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::COPYGC );
     const CopyGC::Encoding* encoding {
         reinterpret_cast< const CopyGC::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyGC::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3130,7 +3130,7 @@ X11ProtocolParser::_parseRequest<
     const SetDashes::Header* header {
         reinterpret_cast< const SetDashes::Header* >( data ) };
     request.bytes_parsed += sizeof( SetDashes::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETDASHES );
     const SetDashes::Encoding* encoding {
         reinterpret_cast< const SetDashes::Encoding* >(
@@ -3140,10 +3140,10 @@ X11ProtocolParser::_parseRequest<
     _ParsingOutputs dashes {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, sz - request.bytes_parsed,
-            _hostByteOrder( encoding->dashes_len, byteswap ),
+            _ordered( encoding->dashes_len, byteswap ),
             byteswap, ws.nested() ) };
     request.bytes_parsed += alignment.pad( dashes.bytes_parsed );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3197,7 +3197,7 @@ X11ProtocolParser::_parseRequest<
     const SetClipRectangles::Header* header {
         reinterpret_cast< const SetClipRectangles::Header* >( data ) };
     request.bytes_parsed += sizeof( SetClipRectangles::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETCLIPRECTANGLES );
     const SetClipRectangles::Encoding* encoding {
         reinterpret_cast< const SetClipRectangles::Encoding* >(
@@ -3205,7 +3205,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( SetClipRectangles::Encoding );
     // followed by LISTofRECTANGLE rectangles
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
         alignment.size( tl_aligned_units ) - SetClipRectangles::BASE_ENCODING_SZ };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
@@ -3268,13 +3268,13 @@ X11ProtocolParser::_parseRequest<
     const FreeGC::Header* header {
         reinterpret_cast< const FreeGC::Header* >( data ) };
     request.bytes_parsed += sizeof( FreeGC::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FREEGC );
     const FreeGC::Encoding* encoding {
         reinterpret_cast< const FreeGC::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreeGC::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3316,13 +3316,13 @@ X11ProtocolParser::_parseRequest<
     const ClearArea::Header* header {
         reinterpret_cast< const ClearArea::Header* >( data ) };
     request.bytes_parsed += sizeof( ClearArea::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CLEARAREA );
     const ClearArea::Encoding* encoding {
         reinterpret_cast< const ClearArea::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ClearArea::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3379,13 +3379,13 @@ X11ProtocolParser::_parseRequest<
     const CopyArea::Header* header {
         reinterpret_cast< const CopyArea::Header* >( data ) };
     request.bytes_parsed += sizeof( CopyArea::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::COPYAREA );
     const CopyArea::Encoding* encoding {
         reinterpret_cast< const CopyArea::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyArea::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3447,13 +3447,13 @@ X11ProtocolParser::_parseRequest<
     const CopyPlane::Header* header {
         reinterpret_cast< const CopyPlane::Header* >( data ) };
     request.bytes_parsed += sizeof( CopyPlane::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::COPYPLANE );
     const CopyPlane::Encoding* encoding {
         reinterpret_cast< const CopyPlane::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyPlane::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -3512,8 +3512,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< PolyPointRequest, PolyPoint > );
     assert( data != nullptr );
     assert( sz >= sizeof( PolyPoint::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const PolyPoint::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const PolyPoint::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::POLYPOINT );
     return _parseRequest< PolyPointRequest >( conn, data, sz );
 }
@@ -3528,8 +3528,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< PolyPointRequest, PolyLine > );
     assert( data != nullptr );
     assert( sz >= sizeof( PolyLine::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const PolyLine::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const PolyLine::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::POLYLINE );
     return _parseRequest< PolyPointRequest >( conn, data, sz );
 }
@@ -3550,7 +3550,7 @@ X11ProtocolParser::_parseRequest<
     const PolySegment::Header* header {
         reinterpret_cast< const PolySegment::Header* >( data ) };
     request.bytes_parsed += sizeof( PolySegment::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYSEGMENT );
     const PolySegment::Encoding* encoding {
         reinterpret_cast< const PolySegment::Encoding* >(
@@ -3558,7 +3558,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolySegment::Encoding );
     // followed by LISTofSEGMENT segments
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t segments_sz {
         alignment.size( tl_aligned_units ) - PolySegment::BASE_ENCODING_SZ };
     const size_t segments_ct { segments_sz / sizeof( PolySegment::SEGMENT ) };
@@ -3614,7 +3614,7 @@ X11ProtocolParser::_parseRequest<
     const PolyRectangle::Header* header {
         reinterpret_cast< const PolyRectangle::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyRectangle::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYRECTANGLE );
     const PolyRectangle::Encoding* encoding {
         reinterpret_cast< const PolyRectangle::Encoding* >(
@@ -3622,7 +3622,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyRectangle::Encoding );
     // followed by LISTofRECTANGLE rectangles
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
         alignment.size( tl_aligned_units ) - PolyRectangle::BASE_ENCODING_SZ };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
@@ -3678,7 +3678,7 @@ X11ProtocolParser::_parseRequest<
     const PolyArc::Header* header {
         reinterpret_cast< const PolyArc::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyArc::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYARC );
     const PolyArc::Encoding* encoding {
         reinterpret_cast< const PolyArc::Encoding* >(
@@ -3686,7 +3686,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyArc::Encoding );
     // followed by LISTofARC arcs
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t arcs_sz {
         tl_aligned_units - PolyArc::BASE_ENCODING_SZ };
     const size_t arcs_ct { arcs_sz / sizeof( protocol::ARC ) };
@@ -3742,7 +3742,7 @@ X11ProtocolParser::_parseRequest<
     const FillPoly::Header* header {
         reinterpret_cast< const FillPoly::Header* >( data ) };
     request.bytes_parsed += sizeof( FillPoly::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FILLPOLY );
     const FillPoly::Encoding* encoding {
         reinterpret_cast< const FillPoly::Encoding* >(
@@ -3750,7 +3750,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( FillPoly::Encoding );
     // followed by LISTofPOINT points
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t points_sz {
         alignment.size( tl_aligned_units ) - FillPoly::BASE_ENCODING_SZ };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
@@ -3813,7 +3813,7 @@ X11ProtocolParser::_parseRequest<
     const PolyFillRectangle::Header* header {
         reinterpret_cast< const PolyFillRectangle::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyFillRectangle::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYFILLRECTANGLE );
     const PolyFillRectangle::Encoding* encoding {
         reinterpret_cast< const PolyFillRectangle::Encoding* >(
@@ -3821,7 +3821,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyFillRectangle::Encoding );
     // followed by LISTofRECTANGLE rectangles
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
         alignment.size( tl_aligned_units ) - sizeof( PolyFillRectangle::Encoding ) };
     const uint16_t rectangles_ct ( rectangles_sz / sizeof( protocol::RECTANGLE ) );
@@ -3877,7 +3877,7 @@ X11ProtocolParser::_parseRequest<
     const PolyFillArc::Header* header {
         reinterpret_cast< const PolyFillArc::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyFillArc::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYFILLARC );
     const PolyFillArc::Encoding* encoding {
         reinterpret_cast< const PolyFillArc::Encoding* >(
@@ -3885,7 +3885,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyFillArc::Encoding );
     // followed by LISTofARC arcs
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t arcs_sz {
         alignment.size( header->tl_aligned_units ) -
         sizeof( PolyFillArc::Encoding ) };
@@ -3943,7 +3943,7 @@ X11ProtocolParser::_parseRequest<
     const PutImage::Header* header {
         reinterpret_cast< const PutImage::Header* >( data ) };
     request.bytes_parsed += sizeof( PutImage::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::PUTIMAGE );
     const PutImage::Encoding* encoding {
         reinterpret_cast< const PutImage::Encoding* >(
@@ -3951,7 +3951,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PutImage::Encoding );
     // followed by LISTofBYTE data
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t data_len {
         alignment.size( tl_aligned_units ) - PutImage::BASE_ENCODING_SZ };
     //   as in xtrace, we will only print the size in bytes of the image data
@@ -4022,13 +4022,13 @@ X11ProtocolParser::_parseRequest<
     const GetImage::Header* header {
         reinterpret_cast< const GetImage::Header* >( data ) };
     request.bytes_parsed += sizeof( GetImage::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETIMAGE );
     const GetImage::Encoding* encoding {
         reinterpret_cast< const GetImage::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetImage::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4090,7 +4090,7 @@ X11ProtocolParser::_parseRequest<
     const PolyText8::Header* header {
         reinterpret_cast< const PolyText8::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyText8::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYTEXT8 );
     const PolyText8::Encoding* encoding {
         reinterpret_cast< const PolyText8::Encoding* >(
@@ -4098,7 +4098,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyText8::Encoding );
     // followed by LISTofTEXTITEM8 items
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t items_sz {
         alignment.size( tl_aligned_units ) - PolyText8::BASE_ENCODING_SZ };
     // TEXTITEM8 count undetermined due to their variable length
@@ -4159,7 +4159,7 @@ X11ProtocolParser::_parseRequest<
     const PolyText16::Header* header {
         reinterpret_cast< const PolyText16::Header* >( data ) };
     request.bytes_parsed += sizeof( PolyText16::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::POLYTEXT16 );
     const PolyText16::Encoding* encoding {
         reinterpret_cast< const PolyText16::Encoding* >(
@@ -4167,7 +4167,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( PolyText16::Encoding );
     // followed by LISTofTEXTITEM16 items
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t items_sz {
         alignment.size( tl_aligned_units ) - PolyText16::BASE_ENCODING_SZ };
     // TEXTITEM8 count undetermined due to their variable length
@@ -4228,19 +4228,19 @@ X11ProtocolParser::_parseRequest<
     const ImageText8::Header* header {
         reinterpret_cast< const ImageText8::Header* >( data ) };
     request.bytes_parsed += sizeof( ImageText8::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::IMAGETEXT8 );
     const ImageText8::Encoding* encoding {
         reinterpret_cast< const ImageText8::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ImageText8::Encoding );
     // followed by STRING8 string
-    const auto string_len { _hostByteOrder( header->string_len, byteswap ) };
+    const auto string_len { _ordered( header->string_len, byteswap ) };
     const std::string_view string {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         string_len };
     request.bytes_parsed += alignment.pad( string_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4297,7 +4297,7 @@ X11ProtocolParser::_parseRequest<
     const ImageText16::Header* header {
         reinterpret_cast< const ImageText16::Header* >( data ) };
     request.bytes_parsed += sizeof( ImageText16::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::IMAGETEXT16 );
     const ImageText16::Encoding* encoding {
         reinterpret_cast< const ImageText16::Encoding* >(
@@ -4305,14 +4305,14 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( ImageText16::Encoding );
     // followed by STRING16 string
     const auto string_2B_len {
-        _hostByteOrder( header->string_2B_len, byteswap) };
+        _ordered( header->string_2B_len, byteswap) };
     const size_t string_sz { string_2B_len * sizeof( protocol::CHAR2B ) };
     const _ParsingOutputs string {
         _parseLISTof< protocol::CHAR2B >(
             data + request.bytes_parsed, string_sz, string_2B_len,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += alignment.pad( string.bytes_parsed );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4369,13 +4369,13 @@ X11ProtocolParser::_parseRequest<
     const CreateColormap::Header* header {
         reinterpret_cast< const CreateColormap::Header* >( data ) };
     request.bytes_parsed += sizeof( CreateColormap::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CREATECOLORMAP );
     const CreateColormap::Encoding* encoding {
         reinterpret_cast< const CreateColormap::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateColormap::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4422,8 +4422,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleCmapRequest, FreeColormap > );
     assert( data != nullptr );
     assert( sz >= sizeof( FreeColormap::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const FreeColormap::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const FreeColormap::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::FREECOLORMAP );
     return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
@@ -4444,13 +4444,13 @@ X11ProtocolParser::_parseRequest<
     const CopyColormapAndFree::Header* header {
         reinterpret_cast< const CopyColormapAndFree::Header* >( data ) };
     request.bytes_parsed += sizeof( CopyColormapAndFree::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::COPYCOLORMAPANDFREE );
     const CopyColormapAndFree::Encoding* encoding {
         reinterpret_cast< const CopyColormapAndFree::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CopyColormapAndFree::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4490,8 +4490,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleCmapRequest, InstallColormap > );
     assert( data != nullptr );
     assert( sz >= sizeof( InstallColormap::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const InstallColormap::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const InstallColormap::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::INSTALLCOLORMAP );
     return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
@@ -4506,8 +4506,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleCmapRequest, UninstallColormap > );
     assert( data != nullptr );
     assert( sz >= sizeof( UninstallColormap::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const UninstallColormap::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const UninstallColormap::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::UNINSTALLCOLORMAP );
     return _parseRequest< SimpleCmapRequest >( conn, data, sz );
 }
@@ -4522,8 +4522,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleWindowRequest, ListInstalledColormaps > );
     assert( data != nullptr );
     assert( sz >= sizeof( ListInstalledColormaps::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const ListInstalledColormaps::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const ListInstalledColormaps::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS );
     return _parseRequest< SimpleWindowRequest >( conn, data, sz );
 }
@@ -4544,13 +4544,13 @@ X11ProtocolParser::_parseRequest<
     const AllocColor::Header* header {
         reinterpret_cast< const AllocColor::Header* >( data ) };
     request.bytes_parsed += sizeof( AllocColor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::ALLOCCOLOR );
     const AllocColor::Encoding* encoding {
         reinterpret_cast< const AllocColor::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocColor::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4600,7 +4600,7 @@ X11ProtocolParser::_parseRequest<
     const AllocNamedColor::Header* header {
         reinterpret_cast< const AllocNamedColor::Header* >( data ) };
     request.bytes_parsed += sizeof( AllocNamedColor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::ALLOCNAMEDCOLOR );
     const AllocNamedColor::Encoding* encoding {
         reinterpret_cast< const AllocNamedColor::Encoding* >(
@@ -4608,12 +4608,12 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( AllocNamedColor::Encoding );
     // followed by STRING8 name
     const auto name_len {
-        _hostByteOrder( encoding->name_len, byteswap ) };
+        _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
     request.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4665,13 +4665,13 @@ X11ProtocolParser::_parseRequest<
     const AllocColorCells::Header* header {
         reinterpret_cast< const AllocColorCells::Header* >( data ) };
     request.bytes_parsed += sizeof( AllocColorCells::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::ALLOCCOLORCELLS );
     const AllocColorCells::Encoding* encoding {
         reinterpret_cast< const AllocColorCells::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocColorCells::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4723,13 +4723,13 @@ X11ProtocolParser::_parseRequest<
     const AllocColorPlanes::Header* header {
         reinterpret_cast< const AllocColorPlanes::Header* >( data ) };
     request.bytes_parsed += sizeof( AllocColorPlanes::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::ALLOCCOLORPLANES );
     const AllocColorPlanes::Encoding* encoding {
         reinterpret_cast< const AllocColorPlanes::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( AllocColorPlanes::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4786,7 +4786,7 @@ X11ProtocolParser::_parseRequest<
     const FreeColors::Header* header {
         reinterpret_cast< const FreeColors::Header* >( data ) };
     request.bytes_parsed += sizeof( FreeColors::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FREECOLORS );
     const FreeColors::Encoding* encoding {
         reinterpret_cast< const FreeColors::Encoding* >(
@@ -4794,7 +4794,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( FreeColors::Encoding );
     // followed by LISTofCARD32 pixels
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t pixels_sz {
         alignment.size( tl_aligned_units ) - FreeColors::BASE_ENCODING_SZ  };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
@@ -4852,7 +4852,7 @@ X11ProtocolParser::_parseRequest<
     const StoreColors::Header* header {
         reinterpret_cast< const StoreColors::Header* >( data ) };
     request.bytes_parsed += sizeof( StoreColors::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::STORECOLORS );
     const StoreColors::Encoding* encoding {
         reinterpret_cast< const StoreColors::Encoding* >(
@@ -4860,7 +4860,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( StoreColors::Encoding );
     // followed by LISTofCOLORITEM items
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t items_sz {
         alignment.size( tl_aligned_units ) - StoreColors::BASE_ENCODING_SZ };
     const size_t items_ct { items_sz / sizeof( StoreColors::COLORITEM ) };
@@ -4914,7 +4914,7 @@ X11ProtocolParser::_parseRequest<
     const StoreNamedColor::Header* header {
         reinterpret_cast< const StoreNamedColor::Header* >( data ) };
     request.bytes_parsed += sizeof( StoreNamedColor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::STORENAMEDCOLOR );
     const StoreNamedColor::Encoding* encoding {
         reinterpret_cast< const StoreNamedColor::Encoding* >(
@@ -4922,12 +4922,12 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( StoreNamedColor::Encoding );
     // followed by STRING8 name
     const auto name_len {
-        _hostByteOrder( encoding->name_len, byteswap ) };
+        _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
     request.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -4987,7 +4987,7 @@ X11ProtocolParser::_parseRequest<
     const QueryColors::Header* header {
         reinterpret_cast< const QueryColors::Header* >( data ) };
     request.bytes_parsed += sizeof( QueryColors::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::QUERYCOLORS );
     const QueryColors::Encoding* encoding {
         reinterpret_cast< const QueryColors::Encoding* >(
@@ -4995,7 +4995,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( QueryColors::Encoding );
     // followed by LISTofCARD32 pixels
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t pixels_sz {
         alignment.size( tl_aligned_units ) - QueryColors::BASE_ENCODING_SZ  };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
@@ -5049,7 +5049,7 @@ X11ProtocolParser::_parseRequest<
     const LookupColor::Header* header {
         reinterpret_cast< const LookupColor::Header* >( data ) };
     request.bytes_parsed += sizeof( LookupColor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::LOOKUPCOLOR );
     const LookupColor::Encoding* encoding {
         reinterpret_cast< const LookupColor::Encoding* >(
@@ -5057,12 +5057,12 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( LookupColor::Encoding );
     // followed by STRING8 name
     const auto name_len {
-        _hostByteOrder( encoding->name_len, byteswap ) };
+        _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
     request.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5114,13 +5114,13 @@ X11ProtocolParser::_parseRequest<
     const CreateCursor::Header* header {
         reinterpret_cast< const CreateCursor::Header* >( data ) };
     request.bytes_parsed += sizeof( CreateCursor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CREATECURSOR );
     const CreateCursor::Encoding* encoding {
         reinterpret_cast< const CreateCursor::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateCursor::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5188,13 +5188,13 @@ X11ProtocolParser::_parseRequest<
     const CreateGlyphCursor::Header* header {
         reinterpret_cast< const CreateGlyphCursor::Header* >( data ) };
     request.bytes_parsed += sizeof( CreateGlyphCursor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CREATEGLYPHCURSOR );
     const CreateGlyphCursor::Encoding* encoding {
         reinterpret_cast< const CreateGlyphCursor::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( CreateGlyphCursor::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5261,13 +5261,13 @@ X11ProtocolParser::_parseRequest<
     const FreeCursor::Header* header {
         reinterpret_cast< const FreeCursor::Header* >( data ) };
     request.bytes_parsed += sizeof( FreeCursor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FREECURSOR );
     const FreeCursor::Encoding* encoding {
         reinterpret_cast< const FreeCursor::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( FreeCursor::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5311,13 +5311,13 @@ X11ProtocolParser::_parseRequest<
     const RecolorCursor::Header* header {
         reinterpret_cast< const RecolorCursor::Header* >( data ) };
     request.bytes_parsed += sizeof( RecolorCursor::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::RECOLORCURSOR );
     const RecolorCursor::Encoding* encoding {
         reinterpret_cast< const RecolorCursor::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( RecolorCursor::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5374,13 +5374,13 @@ X11ProtocolParser::_parseRequest<
     const QueryBestSize::Header* header {
         reinterpret_cast< const QueryBestSize::Header* >( data ) };
     request.bytes_parsed += sizeof( QueryBestSize::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::QUERYBESTSIZE );
     const QueryBestSize::Encoding* encoding {
         reinterpret_cast< const QueryBestSize::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryBestSize::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5433,19 +5433,19 @@ X11ProtocolParser::_parseRequest<
     const QueryExtension::Header* header {
         reinterpret_cast< const QueryExtension::Header* >( data ) };
     request.bytes_parsed += sizeof( QueryExtension::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::QUERYEXTENSION );
     const QueryExtension::Encoding* encoding {
         reinterpret_cast< const QueryExtension::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( QueryExtension::Encoding );
     // followed by STRING8 name
-    const auto name_len { _hostByteOrder( encoding->name_len, byteswap ) };
+    const auto name_len { _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
     request.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5487,8 +5487,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, ListExtensions > );
     assert( data != nullptr );
     assert( sz >= sizeof( ListExtensions::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const ListExtensions::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const ListExtensions::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::LISTEXTENSIONS );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -5509,7 +5509,7 @@ X11ProtocolParser::_parseRequest<
     const ChangeKeyboardMapping::Header* header {
         reinterpret_cast< const ChangeKeyboardMapping::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeKeyboardMapping::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEKEYBOARDMAPPING );
     const ChangeKeyboardMapping::Encoding* encoding {
         reinterpret_cast< const ChangeKeyboardMapping::Encoding* >(
@@ -5517,7 +5517,7 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( ChangeKeyboardMapping::Encoding );
     // followed by LISTofKEYSYM keysyms
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t keysyms_sz {
         alignment.size( tl_aligned_units ) - ChangeKeyboardMapping::BASE_ENCODING_SZ };
     const uint16_t keysyms_ct (
@@ -5528,7 +5528,7 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, keysyms_sz, keysyms_ct,
             byteswap, ws.nested() ) };
     request.bytes_parsed += alignment.pad( keysyms.bytes_parsed );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5580,13 +5580,13 @@ X11ProtocolParser::_parseRequest<
     const GetKeyboardMapping::Header* header {
         reinterpret_cast< const GetKeyboardMapping::Header* >( data ) };
     request.bytes_parsed += sizeof( GetKeyboardMapping::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::GETKEYBOARDMAPPING );
     const GetKeyboardMapping::Encoding* encoding {
         reinterpret_cast< const GetKeyboardMapping::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( GetKeyboardMapping::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5632,7 +5632,7 @@ X11ProtocolParser::_parseRequest<
     const ChangeKeyboardControl::Header* header {
         reinterpret_cast< const ChangeKeyboardControl::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeKeyboardControl::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEKEYBOARDCONTROL );
     const ChangeKeyboardControl::Encoding* encoding {
         reinterpret_cast< const ChangeKeyboardControl::Encoding* >(
@@ -5655,13 +5655,13 @@ X11ProtocolParser::_parseRequest<
     };
     const _LISTofVALUEParsingInputs value_list_inputs {
         data + request.bytes_parsed, sz - request.bytes_parsed,
-        _hostByteOrder( encoding->value_mask, byteswap ),
+        _ordered( encoding->value_mask, byteswap ),
         ChangeKeyboardControl::value_types, ChangeKeyboardControl::value_names,
         value_traits, byteswap, ws.nested() };
     _LISTofVALUEParsingOutputs value_list;
     _parseLISTofVALUE( value_list_inputs, &value_list );
     request.bytes_parsed += value_list.bytes_parsed;
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5704,8 +5704,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetKeyboardControl > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetKeyboardControl::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetKeyboardControl::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetKeyboardControl::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETKEYBOARDCONTROL );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -5726,10 +5726,10 @@ X11ProtocolParser::_parseRequest<
     const Bell::Header* header {
         reinterpret_cast< const Bell::Header* >( data ) };
     request.bytes_parsed += sizeof( Bell::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::BELL );
     // Bell is header-only
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5774,13 +5774,13 @@ X11ProtocolParser::_parseRequest<
     const ChangePointerControl::Header* header {
         reinterpret_cast< const ChangePointerControl::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangePointerControl::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEPOINTERCONTROL );
     const ChangePointerControl::Encoding* encoding {
         reinterpret_cast< const ChangePointerControl::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( ChangePointerControl::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5825,8 +5825,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetPointerControl > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetPointerControl::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetPointerControl::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetPointerControl::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETPOINTERCONTROL );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -5847,13 +5847,13 @@ X11ProtocolParser::_parseRequest<
     const SetScreenSaver::Header* header {
         reinterpret_cast< const SetScreenSaver::Header* >( data ) };
     request.bytes_parsed += sizeof( SetScreenSaver::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETSCREENSAVER );
     const SetScreenSaver::Encoding* encoding {
         reinterpret_cast< const SetScreenSaver::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( SetScreenSaver::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -5899,8 +5899,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetScreenSaver > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetScreenSaver::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetScreenSaver::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetScreenSaver::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETSCREENSAVER );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -5921,7 +5921,7 @@ X11ProtocolParser::_parseRequest<
     const ChangeHosts::Header* header {
         reinterpret_cast< const ChangeHosts::Header* >( data ) };
     request.bytes_parsed += sizeof( ChangeHosts::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::CHANGEHOSTS );
     const ChangeHosts::Encoding* encoding {
         reinterpret_cast< const ChangeHosts::Encoding* >(
@@ -5930,13 +5930,13 @@ X11ProtocolParser::_parseRequest<
     // followed by LISTofCARD8 address
     //   format as byte array, as we can't guarantee that the family is Internet
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t address_sz {
         alignment.size( tl_aligned_units ) - ChangeHosts::BASE_ENCODING_SZ };
     const _ParsingOutputs address {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, address_sz,
-            _hostByteOrder( encoding->address_len, byteswap ),
+            _ordered( encoding->address_len, byteswap ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += alignment.pad( address.bytes_parsed );
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
@@ -5991,8 +5991,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, ListHosts > );
     assert( data != nullptr );
     assert( sz >= sizeof( ListHosts::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const ListHosts::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const ListHosts::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::LISTHOSTS );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -6013,10 +6013,10 @@ X11ProtocolParser::_parseRequest<
     const SetAccessControl::Header* header {
         reinterpret_cast< const SetAccessControl::Header* >( data ) };
     request.bytes_parsed += sizeof( SetAccessControl::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETACCESSCONTROL );
     // SetAccessControl is header-only
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -6062,10 +6062,10 @@ X11ProtocolParser::_parseRequest<
     const SetCloseDownMode::Header* header {
         reinterpret_cast< const SetCloseDownMode::Header* >( data ) };
     request.bytes_parsed += sizeof( SetCloseDownMode::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETCLOSEDOWNMODE );
     // SetCloseDownMode is header-only
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -6111,13 +6111,13 @@ X11ProtocolParser::_parseRequest<
     const KillClient::Header* header {
         reinterpret_cast< const KillClient::Header* >( data ) };
     request.bytes_parsed += sizeof( KillClient::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::KILLCLIENT );
     const KillClient::Encoding* encoding {
         reinterpret_cast< const KillClient::Encoding* >(
             data + request.bytes_parsed ) };
     request.bytes_parsed += sizeof( KillClient::Encoding );
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -6162,7 +6162,7 @@ X11ProtocolParser::_parseRequest<
     const RotateProperties::Header* header {
         reinterpret_cast< const RotateProperties::Header* >( data ) };
     request.bytes_parsed += sizeof( RotateProperties::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::ROTATEPROPERTIES );
     const RotateProperties::Encoding* encoding {
         reinterpret_cast< const RotateProperties::Encoding* >(
@@ -6170,13 +6170,13 @@ X11ProtocolParser::_parseRequest<
     request.bytes_parsed += sizeof( RotateProperties::Encoding );
     // followed by LISTofATOM properties
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t properties_sz {
         alignment.size( tl_aligned_units ) - RotateProperties::BASE_ENCODING_SZ };
     const _ParsingOutputs properties {
         _parseLISTof< protocol::ATOM >(
             data + request.bytes_parsed, properties_sz,
-            _hostByteOrder( encoding->properties_ct, byteswap ),
+            _ordered( encoding->properties_ct, byteswap ),
             byteswap, ws.nested() ) };
     request.bytes_parsed += alignment.pad( properties.bytes_parsed );
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
@@ -6232,10 +6232,10 @@ X11ProtocolParser::_parseRequest<
     const ForceScreenSaver::Header* header {
         reinterpret_cast< const ForceScreenSaver::Header* >( data ) };
     request.bytes_parsed += sizeof( ForceScreenSaver::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::FORCESCREENSAVER );
     // ForceScreenSaver is header-only
-    assert( _hostByteOrder( header->tl_aligned_units, byteswap ) ==
+    assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
@@ -6281,18 +6281,18 @@ X11ProtocolParser::_parseRequest<
     const SetPointerMapping::Header* header {
         reinterpret_cast< const SetPointerMapping::Header* >( data ) };
     request.bytes_parsed += sizeof( SetPointerMapping::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETPOINTERMAPPING );
     // SetPointerMapping is header-only
     // followed by LISTofCARD8 map
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t map_sz {
         alignment.size( tl_aligned_units ) - SetPointerMapping::BASE_ENCODING_SZ };
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, map_sz,
-            _hostByteOrder( header->map_len, byteswap ),
+            _ordered( header->map_len, byteswap ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += alignment.pad( map.bytes_parsed );
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
@@ -6336,8 +6336,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetPointerMapping > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetPointerMapping::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetPointerMapping::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetPointerMapping::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETPOINTERMAPPING );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -6358,12 +6358,12 @@ X11ProtocolParser::_parseRequest<
     const SetModifierMapping::Header* header {
         reinterpret_cast< const SetModifierMapping::Header* >( data ) };
     request.bytes_parsed += sizeof( SetModifierMapping::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::SETMODIFIERMAPPING );
     // SetModifierMapping is header-only
     // followed by LISTofKEYCODE keycodes
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t keycodes_sz {
         alignment.size( tl_aligned_units ) - SetModifierMapping::BASE_ENCODING_SZ };
     const uint16_t keycodes_ct (
@@ -6412,8 +6412,8 @@ X11ProtocolParser::_parseRequest<
     static_assert( std::is_base_of_v< SimpleRequest, GetModifierMapping > );
     assert( data != nullptr );
     assert( sz >= sizeof( GetModifierMapping::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GetModifierMapping::Header* >(
-                                data )->opcode, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GetModifierMapping::Header* >(
+                          data )->opcode, conn->byteswap ) ==
             protocol::requests::opcodes::GETMODIFIERMAPPING );
     return _parseRequest< SimpleRequest >( conn, data, sz );
 }
@@ -6434,12 +6434,12 @@ X11ProtocolParser::_parseRequest<
     const NoOperation::Header* header {
         reinterpret_cast< const NoOperation::Header* >( data ) };
     request.bytes_parsed += sizeof( NoOperation::Header );
-    assert( _hostByteOrder( header->opcode, byteswap ) ==
+    assert( _ordered( header->opcode, byteswap ) ==
             protocol::requests::opcodes::NOOPERATION );
     // NoOperation is header-only
     // protocol specifies that no-op may be followed by variable length dummy data
     const auto tl_aligned_units {
-        _hostByteOrder( header->tl_aligned_units, byteswap ) };
+        _ordered( header->tl_aligned_units, byteswap ) };
     const size_t dummy_sz {
         alignment.size( tl_aligned_units ) - NoOperation::BASE_ENCODING_SZ };
     request.bytes_parsed += dummy_sz;
@@ -6474,9 +6474,9 @@ X11ProtocolParser::_logRequest(
     assert( sz >= sizeof( protocol::requests::Request::Header ) );
 
     const uint8_t opcode {
-        _hostByteOrder( reinterpret_cast<
-                        const protocol::requests::Request::Header* >(
-                            data )->opcode, conn->byteswap ) };
+        _ordered( reinterpret_cast<
+                  const protocol::requests::Request::Header* >(
+                      data )->opcode, conn->byteswap ) };
     // TBD before implemementing extensions
     // TBD do we need to parse unknown extensions as xtrace does (Request error edge case)?
     assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );

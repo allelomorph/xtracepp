@@ -28,9 +28,9 @@ X11ProtocolParser::_parseReply<
     const GetWindowAttributes::Reply::Encoding* encoding {
         reinterpret_cast< const GetWindowAttributes::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetWindowAttributes::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -115,9 +115,9 @@ X11ProtocolParser::_parseReply<
     const GetGeometry::Reply::Encoding* encoding {
         reinterpret_cast< const GetGeometry::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetGeometry::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -181,16 +181,16 @@ X11ProtocolParser::_parseReply<
     const QueryTree::Reply::Encoding* encoding {
         reinterpret_cast< const QueryTree::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryTree::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofWINDOW children
     const _ParsingOutputs children {
         _parseLISTof< protocol::WINDOW >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->children_ct, byteswap ),
+            _ordered( encoding->children_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += children.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -250,9 +250,9 @@ X11ProtocolParser::_parseReply<
     const InternAtom::Reply::Encoding* encoding {
         reinterpret_cast< const InternAtom::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( InternAtom::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -308,15 +308,15 @@ X11ProtocolParser::_parseReply<
     const GetAtomName::Reply::Encoding* encoding {
         reinterpret_cast< const GetAtomName::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetAtomName::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by STRING8 name
-    const auto name_len { _hostByteOrder( encoding->name_len, byteswap ) };
+    const auto name_len { _ordered( encoding->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + reply.bytes_parsed ),
         name_len };
     reply.bytes_parsed += alignment.pad( name_len );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -369,17 +369,17 @@ X11ProtocolParser::_parseReply<
     const GetProperty::Reply::Encoding* encoding {
         reinterpret_cast< const GetProperty::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetProperty::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    const auto format { _hostByteOrder( encoding->header.format, byteswap ) };
+    const auto format { _ordered( encoding->header.format, byteswap ) };
     assert( format <= GetProperty::Reply::MAX_FORMAT &&
             format % GetProperty::Reply::FORMAT_FACTOR == 0 );
     // followed by LISTofBYTE value
     _ParsingOutputs value;
     const uint32_t value_sz {
-        _hostByteOrder( encoding->value_fmt_unit_len, byteswap ) *
+        _ordered( encoding->value_fmt_unit_len, byteswap ) *
         ( format / GetProperty::Reply::FORMAT_FACTOR ) };
-    if ( _hostByteOrder( encoding->type.data, byteswap ) ==
+    if ( _ordered( encoding->type.data, byteswap ) ==
          protocol::atoms::predefined::STRING ) {
         value.str = fmt::format( "{:?}", std::string_view{
                 reinterpret_cast< const char* >( data + reply.bytes_parsed ),
@@ -391,7 +391,7 @@ X11ProtocolParser::_parseReply<
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) );
     }
     reply.bytes_parsed += alignment.pad( value.bytes_parsed );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -455,7 +455,7 @@ X11ProtocolParser::_parseReply<
     const ListProperties::Reply::Encoding* encoding {
         reinterpret_cast< const ListProperties::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( ListProperties::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofATOM atoms
     const _ParsingOutputs atoms {
@@ -463,7 +463,7 @@ X11ProtocolParser::_parseReply<
             data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->atoms_ct,
             byteswap, ws.nested() ) };
     reply.bytes_parsed += alignment.pad( atoms.bytes_parsed );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -516,9 +516,9 @@ X11ProtocolParser::_parseReply<
     const GetSelectionOwner::Reply::Encoding* encoding {
         reinterpret_cast< const GetSelectionOwner::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetSelectionOwner::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -568,9 +568,9 @@ X11ProtocolParser::_parseReply<
     const GrabPointer::Reply::Encoding* encoding {
         reinterpret_cast< const GrabPointer::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GrabPointer::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -621,9 +621,9 @@ X11ProtocolParser::_parseReply<
     const GrabKeyboard::Reply::Encoding* encoding {
         reinterpret_cast< const GrabKeyboard::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GrabKeyboard::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -674,9 +674,9 @@ X11ProtocolParser::_parseReply<
     const QueryPointer::Reply::Encoding* encoding {
         reinterpret_cast< const QueryPointer::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryPointer::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -743,7 +743,7 @@ X11ProtocolParser::_parseReply<
     const GetMotionEvents::Reply::Encoding* encoding {
         reinterpret_cast< const GetMotionEvents::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetMotionEvents::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofTIMECOORD events
     const _ParsingOutputs events {
@@ -751,7 +751,7 @@ X11ProtocolParser::_parseReply<
             data + reply.bytes_parsed, sz - reply.bytes_parsed, encoding->events_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += events.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -804,9 +804,9 @@ X11ProtocolParser::_parseReply<
     const TranslateCoordinates::Reply::Encoding* encoding {
         reinterpret_cast< const TranslateCoordinates::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( TranslateCoordinates::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -864,9 +864,9 @@ X11ProtocolParser::_parseReply<
     const GetInputFocus::Reply::Encoding* encoding {
         reinterpret_cast< const GetInputFocus::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetInputFocus::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -923,9 +923,9 @@ X11ProtocolParser::_parseReply<
     const QueryKeymap::Reply::Encoding* encoding {
         reinterpret_cast< const QueryKeymap::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryKeymap::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
     // keys is included in QueryKeymap::Reply::Encoding
@@ -979,23 +979,23 @@ X11ProtocolParser::_parseReply<
     const QueryFont::Reply::Encoding* encoding {
         reinterpret_cast< const QueryFont::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryFont::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofFONTPROP properties
     const _ParsingOutputs properties {
         _parseLISTof< QueryFont::Reply::FONTPROP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->properties_ct, byteswap ),
+            _ordered( encoding->properties_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += properties.bytes_parsed;
     // followed by LISTofCHARINFO char-infos
     const _ParsingOutputs char_infos {
         _parseLISTof< QueryFont::Reply::CHARINFO >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->char_infos_ct, byteswap ),
+            _ordered( encoding->char_infos_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += char_infos.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1083,9 +1083,9 @@ X11ProtocolParser::_parseReply<
     const QueryTextExtents::Reply::Encoding* encoding {
         reinterpret_cast< const QueryTextExtents::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryTextExtents::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1152,16 +1152,16 @@ X11ProtocolParser::_parseReply<
     const ListFonts::Reply::Encoding* encoding {
         reinterpret_cast< const ListFonts::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( ListFonts::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofSTR names
     const _ParsingOutputs names {
         _parseLISTof< protocol::STR >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->names_ct, byteswap ),
+            _ordered( encoding->names_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += alignment.pad( names.bytes_parsed );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1214,12 +1214,12 @@ X11ProtocolParser::_parseReply<
     const ListFontsWithInfo::Reply::Encoding* encoding {
         reinterpret_cast< const ListFontsWithInfo::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( ListFontsWithInfo::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
 
-    if ( _hostByteOrder( encoding->header.last_reply, byteswap ) ==
+    if ( _ordered( encoding->header.last_reply, byteswap ) ==
          ListFontsWithInfo::Reply::LAST_REPLY ) {
-        assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+        assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
                 alignment.units( reply.bytes_parsed -
                                  protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1257,7 +1257,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs properties {
         _parseLISTof< ListFontsWithInfo::Reply::FONTPROP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->properties_ct, byteswap ),
+            _ordered( encoding->properties_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += properties.bytes_parsed;
     // followed by STRING8 name
@@ -1265,7 +1265,7 @@ X11ProtocolParser::_parseReply<
         reinterpret_cast< const char* >( data + reply.bytes_parsed ),
         encoding->header.name_len };
     reply.bytes_parsed += alignment.pad( encoding->header.name_len );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1354,16 +1354,16 @@ X11ProtocolParser::_parseReply<
     const GetFontPath::Reply::Encoding* encoding {
         reinterpret_cast< const GetFontPath::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetFontPath::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofSTR path
     const _ParsingOutputs path {
         _parseLISTof< protocol::STR >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->path_ct, byteswap ),
+            _ordered( encoding->path_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += alignment.pad( path.bytes_parsed );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1416,11 +1416,11 @@ X11ProtocolParser::_parseReply<
     const GetImage::Reply::Encoding* encoding {
         reinterpret_cast< const GetImage::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetImage::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofBYTE data
     const auto extra_aligned_units {
-        _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) };
+        _ordered( encoding->header.extra_aligned_units, byteswap ) };
     const _ParsingOutputs data_ {
         _parseLISTof< protocol::BYTE >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
@@ -1428,7 +1428,7 @@ X11ProtocolParser::_parseReply<
             alignment.size( extra_aligned_units ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     reply.bytes_parsed += alignment.pad( data_.bytes_parsed );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1484,16 +1484,16 @@ X11ProtocolParser::_parseReply<
     const ListInstalledColormaps::Reply::Encoding* encoding {
         reinterpret_cast< const ListInstalledColormaps::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( ListInstalledColormaps::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofCOLORMAP cmaps
     const _ParsingOutputs cmaps {
         _parseLISTof< protocol::COLORMAP >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->cmaps_ct, byteswap ),
+            _ordered( encoding->cmaps_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += cmaps.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1546,9 +1546,9 @@ X11ProtocolParser::_parseReply<
     const AllocColor::Reply::Encoding* encoding {
         reinterpret_cast< const AllocColor::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( AllocColor::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1603,9 +1603,9 @@ X11ProtocolParser::_parseReply<
     const AllocNamedColor::Reply::Encoding* encoding {
         reinterpret_cast< const AllocNamedColor::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( AllocNamedColor::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1667,24 +1667,24 @@ X11ProtocolParser::_parseReply<
     const AllocColorCells::Reply::Encoding* encoding {
         reinterpret_cast< const AllocColorCells::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( AllocColorCells::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofCARD32 pixels
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->pixels_ct, byteswap ),
+            _ordered( encoding->pixels_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += pixels.bytes_parsed;
     // followed by LISTofCARD32 masks
     const _ParsingOutputs masks {
         _parseLISTof< protocol::CARD32 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->masks_ct, byteswap ),
+            _ordered( encoding->masks_ct, byteswap ),
             byteswap, ws.nested(),
             _ValueTraits{ {}, _ValueTraits::BITMASK } ) };  // force hex
     reply.bytes_parsed += pixels.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1743,16 +1743,16 @@ X11ProtocolParser::_parseReply<
     const AllocColorPlanes::Reply::Encoding* encoding {
         reinterpret_cast< const AllocColorPlanes::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( AllocColorPlanes::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofCARD32 pixels
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->pixels_ct, byteswap ),
+            _ordered( encoding->pixels_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += pixels.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1814,16 +1814,16 @@ X11ProtocolParser::_parseReply<
     const QueryColors::Reply::Encoding* encoding {
         reinterpret_cast< const QueryColors::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryColors::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofRGB colors
     const _ParsingOutputs colors {
         _parseLISTof< QueryColors::Reply::RGB >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->colors_ct, byteswap ),
+            _ordered( encoding->colors_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += colors.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1876,9 +1876,9 @@ X11ProtocolParser::_parseReply<
     const LookupColor::Reply::Encoding* encoding {
         reinterpret_cast< const LookupColor::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( LookupColor::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1938,9 +1938,9 @@ X11ProtocolParser::_parseReply<
     const QueryBestSize::Reply::Encoding* encoding {
         reinterpret_cast< const QueryBestSize::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryBestSize::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -1994,9 +1994,9 @@ X11ProtocolParser::_parseReply<
     const QueryExtension::Reply::Encoding* encoding {
         reinterpret_cast< const QueryExtension::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( QueryExtension::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2058,16 +2058,16 @@ X11ProtocolParser::_parseReply<
     const ListExtensions::Reply::Encoding* encoding {
         reinterpret_cast< const ListExtensions::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( ListExtensions::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofSTR names
     const _ParsingOutputs names {
         _parseLISTof< protocol::STR >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->header.names_ct, byteswap ),
+            _ordered( encoding->header.names_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += alignment.pad( names.bytes_parsed );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2120,19 +2120,19 @@ X11ProtocolParser::_parseReply<
     const GetKeyboardMapping::Reply::Encoding* encoding {
         reinterpret_cast< const GetKeyboardMapping::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetKeyboardMapping::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofKEYSYM keysyms
     // (keycode count is field in request, but here must be inferred)
     const auto extra_aligned_units {
-        _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) };
+        _ordered( encoding->header.extra_aligned_units, byteswap ) };
     const uint32_t keysym_ct ( extra_aligned_units / sizeof( protocol::KEYSYM ) );
     const _ParsingOutputs keysyms {
         _parseLISTof< protocol::KEYSYM >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed, keysym_ct,
             byteswap, ws.nested() ) };
     reply.bytes_parsed += keysyms.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2185,7 +2185,7 @@ X11ProtocolParser::_parseReply<
     const GetKeyboardControl::Reply::Encoding* encoding {
         reinterpret_cast< const GetKeyboardControl::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetKeyboardControl::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // Encoding includes fixed size LISTofCARD8 auto-repeats
     const _ParsingOutputs auto_repeats {
@@ -2193,7 +2193,7 @@ X11ProtocolParser::_parseReply<
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
             GetKeyboardControl::Reply::AUTO_REPEATS_SZ,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2263,9 +2263,9 @@ X11ProtocolParser::_parseReply<
     const GetPointerControl::Reply::Encoding* encoding {
         reinterpret_cast< const GetPointerControl::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetPointerControl::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2316,9 +2316,9 @@ X11ProtocolParser::_parseReply<
     const GetScreenSaver::Reply::Encoding* encoding {
         reinterpret_cast< const GetScreenSaver::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetScreenSaver::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2381,16 +2381,16 @@ X11ProtocolParser::_parseReply<
     const ListHosts::Reply::Encoding* encoding {
         reinterpret_cast< const ListHosts::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( ListHosts::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofHOST hosts
     const _ParsingOutputs hosts {
         _parseLISTof< protocol::HOST >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->hosts_ct, byteswap ),
+            _ordered( encoding->hosts_ct, byteswap ),
             byteswap, ws.nested() ) };
     reply.bytes_parsed += hosts.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2448,9 +2448,9 @@ X11ProtocolParser::_parseReply<
     const SetPointerMapping::Reply::Encoding* encoding {
         reinterpret_cast< const SetPointerMapping::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( SetPointerMapping::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2504,13 +2504,13 @@ X11ProtocolParser::_parseReply<
     const GetPointerMapping::Reply::Encoding* encoding {
         reinterpret_cast< const GetPointerMapping::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetPointerMapping::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofCARD8 map
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            _hostByteOrder( encoding->header.map_len, byteswap ),
+            _ordered( encoding->header.map_len, byteswap ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     reply.bytes_parsed += alignment.pad( map.bytes_parsed );
     assert( encoding->header.extra_aligned_units ==
@@ -2566,9 +2566,9 @@ X11ProtocolParser::_parseReply<
     const SetModifierMapping::Reply::Encoding* encoding {
         reinterpret_cast< const SetModifierMapping::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( SetModifierMapping::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2619,18 +2619,18 @@ X11ProtocolParser::_parseReply<
     const GetModifierMapping::Reply::Encoding* encoding {
         reinterpret_cast< const GetModifierMapping::Reply::Encoding* >( data ) };
     reply.bytes_parsed += sizeof( GetModifierMapping::Reply::Encoding );
-    assert( _hostByteOrder( encoding->header.reply, byteswap ) ==
+    assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     // followed by LISTofKEYCODE keycodes
     const uint32_t keycode_ct {
         GetModifierMapping::Reply::MODIFIER_CT *
-        _hostByteOrder( encoding->header.keycodes_per_modifier, byteswap ) };
+        _ordered( encoding->header.keycodes_per_modifier, byteswap ) };
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed, keycode_ct,
             byteswap, ws.nested() ) };
     reply.bytes_parsed += keycodes.bytes_parsed;
-    assert( _hostByteOrder( encoding->header.extra_aligned_units, byteswap ) ==
+    assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
 
@@ -2678,10 +2678,10 @@ size_t X11ProtocolParser::_logReply(
     const bool byteswap { conn->byteswap };
     const Reply::Header* header {
         reinterpret_cast< const Reply::Header* >( data ) };
-    assert( _hostByteOrder( header->reply, byteswap ) ==
+    assert( _ordered( header->reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     const auto sequence_num {
-        _hostByteOrder( header->sequence_num, byteswap ) };
+        _ordered( header->sequence_num, byteswap ) };
     const uint8_t opcode { conn->lookupRequest( sequence_num ) };
     // TBD only before extension implementation
     assert( opcode >= protocol::requests::opcodes::MIN &&
@@ -2859,13 +2859,12 @@ size_t X11ProtocolParser::_logReply(
     // ListFontsWithInfo presents edge case as it issues a series of replies
     using protocol::requests::ListFontsWithInfo;
     if ( opcode != protocol::requests::opcodes::LISTFONTSWITHINFO ||
-         _hostByteOrder( reinterpret_cast<
-                         const ListFontsWithInfo::Reply::Header* >(
-                             data )->last_reply, byteswap ) ==
+         _ordered( reinterpret_cast< const ListFontsWithInfo::Reply::Header* >(
+                       data )->last_reply, byteswap ) ==
          ListFontsWithInfo::Reply::LAST_REPLY ) {
         conn->unregisterRequest( sequence_num );
     }
     assert( reply.bytes_parsed >=
-              protocol::requests::Reply::DEFAULT_ENCODING_SZ );
+            protocol::requests::Reply::DEFAULT_ENCODING_SZ );
     return reply.bytes_parsed;
 }

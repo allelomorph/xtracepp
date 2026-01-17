@@ -11,7 +11,7 @@
 template<>
 size_t X11ProtocolParser::_logConnectionSetup<
     protocol::connection_setup::Initiation >(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, const size_t sz ) {
     using protocol::connection_setup::Initiation;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -36,19 +36,19 @@ size_t X11ProtocolParser::_logConnectionSetup<
                           ( encoding->byte_order == Initiation::LSBFIRST ) };
     conn->byteswap = byteswap;
     // TBD version error instead of assert?
-    assert( _hostByteOrder( encoding->protocol_major_version, byteswap ) ==
+    assert( _ordered( encoding->protocol_major_version, byteswap ) ==
             protocol::MAJOR_VERSION );
-    assert( _hostByteOrder( encoding->protocol_minor_version, byteswap ) ==
+    assert( _ordered( encoding->protocol_minor_version, byteswap ) ==
             protocol::MINOR_VERSION );
     bytes_parsed += sizeof( Initiation::Encoding );
     // followed by STRING8 authorization-protocol-name
-    const uint16_t name_len { _hostByteOrder( encoding->name_len, byteswap ) };
+    const uint16_t name_len { _ordered( encoding->name_len, byteswap ) };
     const std::string_view auth_protocol_name {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         name_len };
     bytes_parsed += alignment.pad( name_len );
     // followed by STRING8 authorization-protocol-data
-    const uint16_t data_len { _hostByteOrder( encoding->data_len, byteswap ) };
+    const uint16_t data_len { _ordered( encoding->data_len, byteswap ) };
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, data_len, data_len,
@@ -113,15 +113,15 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const Refusal::Header* header {
         reinterpret_cast< const Refusal::Header* >( data ) };
     bytes_parsed += sizeof( Refusal::Header );
-    assert( _hostByteOrder( header->success, byteswap ) ==
+    assert( _ordered( header->success, byteswap ) ==
             protocol::connection_setup::Response::FAILED );
     // followed by STRING8 reason
-    auto reason_len { _hostByteOrder( header->reason_len, byteswap ) };
+    auto reason_len { _ordered( header->reason_len, byteswap ) };
     const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         reason_len };
     bytes_parsed += alignment.pad( reason_len );
-    assert( _hostByteOrder( header->following_aligned_units, byteswap ) ==
+    assert( _ordered( header->following_aligned_units, byteswap ) ==
             alignment.units( bytes_parsed - sizeof( Refusal::Header ) ) );
 
     const uint32_t memb_name_w (
@@ -182,11 +182,11 @@ size_t X11ProtocolParser::_logConnectionSetup<
         reinterpret_cast<
         const RequireFurtherAuthentication::Header* >( data ) };
     bytes_parsed += sizeof( RequireFurtherAuthentication::Header );
-    assert( _hostByteOrder( header->success, byteswap ) ==
+    assert( _ordered( header->success, byteswap ) ==
             protocol::connection_setup::Response::AUTHENTICATE );
     // followed by STRING8 reason
     const auto following_aligned_units {
-        _hostByteOrder( header->following_aligned_units, byteswap ) };
+        _ordered( header->following_aligned_units, byteswap ) };
     const size_t reason_padded_len {
         alignment.size( following_aligned_units ) };
     const std::string_view reason {
@@ -243,14 +243,14 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const Acceptance::Header* header {
         reinterpret_cast< const Acceptance::Header* >( data ) };
     bytes_parsed += sizeof( Acceptance::Header );
-    assert( _hostByteOrder( header->success, byteswap ) ==
+    assert( _ordered( header->success, byteswap ) ==
             protocol::connection_setup::Response::SUCCESS );
     const Acceptance::Encoding* encoding {
         reinterpret_cast< const Acceptance::Encoding* >(
             data + bytes_parsed ) };
     bytes_parsed += sizeof( Acceptance::Encoding );
     // followed by STRING8 vendor
-    const uint16_t vendor_len { _hostByteOrder( encoding->vendor_len, byteswap ) };
+    const uint16_t vendor_len { _ordered( encoding->vendor_len, byteswap ) };
     const std::string_view vendor {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         vendor_len };
@@ -259,17 +259,17 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const _ParsingOutputs pixmap_formats {
         _parseLISTof< Acceptance::FORMAT >(
             data + bytes_parsed, sz - bytes_parsed,
-            _hostByteOrder( encoding->pixmap_formats_ct, byteswap ),
+            _ordered( encoding->pixmap_formats_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     bytes_parsed += pixmap_formats.bytes_parsed;
     // followed by LISTofSCREEN roots
     const _ParsingOutputs roots {
         _parseLISTof< Acceptance::SCREEN >(
             data + bytes_parsed, sz - bytes_parsed,
-            _hostByteOrder( encoding->roots_ct, byteswap ),
+            _ordered( encoding->roots_ct, byteswap ),
             byteswap, ws.nested() ) };
     bytes_parsed += roots.bytes_parsed;
-    assert( _hostByteOrder( header->following_aligned_units, byteswap ) ==
+    assert( _ordered( header->following_aligned_units, byteswap ) ==
             alignment.units( bytes_parsed - sizeof( Acceptance::Header ) ) );
 
     const uint32_t memb_name_w (
@@ -371,7 +371,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
     size_t bytes_parsed {};
     const Response::Header* header {
         reinterpret_cast< const Response::Header* >( data ) };
-    switch ( _hostByteOrder( header->success, conn->byteswap ) ) {
+    switch ( _ordered( header->success, conn->byteswap ) ) {
     case Response::FAILED:
         bytes_parsed = _logConnectionSetup<
             protocol::connection_setup::Refusal >( conn, data, sz );

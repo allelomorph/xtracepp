@@ -36,12 +36,6 @@
 #define _LESSTHAN <
 
 /**
- * @brief Obscures `operator<=` to prevent Doxygen (v1.9.8) parsing it as an
- *   opening caret in template parameters.
- */
-#define _LESSTHANOREQUALTO <=
-
-/**
  * @brief Obscures [_parseListMember](#X11ProtocolParser::_parseListMember)
  *   template specialization syntax to prevent Doxygen (v1.9.8) parsing
  *   bug.
@@ -360,28 +354,24 @@ private:
         return ( sizeof( val ) * 2 ) + ( sizeof( "0x" ) - 1 );
     }
     /**
-     * @brief Byteswaps an integral value depending on params.
-     * @tparam IntegralT integral type of val, up to 4 bytes
+     * @brief Conditionally byteswaps an integral value.
+     * @tparam IntegralT integral type of val
      * @param val integral to byteswap
      * @param byteswap whether to byteswap
-     * @note [_LESSTHANOREQUALTO](#_LESSTHANOREQUALTO) macro used to circumvent
-     *   Doxygen (v1.9.8) parsing bug.
      * @ingroup individual_data_field_formatting
      */
     template< typename IntT,
-              std::enable_if_t< std::is_integral_v< IntT > &&
-                                sizeof( IntT ) _LESSTHANOREQUALTO sizeof( uint32_t ),
-                  bool > = true >
-    inline IntT _hostByteOrder( const IntT val, const bool byteswap ) {
-        switch ( sizeof( IntT ) ) {
-        case sizeof( uint32_t ):
-            return byteswap ? __builtin_bswap32( val ) : val;
-        case sizeof( uint16_t ):
-            return byteswap ? __builtin_bswap16( val ) : val;
-        default:
-            break;
+              std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
+    inline IntT _ordered( const IntT val, const bool byteswap ) {
+        if ( byteswap ) {
+            switch ( sizeof( IntT ) ) {
+            case sizeof( uint64_t ): return ::__builtin_bswap64( val );
+            case sizeof( uint32_t ): return ::__builtin_bswap32( val );
+            case sizeof( uint16_t ): return ::__builtin_bswap16( val );
+            default: /* sizeof( uint8_t ) */ return val;
+            }
         }
-        return val;  // sizeof( uint8_t )
+        return val;
     }
     /**
      * @brief Describes range for which a value has enum names.
@@ -526,7 +516,7 @@ private:
         const std::string hex_str {
             fmt::format( "{:#0{}x}", std::make_unsigned_t< IntT >( encoded_val ),
                          _fmtHexWidth( encoded_val ) ) };
-        const IntT val { _hostByteOrder( encoded_val, byteswap ) };
+        const IntT val { _ordered( encoded_val, byteswap ) };
 
         if ( bitmask ) {
             assert( std::is_unsigned_v< IntT > );
@@ -1069,7 +1059,7 @@ private:
      * @ingroup logging
      */
     size_t _logClientPacket(
-            Connection* conn, uint8_t* data, const size_t sz );
+        Connection* conn, uint8_t* data, const size_t sz );
     /**
      * @brief Parse client-bound server packet as X11 message, and print it to
      *   log file stream.
@@ -1236,7 +1226,6 @@ public:
 };
 
 #undef _LESSTHAN
-#undef _LESSTHANOREQUALTO
 #undef _PARSELISTMEMBER
 
 

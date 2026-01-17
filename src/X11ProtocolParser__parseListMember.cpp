@@ -28,7 +28,7 @@ X11ProtocolParser::_parseListMember<
         reinterpret_cast< const STR::Header* >( data ) };
     outputs.bytes_parsed += sizeof( STR::Header );
     // followed by STRING8 name
-    const auto name_len { _hostByteOrder( header->name_len, byteswap ) };
+    const auto name_len { _ordered( header->name_len, byteswap ) };
     const std::string_view name {
         reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
         name_len };
@@ -70,14 +70,14 @@ X11ProtocolParser::_parseListMember<
     const HOST::Header* header {
         reinterpret_cast< const HOST::Header* >( data ) };
     outputs.bytes_parsed += sizeof( HOST::Header );
-    const auto family { _hostByteOrder( header->family, byteswap ) };
+    const auto family { _ordered( header->family, byteswap ) };
     assert( family < HOST::family_names.size() );
     // check for skipped enum values 4, 5
     assert( !HOST::family_names[ family ].empty() );
     // no HOST::Encoding
     // followed by LISTofBYTE address
     const auto address_len {
-        _hostByteOrder( header->address_len, byteswap ) };
+        _ordered( header->address_len, byteswap ) };
     const _ParsingOutputs address {
         _parseLISTof< protocol::BYTE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed, address_len,
@@ -128,7 +128,7 @@ X11ProtocolParser::_parseListMember<
     const _ParsingOutputs allowed_depths {
         _parseLISTof< SCREEN::DEPTH >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            _hostByteOrder( encoding->allowed_depths_ct, byteswap ),
+            _ordered( encoding->allowed_depths_ct, byteswap ),
             byteswap, ws.nested() ) };
     outputs.bytes_parsed += allowed_depths.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
@@ -208,7 +208,7 @@ X11ProtocolParser::_parseListMember<
     const _ParsingOutputs visuals {
         _parseLISTof< DEPTH::VISUALTYPE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            _hostByteOrder( encoding->visuals_ct, byteswap ),
+            _ordered( encoding->visuals_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     outputs.bytes_parsed += visuals.bytes_parsed;
     assert( outputs.bytes_parsed <= sz );
@@ -251,7 +251,7 @@ X11ProtocolParser::_parseListMember<
     _ParsingOutputs outputs;
     const PolyText8::TEXTITEM8 item {
         *reinterpret_cast< const PolyText8::TEXTITEM8* >( data ) };
-    if ( _hostByteOrder( item.font.font_shift, byteswap ) ==
+    if ( _ordered( item.font.font_shift, byteswap ) ==
          PolyText8::FONT::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText8::FONT );
         // font bytes in array from MSB to LSB
@@ -285,7 +285,7 @@ X11ProtocolParser::_parseListMember<
     outputs.bytes_parsed += sizeof( PolyText8::TEXTITEM8::TEXTELT8 );
     // followed by STRING8 string
     const auto string_len {
-        _hostByteOrder( item.text_element.string_len, byteswap ) };
+        _ordered( item.text_element.string_len, byteswap ) };
     const std::string_view string {
         reinterpret_cast< const char* >( data + outputs.bytes_parsed ),
         string_len };
@@ -327,7 +327,7 @@ X11ProtocolParser::_parseListMember<
     _ParsingOutputs outputs;
     const PolyText16::TEXTITEM16 item {
         *reinterpret_cast< const PolyText16::TEXTITEM16* >( data ) };
-    if ( _hostByteOrder( item.font.font_shift, byteswap ) ==
+    if ( _ordered( item.font.font_shift, byteswap ) ==
          PolyText16::FONT::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText16::FONT );
         // font bytes in array from MSB to LSB
@@ -364,7 +364,7 @@ X11ProtocolParser::_parseListMember<
     const _ParsingOutputs string {
         _parseLISTof< protocol::CHAR2B >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
-            _hostByteOrder( item.text_element.string_2B_len, byteswap ),
+            _ordered( item.text_element.string_2B_len, byteswap ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     outputs.bytes_parsed += string.bytes_parsed;
 

@@ -25,10 +25,10 @@ X11ProtocolParser::_parseError<
     const SimpleError::Encoding* encoding {
         reinterpret_cast< const SimpleError::Encoding* >( data ) };
     error.bytes_parsed += sizeof( SimpleError::Encoding );
-    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+    assert( _ordered( encoding->header.error, byteswap ) ==
             SimpleError::ERROR );
     const uint8_t code {
-        _hostByteOrder( encoding->header.code, byteswap ) };
+        _ordered( encoding->header.code, byteswap ) };
     assert( code >= protocol::errors::codes::MIN &&
             code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == SimpleError::ENCODING_SZ );
@@ -80,11 +80,11 @@ X11ProtocolParser::_parseError<
     const ResourceIdError::Encoding* encoding {
         reinterpret_cast< const ResourceIdError::Encoding* >( data ) };
     error.bytes_parsed += sizeof( ResourceIdError::Encoding );
-    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+    assert( _ordered( encoding->header.error, byteswap ) ==
             ResourceIdError::ERROR );
-    const uint8_t code { _hostByteOrder( encoding->header.code, byteswap ) };
+    const uint8_t code { _ordered( encoding->header.code, byteswap ) };
     assert( code >= protocol::errors::codes::MIN &&
-              code <= protocol::errors::codes::MAX );
+            code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == ResourceIdError::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -130,8 +130,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Request > );
     assert( data != nullptr );
     assert( sz >= sizeof( Request::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Request::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Request::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::REQUEST );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -152,7 +152,7 @@ X11ProtocolParser::_parseError<
     const Value::Encoding* encoding {
         reinterpret_cast< const Value::Encoding* >( data ) };
     error.bytes_parsed += sizeof( Value::Encoding );
-    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+    assert( _ordered( encoding->header.error, byteswap ) ==
             Value::ERROR );
     const uint8_t code { encoding->header.code };
     assert( code >= protocol::errors::codes::MIN &&
@@ -202,8 +202,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, Window > );
     assert( data != nullptr );
     assert( sz >= sizeof( Window::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Window::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Window::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::WINDOW );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -218,8 +218,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, Pixmap > );
     assert( data != nullptr );
     assert( sz >= sizeof( Pixmap::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Pixmap::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Pixmap::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::PIXMAP );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -240,9 +240,9 @@ X11ProtocolParser::_parseError<
     const Atom::Encoding* encoding {
         reinterpret_cast< const Atom::Encoding* >( data ) };
     error.bytes_parsed += sizeof( Atom::Encoding );
-    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+    assert( _ordered( encoding->header.error, byteswap ) ==
             Atom::ERROR );
-    const uint8_t code { _hostByteOrder( encoding->header.code, byteswap ) };
+    const uint8_t code { _ordered( encoding->header.code, byteswap ) };
     assert( code >= protocol::errors::codes::MIN &&
             code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == Atom::ENCODING_SZ );
@@ -290,8 +290,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, Cursor > );
     assert( data != nullptr );
     assert( sz >= sizeof( Cursor::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Cursor::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Cursor::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::CURSOR );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -306,8 +306,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, Font > );
     assert( data != nullptr );
     assert( sz >= sizeof( Font::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Font::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Font::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::FONT );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -322,8 +322,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Match > );
     assert( data != nullptr );
     assert( sz >= sizeof( Match::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Match::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Match::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::MATCH );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -338,8 +338,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, Drawable > );
     assert( data != nullptr );
     assert( sz >= sizeof( Drawable::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Drawable::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Drawable::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::DRAWABLE );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -354,8 +354,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Access > );
     assert( data != nullptr );
     assert( sz >= sizeof( Access::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Access::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Access::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::ACCESS );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -370,8 +370,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Alloc > );
     assert( data != nullptr );
     assert( sz >= sizeof( Alloc::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Alloc::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Alloc::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::ALLOC );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -386,8 +386,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, Colormap > );
     assert( data != nullptr );
     assert( sz >= sizeof( Colormap::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Colormap::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Colormap::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::COLORMAP );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -402,8 +402,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, GContext > );
     assert( data != nullptr );
     assert( sz >= sizeof( GContext::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const GContext::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const GContext::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::GCONTEXT );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -418,8 +418,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< ResourceIdError, IdChoice > );
     assert( data != nullptr );
     assert( sz >= sizeof( IdChoice::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const IdChoice::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const IdChoice::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::IDCHOICE );
     return _parseError< ResourceIdError >( conn, data, sz );
 }
@@ -434,8 +434,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Name > );
     assert( data != nullptr );
     assert( sz >= sizeof( Name::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Name::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Name::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::NAME );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -450,8 +450,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Length > );
     assert( data != nullptr );
     assert( sz >= sizeof( Length::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Length::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Length::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::LENGTH );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -466,8 +466,8 @@ X11ProtocolParser::_parseError<
     static_assert( std::is_base_of_v< SimpleError, Implementation > );
     assert( data != nullptr );
     assert( sz >= sizeof( Implementation::Header ) );
-    assert( _hostByteOrder( reinterpret_cast< const Implementation::Header* >(
-                                data )->code, conn->byteswap ) ==
+    assert( _ordered( reinterpret_cast< const Implementation::Header* >(
+                          data )->code, conn->byteswap ) ==
             protocol::errors::codes::IMPLEMENTATION );
     return _parseError< SimpleError >( conn, data, sz );
 }
@@ -483,10 +483,10 @@ X11ProtocolParser::_logError(
     const bool byteswap { conn->byteswap };
     const Error::Encoding* encoding {
         reinterpret_cast< const Error::Encoding* >( data ) };
-    assert( _hostByteOrder( encoding->header.error, byteswap ) ==
+    assert( _ordered( encoding->header.error, byteswap ) ==
             Error::ERROR );
     const uint8_t code {
-        _hostByteOrder( encoding->header.code, byteswap ) };
+        _ordered( encoding->header.code, byteswap ) };
 
     _ParsingOutputs error;
     switch ( code ) {
@@ -570,6 +570,6 @@ X11ProtocolParser::_logError(
                   error.str );
     // presume that no more messages will relate to this request
     conn->unregisterRequest(
-        _hostByteOrder( encoding->header.sequence_num, byteswap ) );
+        _ordered( encoding->header.sequence_num, byteswap ) );
     return error.bytes_parsed;
 }

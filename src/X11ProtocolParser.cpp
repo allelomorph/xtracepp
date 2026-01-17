@@ -103,7 +103,7 @@ size_t X11ProtocolParser::_logServerPacket(
         break;
     case Connection::OPEN: {
         assert( sz >= sizeof( protocol::Response::Header ) );
-        switch ( _hostByteOrder(
+        switch ( _ordered(
                      reinterpret_cast< const protocol::Response::Header* >(
                          data )->prefix, conn->byteswap ) ) {
         case protocol::Response::ERROR_PREFIX:
