@@ -96,16 +96,16 @@ size_t X11ProtocolParser::_logServerPacket(
     switch ( conn->status ) {
     case Connection::UNESTABLISHED:
         bytes_parsed = _logConnectionSetup<
-            protocol::connection_setup::Response >( conn, data, sz );
+            protocol::connection_setup::InitResponse >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
         // TBD authentication negotiation, not sure how to parse packets
         break;
     case Connection::OPEN: {
         assert( sz >= sizeof( protocol::Response::Header ) );
-        switch ( _ordered(
-                     reinterpret_cast< const protocol::Response::Header* >(
-                         data )->prefix, conn->byteswap ) ) {
+        switch ( auto header {
+                reinterpret_cast< const protocol::Response::Header* >( data ) };
+            _ordered( header->prefix, conn->byteswap ) ) {
         case protocol::Response::ERROR_PREFIX:
             bytes_parsed = _logError( conn, data, sz );
             assert( bytes_parsed == protocol::errors::Error::ENCODING_SZ );

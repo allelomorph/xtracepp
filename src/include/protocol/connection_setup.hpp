@@ -6,6 +6,7 @@
  * @see [X protocol encoding](https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup)
  */
 
+#include "protocol/Message.hpp"
 #include "protocol/common_types.hpp"
 
 
@@ -17,8 +18,7 @@ namespace connection_setup {
  * @brief Represents client packet sent to [initiate] connection to X server.
  * [initiate]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
  */
-struct Initiation {
-    // TBD rename to Header
+struct Initiation : public Message {
     /**
      * @brief Fixed encoding prefix.
      * @note Followed by suffixes:
@@ -27,10 +27,8 @@ struct Initiation {
      *   - `STRING8 authorization-protocol-data` of
      *   [pad](#X11ProtocolParser::_Alignment::pad)([data_len](#data_len))B
      */
-    struct [[gnu::packed]] Encoding {
-        /**
-         * @brief Protocol name byte-order; either `MSBFIRST` or `LSBFIRST`.
-         */
+    struct [[gnu::packed]] Header {
+        /** @brief Protocol name byte-order; either `MSBFIRST` or `LSBFIRST`. */
         CARD8    byte_order;
     private:
         /** @brief Ignored bytes. */
@@ -48,39 +46,28 @@ struct Initiation {
         /** @brief Ignored bytes. */
         uint16_t _unused2;
     };
-
     /**
-     * @brief Constants used in [Encoding::byte_order](#Encoding::byte_order).
+     * @brief Constants used by [byte-order](#Header::byte_order).
      */
-    enum {
-        MSBFIRST = 'B',
-        LSBFIRST = 'l'
-    };
-    /**
-     * @brief Enum names used to describe
-     *   [Encoding::byte_order](#Encoding::byte_order).
-     */
+    enum { MSBFIRST = 'B', LSBFIRST = 'l' };
+    /** @brief [byte-order](#Header::byte_order) enum names. */
     inline static const
     std::vector< std::string_view >& byte_order_names {
         protocol::enum_names::byte_order };
 };
 
-// TBD add ALIGN similar to protocol::Response::ALIGN
-// TBD rename to InitResponse to disambiguate from protocol::Response
 /**
  * @brief Interface class providing generic header for [Refusal](#Refusal),
  *   [RequireFurtherAuthentication](#RequireFurtherAuthentication),
  *   and [Acceptance](#Acceptance).
  */
-struct Response {
+struct InitResponse : public Message {
     /**
      * @brief Generic fixed encoding prefix.
      */
     struct [[gnu::packed]] Header {
-        /**
-         * @brief First byte of message, used to differentiate response type.
-         *   Could be any of [Response::success](#Response::success) values.
-         */
+        /** @brief First byte of message, used to differentiate response type;
+         *    could be any of #FAILED, #SUCCESS, #AUTHENTICATE. */
         uint8_t  success;
     private:
         /** @brief Ignored bytes. */
@@ -91,33 +78,25 @@ struct Response {
         /** @brief Length of suffix after header in 4B units. */
         uint16_t following_aligned_units;
     };
-    // TBD rename to Success or nameless
     /**
-     * @brief All valid values of [Header::success](#Header::success).
+     * @brief All valid values of [success](#Header::success).
      */
-    enum success {
-        FAILED,
-        SUCCESS,
-        AUTHENTICATE
-    };
-    /**
-     * @brief Enum names of [Header::success](#Header::success) values.
-     */
+    enum Success { FAILED, SUCCESS, AUTHENTICATE };
+    /** @brief Enum names of [Header::success](#Header::success) values. */
     inline static const
     std::vector< std::string_view > success_names {
         "Failed",
         "Success",
         "Authenticate"
     };
-
-    virtual ~Response() = 0;
+    virtual ~InitResponse() = 0;
 };
 
 /**
  * @brief Represents X server [refusal] of an [Initiation](#Initiation).
  * [refusal]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
  */
-struct Refusal : public Response {
+struct Refusal : public InitResponse {
     /**
      * @brief Fixed encoding prefix.
      * @note Followed by suffix:
@@ -125,7 +104,7 @@ struct Refusal : public Response {
      *   [pad](#X11ProtocolParser::_Alignment::pad)([reason_len](#reason_len))B
      */
     struct [[gnu::packed]] Header {
-        /** @brief Should always equal [FAILED](#connection_setup::Response::success). */
+        /** @brief Should always equal [FAILED](#InitResponse::Success). */
         uint8_t  success;
         /** @brief `reason` length in bytes. */
         uint8_t  reason_len;
@@ -142,26 +121,26 @@ struct Refusal : public Response {
  * @brief Represents X server request for further [authentication] negotiation
  *   after an [Initiation](#Initiation).
  * [authentication]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
- * @note Uses [Reponse::Header](#Response::Header):
- *   - [success](##Response::Header::success) should always equal
- *     [AUTHENTICATE](#Response::success)
+ * @note Uses [InitResponse::Header](#InitResponse::Header):
+ *   - [success](#InitResponse::Header::success) should always equal
+ *     [AUTHENTICATE](#InitResponse::Success)
  *   - followed by suffix:
  *     - `STRING8 reason` of [pad](#X11ProtocolParser::_Alignment::pad)(
- *     [following_aligned_units](#Response::Header::following_aligned_units) * 4)B
+ *     [following_aligned_units](#InitResponse::Header::following_aligned_units) * 4)B
  */
-struct RequireFurtherAuthentication : public Response {
+struct RequireFurtherAuthentication : public InitResponse {
 };
 
 /**
  * @brief Represents X server [acceptance] of an [Initiation](#Initiation).
  * [acceptance]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
  */
-struct Acceptance : public Response {
+struct Acceptance : public InitResponse {
     /**
      * @brief Fixed encoding prefix.
      */
     struct [[gnu::packed]] Header {
-        /** @brief Should always equal [SUCCESS](#connection_setup::Response::success). */
+        /** @brief Should always equal [SUCCESS](#InitResponse::Success). */
         uint8_t  success;
     private:
         /** @brief Ignored bytes. */
@@ -217,17 +196,14 @@ struct Acceptance : public Response {
         /** @brief Ignored bytes. */
         uint8_t  _unused2[4];
     };
-    /**
-     * @brief Enum names of [image-byte-order](#Encoding::image_byte_order) values.
-     */
-    inline static const std::vector< std::string_view >&
-    image_byte_order_names { protocol::enum_names::byte_order };
-    /**
-     * @brief Enum names of
-     *   [bitmap-format-bit-order](#Encoding::bitmap_format_bit_order) values.
-     */
-    inline static const std::vector< std::string_view >
-    bitmap_format_bit_order_names {
+    /** @brief [image-byte-order](#Encoding::image_byte_order) enum names. */
+    inline static const
+    std::vector< std::string_view >& image_byte_order_names {
+        protocol::enum_names::byte_order };
+    /** @brief [bitmap-format-bit-order](#Encoding::bitmap_format_bit_order)
+     *    enum names. */
+    inline static const
+    std::vector< std::string_view > bitmap_format_bit_order_names {
         "LeastSignificant",  // 0
         "MostSignificant"    // 1
     };
@@ -249,13 +225,12 @@ struct Acceptance : public Response {
      * @brief List members of [Encoding](#Encoding) suffix `roots`.
      */
     struct SCREEN : public protocol::impl::StructWithSuffixes {
-        // TBD rename to Header
         /**
          * @brief Fixed encoding prefix.
          * @note Followed by suffix:
          *   - `LISTofDEPTH allowed-depths` of (always multiple of 4)B
          */
-        struct [[gnu::packed]] Encoding {
+        struct [[gnu::packed]] Header {
             /** @brief Protocol name: root. */
             WINDOW     root;
             /** @brief Protocol name: default-colormap. */
@@ -289,9 +264,7 @@ struct Acceptance : public Response {
             /** @brief length of `allowed-depths` length in [DEPTH](#DEPTH)s. */
             CARD8      allowed_depths_ct;
         };
-        /**
-         * @brief Enum names of [backing-stores](#Encoding::backing_stores) values.
-         */
+        /** @brief [backing-stores](#Header::backing_stores) enum names. */
         inline static const
         std::vector< std::string_view > backing_stores_names {
             "Never",       // 0
@@ -299,17 +272,16 @@ struct Acceptance : public Response {
             "Always"       // 2
         };
         /**
-         * @brief List members of [Encoding](#Encoding) suffix `allowed-depths`.
+         * @brief List members of [Header](#SCREEN::Header) suffix `allowed-depths`.
          */
         struct DEPTH : public protocol::impl::StructWithSuffixes {
-            // TBD rename to Header
             /**
              * @brief Fixed encoding prefix.
              * @note Followed by suffix:
              *   - `LISTofVISUALTYPE visuals` of
              *     ([visuals_ct](#visuals_ct) * sizeof([VISUALTYPE](#VISUALTYPE)))B
              */
-            struct [[gnu::packed]] Encoding {
+            struct [[gnu::packed]] Header {
                 /** @brief Protocol name: depth. */
                 CARD8    depth;
             private:
@@ -323,7 +295,7 @@ struct Acceptance : public Response {
                 uint8_t  _unused2[4];
             };
             /**
-             * @brief List members of [Encoding](#Encoding) suffix `visuals`.
+             * @brief List members of [Header](#DEPTH::Header) suffix `visuals`.
              */
             struct [[gnu::packed]] VISUALTYPE : public protocol::impl::Struct {
                 /** @brief Protocol name: visual-id. */
@@ -344,9 +316,7 @@ struct Acceptance : public Response {
                 /** @brief Ignored bytes. */
                 uint8_t  _unused[4];
             public:
-                /**
-                 * @brief Enum names of [class](#class_) values.
-                 */
+                /** @brief [class](#class_) enum names. */
                 inline static const
                 std::vector< std::string_view > class_names {
                     "StaticGray",   // 0

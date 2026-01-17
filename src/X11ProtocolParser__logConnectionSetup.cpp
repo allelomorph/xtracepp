@@ -15,40 +15,40 @@ size_t X11ProtocolParser::_logConnectionSetup<
     using protocol::connection_setup::Initiation;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= sizeof( Initiation::Encoding ) );
+    assert( sz >= sizeof( Initiation::Header ) );
 
     size_t bytes_parsed {};
     const _Whitespace& ws { _ROOT_WS };
-    const Initiation::Encoding* encoding {
-        reinterpret_cast< const Initiation::Encoding* >( data ) };
-    assert( encoding->byte_order == Initiation::MSBFIRST ||
-            encoding->byte_order == Initiation::LSBFIRST );
+    const Initiation::Header* header {
+        reinterpret_cast< const Initiation::Header* >( data ) };
+    assert( header->byte_order == Initiation::MSBFIRST ||
+            header->byte_order == Initiation::LSBFIRST );
     // determine if host byte order is same as client ( potentially different
     //   with remote clients )
     // TBD could use std::endian with C++20
     const bool little_endian { [](){
         const uint32_t i { 1 };
-        const uint8_t* arr {
+         const uint8_t* arr {
             reinterpret_cast< const uint8_t* >( &i ) };
         return ( arr[0] == 1 );
     }() };
     const bool byteswap { little_endian !=
-                          ( encoding->byte_order == Initiation::LSBFIRST ) };
+                          ( header->byte_order == Initiation::LSBFIRST ) };
     conn->byteswap = byteswap;
     // TBD version error instead of assert?
-    assert( _ordered( encoding->protocol_major_version, byteswap ) ==
+    assert( _ordered( header->protocol_major_version, byteswap ) ==
             protocol::MAJOR_VERSION );
-    assert( _ordered( encoding->protocol_minor_version, byteswap ) ==
+    assert( _ordered( header->protocol_minor_version, byteswap ) ==
             protocol::MINOR_VERSION );
-    bytes_parsed += sizeof( Initiation::Encoding );
+    bytes_parsed += sizeof( Initiation::Header );
     // followed by STRING8 authorization-protocol-name
-    const uint16_t name_len { _ordered( encoding->name_len, byteswap ) };
+    const uint16_t name_len { _ordered( header->name_len, byteswap ) };
     const std::string_view auth_protocol_name {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         name_len };
     bytes_parsed += alignment.pad( name_len );
     // followed by STRING8 authorization-protocol-data
-    const uint16_t data_len { _ordered( encoding->data_len, byteswap ) };
+    const uint16_t data_len { _ordered( header->data_len, byteswap ) };
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, data_len, data_len,
@@ -72,27 +72,27 @@ size_t X11ProtocolParser::_logConnectionSetup<
         conn->id, bytes_parsed, CLIENT_TO_SERVER, conn->client_desc,
         ws.separator,
         ws.memb_indent, "byte-order", memb_name_w, ws.equals,
-        _formatVariable( uint8_t( encoding->byte_order ==
+        _formatVariable( uint8_t( header->byte_order ==
                                   Initiation::MSBFIRST ), byteswap,
                          { Initiation::byte_order_names } ), ws.separator,
         ws.memb_indent, "protocol-major-version", memb_name_w, ws.equals,
-        _formatVariable( encoding->protocol_major_version, byteswap ), ws.separator,
+        _formatVariable( header->protocol_major_version, byteswap ), ws.separator,
         ws.memb_indent, "protocol-minor-version", memb_name_w, ws.equals,
-        _formatVariable( encoding->protocol_minor_version, byteswap ), ws.separator,
+        _formatVariable( header->protocol_minor_version, byteswap ), ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(authorization-protocol-name length)",
             memb_name_w, ws.equals,
-            _formatVariable( encoding->name_len, byteswap ), ws.separator ),
+            _formatVariable( header->name_len, byteswap ), ws.separator ),
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "(authorization-protocol-data length)",
             memb_name_w, ws.equals,
-            _formatVariable( encoding->data_len, byteswap ), ws.separator ),
+            _formatVariable( header->data_len, byteswap ), ws.separator ),
         ws.memb_indent, "authorization-protocol-name", memb_name_w, ws.equals,
         auth_protocol_name, ws.separator,
         ws.memb_indent, "authorization-protocol-data", memb_name_w, ws.equals,
-        encoding->data_len, ws.separator,
+        header->data_len, ws.separator,
         ws.encl_indent
         );
     return bytes_parsed;
@@ -114,7 +114,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
         reinterpret_cast< const Refusal::Header* >( data ) };
     bytes_parsed += sizeof( Refusal::Header );
     assert( _ordered( header->success, byteswap ) ==
-            protocol::connection_setup::Response::FAILED );
+            protocol::connection_setup::InitResponse::FAILED );
     // followed by STRING8 reason
     auto reason_len { _ordered( header->reason_len, byteswap ) };
     const std::string_view reason {
@@ -183,7 +183,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
         const RequireFurtherAuthentication::Header* >( data ) };
     bytes_parsed += sizeof( RequireFurtherAuthentication::Header );
     assert( _ordered( header->success, byteswap ) ==
-            protocol::connection_setup::Response::AUTHENTICATE );
+            protocol::connection_setup::InitResponse::AUTHENTICATE );
     // followed by STRING8 reason
     const auto following_aligned_units {
         _ordered( header->following_aligned_units, byteswap ) };
@@ -244,7 +244,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
         reinterpret_cast< const Acceptance::Header* >( data ) };
     bytes_parsed += sizeof( Acceptance::Header );
     assert( _ordered( header->success, byteswap ) ==
-            protocol::connection_setup::Response::SUCCESS );
+            protocol::connection_setup::InitResponse::SUCCESS );
     const Acceptance::Encoding* encoding {
         reinterpret_cast< const Acceptance::Encoding* >(
             data + bytes_parsed ) };
@@ -361,28 +361,28 @@ size_t X11ProtocolParser::_logConnectionSetup<
 
 template<>
 size_t X11ProtocolParser::_logConnectionSetup<
-    protocol::connection_setup::Response >(
+    protocol::connection_setup::InitResponse >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    using protocol::connection_setup::Response;
+    using protocol::connection_setup::InitResponse;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= sizeof( Response::Header ) );
+    assert( sz >= sizeof( InitResponse::Header ) );
 
     size_t bytes_parsed {};
-    const Response::Header* header {
-        reinterpret_cast< const Response::Header* >( data ) };
+    const InitResponse::Header* header {
+        reinterpret_cast< const InitResponse::Header* >( data ) };
     switch ( _ordered( header->success, conn->byteswap ) ) {
-    case Response::FAILED:
+    case InitResponse::FAILED:
         bytes_parsed = _logConnectionSetup<
             protocol::connection_setup::Refusal >( conn, data, sz );
         conn->status = Connection::FAILED;
         break;
-    case Response::AUTHENTICATE:
+    case InitResponse::AUTHENTICATE:
         bytes_parsed = _logConnectionSetup<
             protocol::connection_setup::RequireFurtherAuthentication >( conn, data, sz );
         conn->status = Connection::AUTHENTICATION;
         break;
-    case Response::SUCCESS:
+    case InitResponse::SUCCESS:
         bytes_parsed = _logConnectionSetup<
             protocol::connection_setup::Acceptance >( conn, data, sz );
         conn->status = Connection::OPEN;

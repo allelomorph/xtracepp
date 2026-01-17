@@ -61,18 +61,18 @@ bool ProxyX11Server::_authenticateServerConnection(
 
     SocketBuffer sbuffer;
     using protocol::connection_setup::Initiation;
-    Initiation::Encoding init_encoding {};
-    init_encoding.byte_order = Initiation::LSBFIRST;
-    init_encoding.protocol_major_version = protocol::MAJOR_VERSION;
-    init_encoding.protocol_minor_version = protocol::MINOR_VERSION;
-    init_encoding.name_len = _AUTH_NAME.size();
-    init_encoding.data_len = _AUTH_DATA_SZ;
-    sbuffer.load( &init_encoding, sizeof(init_encoding) );
+    Initiation::Header init_header {};
+    init_header.byte_order = Initiation::LSBFIRST;
+    init_header.protocol_major_version = protocol::MAJOR_VERSION;
+    init_header.protocol_minor_version = protocol::MINOR_VERSION;
+    init_header.name_len = _AUTH_NAME.size();
+    init_header.data_len = _AUTH_DATA_SZ;
+    sbuffer.load( &init_header, sizeof(init_header) );
     // TBD padded sz will copy up to 3 junk bytes
     sbuffer.load( _AUTH_NAME.data(), _parser.alignment.pad( _AUTH_NAME.size() ) );
     sbuffer.load( _auth_data, _parser.alignment.pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
-              sizeof(init_encoding) + _parser.alignment.pad( _AUTH_NAME.size() ) +
+              sizeof(init_header) + _parser.alignment.pad( _AUTH_NAME.size() ) +
               _parser.alignment.pad( _AUTH_DATA_SZ ) );
     try {
         pollSingleSocket( server_fd, POLLOUT );
@@ -92,21 +92,21 @@ bool ProxyX11Server::_authenticateServerConnection(
         return false;
     }
     sbuffer.read( server_fd );
-    using protocol::connection_setup::Response;
     using protocol::connection_setup::Acceptance;
     assert( sbuffer.size() >= sizeof( Acceptance::Header ) );
     Acceptance::Header accept_header {};
     sbuffer.unload( &accept_header, sizeof( Acceptance::Header ) );
-    if ( accept_header.success != Response::SUCCESS )
+    using protocol::connection_setup::InitResponse;
+    if ( accept_header.success != InitResponse::SUCCESS )
         return false;
     if ( accept_header.protocol_major_version !=
-         init_encoding.protocol_major_version )
+         init_header.protocol_major_version )
         return false;
     if ( accept_header.protocol_minor_version !=
-         init_encoding.protocol_minor_version )
+         init_header.protocol_minor_version )
         return false;
     assert( sbuffer.size() == _parser.alignment.size(
-                  accept_header.following_aligned_units ) );
+                accept_header.following_aligned_units ) );
     Acceptance::Encoding accept_encoding {};
     sbuffer.unload( &accept_encoding, sizeof( Acceptance::Encoding ) );
     // skip over vendor
@@ -116,10 +116,10 @@ bool ProxyX11Server::_authenticateServerConnection(
                     sizeof( Acceptance::FORMAT ) );
     // get WINDOW for root window of first screen
     assert( accept_encoding.roots_ct >= 1 );
-    Acceptance::SCREEN::Encoding screen_encoding;
-    sbuffer.unload( &screen_encoding, sizeof( Acceptance::SCREEN::Encoding ) );
+    Acceptance::SCREEN::Header screen_header;
+    sbuffer.unload( &screen_header, sizeof( Acceptance::SCREEN::Header ) );
     if ( screen0_root != nullptr )
-        *screen0_root = screen_encoding.root;
+        *screen0_root = screen_header.root;
     sbuffer.clear();
     return true;
 }
