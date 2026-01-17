@@ -132,13 +132,15 @@ private:
         struct Hash {
             /**
              * @brief Function call operator to allow use as a functor.
+             * @note Uses this [method] to combine hashes, [boost::hash_combine]
+             *   also comes recommended
+             * [method]: https://stackoverflow.com/questions/35985960/
+             * [boost::hash_combine]: https://www.boost.org/doc/libs/latest/libs/container_hash/doc/html/hash.html#ref_hash_combine
              */
-            // TBD is there a better way to combine hashes?
-            //   - https://stackoverflow.com/questions/35985960/
             size_t operator()( const _StashedStringID& sa_id ) const noexcept {
                 const size_t h1 { std::hash<uint32_t>{}( sa_id.conn_id ) };
                 const size_t h2 { std::hash<uint16_t>{}( sa_id.seq_num ) };
-                return h1 ^ ( h2 << 1 ); // or use boost::hash_combine
+                return h1 ^ ( h2 << 1 );
             }
         };
     };
