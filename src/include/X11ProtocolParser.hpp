@@ -22,6 +22,7 @@
 
 #include "Connection.hpp"
 #include "Settings.hpp"
+#include "protocol/Message.hpp"
 #include "protocol/enum_names.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
@@ -66,16 +67,16 @@
 class X11ProtocolParser {
 private:
     /**
-     * @brief Calculator for converting raw byte counts to and from 4-byte
-     *   [alignment units] commonly used in encoding.
-     * [alignment units]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Syntactic_Conventions_b
+     * @brief Calculator for converting raw byte counts to and from [padded]
+     *   lengths commonly used in encoding.
+     * [padded]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Syntactic_Conventions_b
      */
     class _Alignment {
     private:
         /**
          * @brief Alignment size in bytes.
          */
-        static constexpr size_t _ALIGN { 4 };
+        static constexpr size_t _ALIGN { protocol::Message::ALIGN };
 
     public:
         /**

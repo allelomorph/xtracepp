@@ -5,26 +5,26 @@
  * @file Response.hpp
  */
 
-#include "protocol/common_types.hpp"
+#include "protocol/Message.hpp"
+#include "protocol/common_types.hpp"  // CARD16
 
 
 namespace protocol {
 
 /**
- * @brief Interface class providing generic header for
- *   [Error](#protocol::errors::Error), [Reply](#protocol::requests::Reply),
- *   and [Event](#protocol::events::Event).
+ * @brief Interface class providing generic header for [Reply](#requests::Reply),
+ *   [Event](#events::Event), and [Error](#errors::Error).
  */
-struct Response {
+struct Response : public Message {
     /**
      * @brief Generic fixed encoding prefix.
      */
     struct [[gnu::packed]] Header {
         /**
-         * @brief First byte of message, used to differentiate response type.
-         *   Could be [Error::Header::error](#protocol::errors::Error::Header::error),
-         *   [Reply::Header::reply](#protocol::requests::Reply::Header::reply), or an
-         *   [event code](#protocol::events::Event::Header::code).
+         * @brief First byte of message, used to differentiate
+         *   [Reply](#requests::Reply) ([REPLY](#requests::Reply::REPLY)) and
+         *   [Error](#errors::Error) ([ERROR](#errors::Error::ERROR)) from
+         *   [Event](#events::Event)s.
          */
         uint8_t prefix;
     private:
@@ -37,22 +37,10 @@ struct Response {
          */
         CARD16  sequence_num;
     };
-
     /**
-     * @brief Constants to interpret [Header::prefix](#Header::prefix) as
-     *   [Error::Header::error](#protocol::errors::Error::Header::error) or
-     *   [Reply::Header::reply](#protocol::requests::Reply::Header::reply).
+     * @brief Constants to interpret [prefix](#Header::prefix).
      */
-    enum {
-        ERROR_PREFIX,
-        REPLY_PREFIX
-    };
-    /**
-     * @brief Memory alignment size in bytes, for use in making asserts on
-     *   encoding sizes.
-     */
-    static constexpr uint32_t ALIGN { 4 };
-
+    enum { ERROR_PREFIX, REPLY_PREFIX };
     virtual ~Response() = 0;
 };
 

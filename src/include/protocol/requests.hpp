@@ -10,6 +10,7 @@
 #include <array>
 #include <tuple>
 
+#include "protocol/Message.hpp"
 #include "protocol/Response.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/enum_names.hpp"
@@ -163,7 +164,7 @@ inline constexpr int MAX { NOOPERATION };
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#request_format
  * [BIG-REQUESTS]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html
  */
-struct Request {
+struct Request : public Message {
     /**
      * @brief Fixed encoding prefix.
      */
@@ -182,9 +183,6 @@ struct Request {
         /** @brief Total length of request encoding in 4B units. */
         uint16_t tl_aligned_units;
     };
-    /** @brief Size of alignment unit in bytes. */
-    static constexpr uint32_t ALIGN { 4 };
-
     virtual ~Request() = 0;
 };
 /**
@@ -220,7 +218,7 @@ struct Reply : public Response {
     };
     /** @brief Identifies message as reply when found in
      *   [Header::reply](#Header::reply). */
-    static constexpr uint8_t  REPLY { Response::REPLY_PREFIX };
+    static constexpr uint8_t REPLY { Response::REPLY_PREFIX };
     /** @brief Default size in bytes of [Encoding](#Encoding). */
     static constexpr uint32_t DEFAULT_ENCODING_SZ { 32 };
     static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
