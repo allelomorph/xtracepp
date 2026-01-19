@@ -68,7 +68,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     init_header.name_len = _AUTH_NAME.size();
     init_header.data_len = _AUTH_DATA_SZ;
     sbuffer.load( &init_header, sizeof(init_header) );
-    // TBD padded sz will copy up to 3 junk bytes
+    // note: padded sz will copy up to 3 junk bytes
     sbuffer.load( _AUTH_NAME.data(), _parser.alignment.pad( _AUTH_NAME.size() ) );
     sbuffer.load( _auth_data, _parser.alignment.pad( _AUTH_DATA_SZ ) );
     assert( sbuffer.size() ==
@@ -127,7 +127,6 @@ bool ProxyX11Server::_authenticateServerConnection(
 void ProxyX11Server::_fetchCurrentServerTime() {
     const int server_fd { _connectToServer() };
     if( server_fd < 0 ) {
-        // TBD exception
         fmt::println(
             ::stderr, "{}: {}: failure to connect to X server for display: {:?}",
             settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
@@ -173,12 +172,12 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     }
 
     ////// Send ChangeProperty with 0-length append as no-op
-    // TBD see https://stackoverflow.com/questions/61849695/get-current-x11-server-time
+    // see: - https://tronche.com/gui/x/icccm/sec-2.html#s-2.1 ("Convention")
+    //      - https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#events:PropertyNotify
     {
         using protocol::requests::ChangeProperty;
         ChangeProperty::Header cp_header {};
         cp_header.opcode = protocol::requests::opcodes::CHANGEPROPERTY;
-        // TBD currenly no enum constants in procotol::, only name arrays
         cp_header.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
         cp_header.tl_aligned_units =
             _parser.alignment.units( ChangeProperty::BASE_ENCODING_SZ );
@@ -246,7 +245,6 @@ ProxyX11Server::_fetchInternedAtoms() {
 
     const int server_fd { _connectToServer() };
     if( server_fd < 0 ) {
-        // TBD exception
         fmt::println(
             ::stderr, "{}: {}: failure to connect to X server for display: {:?}",
             settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
@@ -261,12 +259,10 @@ ProxyX11Server::_fetchInternedAtoms() {
     }
 
     constexpr char CSI[ sizeof( "\x1b[" ) ] { "\x1b[" };
-    // TBD standardize which stream all non-log messages are going to
     fmt::print( ::stderr, "fetching interned ATOMs: " );
     fmt::print( ::stderr, "{}?25l", CSI );  // hide cursor
     // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
-    // `struct` needed to disambiguate from sigaction(2)
-    struct ::sigaction act {};
+    struct ::sigaction act {};  // `struct` needed to disambiguate from sigaction(2)
     act.sa_handler = &handleTerminatingSignal;
     if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
          ::sigaction( SIGINT, &act, nullptr ) == -1  ||

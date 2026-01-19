@@ -27,12 +27,20 @@
 #include "errors.hpp"
 
 
-// TBD using lock-free std::atomics for signal handlers per C++ standard
+/** @brief Whether child process has closed; made signal handler-accessible. */
 static std::atomic_bool child_running {};
+/** @brief Return value of child process; made signal handler-accessible. */
 static std::atomic_int  child_retval  {};
 static_assert( decltype( child_running )::is_always_lock_free );
 static_assert( decltype( child_retval )::is_always_lock_free );
 
+/**
+ * @brief Signal handler for `SIGCHLD`.
+ * @param sig number of signal intercepted
+ * @param info contains further information about the signal
+ * @param ucontext signal context information (`ucontext_t*` cast to `void*`)
+ * @see `sigaction(2)` for prototype `sa_sigaction`
+ */
 static void handleSIGCHLD( int sig, ::siginfo_t* info, void*/* ucontext*/ ) {
     assert( sig == SIGCHLD );
     assert( info != nullptr );
@@ -54,21 +62,33 @@ static void handleSIGCHLD( int sig, ::siginfo_t* info, void*/* ucontext*/ ) {
     }
 }
 
+/** @brief File path if [_in_display](#ProxyX11Server::_in_display) uses Unix
+ *    socket; made signal handler-accessible. */
 static std::atomic<const char*> in_display_sun_path {};
+/** @brief File path if [_out_display](#ProxyX11Server::_out_display) uses Unix
+ *    socket; made signal handler-accessible. */
 static std::atomic<const char*> out_display_sun_path {};
+/** @brief X auth file path; made signal handler-accessible. */
 static std::atomic<const char*> xauth_path {};
+/** @brief X auth file backup path; made signal handler-accessible. */
 static std::atomic<const char*> xauth_bup_path {};
 static_assert( decltype( in_display_sun_path )::is_always_lock_free );
 static_assert( decltype( out_display_sun_path )::is_always_lock_free );
 static_assert( decltype( xauth_path )::is_always_lock_free );
 static_assert( decltype( xauth_bup_path )::is_always_lock_free );
 
-// TBD can't use std::filesystem::remove as is calls remove(3) which is not
-//   listed as signal-safe
+/**
+ * @brief Signal handler for terminating signals `SIGINT`, `SIGTERM`,
+ *   `SIGABRT`, and `SIGSEGV`.
+ * @param sig number of signal intercepted
+ * @see `sigaction(2)` for prototype `sa_handler`
+ */
 static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
-    // No error checking on unlink as we are are about to make a sudden
+    // std::filesystem::remove inappropriate due to its call to remove(3)
+    //   which is not listed as signal-safe
+    // No error checking on ::unlink as we are are about to make a sudden
     //   _exit anyway
     if ( const char* indisp_sun_path { in_display_sun_path.load() };
          indisp_sun_path != nullptr ) {
@@ -244,9 +264,10 @@ public:
      * @brief [data_len](#data_len) in network byte order, or MSB first.
      */
     uint16_t data_len_nbo    {};
-    // TBD if using tcp without ssh, a URI could be much longer than 64 chars
     /**
      * @brief Host address C string buffer.
+     * @note `HOST_NAME_MAX` (see `gethostname(2)`) bytes should hold unix
+     *   hostname or IPv4/IPv6 address plus port number
      */
     char addr[_HOST_NAME_MAX]    {};
     /**
@@ -264,8 +285,7 @@ public:
 };
 
 void ProxyX11Server::_copyAuthentication() {
-    assert( !_in_display.name.empty() &&
-              !_out_display.name.empty() );
+    assert( !_in_display.name.empty() && !_out_display.name.empty() );
 
     ////// get auth path
 
@@ -336,14 +356,8 @@ void ProxyX11Server::_copyAuthentication() {
 
     ////// edit auth entries
 
-    // TBD actual DISPLAY and PROXYDISPLAY hostname(addr)/family for this run
-    //   may differ from that currently recorded in the auth file for DISPLAY,
-    //   but in testing all that really matters is that each display name has an
-    //   entry with a valid cookie (even when it is not unique, as we are here
-    //   duplicating the DISPLAY auth to use for PROXYDISPLAY)
-    // TBD if one were to validate the auth file family values, we would need to
-    //   map AF_* macros to libX11's Family* values
-    // TBD constants from libX11 generated headers: FamilyInternet 0, FamilyInternet6 6, FamilyLocal 256
+    // Testing has shown that xauth cookies need not be unique to a display, so
+    //   here we duplicate the DISPLAY auth for use by PROXYDISPLAY
     _XAuthInfo* in_display_auth {};   // PROXYDISPLAY
     _XAuthInfo* out_display_auth {};  // DISPLAY
     for ( _XAuthInfo& auth : xauth_entries ) {
@@ -641,8 +655,6 @@ void ProxyX11Server::_processPolledSockets() {
 }
 
 void ProxyX11Server::_listenForClients() {
-    // TBD TCP if AF_INET, but SOCK_STREAM still supported if AF_UNIX, see:
-    //   https://oswalt.dev/2025/08/unix-domain-sockets/
     const int fd { ::socket(
             _in_display.ai_family, _in_display.ai_socktype,
             _in_display.ai_protocol ) };
@@ -654,8 +666,10 @@ void ProxyX11Server::_listenForClients() {
     }
     switch ( _in_display.ai_family ) {
     case AF_INET6: {
+        // `ipv6(7)` IPV6_V6ONLY: if false, then can send and receive packets to
+        //   and from an IPv6 address or an IPv4-mapped IPv6 address
         const int off {};
-        if ( ::setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off) ) != 0 ) {
+        if ( ::setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off) ) ) {
             ::close( fd );
             fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
                           __PRETTY_FUNCTION__,
@@ -664,8 +678,9 @@ void ProxyX11Server::_listenForClients() {
         }
     }   [[fallthrough]];
     case AF_INET: {
+        // `socket(7)` SO_KEEPALIVE: enable sending of keep-alive messages on
+        //     connection-oriented sockets
         const int on { 1 };
-        // TBD add TCP_NODELAY here as well?
         if ( ::setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
             ::close( fd );
             fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
@@ -675,8 +690,9 @@ void ProxyX11Server::_listenForClients() {
         }
     }   break;
     case AF_UNIX:
-        // TBD should be deleted as part of both normal shutdown and signal
-        //   interruption, here yet again for edge case of SIGKILL
+        // While any PROXYDISPLAY unix socket from previous runs should have
+        //   been deleted as as part of both normal exit and signal interruption,
+        //   in the edge case of a SIGKILL termination, it may still exist.
         std::filesystem::remove( _in_display.unaddr.sun_path );
         break;
     default:
@@ -699,9 +715,6 @@ void ProxyX11Server::_listenForClients() {
     _listener_fd = fd;
 }
 
-// TBD two outputs:
-//   - fd of client at top of pending connection stack for listener (c->client_fd)
-//   - allocated string describing client (c->from) (x.x.x.x:port for AF_INET, [x:x::x]:port for AF_INET6, socket file path or "unknown(local)" for AF_UNIX)
 bool ProxyX11Server::_acceptClient( Connection* conn ) {
     assert( conn != nullptr );
     std::string client_desc;
@@ -709,8 +722,11 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
         ::sockaddr     addr;
         ::sockaddr_in  inaddr;
         ::sockaddr_in6 in6addr;
-        ::sockaddr_un  unaddr {};  // TBD default initialize this member as it is largest in linux
+        ::sockaddr_un  unaddr {};
     };
+    static_assert( sizeof( unaddr ) > sizeof( addr ) &&
+                   sizeof( unaddr ) > sizeof( inaddr ) &&
+                   sizeof( unaddr ) > sizeof( in6addr ) );
     ::socklen_t addrlen { _in_display.ai_addrlen };
     const int fd { ::accept( _listener_fd, &addr, &addrlen ) };
     if ( fd < 0 ) {
@@ -752,7 +768,7 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
         // sun_path will likely always be unpopulated by connect(2), see:
         //   - https://stackoverflow.com/q/17090043
         assert( std::string_view( unaddr.sun_path ).empty() );
-        //   in testing, getpeername also returns an empty unix socket path,
+        // In testing, getpeername(2) also returns an empty unix socket path,
         //   so instead we assign a generic name
         client_desc = { "unknown(local)" };
     }   break;
@@ -765,8 +781,6 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
 }
 
 int ProxyX11Server::_connectToServer() {
-    // TBD TCP if AF_INET, but SOCK_STREAM still supported if AF_UNIX, see:
-    //   https://oswalt.dev/2025/08/unix-domain-sockets/
     const int fd { ::socket( _out_display.ai_family, _out_display.ai_socktype,
                              _out_display.ai_protocol) };
     if ( fd < 0 )  {
@@ -779,8 +793,10 @@ int ProxyX11Server::_connectToServer() {
     case AF_INET6:
         [[fallthrough]];
     case AF_INET: {
-        // At sockets API level, enable sending of keep-alive messages on
-        //   connection-oriented sockets.
+        // `tcp(7)` TCP_NODELAY: segments are always sent as soon as possible,
+        //   even if there is only a small amount of data
+        // `socket(7)` SO_KEEPALIVE: enable sending of keep-alive messages on
+        //    connection-oriented sockets
         const int on { 1 };
         if ( ::setsockopt( fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on) ) != 0 ||
              ::setsockopt( fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on) ) != 0 ) {
@@ -880,8 +896,7 @@ int ProxyX11Server::_processClientQueue() {
     static constexpr int NO_TIMEOUT { -1 };
     while ( child_running.load() || !_connections.empty() || settings.keeprunning ) {
         _updatePollFlags();
-        // TBD blocks until polled fds have new events or interrupted by signal;
-        //   most frequently expected signals: SIGINT (user), SIGCHLD (child ::exits)
+        // blocks until polled fds have new events or interrupted by signal
         if ( ::poll( _pfds.data(), nfds_t( _pfds.size() ), NO_TIMEOUT ) == -1 ) {
             if ( errno != 0 && errno != EINTR ) {
                 fmt::println( ::stderr, "{}: {}: {}", settings.process_name,
