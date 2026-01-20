@@ -373,6 +373,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_free_colormap( connection, mid );
     }   break;
     case ALLOCCOLORPLANES:         {  //  87
+        // TBD fails with Colormap error (error != nullptr)
         const uint8_t        contiguous {};
         const xcb_colormap_t cmap       {};
         const uint16_t       colors     {};
@@ -447,6 +448,7 @@ int main( const int argc, const char* const* argv ) {
         free( const_cast< xcb_list_extensions_reply_t* >( reply ) );
     }   break;
     case GETKEYBOARDMAPPING:       {  // 101
+        // TBD fails with reply == nullptr
         const xcb_keycode_t first_keycode { 0x10 };
         const uint8_t       count         { 3 };
         const xcb_get_keyboard_mapping_cookie_t cookie {
@@ -458,6 +460,7 @@ int main( const int argc, const char* const* argv ) {
         free( const_cast< xcb_get_keyboard_mapping_reply_t* >( reply ) );
     }   break;
     case GETKEYBOARDCONTROL:       {  // 103
+        // TBD fails with reply == nullptr
         const xcb_get_keyboard_control_cookie_t cookie {
             xcb_get_keyboard_control( connection ) };
         const xcb_get_keyboard_control_reply_t* reply {
