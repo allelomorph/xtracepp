@@ -5,6 +5,7 @@
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
 #include "protocol/connection_setup.hpp"
+#include "protocol/common_types.hpp"  // CARD16
 #include "protocol/version.hpp"
 
 
@@ -21,6 +22,8 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const _Whitespace& ws { _ROOT_WS };
     const Initiation::Header* header {
         reinterpret_cast< const Initiation::Header* >( data ) };
+    // No error yet if client's requested protocol version does not match
+    //   parser's, will error out based on server's offered version
     assert( header->byte_order == Initiation::MSBFIRST ||
             header->byte_order == Initiation::LSBFIRST );
     // determine if host byte order is same as client ( potentially different
@@ -34,11 +37,6 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const bool byteswap { little_endian !=
                           ( header->byte_order == Initiation::LSBFIRST ) };
     conn->byteswap = byteswap;
-    // TBD exit with version error instead of assert?
-    assert( _ordered( header->protocol_major_version, byteswap ) ==
-            protocol::MAJOR_VERSION );
-    assert( _ordered( header->protocol_minor_version, byteswap ) ==
-            protocol::MINOR_VERSION );
     bytes_parsed += sizeof( Initiation::Header );
     // followed by STRING8 authorization-protocol-name
     const uint16_t name_len { _ordered( header->name_len, byteswap ) };
@@ -241,6 +239,20 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const bool byteswap { conn->byteswap };
     const Acceptance::Header* header {
         reinterpret_cast< const Acceptance::Header* >( data ) };
+    if ( const protocol::CARD16 major_ver {
+            _ordered( header->protocol_major_version, byteswap ) },
+                                minor_ver {
+            _ordered( header->protocol_minor_version, byteswap ) };
+        major_ver != protocol::MAJOR_VERSION ||
+        minor_ver != protocol::MINOR_VERSION ) {
+        throw std::runtime_error(
+            fmt::format( "{}: must close connection {} - cannot parse packets "
+                         "as server will encode in X version {}.{} and parser "
+                         "only supports {}.{}",
+                         __PRETTY_FUNCTION__, conn->id,
+                         major_ver, minor_ver,
+                         protocol::MAJOR_VERSION, protocol::MINOR_VERSION ) );
+    }
     bytes_parsed += sizeof( Acceptance::Header );
     assert( _ordered( header->success, byteswap ) ==
             protocol::connection_setup::InitResponse::SUCCESS );
