@@ -72,8 +72,11 @@ size_t X11ProtocolParser::_logClientPacket(
             protocol::connection_setup::Initiation >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
-        // TBD authentication negotiation, can't parse packets due to lack of
-        //   description in standard: need to kill child if running, and exit with error
+        throw std::runtime_error(
+            fmt::format( "{}: must close connection {} - cannot parse packets "
+                         "as X11 protocol does not specify an encoding for "
+                         "authentication negotiation",
+                         __PRETTY_FUNCTION__, conn->id ) );
         break;
     case Connection::OPEN:
         bytes_parsed = _logRequest( conn, data, sz );
@@ -100,8 +103,11 @@ size_t X11ProtocolParser::_logServerPacket(
             protocol::connection_setup::InitResponse >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
-        // TBD authentication negotiation, can't parse packets due to lack of
-        //   description in standard: need to kill child if running, and exit with error
+        throw std::runtime_error(
+            fmt::format( "{}: must close connection {} - cannot parse packets "
+                         "as X11 protocol does not specify an encoding for "
+                         "authentication negotiation",
+                         __PRETTY_FUNCTION__, conn->id ) );
         break;
     case Connection::OPEN: {
         assert( sz >= sizeof( protocol::Response::Header ) );

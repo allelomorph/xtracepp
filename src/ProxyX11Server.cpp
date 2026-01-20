@@ -4,6 +4,7 @@
 #include <optional>
 #include <filesystem>    // copy remove
 #include <fstream>
+#include <exception>     // runtime_error system_error
 
 #include <cassert>
 #include <cstdlib>       // getenv setenv
@@ -556,8 +557,17 @@ void ProxyX11Server::_processPolledSockets() {
                               conn.id, bytes_read, _parser.CLIENT_TO_SERVER );
             }
             assert( !conn.client_buffer.empty() );
-            const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
-            assert( bytes_parsed == bytes_read );
+            try {
+                const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
+                assert( bytes_parsed == bytes_read );
+            } catch ( const std::runtime_error& e ) {
+                fmt::println( ::stderr, "{}", e.what() );
+                // without knowing that this connection is to the child process,
+                //   we rely on the expectation that closing the connection
+                //   should force EOF and thus exit for any client X app
+                conns_to_close.emplace_back( id );
+                continue;
+            }
         } else if ( _socketWriteReady( conn.client_fd ) ) {
             assert( !conn.server_buffer.empty() );
             size_t bytes_written {};
@@ -613,8 +623,17 @@ void ProxyX11Server::_processPolledSockets() {
                               conn.id, bytes_read, _parser.SERVER_TO_CLIENT );
             }
             assert( !conn.server_buffer.empty() );
-            const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
-            assert( bytes_parsed == bytes_read );
+            try {
+                const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
+                assert( bytes_parsed == bytes_read );
+            } catch ( const std::runtime_error& e ) {
+                fmt::println( ::stderr, "{}", e.what() );
+                // without knowing that this connection is to the child process,
+                //   we rely on the expectation that closing the connection
+                //   should force EOF and thus exit for any client X app
+                conns_to_close.emplace_back( id );
+                continue;
+            }
         } else if ( _socketWriteReady( conn.server_fd ) ) {
             assert( !conn.client_buffer.empty() );
             size_t bytes_written {};
