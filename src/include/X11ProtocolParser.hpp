@@ -684,7 +684,6 @@ private:
                                   traits.name_range, traits.bitmask ),
                  sizeof( ProtocolT ) };
     }
-    // protocol integer types (eg ResourceId, Bitmask)
     /**
      * @brief Parse protocol integer type (not alias) (eg WINDOW TIMESTAMP
      *   SETofEVENT) from raw bytes, based on settings and params.
