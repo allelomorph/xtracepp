@@ -1975,9 +1975,6 @@ X11ProtocolParser::_parseReply<
     return reply;
 }
 
-// TBD important for later implementation of extensions:
-//   encoding->first_event: base event code
-//   encoding->first_error: base error code
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
@@ -2683,7 +2680,6 @@ size_t X11ProtocolParser::_logReply(
     const auto sequence_num {
         _ordered( header->sequence_num, byteswap ) };
     const uint8_t opcode { conn->lookupRequest( sequence_num ) };
-    // TBD only before extension implementation
     assert( opcode >= protocol::requests::opcodes::MIN &&
             opcode <= protocol::requests::opcodes::MAX );
 

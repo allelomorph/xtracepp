@@ -559,7 +559,6 @@ X11ProtocolParser::_logError(
             protocol::errors::Implementation >( conn, data, sz );
         break;
     default:
-        // TBD extension error code
         break;
     }
     fmt::println( settings.log_fs,

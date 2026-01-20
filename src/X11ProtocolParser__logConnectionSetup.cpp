@@ -25,7 +25,6 @@ size_t X11ProtocolParser::_logConnectionSetup<
             header->byte_order == Initiation::LSBFIRST );
     // determine if host byte order is same as client ( potentially different
     //   with remote clients )
-    // TBD could use std::endian with C++20
     const bool little_endian { [](){
         const uint32_t i { 1 };
          const uint8_t* arr {
@@ -35,7 +34,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const bool byteswap { little_endian !=
                           ( header->byte_order == Initiation::LSBFIRST ) };
     conn->byteswap = byteswap;
-    // TBD version error instead of assert?
+    // TBD exit with version error instead of assert?
     assert( _ordered( header->protocol_major_version, byteswap ) ==
             protocol::MAJOR_VERSION );
     assert( _ordered( header->protocol_minor_version, byteswap ) ==

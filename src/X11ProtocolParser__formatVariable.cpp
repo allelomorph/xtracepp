@@ -157,7 +157,7 @@ X11ProtocolParser::_formatVariable(
     const protocol::KEYSYM keysym,
     const bool byteswap,
     const X11ProtocolParser::_EnumNameRange/* name_range = {}*/ ) {
-    // TBD encoding is convoluted, see:
+    // encoding is convoluted, see:
     //   https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#keysym_encoding
     return _formatVariable( keysym.data, byteswap,
                             {}, _ValueTraits::BITMASK );  // force hex
@@ -225,7 +225,7 @@ std::string
 X11ProtocolParser::_formatVariable(
     const protocol::CHAR2B char2B, const bool byteswap,
     const _Whitespace&/* ws*/ ) {
-    // TBD default to printing as hex due to convoluted encoding, see:
+    // default to printing as hex due to convoluted encoding, see:
     //   https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Common_Types
     const uint16_t char16_eqv { *reinterpret_cast< const uint16_t* >( &char2B ) };
     return _formatVariable( char16_eqv, byteswap,

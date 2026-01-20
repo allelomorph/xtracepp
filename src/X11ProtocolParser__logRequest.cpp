@@ -6477,8 +6477,6 @@ X11ProtocolParser::_logRequest(
         _ordered( reinterpret_cast<
                   const protocol::requests::Request::Header* >(
                       data )->opcode, conn->byteswap ) };
-    // TBD before implemementing extensions
-    // TBD do we need to parse unknown extensions as xtrace does (Request error edge case)?
     assert( ( opcode >= 1 && opcode <= 119 ) || opcode == 127 );
     // map opcode to sequence number to aid in parsing request errors and replies
     const uint16_t sequence { conn->registerRequest( opcode ) };
@@ -6965,7 +6963,6 @@ X11ProtocolParser::_logRequest(
             protocol::requests::NoOperation >( conn, data, sz );
         break;
     default:
-        // TBD extension logging function dispatch
         break;
     };
     fmt::println( settings.log_fs,

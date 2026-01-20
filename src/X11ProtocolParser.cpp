@@ -31,7 +31,7 @@ X11ProtocolParser::_internStashedAtom( const _StashedStringID ss_id,
     assert( atom.data != protocol::atoms::NONE );
     auto ss_it { _stashed_strings.find( ss_id ) };
     assert( ss_it != _stashed_strings.end() );
-    // TBD not sure if server will reuse ATOMs, so we allow for it in our
+    // not sure if server will reuse ATOMs, so we allow for it in our
     //   mirroring of internments
     _interned_atoms[ atom.data ] = ss_it->second;
     _stashed_strings.erase( ss_it );
@@ -72,7 +72,8 @@ size_t X11ProtocolParser::_logClientPacket(
             protocol::connection_setup::Initiation >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
-        // authentication negotiation
+        // TBD authentication negotiation, can't parse packets due to lack of
+        //   description in standard: need to kill child if running, and exit with error
         break;
     case Connection::OPEN:
         bytes_parsed = _logRequest( conn, data, sz );
@@ -99,7 +100,8 @@ size_t X11ProtocolParser::_logServerPacket(
             protocol::connection_setup::InitResponse >( conn, data, sz );
         break;
     case Connection::AUTHENTICATION:
-        // TBD authentication negotiation, not sure how to parse packets
+        // TBD authentication negotiation, can't parse packets due to lack of
+        //   description in standard: need to kill child if running, and exit with error
         break;
     case Connection::OPEN: {
         assert( sz >= sizeof( protocol::Response::Header ) );
@@ -115,7 +117,7 @@ size_t X11ProtocolParser::_logServerPacket(
             assert( bytes_parsed >= protocol::requests::Reply::DEFAULT_ENCODING_SZ );
             break;
         default:
-            // TBD event codes (2-35), will change with extensions
+            // event codes
             bytes_parsed = _logEvent( conn, data, sz );
             assert( bytes_parsed == protocol::events::Event::ENCODING_SZ );
             break;
@@ -129,13 +131,6 @@ size_t X11ProtocolParser::_logServerPacket(
     return bytes_parsed;
 }
 
-// TBD pass in readwritedebug or keep as private parser var like verbosity?
-// client packets begin with:
-//   - first contact: 'B' or 'l' (66 or 108)
-//   - requests: opcode of 1-119, 127
-//   - extension enable: ??? (logs of xtrace indicate packets sent after
-//       QueryExtension gets positive response from server, to then enable
-//       that extension)
 size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
     assert( conn != nullptr );
 

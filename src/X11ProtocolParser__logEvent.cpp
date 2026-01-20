@@ -436,7 +436,6 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     assert( ( _ordered( encoding->header.code, byteswap ) &
               protocol::requests::SendEvent::EVENT_CODE_MASK ) ==
             protocol::events::codes::KEYMAPNOTIFY );
-    // TBD can we develop a way of printing the keyboard state instead of bytes?
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
@@ -536,7 +535,6 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
               protocol::requests::SendEvent::EVENT_CODE_MASK ) ==
             protocol::events::codes::GRAPHICSEXPOSURE );
     assert( outputs.bytes_parsed == GraphicsExposure::ENCODING_SZ );
-    // TBD lookup request opcodes and assert against encoding opcodes?
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -598,7 +596,6 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
               protocol::requests::SendEvent::EVENT_CODE_MASK ) ==
             protocol::events::codes::NOEXPOSURE );
     assert( outputs.bytes_parsed == NoExposure::ENCODING_SZ );
-    // TBD lookup request opcodes and assert against encoding opcodes?
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1701,7 +1698,6 @@ X11ProtocolParser::_parseEvent(
         _ordered( reinterpret_cast< const protocol::events::Event::Header* >(
                       data )->code, conn->byteswap ) &
         protocol::requests::SendEvent::EVENT_CODE_MASK );
-    // TBD will change with extensions
     assert( code >= protocol::events::codes::MIN &&
             code <= protocol::events::codes::MAX );
     _ParsingOutputs event {};
