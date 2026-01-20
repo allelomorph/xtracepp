@@ -148,7 +148,6 @@ enum Opcodes {
     GETMODIFIERMAPPING,       // 119
     NOOPERATION               =  127
 };
-// TBD will change with extensions
 /** @brief Lowest core request [opcode](#Opcodes). */
 inline constexpr int MIN { CREATEWINDOW };
 /** @brief Highest core request [opcode](#Opcodes). */
@@ -351,7 +350,7 @@ std::array< std::string_view, opcodes::MAX + 1 > names {
     "GetPointerMapping",        // 117
     "SetModifierMapping",       // 118
     "GetModifierMapping",       // 119
-    UNUSED_OPCODE_STRING,       // 120 (unused) // TBD consider map instead?
+    UNUSED_OPCODE_STRING,       // 120 (unused)
     UNUSED_OPCODE_STRING,       // 121 (unused)
     UNUSED_OPCODE_STRING,       // 122 (unused)
     UNUSED_OPCODE_STRING,       // 123 (unused)
@@ -2258,7 +2257,6 @@ struct CloseFont : public Request {
 
 namespace impl {
 
-// TBD wrap in interface class for QueryFont, ListFontsWithInfo?
 /**
  * @brief Represents encoding of type used in replies to core font requests (eg
  *   QueryFont, ListFontsWithInfo).
@@ -3110,7 +3108,6 @@ struct PolyPoint : public impl::PolyPointRequest {
  */
 struct PolyLine : public impl::PolyPointRequest {
 };
-// TBD PolySegment, PolyRectangle, PolyArc, PolyFillRectangle, PolyFillArc parent?
 /**
  * @brief Represents X11 %PolySegment request [encoding].
  * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
@@ -3624,7 +3621,6 @@ struct CreateColormap : public Request {
 
 namespace impl {
 
-// TBD StoreColors, QueryColors?
 /**
  * @brief Represents shared [encoding] of simple COLORMAP requests (eg
  *   FreeColormap).
