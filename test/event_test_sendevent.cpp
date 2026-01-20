@@ -95,6 +95,10 @@ int main( const int argc, const char* const* argv ) {
     case KEYMAPNOTIFY:     {  // 11
         xcb_keymap_notify_event_t event {};
         event.response_type = XCB_KEYMAP_NOTIFY;
+        event.keys[0] = 0x01;
+        event.keys[1] = 0x02;
+        event.keys[2] = 0x04;
+        event.keys[3] = 0x08;
         event_p = (const char*)&event;
     }   break;
     case EXPOSE:           {  // 12
