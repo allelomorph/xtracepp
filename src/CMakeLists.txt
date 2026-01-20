@@ -1,4 +1,3 @@
-# newest features used: TBD
 cmake_minimum_required(VERSION 3.14)
 
 if(NOT COMMAND set_strict_compile_options)
