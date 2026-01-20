@@ -164,8 +164,8 @@ private:
      */
     std::vector< std::string > _fetchInternedAtoms();
     /**
-     * @brief Whether CLI subcommand was provided by used and launched as
-     *   child process; used in determining loop exit condition.
+     * @brief Whether CLI subcommand was provided and launched as
+     *   child process.
      * @ingroup cli_subcommand
      */
     bool  _child_used { false };
