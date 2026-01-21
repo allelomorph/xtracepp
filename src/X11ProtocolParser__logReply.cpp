@@ -2677,188 +2677,29 @@ size_t X11ProtocolParser::_logReply(
         reinterpret_cast< const Reply::Header* >( data ) };
     assert( _ordered( header->reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    const auto sequence_num {
-        _ordered( header->sequence_num, byteswap ) };
-    const uint8_t opcode { conn->lookupRequest( sequence_num ) };
-    assert( opcode >= protocol::requests::opcodes::MIN &&
-            opcode <= protocol::requests::opcodes::MAX );
-
+    const protocol::CARD16 sequence { _ordered( header->sequence_num, byteswap ) };
+    const uint8_t opcode { conn->lookupRequest( sequence ) };
+    const _MajorOpcodeTraits& code_traits { _major_opcodes.at( opcode ) };
     _ParsingOutputs reply;
-    switch ( opcode ) {
-    case protocol::requests::opcodes::GETWINDOWATTRIBUTES:     //  3
-        reply = _parseReply<
-            protocol::requests::GetWindowAttributes >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETGEOMETRY:             // 14
-        reply = _parseReply<
-            protocol::requests::GetGeometry >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYTREE:               // 15
-        reply = _parseReply<
-            protocol::requests::QueryTree >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::INTERNATOM:              // 16
-        reply = _parseReply<
-            protocol::requests::InternAtom >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETATOMNAME:             // 17
-        reply = _parseReply<
-            protocol::requests::GetAtomName >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETPROPERTY:             // 20
-        reply = _parseReply<
-            protocol::requests::GetProperty >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LISTPROPERTIES:          // 21
-        reply = _parseReply<
-            protocol::requests::ListProperties >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETSELECTIONOWNER:       // 23
-        reply = _parseReply<
-            protocol::requests::GetSelectionOwner >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GRABPOINTER:             // 26
-        reply = _parseReply<
-            protocol::requests::GrabPointer >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GRABKEYBOARD:            // 31
-        reply = _parseReply<
-            protocol::requests::GrabKeyboard >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYPOINTER:            // 38
-        reply = _parseReply<
-            protocol::requests::QueryPointer >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETMOTIONEVENTS:         // 39
-        reply = _parseReply<
-            protocol::requests::GetMotionEvents >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::TRANSLATECOORDINATES:    // 40
-        reply = _parseReply<
-            protocol::requests::TranslateCoordinates >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETINPUTFOCUS:           // 43
-        reply = _parseReply<
-            protocol::requests::GetInputFocus >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYKEYMAP:             // 44
-        reply = _parseReply<
-            protocol::requests::QueryKeymap >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYFONT:               // 47
-        reply = _parseReply<
-            protocol::requests::QueryFont >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYTEXTEXTENTS:        // 48
-        reply = _parseReply<
-            protocol::requests::QueryTextExtents >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LISTFONTS:               // 49
-        reply = _parseReply<
-            protocol::requests::ListFonts >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LISTFONTSWITHINFO:       // 50
-        reply = _parseReply<
-            protocol::requests::ListFontsWithInfo >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETFONTPATH:             // 52
-        reply = _parseReply<
-            protocol::requests::GetFontPath >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETIMAGE:                // 73
-        reply = _parseReply<
-            protocol::requests::GetImage >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LISTINSTALLEDCOLORMAPS:  // 83
-        reply = _parseReply<
-            protocol::requests::ListInstalledColormaps >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::ALLOCCOLOR:              // 84
-        reply = _parseReply<
-            protocol::requests::AllocColor >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::ALLOCNAMEDCOLOR:         // 85
-        reply = _parseReply<
-            protocol::requests::AllocNamedColor >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::ALLOCCOLORCELLS:         // 86
-        reply = _parseReply<
-            protocol::requests::AllocColorCells >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::ALLOCCOLORPLANES:        // 87
-        reply = _parseReply<
-            protocol::requests::AllocColorPlanes >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYCOLORS:             // 91
-        reply = _parseReply<
-            protocol::requests::QueryColors >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LOOKUPCOLOR:             // 92
-        reply = _parseReply<
-            protocol::requests::LookupColor >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYBESTSIZE:           // 97
-        reply = _parseReply<
-            protocol::requests::QueryBestSize >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::QUERYEXTENSION:          // 98
-        reply = _parseReply<
-            protocol::requests::QueryExtension >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LISTEXTENSIONS:          // 99
-        reply = _parseReply<
-            protocol::requests::ListExtensions >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETKEYBOARDMAPPING:      // 101
-        reply = _parseReply<
-            protocol::requests::GetKeyboardMapping >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETKEYBOARDCONTROL:      // 103
-        reply = _parseReply<
-            protocol::requests::GetKeyboardControl >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETPOINTERCONTROL:       // 106
-        reply = _parseReply<
-            protocol::requests::GetPointerControl >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETSCREENSAVER:          // 108
-        reply = _parseReply<
-            protocol::requests::GetScreenSaver >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::LISTHOSTS:               // 110
-        reply = _parseReply<
-            protocol::requests::ListHosts >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::SETPOINTERMAPPING:       // 116
-        reply = _parseReply<
-            protocol::requests::SetPointerMapping >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETPOINTERMAPPING:       // 117
-        reply = _parseReply<
-            protocol::requests::GetPointerMapping >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::SETMODIFIERMAPPING:      // 118
-        reply = _parseReply<
-            protocol::requests::SetModifierMapping >( conn, data, sz );
-        break;
-    case protocol::requests::opcodes::GETMODIFIERMAPPING:      // 119
-        reply = _parseReply<
-            protocol::requests::GetModifierMapping >( conn, data, sz );
-        break;
-    default:
-        break;
-    };
-    fmt::println( settings.log_fs,
-                  "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
-                  conn->id, reply.bytes_parsed, SERVER_TO_CLIENT, sequence_num,
-                  protocol::requests::names[ opcode ], opcode, reply.str );
+    if ( code_traits.extension ) {
+        // TBD
+    } else {
+        assert( code_traits.request );
+        assert( code_traits.request.reply_parse_func != nullptr );
+        // pointer-to-member access operator
+        reply = (this->*code_traits.request.reply_parse_func)( conn, data, sz );
+        fmt::println( settings.log_fs,
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
+                      conn->id, reply.bytes_parsed, SERVER_TO_CLIENT, sequence,
+                      code_traits.request.name, opcode, reply.str );
+    }
     // ListFontsWithInfo presents edge case as it issues a series of replies
     using protocol::requests::ListFontsWithInfo;
     if ( opcode != protocol::requests::opcodes::LISTFONTSWITHINFO ||
          _ordered( reinterpret_cast< const ListFontsWithInfo::Reply::Header* >(
                        data )->last_reply, byteswap ) ==
          ListFontsWithInfo::Reply::LAST_REPLY ) {
-        conn->unregisterRequest( sequence_num );
+        conn->unregisterRequest( sequence );
     }
     assert( reply.bytes_parsed >=
             protocol::requests::Reply::DEFAULT_ENCODING_SZ );
