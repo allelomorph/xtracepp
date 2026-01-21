@@ -1133,20 +1133,20 @@ private:
      * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
-     * @param indents whitespace formatting to use
+     * @param ws whitespace formatting to use
      * @return formatted string and bytes parsed
      * @ingroup logging
      */
     template< typename EventT >
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const _Whitespace& indents );
+        const _Whitespace& ws );
     /**
      * @brief Parse X11 event from raw bytes.
      * @param[in,out] conn status of current connection, see [Connection](#Connection)
      * @param data bytes to parse
      * @param sz maximum bytes readable from `data`
-     * @param indents whitespace formatting to use
+     * @param ws whitespace formatting to use
      * @return formatted string and bytes parsed
      * @note This function is a wrapper around its templated equivalent, used to
      *   accommodate parsing of both normal event encoding and events passed as
@@ -1155,7 +1155,7 @@ private:
      */
     _ParsingOutputs _parseEvent(
         Connection* conn, const uint8_t* data, const size_t sz,
-        const _Whitespace& indents );
+        const _Whitespace& ws );
     /**
      * @brief Parse X11 event, and print it to log file stream.
      * @param[in,out] conn status of current connection, see [Connection](#Connection)
@@ -1190,27 +1190,29 @@ private:
         Connection* conn, const uint8_t* data, const size_t sz );
 
     // @ingroup logging_dispatch
-    struct _MajorOpcodeTraits {
-    private:
+    struct _CodeTraits {
+    protected:
         inline static constexpr std::string_view _EMPTY_NAME { "" };
     public:
-        using RequestParseFuncT =
+        using ParseFuncT =
             _ParsingOutputs (X11ProtocolParser::*)(
                 Connection*, const uint8_t*, const size_t );
-        using ReplyParseFuncT =
-            _ParsingOutputs (X11ProtocolParser::*)(
-                Connection*, const uint8_t*, const size_t );
+        virtual ~_CodeTraits() = 0;
+    };
+
+    // @ingroup logging_dispatch
+    struct _MajorOpcodeTraits : public _CodeTraits {
         struct _RequestParsingTraits {
             const std::string_view& name;
-            RequestParseFuncT request_parse_func;
-            ReplyParseFuncT reply_parse_func;
+            ParseFuncT request_parse_func;
+            ParseFuncT reply_parse_func;
 
             _RequestParsingTraits() :
                 name( _EMPTY_NAME ), request_parse_func( nullptr ),
                 reply_parse_func( nullptr ) {}
             _RequestParsingTraits( const std::string_view& name_,
-                                   const RequestParseFuncT request_parse_func_,
-                                   const ReplyParseFuncT reply_parse_func_ = nullptr ) :
+                                   const ParseFuncT request_parse_func_,
+                                   const ParseFuncT reply_parse_func_ = nullptr ) :
                 name( name_ ), request_parse_func( request_parse_func_ ),
                 reply_parse_func( reply_parse_func_ ) {
                 assert( !name.empty() );
@@ -1246,8 +1248,8 @@ private:
         _ExtensionRequestParsingTraits extension;
 
         _MajorOpcodeTraits( const std::string_view& name_,
-                            const RequestParseFuncT request_parse_func_,
-                            const ReplyParseFuncT reply_parse_func_ = nullptr ) :
+                            const ParseFuncT request_parse_func_,
+                            const ParseFuncT reply_parse_func_ = nullptr ) :
             request( name_ , request_parse_func_, reply_parse_func_ ) {
             assert( !extension );
         }
@@ -1262,6 +1264,39 @@ private:
     static const std::unordered_map< uint8_t, _MajorOpcodeTraits > _core_requests;
     std::unordered_map< uint8_t, _MajorOpcodeTraits > _major_opcodes {
         _core_requests };
+
+    // @ingroup logging_dispatch
+    struct _EventCodeTraits : public _CodeTraits {
+        using ParseFuncT =
+            _ParsingOutputs (X11ProtocolParser::*)(
+                Connection*, const uint8_t*, const size_t, const _Whitespace& );
+
+        const std::string_view& name;
+        ParseFuncT parse_func;
+        bool extension;
+        const std::string_view& extension_name;
+
+        _EventCodeTraits( const std::string_view& name_,
+                          const ParseFuncT parse_func_ ) :
+            name( name_ ), parse_func( parse_func_ ),
+            extension( false ), extension_name( _EMPTY_NAME ) {
+            assert( !name.empty() );
+            assert( parse_func != nullptr );
+        }
+        _EventCodeTraits( const std::string_view& extension_name_,
+                          const std::string_view& name_,
+                          ParseFuncT parse_func_ ) :
+            name( name_ ), parse_func( parse_func_ ),
+            extension( true ), extension_name( extension_name_ ) {
+            assert( !name.empty() );
+            assert( parse_func != nullptr );
+            assert( !extension_name.empty() );
+        }
+    };
+
+    static const std::unordered_map< uint8_t, _EventCodeTraits > _core_events;
+    std::unordered_map< uint8_t, _EventCodeTraits > _event_codes {
+        _core_events };
 
 public:
     /**

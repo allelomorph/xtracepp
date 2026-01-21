@@ -17,7 +17,6 @@
 #include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
 #include "protocol/errors.hpp"  // errors::ENCODING_SZ
 
-
 void
 X11ProtocolParser::_stashString( const _StashedStringID ss_id,
                                  const std::string_view str ) {
@@ -136,6 +135,9 @@ size_t X11ProtocolParser::_logServerPacket(
     assert( bytes_parsed <= sz );
     return bytes_parsed;
 }
+
+// needed due to derived classes actually being instantiated in maps
+X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
 
 size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
     assert( conn != nullptr );
