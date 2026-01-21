@@ -1189,6 +1189,80 @@ private:
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
 
+    // @ingroup logging_dispatch
+    struct _MajorOpcodeTraits {
+    private:
+        inline static constexpr std::string_view _EMPTY_NAME { "" };
+    public:
+        using RequestParseFuncT =
+            _ParsingOutputs (X11ProtocolParser::*)(
+                Connection*, const uint8_t*, const size_t );
+        using ReplyParseFuncT =
+            _ParsingOutputs (X11ProtocolParser::*)(
+                Connection*, const uint8_t*, const size_t );
+        struct _RequestParsingTraits {
+            const std::string_view& name;
+            RequestParseFuncT request_parse_func;
+            ReplyParseFuncT reply_parse_func;
+
+            _RequestParsingTraits() :
+                name( _EMPTY_NAME ), request_parse_func( nullptr ),
+                reply_parse_func( nullptr ) {}
+            _RequestParsingTraits( const std::string_view& name_,
+                                   const RequestParseFuncT request_parse_func_,
+                                   const ReplyParseFuncT reply_parse_func_ = nullptr ) :
+                name( name_ ), request_parse_func( request_parse_func_ ),
+                reply_parse_func( reply_parse_func_ ) {
+                assert( !name.empty() );
+                assert( request_parse_func != nullptr );
+            }
+            operator bool() const {
+                return !name.empty() && request_parse_func != nullptr;
+            }
+        };
+        struct _ExtensionRequestParsingTraits {
+        private:
+            inline static const
+            std::unordered_map< uint8_t, _RequestParsingTraits > _EMPTY_REQUESTS {};
+        public:
+            const std::string_view& name;
+            // map to minor opcode
+            const std::unordered_map< uint8_t, _RequestParsingTraits >& requests;
+
+            _ExtensionRequestParsingTraits() :
+                name( _EMPTY_NAME ), requests( _EMPTY_REQUESTS ) {}
+            _ExtensionRequestParsingTraits(
+                const std::string_view& name_,
+                const std::unordered_map< uint8_t, _RequestParsingTraits >& requests_ ) :
+                name( name_ ), requests( requests_ ) {
+                assert( !name.empty() );
+                assert( !requests.empty() );
+            }
+            operator bool() const {
+                return !name.empty() && !requests.empty();
+            }
+        };
+        _RequestParsingTraits request;
+        _ExtensionRequestParsingTraits extension;
+
+        _MajorOpcodeTraits( const std::string_view& name_,
+                            const RequestParseFuncT request_parse_func_,
+                            const ReplyParseFuncT reply_parse_func_ = nullptr ) :
+            request( name_ , request_parse_func_, reply_parse_func_ ) {
+            assert( !extension );
+        }
+        _MajorOpcodeTraits(
+            const std::string_view& name_,
+            const std::unordered_map< uint8_t, _RequestParsingTraits >& requests_ ) :
+            extension( name_ , requests_ ) {
+            assert( !request );
+        }
+    };
+
+    static const std::unordered_map< uint8_t, _MajorOpcodeTraits > _core_requests;
+    std::unordered_map< uint8_t, _MajorOpcodeTraits > _major_opcodes {
+        _core_requests };
+
 public:
     /**
      * @brief Parse server-bound client packets as X11 messages, and print them to
