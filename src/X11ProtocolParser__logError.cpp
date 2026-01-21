@@ -483,92 +483,24 @@ X11ProtocolParser::_logError(
     const bool byteswap { conn->byteswap };
     const Error::Encoding* encoding {
         reinterpret_cast< const Error::Encoding* >( data ) };
-    assert( _ordered( encoding->header.error, byteswap ) ==
-            Error::ERROR );
+    assert( _ordered( encoding->header.error, byteswap ) == Error::ERROR );
     const uint8_t code {
         _ordered( encoding->header.code, byteswap ) };
-
-    _ParsingOutputs error;
-    switch ( code ) {
-    case protocol::errors::codes::REQUEST:         //  1
-        error = _parseError<
-            protocol::errors::Request >( conn, data, sz );
-        break;
-    case protocol::errors::codes::VALUE:           //  2
-        error = _parseError<
-            protocol::errors::Value >( conn, data, sz );
-        break;
-    case protocol::errors::codes::WINDOW:          //  3
-        error = _parseError<
-            protocol::errors::Window >( conn, data, sz );
-        break;
-    case protocol::errors::codes::PIXMAP:          //  4
-        error = _parseError<
-            protocol::errors::Pixmap >( conn, data, sz );
-        break;
-    case protocol::errors::codes::ATOM:            //  5
-        error = _parseError<
-            protocol::errors::Atom >( conn, data, sz );
-        break;
-    case protocol::errors::codes::CURSOR:          //  6
-        error = _parseError<
-            protocol::errors::Cursor >( conn, data, sz );
-        break;
-    case protocol::errors::codes::FONT:            //  7
-        error = _parseError<
-            protocol::errors::Font >( conn, data, sz );
-        break;
-    case protocol::errors::codes::MATCH:           //  8
-        error = _parseError<
-            protocol::errors::Match >( conn, data, sz );
-        break;
-    case protocol::errors::codes::DRAWABLE:        //  9
-        error = _parseError<
-            protocol::errors::Drawable >( conn, data, sz );
-        break;
-    case protocol::errors::codes::ACCESS:          // 10
-        error = _parseError<
-            protocol::errors::Access >( conn, data, sz );
-        break;
-    case protocol::errors::codes::ALLOC:           // 11
-        error = _parseError<
-            protocol::errors::Alloc >( conn, data, sz );
-        break;
-    case protocol::errors::codes::COLORMAP:        // 12
-        error = _parseError<
-            protocol::errors::Colormap >( conn, data, sz );
-        break;
-    case protocol::errors::codes::GCONTEXT:        // 13
-        error = _parseError<
-            protocol::errors::GContext >( conn, data, sz );
-        break;
-    case protocol::errors::codes::IDCHOICE:        // 14
-        error = _parseError<
-            protocol::errors::IdChoice >( conn, data, sz );
-        break;
-    case protocol::errors::codes::NAME:            // 15
-        error = _parseError<
-            protocol::errors::Name >( conn, data, sz );
-        break;
-    case protocol::errors::codes::LENGTH:          // 16
-        error = _parseError<
-            protocol::errors::Length >( conn, data, sz );
-        break;
-    case protocol::errors::codes::IMPLEMENTATION:  // 17
-        error = _parseError<
-            protocol::errors::Implementation >( conn, data, sz );
-        break;
-    default:
-        break;
+    const protocol::CARD16 sequence {
+        _ordered( encoding->header.sequence_num, byteswap ) };
+    const _ErrorCodeTraits& code_traits { _error_codes.at( code ) };
+    _ParsingOutputs error {
+        // pointer-to-member access operator
+        (this->*code_traits.parse_func)( conn, data, sz ) };
+    if ( code_traits.extension ) {
+        // TBD
+    } else {
+        fmt::println( settings.log_fs,
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}): {}",
+                      conn->id, error.bytes_parsed, SERVER_TO_CLIENT, sequence,
+                      code_traits.name, code, error.str );
     }
-    fmt::println( settings.log_fs,
-                  "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}): {}",
-                  conn->id, error.bytes_parsed, SERVER_TO_CLIENT,
-                  encoding->header.sequence_num,
-                  protocol::errors::names.at( code ), code,
-                  error.str );
     // presume that no more messages will relate to this request
-    conn->unregisterRequest(
-        _ordered( encoding->header.sequence_num, byteswap ) );
+    conn->unregisterRequest( sequence );
     return error.bytes_parsed;
 }

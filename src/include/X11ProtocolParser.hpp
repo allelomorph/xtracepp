@@ -1266,37 +1266,70 @@ private:
         _core_requests };
 
     // @ingroup logging_dispatch
-    struct _EventCodeTraits : public _CodeTraits {
-        using ParseFuncT =
-            _ParsingOutputs (X11ProtocolParser::*)(
-                Connection*, const uint8_t*, const size_t, const _Whitespace& );
-
+    struct _SingleCodeTraits : public _CodeTraits {
         const std::string_view& name;
-        ParseFuncT parse_func;
         bool extension;
         const std::string_view& extension_name;
 
+        _SingleCodeTraits( const std::string_view& name_ ) :
+            name( name_ ), extension( false ), extension_name( _EMPTY_NAME ) {
+            assert( !name.empty() );
+        }
+        _SingleCodeTraits( const std::string_view& extension_name_,
+                           const std::string_view& name_ ) :
+            name( name_ ), extension( true ), extension_name( extension_name_ ) {
+            assert( !name.empty() );
+            assert( !extension_name.empty() );
+        }
+        virtual ~_SingleCodeTraits() = 0;
+    };
+
+    // @ingroup logging_dispatch
+    struct _EventCodeTraits : public _SingleCodeTraits {
+        using ParseFuncT =
+            _ParsingOutputs (X11ProtocolParser::*)(
+                Connection*, const uint8_t*, const size_t, const _Whitespace& );
+        ParseFuncT parse_func;
+
         _EventCodeTraits( const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
-            name( name_ ), parse_func( parse_func_ ),
-            extension( false ), extension_name( _EMPTY_NAME ) {
-            assert( !name.empty() );
+            _SingleCodeTraits( name_ ), parse_func( parse_func_ ) {
             assert( parse_func != nullptr );
         }
         _EventCodeTraits( const std::string_view& extension_name_,
                           const std::string_view& name_,
-                          ParseFuncT parse_func_ ) :
-            name( name_ ), parse_func( parse_func_ ),
-            extension( true ), extension_name( extension_name_ ) {
-            assert( !name.empty() );
+                          const ParseFuncT parse_func_ ) :
+            _SingleCodeTraits( name_, extension_name_ ),
+            parse_func( parse_func_ ) {
             assert( parse_func != nullptr );
-            assert( !extension_name.empty() );
         }
     };
 
     static const std::unordered_map< uint8_t, _EventCodeTraits > _core_events;
     std::unordered_map< uint8_t, _EventCodeTraits > _event_codes {
         _core_events };
+
+    // @ingroup logging_dispatch
+    struct _ErrorCodeTraits : public _SingleCodeTraits {
+        ParseFuncT parse_func;
+
+        _ErrorCodeTraits( const std::string_view& name_,
+                          const ParseFuncT parse_func_ ) :
+            _SingleCodeTraits( name_ ), parse_func( parse_func_ ) {
+            assert( parse_func != nullptr );
+        }
+        _ErrorCodeTraits( const std::string_view& extension_name_,
+                          const std::string_view& name_,
+                          const ParseFuncT parse_func_ ) :
+            _SingleCodeTraits( name_, extension_name_ ),
+            parse_func( parse_func_ ) {
+            assert( parse_func != nullptr );
+        }
+    };
+
+    static const std::unordered_map< uint8_t, _ErrorCodeTraits > _core_errors;
+    std::unordered_map< uint8_t, _ErrorCodeTraits > _error_codes {
+        _core_errors };
 
 public:
     /**

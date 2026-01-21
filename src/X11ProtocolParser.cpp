@@ -138,6 +138,7 @@ size_t X11ProtocolParser::_logServerPacket(
 
 // needed due to derived classes actually being instantiated in maps
 X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
+X11ProtocolParser::_SingleCodeTraits::~_SingleCodeTraits() = default;
 
 size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
     assert( conn != nullptr );

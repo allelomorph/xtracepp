@@ -24,6 +24,7 @@ add_executable(xtracepp
   X11ProtocolParser__parseListMember.cpp
   X11ProtocolParser__core_requests.cpp
   X11ProtocolParser__core_events.cpp
+  X11ProtocolParser__core_errors.cpp
 )
 
 set_strict_compile_options(xtracepp)
