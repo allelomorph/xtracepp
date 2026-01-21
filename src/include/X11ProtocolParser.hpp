@@ -1202,15 +1202,15 @@ private:
 
     // @ingroup logging_dispatch
     struct _MajorOpcodeTraits : public _CodeTraits {
-        struct _RequestParsingTraits {
+        struct _RequestCodeTraits {
             const std::string_view& name;
             ParseFuncT request_parse_func;
             ParseFuncT reply_parse_func;
 
-            _RequestParsingTraits() :
+            _RequestCodeTraits() :
                 name( _EMPTY_NAME ), request_parse_func( nullptr ),
                 reply_parse_func( nullptr ) {}
-            _RequestParsingTraits( const std::string_view& name_,
+            _RequestCodeTraits( const std::string_view& name_,
                                    const ParseFuncT request_parse_func_,
                                    const ParseFuncT reply_parse_func_ = nullptr ) :
                 name( name_ ), request_parse_func( request_parse_func_ ),
@@ -1222,20 +1222,20 @@ private:
                 return !name.empty() && request_parse_func != nullptr;
             }
         };
-        struct _ExtensionRequestParsingTraits {
+        struct _ExtensionCodeTraits {
         private:
             inline static const
-            std::unordered_map< uint8_t, _RequestParsingTraits > _EMPTY_REQUESTS {};
+            std::unordered_map< uint8_t, _RequestCodeTraits > _EMPTY_REQUESTS {};
         public:
             const std::string_view& name;
-            // map to minor opcode
-            const std::unordered_map< uint8_t, _RequestParsingTraits >& requests;
+            // mapped by minor opcode
+            const std::unordered_map< uint8_t, _RequestCodeTraits >& requests;
 
-            _ExtensionRequestParsingTraits() :
+            _ExtensionCodeTraits() :
                 name( _EMPTY_NAME ), requests( _EMPTY_REQUESTS ) {}
-            _ExtensionRequestParsingTraits(
+            _ExtensionCodeTraits(
                 const std::string_view& name_,
-                const std::unordered_map< uint8_t, _RequestParsingTraits >& requests_ ) :
+                const std::unordered_map< uint8_t, _RequestCodeTraits >& requests_ ) :
                 name( name_ ), requests( requests_ ) {
                 assert( !name.empty() );
                 assert( !requests.empty() );
@@ -1244,8 +1244,8 @@ private:
                 return !name.empty() && !requests.empty();
             }
         };
-        _RequestParsingTraits request;
-        _ExtensionRequestParsingTraits extension;
+        _RequestCodeTraits request;
+        _ExtensionCodeTraits extension;
 
         _MajorOpcodeTraits( const std::string_view& name_,
                             const ParseFuncT request_parse_func_,
@@ -1255,7 +1255,7 @@ private:
         }
         _MajorOpcodeTraits(
             const std::string_view& name_,
-            const std::unordered_map< uint8_t, _RequestParsingTraits >& requests_ ) :
+            const std::unordered_map< uint8_t, _RequestCodeTraits >& requests_ ) :
             extension( name_ , requests_ ) {
             assert( !request );
         }
