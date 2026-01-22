@@ -11,6 +11,7 @@
 #include <cstdint>
 
 #include "SocketBuffer.hpp"
+#include "Extensions.hpp"
 #include "protocol/common_types.hpp"
 
 
@@ -106,6 +107,10 @@ public:
      * @brief Current connection state.
      */
     Status status { UNESTABLISHED };
+    /**
+     * @brief Tracks activation of protocol extensions for connection.
+     */
+    Extensions extensions;
     /**
      * @brief Default ctor; assigns [id](#id) and [start_time](#start_time).
      */
