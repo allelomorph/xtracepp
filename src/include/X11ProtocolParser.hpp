@@ -1188,51 +1188,86 @@ private:
      */
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
-
-    // @ingroup logging_dispatch
+    /**
+     * @brief Base interface for classes that store parsing function pointers.
+     * @ingroup dispatch
+     */
     struct _CodeTraits {
     protected:
+        /** @brief Shared referand for empty name strings. */
         inline static constexpr std::string_view _EMPTY_NAME { "" };
     public:
+        /** @brief Parsing function pointer type for most protocol messages. */
         using ParseFuncT =
             _ParsingOutputs (X11ProtocolParser::*)(
                 Connection*, const uint8_t*, const size_t );
         virtual ~_CodeTraits() = 0;
     };
-
-    // @ingroup logging_dispatch
+    /**
+     * @brief Stores parsing function pointers for major opcodes.
+     * @ingroup dispatch
+     */
     struct _MajorOpcodeTraits : public _CodeTraits {
+        /**
+         * @brief Stores parsing function pointers for requests.
+         */
         struct _RequestCodeTraits {
+            /** @brief Request name. */
             const std::string_view& name;
+            /** @brief Pointer to request parsing function. */
             ParseFuncT request_parse_func;
+            /** @brief Pointer to reply parsing function, if available. */
             ParseFuncT reply_parse_func;
-
+            /**
+             * @brief Default unpopulated ctor.
+             */
             _RequestCodeTraits() :
                 name( _EMPTY_NAME ), request_parse_func( nullptr ),
                 reply_parse_func( nullptr ) {}
+            /**
+             * @brief Populated ctor.
+             * @param name_ request name
+             * @param request_parse_func_ request parsing function pointer
+             * @param reply_parse_func_ reply parsing function pointer
+             */
             _RequestCodeTraits( const std::string_view& name_,
-                                   const ParseFuncT request_parse_func_,
-                                   const ParseFuncT reply_parse_func_ = nullptr ) :
+                                const ParseFuncT request_parse_func_,
+                                const ParseFuncT reply_parse_func_ = nullptr ) :
                 name( name_ ), request_parse_func( request_parse_func_ ),
                 reply_parse_func( reply_parse_func_ ) {
                 assert( !name.empty() );
                 assert( request_parse_func != nullptr );
             }
+            /** @brief Syntax sweetener to differentiate use cases of
+             *    #_MajorOpcodeTraits. */
             operator bool() const {
                 return !name.empty() && request_parse_func != nullptr;
             }
         };
+        /**
+         * @brief Stores request parsing function pointers for extensions.
+         */
         struct _ExtensionCodeTraits {
         private:
+            /** @brief Shared referand for empty maps of requests to minor opcodes. */
             inline static const
             std::unordered_map< uint8_t, _RequestCodeTraits > _EMPTY_REQUESTS {};
         public:
+            /** @brief Extension name. */
             const std::string_view& name;
-            // mapped by minor opcode
+            /** @brief Maps requests to minor opcodes. */
             const std::unordered_map< uint8_t, _RequestCodeTraits >& requests;
-
+            /**
+             * @brief Default unpopulated ctor.
+             */
             _ExtensionCodeTraits() :
                 name( _EMPTY_NAME ), requests( _EMPTY_REQUESTS ) {}
+            /**
+             * @brief Populated ctor.
+             * @param name_ extension name
+             * @param requests_ map of request parsing function pointers to
+             *   minor opcodes
+             */
             _ExtensionCodeTraits(
                 const std::string_view& name_,
                 const std::unordered_map< uint8_t, _RequestCodeTraits >& requests_ ) :
@@ -1240,19 +1275,33 @@ private:
                 assert( !name.empty() );
                 assert( !requests.empty() );
             }
+            /** @brief Syntax sweetener to differentiate use cases of
+             *    #_MajorOpcodeTraits. */
             operator bool() const {
                 return !name.empty() && !requests.empty();
             }
         };
+        /** @brief Parsing functions if code is core request opcode. */
         _RequestCodeTraits request;
+        /** @brief Parsing functions if code is extension major opcode. */
         _ExtensionCodeTraits extension;
-
+        /**
+         * @brief Ctor for core request.
+         * @param name_ request name
+         * @param request_parse_func_ request parsing function pointer
+         * @param reply_parse_func_ reply parsing function pointer
+         */
         _MajorOpcodeTraits( const std::string_view& name_,
                             const ParseFuncT request_parse_func_,
                             const ParseFuncT reply_parse_func_ = nullptr ) :
             request( name_ , request_parse_func_, reply_parse_func_ ) {
             assert( !extension );
         }
+        /**
+         * @brief Ctor for extensions.
+         * @param name_ extension name
+         * @param requests_ map of request parsing function pointers to minor opcodes
+         */
         _MajorOpcodeTraits(
             const std::string_view& name_,
             const std::unordered_map< uint8_t, _RequestCodeTraits >& requests_ ) :
@@ -1260,42 +1309,69 @@ private:
             assert( !request );
         }
     };
-
-    static const std::unordered_map< uint8_t, _MajorOpcodeTraits > _core_requests;
-    std::unordered_map< uint8_t, _MajorOpcodeTraits > _major_opcodes {
-        _core_requests };
-
-    // @ingroup logging_dispatch
+    /**
+     * @brief Interface for classes that store parsing function pointers for
+     *   protocol messages that can be identified with a single code (eg
+     *   [Event](#protocol::events::Event)s, [Error](#protocol::errors::Error)s).
+     * @ingroup dispatch
+     */
     struct _SingleCodeTraits : public _CodeTraits {
+        /** @brief Name of message. */
         const std::string_view& name;
-        bool extension;
+        /** @brief Name of extension (empty if core protocol). */
         const std::string_view& extension_name;
-
+        /** @brief Whether message is part of an extension encoding (syntax
+         *    sweetener). */
+        bool extension;
+        /**
+         * @brief Ctor for core messages.
+         * @param name_ name of message
+         */
         _SingleCodeTraits( const std::string_view& name_ ) :
-            name( name_ ), extension( false ), extension_name( _EMPTY_NAME ) {
+            name( name_ ), extension_name( _EMPTY_NAME ), extension( false ) {
             assert( !name.empty() );
         }
+        /**
+         * @brief Ctor for extensions.
+         * @param extension_name_ name of extension
+         * @param name_ name of message
+         */
         _SingleCodeTraits( const std::string_view& extension_name_,
                            const std::string_view& name_ ) :
-            name( name_ ), extension( true ), extension_name( extension_name_ ) {
+            name( name_ ), extension_name( extension_name_ ), extension( true ) {
             assert( !name.empty() );
             assert( !extension_name.empty() );
         }
         virtual ~_SingleCodeTraits() = 0;
     };
-
-    // @ingroup logging_dispatch
+    /**
+     * @brief Stores parsing function pointers for event codes.
+     * @ingroup dispatch
+     */
     struct _EventCodeTraits : public _SingleCodeTraits {
+        /** @brief Override of inherited [ParseFuncT](#_CodeTraits::ParseFuncT)
+         *    to accommodate #_parseEvent. */
         using ParseFuncT =
             _ParsingOutputs (X11ProtocolParser::*)(
                 Connection*, const uint8_t*, const size_t, const _Whitespace& );
+        /** @brief Pointer to event parsing function. */
         ParseFuncT parse_func;
-
+        /**
+         * @brief Ctor for core events.
+         * @param name_ name of event
+         * @param parse_func_ event parsing function pointer
+         */
         _EventCodeTraits( const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
             _SingleCodeTraits( name_ ), parse_func( parse_func_ ) {
             assert( parse_func != nullptr );
         }
+        /**
+         * @brief Ctor for extension events.
+         * @param extension_name_ name of extension
+         * @param name_ name of event
+         * @param parse_func_ event parsing function pointer
+         */
         _EventCodeTraits( const std::string_view& extension_name_,
                           const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
@@ -1304,20 +1380,29 @@ private:
             assert( parse_func != nullptr );
         }
     };
-
-    static const std::unordered_map< uint8_t, _EventCodeTraits > _core_events;
-    std::unordered_map< uint8_t, _EventCodeTraits > _event_codes {
-        _core_events };
-
-    // @ingroup logging_dispatch
+    /**
+     * @brief Stores parsing function pointers for error codes.
+     * @ingroup dispatch
+     */
     struct _ErrorCodeTraits : public _SingleCodeTraits {
+        /** @brief Pointer to error parsing function. */
         ParseFuncT parse_func;
-
+        /**
+         * @brief Ctor for core errors.
+         * @param name_ name of error
+         * @param parse_func_ error parsing function pointer
+         */
         _ErrorCodeTraits( const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
             _SingleCodeTraits( name_ ), parse_func( parse_func_ ) {
             assert( parse_func != nullptr );
         }
+        /**
+         * @brief Ctor for extension errors.
+         * @param extension_name_ name of relevant extension
+         * @param name_ name of error
+         * @param parse_func_ error parsing function pointer
+         */
         _ErrorCodeTraits( const std::string_view& extension_name_,
                           const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
@@ -1326,8 +1411,31 @@ private:
             assert( parse_func != nullptr );
         }
     };
-
+    /** @brief Single storage of core request/reply parsing function pointers,
+     *    mapped by opcode.
+     *  @ingroup dispatch */
+    static const std::unordered_map< uint8_t, _MajorOpcodeTraits > _core_requests;
+    /** @brief Storage of request/reply parsing function pointers currently
+     *    available to all [Connection](#Connection)s, mapped by major opcode.
+     *  @ingroup dispatch */
+    std::unordered_map< uint8_t, _MajorOpcodeTraits > _major_opcodes {
+        _core_requests };
+    /** @brief Single storage of core event parsing function pointers, mapped
+     *    by code.
+     *  @ingroup dispatch */
+    static const std::unordered_map< uint8_t, _EventCodeTraits > _core_events;
+    /** @brief Storage of event parsing function pointers currently
+     *    available to all [Connection](#Connection)s, mapped by code.
+     *  @ingroup dispatch */
+    std::unordered_map< uint8_t, _EventCodeTraits > _event_codes {
+        _core_events };
+    /** @brief Single storage of core error parsing function pointers, mapped
+     *    by code.
+     *  @ingroup dispatch */
     static const std::unordered_map< uint8_t, _ErrorCodeTraits > _core_errors;
+    /** @brief Storage of error parsing function pointers currently
+     *    available to all [Connection](#Connection)s, mapped by code.
+     *  @ingroup dispatch */
     std::unordered_map< uint8_t, _ErrorCodeTraits > _error_codes {
         _core_errors };
 
