@@ -1299,7 +1299,7 @@ private:
         _EventCodeTraits( const std::string_view& extension_name_,
                           const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
-            _SingleCodeTraits( name_, extension_name_ ),
+            _SingleCodeTraits( extension_name_, name_ ),
             parse_func( parse_func_ ) {
             assert( parse_func != nullptr );
         }
@@ -1321,7 +1321,7 @@ private:
         _ErrorCodeTraits( const std::string_view& extension_name_,
                           const std::string_view& name_,
                           const ParseFuncT parse_func_ ) :
-            _SingleCodeTraits( name_, extension_name_ ),
+            _SingleCodeTraits( extension_name_, name_ ),
             parse_func( parse_func_ ) {
             assert( parse_func != nullptr );
         }
