@@ -6465,31 +6465,3 @@ X11ProtocolParser::_parseRequest<
         );
     return request;
 }
-
-size_t
-X11ProtocolParser::_logRequest(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz >= sizeof( protocol::requests::Request::Header ) );
-
-    const protocol::requests::Request::Header* header {
-        reinterpret_cast< const protocol::requests::Request::Header* >( data ) };
-    const uint8_t opcode { _ordered( header->opcode, conn->byteswap ) };
-    // map opcode to sequence number to aid in parsing request errors and replies
-    const protocol::CARD16 sequence { conn->registerRequest( opcode ) };
-    const _MajorOpcodeTraits& code_traits { _major_opcodes.at( opcode ) };
-    _ParsingOutputs request {};
-    if ( code_traits.extension ) {
-        // TBD
-    } else {
-        assert( code_traits.request );
-        // pointer-to-member access operator
-        request = (this->*code_traits.request.request_parse_func)( conn, data, sz );
-        fmt::println( settings.log_fs,
-                      "C{:03d}:{:04d}B:{}:S{:05d}: Request {}({}): {}",
-                      conn->id, request.bytes_parsed, CLIENT_TO_SERVER, sequence,
-                      code_traits.request.name, opcode, request.str );
-    }
-    return request.bytes_parsed;
-}

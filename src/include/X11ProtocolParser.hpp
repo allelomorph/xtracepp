@@ -1049,28 +1049,6 @@ private:
         return _parseLISTofVALUE< I + 1, Args... >( inputs, outputs );
     }
     /**
-     * @brief Parse server-bound client packet as X11 message, and print it to
-     *   log file stream.
-     * @param[in,out] conn status of current connection, see [Connection](#Connection)
-     * @param data bytes to parse
-     * @param sz maximum bytes readable from `data`
-     * @return bytes parsed
-     * @ingroup logging
-     */
-    size_t _logClientPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
-    /**
-     * @brief Parse client-bound server packet as X11 message, and print it to
-     *   log file stream.
-     * @param[in,out] conn status of current connection, see [Connection](#Connection)
-     * @param data bytes to parse
-     * @param sz maximum bytes readable from `data`
-     * @return bytes parsed
-     * @ingroup logging
-     */
-    size_t _logServerPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
-    /**
      * @brief Parse X11 connection setup message, and print it to log file stream.
      * @tparam ConnectionSetupT type of connection setup message encoding (eg
      *   protocol::connection_setup::Acceptance)
@@ -1188,6 +1166,28 @@ private:
      */
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
+    /**
+     * @brief Parse server-bound client packet as X11 message, and print it to
+     *   log file stream.
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
+    size_t _logClientPacket(
+        Connection* conn, uint8_t* data, const size_t sz );
+    /**
+     * @brief Parse client-bound server packet as X11 message, and print it to
+     *   log file stream.
+     * @param[in,out] conn status of current connection, see [Connection](#Connection)
+     * @param data bytes to parse
+     * @param sz maximum bytes readable from `data`
+     * @return bytes parsed
+     * @ingroup logging
+     */
+    size_t _logServerPacket(
+        Connection* conn, uint8_t* data, const size_t sz );
     /**
      * @brief Base interface for classes that store parsing function pointers.
      * @ingroup dispatch

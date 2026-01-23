@@ -471,36 +471,3 @@ X11ProtocolParser::_parseError<
             protocol::errors::codes::IMPLEMENTATION );
     return _parseError< SimpleError >( conn, data, sz );
 }
-
-size_t
-X11ProtocolParser::_logError(
-    Connection* conn, const uint8_t* data, const size_t sz ) {
-    using protocol::errors::Error;
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz >= sizeof( Error::Encoding ) );
-
-    const bool byteswap { conn->byteswap };
-    const Error::Encoding* encoding {
-        reinterpret_cast< const Error::Encoding* >( data ) };
-    assert( _ordered( encoding->header.error, byteswap ) == Error::ERROR );
-    const uint8_t code {
-        _ordered( encoding->header.code, byteswap ) };
-    const protocol::CARD16 sequence {
-        _ordered( encoding->header.sequence_num, byteswap ) };
-    const _ErrorCodeTraits& code_traits { _error_codes.at( code ) };
-    _ParsingOutputs error {
-        // pointer-to-member access operator
-        (this->*code_traits.parse_func)( conn, data, sz ) };
-    if ( code_traits.extension ) {
-        // TBD
-    } else {
-        fmt::println( settings.log_fs,
-                      "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}): {}",
-                      conn->id, error.bytes_parsed, SERVER_TO_CLIENT, sequence,
-                      code_traits.name, code, error.str );
-    }
-    // presume that no more messages will relate to this request
-    conn->unregisterRequest( sequence );
-    return error.bytes_parsed;
-}

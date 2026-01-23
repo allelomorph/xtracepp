@@ -17,10 +17,10 @@ add_executable(xtracepp
   X11ProtocolParser.cpp
   X11ProtocolParser__formatVariable.cpp
   X11ProtocolParser__logConnectionSetup.cpp
-  X11ProtocolParser__logRequest.cpp
-  X11ProtocolParser__logError.cpp
-  X11ProtocolParser__logEvent.cpp
-  X11ProtocolParser__logReply.cpp
+  X11ProtocolParser__parseRequest.cpp
+  X11ProtocolParser__parseReply.cpp
+  X11ProtocolParser__parseEvent.cpp
+  X11ProtocolParser__parseError.cpp
   X11ProtocolParser__parseListMember.cpp
   X11ProtocolParser__core_requests.cpp
   X11ProtocolParser__core_events.cpp
