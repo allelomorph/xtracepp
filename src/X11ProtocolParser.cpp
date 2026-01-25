@@ -68,21 +68,21 @@ X11ProtocolParser::_logRequest(
 
     const protocol::requests::Request::Header* header {
         reinterpret_cast< const protocol::requests::Request::Header* >( data ) };
-    const uint8_t opcode { _ordered( header->opcode, conn->byteswap ) };
+    const uint8_t major_opcode { _ordered( header->opcode, conn->byteswap ) };
     // map opcode to sequence number to aid in parsing request errors and replies
-    const protocol::CARD16 sequence { conn->registerRequest( opcode ) };
-    const _MajorOpcodeTraits& code_traits { _major_opcodes.at( opcode ) };
+    const protocol::CARD16 sequence { conn->registerRequest( major_opcode ) };
+    const _MajorOpcodeTraits& opcode_traits { _major_opcodes.at( major_opcode ) };
     _ParsingOutputs request {};
-    if ( code_traits.extension ) {
+    if ( opcode_traits.extension ) {
         // TBD
     } else {
-        assert( code_traits.request );
+        assert( opcode_traits.request );
         // pointer-to-member access operator
-        request = (this->*code_traits.request.request_parse_func)( conn, data, sz );
+        request = (this->*opcode_traits.request.request_parse_func)( conn, data, sz );
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Request {}({}): {}",
                       conn->id, request.bytes_parsed, CLIENT_TO_SERVER, sequence,
-                      code_traits.request.name, opcode, request.str );
+                      opcode_traits.request.name, major_opcode, request.str );
     }
     return request.bytes_parsed;
 }
@@ -101,24 +101,24 @@ size_t X11ProtocolParser::_logReply(
     assert( _ordered( header->reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
     const protocol::CARD16 sequence { _ordered( header->sequence_num, byteswap ) };
-    const uint8_t opcode { conn->lookupRequest( sequence ) };
-    const _MajorOpcodeTraits& code_traits { _major_opcodes.at( opcode ) };
+    const Connection::RequestOpcodes opcodes { conn->lookupRequest( sequence ) };
+    const _MajorOpcodeTraits& opcode_traits { _major_opcodes.at( opcodes.major ) };
     _ParsingOutputs reply;
-    if ( code_traits.extension ) {
+    if ( opcode_traits.extension ) {
         // TBD
     } else {
-        assert( code_traits.request );
-        assert( code_traits.request.reply_parse_func != nullptr );
+        assert( opcode_traits.request );
+        assert( opcode_traits.request.reply_parse_func != nullptr );
         // pointer-to-member access operator
-        reply = (this->*code_traits.request.reply_parse_func)( conn, data, sz );
+        reply = (this->*opcode_traits.request.reply_parse_func)( conn, data, sz );
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
                       conn->id, reply.bytes_parsed, SERVER_TO_CLIENT, sequence,
-                      code_traits.request.name, opcode, reply.str );
+                      opcode_traits.request.name, opcodes.major, reply.str );
     }
     // ListFontsWithInfo presents edge case as it issues a series of replies
     using protocol::requests::ListFontsWithInfo;
-    if ( opcode != protocol::requests::opcodes::LISTFONTSWITHINFO ||
+    if ( opcodes.major != protocol::requests::opcodes::LISTFONTSWITHINFO ||
          _ordered( reinterpret_cast< const ListFontsWithInfo::Reply::Header* >(
                        data )->last_reply, byteswap ) ==
          ListFontsWithInfo::Reply::LAST_REPLY ) {

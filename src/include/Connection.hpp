@@ -19,6 +19,15 @@
  * @brief Tracks state of individual client connection to X server.
  */
 class Connection {
+public:
+    struct RequestOpcodes {
+        uint8_t major {};
+        uint8_t minor {};
+
+        RequestOpcodes( const uint8_t major_, const uint8_t minor_ = {} ) :
+            major( major_ ), minor( minor_ ) {}
+    };
+
 private:
     /**
      * @brief Sentinel indicating closed file descriptor.
@@ -34,7 +43,8 @@ private:
      * @note A request is considered open until a corresponding error or reply
      *   is received from server.
      */
-    std::unordered_map< uint16_t, uint8_t > _request_opcodes_by_seq_num;
+    std::unordered_map< uint16_t, RequestOpcodes >
+    _request_opcodes_by_seq_num;
 
 public:
     /**
@@ -190,7 +200,7 @@ public:
         return client_buffer.write( server_fd );
     }
     /**
-     * @brief Assign serial number to request and store major opcode, thus
+     * @brief Assign serial number to request and store opcodes, thus
      *   marking request as open.
      * @param opcode major opcode of request
      * @return request sequence (serial) number
@@ -198,8 +208,9 @@ public:
      *   is received from server.
      */
     inline uint16_t
-    registerRequest( const uint8_t opcode ) {
-        _request_opcodes_by_seq_num.emplace( ++sequence, opcode );
+    registerRequest( const uint8_t major, const uint8_t minor = {} ) {
+        _request_opcodes_by_seq_num.emplace(
+            ++sequence, RequestOpcodes( major, minor ) );
         return sequence;
     }
     /**
@@ -207,7 +218,7 @@ public:
      * @param seq_num request sequence (serial) number
      * @return request major opcode
      */
-    inline uint8_t
+    inline RequestOpcodes
     lookupRequest( const uint16_t seq_num ) {
         return _request_opcodes_by_seq_num.at( seq_num );
     }
