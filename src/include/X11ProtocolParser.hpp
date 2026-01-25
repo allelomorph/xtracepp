@@ -170,13 +170,13 @@ private:
     std::unordered_map< uint32_t, std::string > _interned_atoms;
     /**
      * @brief Moves string from temporary storage to local internment as atom.
-     * @param sa_id unique identifier for combining connection id + request
+     * @param ss_id unique identifier for combining connection id + request
      *   sequence number
      * @param atom ATOM XId to map string onto
      * @ingroup atom_internment
      */
     void
-    _internStashedAtom( const _StashedStringID sa_id, const protocol::ATOM atom );
+    _internStashedAtom( const _StashedStringID ss_id, const protocol::ATOM atom );
 
 public:
     // CLIENT_TO_SERVER and SERVER_TO_CLIENT need to be accessible to
