@@ -98,6 +98,7 @@ private:
             return units * _ALIGN;
         }
     };
+    // TBD change grouping?
     /**
      * @brief Bundles [connection](#Connection) ID and request sequence number
      *   to create unique server-wide ID for any request made.
@@ -138,6 +139,7 @@ private:
             }
         };
     };
+    // TBD change grouping?
     /**
      * @brief Temporary storage for strings defined in requests that are then
      *  later needed for when parsing the corresponding reply (eg InternAtom
@@ -1204,87 +1206,90 @@ private:
         virtual ~_CodeTraits() = 0;
     };
     /**
+     * @brief Stores parsing function pointers for requests.
+     */
+    struct _RequestOpcodeTraits : public _CodeTraits {
+        /** @brief Request name. */
+        const std::string_view& name;
+        /** @brief Pointer to request parsing function. */
+        ParseFuncT request_parse_func;
+        /** @brief Pointer to reply parsing function, if available. */
+        ParseFuncT reply_parse_func;
+        /**
+         * @brief Default unpopulated ctor.
+         */
+        _RequestOpcodeTraits() :
+            name( _EMPTY_NAME ), request_parse_func( nullptr ),
+            reply_parse_func( nullptr ) {}
+        /**
+         * @brief Populated ctor.
+         * @param name_ request name
+         * @param request_parse_func_ request parsing function pointer
+         * @param reply_parse_func_ reply parsing function pointer
+         */
+        _RequestOpcodeTraits( const std::string_view& name_,
+                              const ParseFuncT request_parse_func_,
+                              const ParseFuncT reply_parse_func_ = nullptr ) :
+            name( name_ ), request_parse_func( request_parse_func_ ),
+            reply_parse_func( reply_parse_func_ ) {
+            assert( !name.empty() );
+            assert( request_parse_func != nullptr );
+        }
+        /** @brief Syntax sweetener to differentiate use cases of
+         *    #_MajorOpcodeTraits. */
+        operator bool() const {
+            return !name.empty() && request_parse_func != nullptr;
+        }
+    };
+    /**
+     * @brief Stores request parsing function pointers for extensions.
+     */
+    struct _ExtensionOpcodeTraits : public _CodeTraits {
+        using MinorOpcodeMapT =
+            std::unordered_map< uint8_t, _RequestOpcodeTraits >;
+    private:
+        /** @brief Shared referand for empty maps of requests to minor opcodes. */
+        inline static const
+        MinorOpcodeMapT _EMPTY_MAP {};
+    public:
+        /** @brief Extension name. */
+        // not a reference as ultimate source is discarded after unstashing in
+        //   _parseReply< QueryExtension >
+        const std::string_view name;
+        /** @brief Maps requests to minor opcodes. */
+        const MinorOpcodeMapT requests;
+        /**
+         * @brief Default unpopulated ctor.
+         */
+        _ExtensionOpcodeTraits() :
+            name( _EMPTY_NAME ), requests( _EMPTY_MAP ) {}
+        /**
+         * @brief Populated ctor.
+         * @param name_ extension name
+         * @param requests_ map of request parsing function pointers to
+         *   minor opcodes
+         */
+        _ExtensionOpcodeTraits(
+            const std::string_view& name_, const MinorOpcodeMapT& requests_ ) :
+            name( name_ ), requests( requests_ ) {
+            assert( !name.empty() );
+            assert( !requests.empty() );
+        }
+        /** @brief Syntax sweetener to differentiate use cases of
+         *    #_MajorOpcodeTraits. */
+        operator bool() const {
+            return !name.empty() && !requests.empty();
+        }
+    };
+    /**
      * @brief Stores parsing function pointers for major opcodes.
      * @ingroup dispatch
      */
     struct _MajorOpcodeTraits : public _CodeTraits {
-        /**
-         * @brief Stores parsing function pointers for requests.
-         */
-        struct _RequestCodeTraits {
-            /** @brief Request name. */
-            const std::string_view& name;
-            /** @brief Pointer to request parsing function. */
-            ParseFuncT request_parse_func;
-            /** @brief Pointer to reply parsing function, if available. */
-            ParseFuncT reply_parse_func;
-            /**
-             * @brief Default unpopulated ctor.
-             */
-            _RequestCodeTraits() :
-                name( _EMPTY_NAME ), request_parse_func( nullptr ),
-                reply_parse_func( nullptr ) {}
-            /**
-             * @brief Populated ctor.
-             * @param name_ request name
-             * @param request_parse_func_ request parsing function pointer
-             * @param reply_parse_func_ reply parsing function pointer
-             */
-            _RequestCodeTraits( const std::string_view& name_,
-                                const ParseFuncT request_parse_func_,
-                                const ParseFuncT reply_parse_func_ = nullptr ) :
-                name( name_ ), request_parse_func( request_parse_func_ ),
-                reply_parse_func( reply_parse_func_ ) {
-                assert( !name.empty() );
-                assert( request_parse_func != nullptr );
-            }
-            /** @brief Syntax sweetener to differentiate use cases of
-             *    #_MajorOpcodeTraits. */
-            operator bool() const {
-                return !name.empty() && request_parse_func != nullptr;
-            }
-        };
-        /**
-         * @brief Stores request parsing function pointers for extensions.
-         */
-        struct _ExtensionCodeTraits {
-        private:
-            /** @brief Shared referand for empty maps of requests to minor opcodes. */
-            inline static const
-            std::unordered_map< uint8_t, _RequestCodeTraits > _EMPTY_REQUESTS {};
-        public:
-            /** @brief Extension name. */
-            const std::string_view& name;
-            /** @brief Maps requests to minor opcodes. */
-            const std::unordered_map< uint8_t, _RequestCodeTraits >& requests;
-            /**
-             * @brief Default unpopulated ctor.
-             */
-            _ExtensionCodeTraits() :
-                name( _EMPTY_NAME ), requests( _EMPTY_REQUESTS ) {}
-            /**
-             * @brief Populated ctor.
-             * @param name_ extension name
-             * @param requests_ map of request parsing function pointers to
-             *   minor opcodes
-             */
-            _ExtensionCodeTraits(
-                const std::string_view& name_,
-                const std::unordered_map< uint8_t, _RequestCodeTraits >& requests_ ) :
-                name( name_ ), requests( requests_ ) {
-                assert( !name.empty() );
-                assert( !requests.empty() );
-            }
-            /** @brief Syntax sweetener to differentiate use cases of
-             *    #_MajorOpcodeTraits. */
-            operator bool() const {
-                return !name.empty() && !requests.empty();
-            }
-        };
         /** @brief Parsing functions if code is core request opcode. */
-        _RequestCodeTraits request;
+        _RequestOpcodeTraits request;
         /** @brief Parsing functions if code is extension major opcode. */
-        _ExtensionCodeTraits extension;
+        _ExtensionOpcodeTraits extension;
         /**
          * @brief Ctor for core request.
          * @param name_ request name
@@ -1304,7 +1309,7 @@ private:
          */
         _MajorOpcodeTraits(
             const std::string_view& name_,
-            const std::unordered_map< uint8_t, _RequestCodeTraits >& requests_ ) :
+            const _ExtensionOpcodeTraits::MinorOpcodeMapT& requests_ ) :
             extension( name_ , requests_ ) {
             assert( !request );
         }
@@ -1438,6 +1443,34 @@ private:
      *  @ingroup dispatch */
     std::unordered_map< uint8_t, _ErrorCodeTraits > _error_codes {
         _core_errors };
+
+    struct _ExtensionTraits {
+        using MinorOpcodeMapT =
+            _ExtensionOpcodeTraits::MinorOpcodeMapT;
+        using EventCodeOffsetMapT =
+            std::unordered_map< uint8_t, _EventCodeTraits >;
+        using ErrorCodeOffsetMapT =
+            std::unordered_map< uint8_t, _ErrorCodeTraits >;
+
+        MinorOpcodeMapT requests;
+        EventCodeOffsetMapT events;
+        ErrorCodeOffsetMapT errors;
+
+        _ExtensionTraits(
+            const MinorOpcodeMapT& requests_,
+            const EventCodeOffsetMapT& events_ = {},
+            const ErrorCodeOffsetMapT& errors_ = {} ) :
+            requests( requests_ ), events( events_ ), errors( errors_ ) {
+            assert( !requests.empty() );
+        }
+    };
+    static const std::unordered_map<
+        std::string_view, _ExtensionTraits > _extensions;
+    void
+    _activateExtension( const _StashedStringID name_ss_id, Connection* conn,
+                        const protocol::CARD8 major_opcode,
+                        const protocol::CARD8 first_event,
+                        const protocol::CARD8 first_error );
 
 public:
     /**

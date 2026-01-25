@@ -5448,6 +5448,10 @@ X11ProtocolParser::_parseRequest<
     assert( _ordered( header->tl_aligned_units, byteswap ) ==
             alignment.units( request.bytes_parsed ) );
 
+    // Stash copy of extension name until reply comes in - at that time we will
+    //   use it in the activation of the extension
+    _stashString( { conn->id, conn->sequence }, name );
+
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(total aligned units)" ) :

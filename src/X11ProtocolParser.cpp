@@ -281,6 +281,43 @@ size_t X11ProtocolParser::_logServerPacket(
 X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
 X11ProtocolParser::_SingleCodeTraits::~_SingleCodeTraits() = default;
 
+void X11ProtocolParser::_activateExtension(
+    const _StashedStringID name_ss_id, Connection* conn,
+    const protocol::CARD8 major_opcode, const protocol::CARD8 first_event,
+    const protocol::CARD8 first_error ) {
+    assert( conn != nullptr );
+
+    auto ss_it { _stashed_strings.find( name_ss_id ) };
+    assert( ss_it != _stashed_strings.end() );
+    auto ext_it { _extensions.find( ss_it->second ) };
+    // No complex validation of extension name, as we expect the X server to
+    //   have already replied to QueryExtension with `present` == True
+    assert( ext_it != _extensions.end() );
+    const auto& [ ext_name, extension ] { *ext_it };
+
+    //// Set up extension parsing for all connections if not already done
+    if ( auto it { _major_opcodes.find( major_opcode ) };
+         it == _major_opcodes.end() ) {
+        _major_opcodes.emplace(
+            major_opcode, _MajorOpcodeTraits( ext_name, extension.requests ) );
+        for ( const auto& [ offset, event ] : extension.events ) {
+            assert( event.extension_name == ext_name );
+            _event_codes.emplace( first_event + offset, event );
+        }
+        for ( const auto& [ offset, error ] : extension.errors ) {
+            assert( error.extension_name == ext_name );
+            _error_codes.emplace( first_error + offset, error );
+        }
+    }
+    //// Enable extension for connection
+    // TBD valgrind: Conditional jump or move depends on uninitialised value(s)
+    //   if using ext_name
+    assert( !conn->extensions.active( ext_name ) );
+    conn->extensions.activate( ext_name );
+    //// cleanup
+    _stashed_strings.erase( ss_it );
+}
+
 size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
     assert( conn != nullptr );
 

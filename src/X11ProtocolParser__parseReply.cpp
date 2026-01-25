@@ -2004,6 +2004,15 @@ X11ProtocolParser::_parseReply<
                 data ) )->present.data = false;
     }
 
+    // Activate extension for this connection, if not already done
+    if ( encoding->present.data ) {
+        _activateExtension(
+            { conn->id, _ordered( encoding->header.sequence_num, byteswap ) },
+            conn, _ordered( encoding->major_opcode, byteswap ),
+            _ordered( encoding->first_event, byteswap ),
+            _ordered( encoding->first_error, byteswap ) );
+    }
+
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
                               sizeof( "(extra aligned units)" ) :
