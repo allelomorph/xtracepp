@@ -9,6 +9,7 @@
 #include <iostream>
 #include <filesystem>
 #include <string_view>
+#include <string>
 
 #include <fmt/format.h>
 
@@ -35,17 +36,17 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         R"({}: intercept, log, and modify (based on user options) packet data going between X server and clients
   (usage: {} [options...] [-- subcommand args...]
   options:
-    --display,            -d <display name>  : provide libX11 formatted display name of real X server
-    --proxydisplay,       -D <display name>  : provide libX11 formatted display name of this proxy server
-    --keeprunning,        -k                 : continue monitoring traffic after subcommand client exits
-    --denyextensions,     -e                 : disable use of all X extensions
-    --readwritedebug,     -w                 : print amounts of data read/sent
-    --outfile,            -o <file path>     : output to file instead of stdout
-    --unbuffered,         -u                 : deactivate stream buffering for output
-    --multiline,          -m                 : break log lines along nested groupings of data
-    --verbose,            -v                 : print all data fields of every packet + alternate data formatting
-    --relativetimestamps, -r                 : X server timestamps interpreted against system time
-    --prefetchatoms,      -p                 : first fetch already interned strings to reduce unrecognized ATOMs
+    --display,            -d <display name>      : provide libX11 formatted display name of real X server
+    --proxydisplay,       -D <display name>      : provide libX11 formatted display name of this proxy server
+    --keeprunning,        -k                     : continue monitoring traffic after subcommand client exits
+    --denyextensions,     -e <extension name(s)> : disable use of X extensions by name, or "all" for all
+    --readwritedebug,     -w                     : print amounts of data read/sent
+    --outfile,            -o <file path>         : output to file instead of stdout
+    --unbuffered,         -u                     : deactivate stream buffering for output
+    --multiline,          -m                     : break log lines along nested groupings of data
+    --verbose,            -v                     : print all data fields of every packet + alternate data formatting
+    --relativetimestamps, -r                     : X server timestamps interpreted against system time
+    --prefetchatoms,      -p                     : first fetch already interned strings to reduce unrecognized ATOMs
 )" };
 
     for ( char c ( ::getopt_long( argc, const_cast< char* const* >( argv ),
@@ -61,17 +62,38 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         }
         switch ( c ) {
         case 'd':
+            assert( optarg != nullptr );
             out_displayname = optarg;
             break;
         case 'D':
+            assert( optarg != nullptr );
             in_displayname = optarg;
             break;
         case 'k':
             keeprunning = true;
             break;
-        case 'e':
-            denyallextensions = true;
-            break;
+        case 'e': {
+            assert( optarg != nullptr );
+            if ( const std::string_view e_name { optarg };
+                 e_name == _ALL ) {
+                denyallextensions = true;
+            } else {
+                bool recognized {};
+                for ( const std::string_view& re_name : _recognized_extensions ) {
+                    if ( e_name == re_name ) {
+                        recognized = true;
+                        break;
+                    }
+                }
+                if ( !recognized ) {
+                    fmt::println(
+                        ::stderr, "{}: unrecognized extension name {:?}, "
+                        "expected among: {}", process_name, e_name, _VALID_EXT_NAMES );
+                    ::exit( EXIT_FAILURE );
+                }
+                _denied_extensions.emplace( e_name );
+            }
+        }   break;
         case 'w':
             readwritedebug = true;
             break;
@@ -85,6 +107,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
                               process_name );
                 ::exit( EXIT_FAILURE );
             }
+            assert( optarg != nullptr );
             log_path = optarg;
             assert( log_path != nullptr && log_path[0] != '\0' );
             log_fs = fopen( log_path, "w" );

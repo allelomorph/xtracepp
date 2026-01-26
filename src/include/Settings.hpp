@@ -12,6 +12,9 @@
 
 #include <vector>
 #include <string_view>
+#include <unordered_set>
+
+#include <fmt/format.h>
 
 
 /**
@@ -42,7 +45,7 @@ private:
         { "display",              required_argument, NULL,              'd' },
         { "proxydisplay",         required_argument, NULL,              'D' },
         { "keeprunning",          no_argument,       NULL,              'k' },
-        { "denyextensions",       no_argument,       NULL,              'e' },
+        { "denyextensions",       required_argument, NULL,              'e' },
         { "readwritedebug",       no_argument,       NULL,              'w' },
         { "outfile",              required_argument, NULL,              'o' },
         { "unbuffered",           no_argument,       NULL,              'u' },
@@ -58,7 +61,7 @@ private:
      *   `getopt_long(3)`.
      * @ingroup getopt_long
      */
-    static constexpr std::string_view _optstring { "+d:D:kewo:umvrp" };
+    static constexpr std::string_view _optstring { "+d:D:ke:wo:umvrp" };
     /**
      * @brief Records buffering state of [log_fs](#log_fs) before applying user
      *   settings.
@@ -83,6 +86,40 @@ private:
      * @ingroup log_fs_buffering
      */
     size_t _log_fs_buffer_sz {};
+    /**
+     * @brief Recognized names of X extensions.
+     */
+    inline static const
+    std::unordered_set< std::string_view > _recognized_extensions {
+        // TBD temporarily hard-coded, will eventually be initialized with
+        //   extensions::<ext>::name strings
+        "Generic Event Extension", "SHAPE", "MIT-SHM", "XInputExtension",
+        "XTEST", "BIG-REQUESTS", "SYNC", "XKEYBOARD", "XC-MISC", "XFIXES",
+        "RENDER", "RANDR", "XINERAMA", "Composite", "DAMAGE", "DOUBLE-BUFFER",
+        "RECORD", "Present", "DRI3", "X-Resource", "XVideo", "GLX",
+        "XFree86-VidModeExtension"
+    };
+    /**
+     * @brief #_recognized_extensions as list appropriate for error messages.
+     */
+    inline static const
+    std::string _VALID_EXT_NAMES {
+        [](){
+            std::string names;
+            for ( const std::string_view& name : _recognized_extensions ) {
+                names += fmt::format(
+                    "{}{:?}", names.empty() ? "" : ",", name );
+            }
+            return names;
+        }() };
+    /**
+     * @brief Toggles disabling of all X extensions with `--denyextensions`.
+     */
+    static constexpr std::string_view _ALL { "all" };
+    /**
+     * @brief Toggles disabling of individual X extensions, by name.
+     */
+    std::unordered_set< std::string_view > _denied_extensions {};
 
 public:
     /**
@@ -100,7 +137,7 @@ public:
     /**
      * @brief Toggles disabling of all X extensions.
      */
-    bool denyallextensions        { true };   // TBD temp default until extensions implemented
+    bool denyallextensions        { false };
     /**
      * @brief Toggles logging most protocol structs in multiline format, with
      *   one line per member.
