@@ -21,22 +21,22 @@
 
 
 void
-X11ProtocolParser::_stashString( const _StashedStringID ss_id,
-                                 const std::string_view str ) {
+X11ProtocolParser::_stashString(
+    const uint32_t conn_id, const uint16_t seq_num,
+    const std::string_view str ) {
+    const _StashedStringID ss_id { conn_id, seq_num };
     assert( _stashed_strings.find( ss_id ) == _stashed_strings.end() );
     _stashed_strings.emplace( ss_id, str );
 }
 
-void
-X11ProtocolParser::_internStashedAtom( const _StashedStringID ss_id,
-                                       const protocol::ATOM atom ) {
-    assert( atom.data != protocol::atoms::NONE );
-    auto ss_it { _stashed_strings.find( ss_id ) };
+std::string_view
+X11ProtocolParser::_unstashString( const uint32_t conn_id,
+                                   const uint16_t seq_num ) {
+    auto ss_it { _stashed_strings.find( { conn_id, seq_num } ) };
     assert( ss_it != _stashed_strings.end() );
-    // not sure if server will reuse ATOMs, so we allow for it in our
-    //   mirroring of internments
-    _interned_atoms[ atom.data ] = ss_it->second;
+    std::string_view str { ss_it->second };
     _stashed_strings.erase( ss_it );
+    return str;
 }
 
 void X11ProtocolParser::importSettings(
@@ -282,40 +282,36 @@ X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
 X11ProtocolParser::_SingleCodeTraits::~_SingleCodeTraits() = default;
 
 void X11ProtocolParser::_activateExtension(
-    const _StashedStringID name_ss_id, Connection* conn,
+    const std::string_view& name, Connection* conn,
     const protocol::CARD8 major_opcode, const protocol::CARD8 first_event,
     const protocol::CARD8 first_error ) {
     assert( conn != nullptr );
 
-    auto ss_it { _stashed_strings.find( name_ss_id ) };
-    assert( ss_it != _stashed_strings.end() );
-    auto ext_it { _extensions.find( ss_it->second ) };
+    auto ext_it { _extensions.find( name ) };
     // No complex validation of extension name, as we expect the X server to
     //   have already replied to QueryExtension with `present` == True
     assert( ext_it != _extensions.end() );
-    const auto& [ ext_name, extension ] { *ext_it };
+    const auto& extension { ext_it->second };
 
     //// Set up extension parsing for all connections if not already done
     if ( auto it { _major_opcodes.find( major_opcode ) };
          it == _major_opcodes.end() ) {
         _major_opcodes.emplace(
-            major_opcode, _MajorOpcodeTraits( ext_name, extension.requests ) );
+            major_opcode, _MajorOpcodeTraits( name, extension.requests ) );
         for ( const auto& [ offset, event ] : extension.events ) {
-            assert( event.extension_name == ext_name );
+            assert( event.extension_name == name );
             _event_codes.emplace( first_event + offset, event );
         }
         for ( const auto& [ offset, error ] : extension.errors ) {
-            assert( error.extension_name == ext_name );
+            assert( error.extension_name == name );
             _error_codes.emplace( first_error + offset, error );
         }
     }
     //// Enable extension for connection
     // TBD valgrind: Conditional jump or move depends on uninitialised value(s)
     //   if using ext_name
-    assert( !conn->extensions.active( ext_name ) );
-    conn->extensions.activate( ext_name );
-    //// cleanup
-    _stashed_strings.erase( ss_it );
+    assert( !conn->extensions.active( name ) );
+    conn->extensions.activate( name );
 }
 
 size_t X11ProtocolParser::logClientPackets( Connection* conn ) {

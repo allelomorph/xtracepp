@@ -934,7 +934,7 @@ X11ProtocolParser::_parseRequest<
 
     // Stash copy of atom until reply comes in - at that time we will include it
     //   in our own internment if it isn't already
-    _stashString( { conn->id, conn->sequence }, name );
+    _stashString( conn->id, conn->sequence, name );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -5450,7 +5450,7 @@ X11ProtocolParser::_parseRequest<
 
     // Stash copy of extension name until reply comes in - at that time we will
     //   use it in the activation of the extension
-    _stashString( { conn->id, conn->sequence }, name );
+    _stashString( conn->id, conn->sequence, name );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?

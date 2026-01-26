@@ -258,9 +258,15 @@ X11ProtocolParser::_parseReply<
 
     // Intern own copy of atom if not stored already, to reduce incidence of
     //   "(unknown atom)" in log
-    if ( encoding->atom.data != protocol::atoms::NONE )
-        _internStashedAtom( { conn->id, encoding->header.sequence_num },
-                            encoding->atom );
+    if ( const auto atom { _ordered( encoding->atom.data, byteswap ) };
+         atom != protocol::atoms::NONE ) {
+        const std::string_view atom_str {
+            _unstashString(
+                conn->id, _ordered( encoding->header.sequence_num, byteswap ) ) };
+        // not sure if server will reuse ATOMs, so we allow for it in our
+        //   mirroring of internments
+        _interned_atoms[ atom ] = atom_str;
+    }
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1996,8 +2002,12 @@ X11ProtocolParser::_parseReply<
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+    const std::string_view ext_name {
+        _unstashString(
+            conn->id, _ordered( encoding->header.sequence_num, byteswap ) ) };
 
-    if ( settings.denyallextensions ) {
+    if ( settings.denyallextensions ||
+         settings.extensionDenied( ext_name ) ) {
         // setting to false/0 should not need byte ordering
         const_cast< QueryExtension::Reply::Encoding* >(
             reinterpret_cast< const QueryExtension::Reply::Encoding* >(
@@ -2006,11 +2016,10 @@ X11ProtocolParser::_parseReply<
 
     // Activate extension for this connection, if not already done
     if ( encoding->present.data ) {
-        _activateExtension(
-            { conn->id, _ordered( encoding->header.sequence_num, byteswap ) },
-            conn, _ordered( encoding->major_opcode, byteswap ),
-            _ordered( encoding->first_event, byteswap ),
-            _ordered( encoding->first_error, byteswap ) );
+        _activateExtension( ext_name, conn,
+                            _ordered( encoding->major_opcode, byteswap ),
+                            _ordered( encoding->first_event, byteswap ),
+                            _ordered( encoding->first_error, byteswap ) );
     }
 
     const uint32_t memb_name_w (

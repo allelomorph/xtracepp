@@ -98,11 +98,10 @@ private:
             return units * _ALIGN;
         }
     };
-    // TBD change grouping?
     /**
      * @brief Bundles [connection](#Connection) ID and request sequence number
      *   to create unique server-wide ID for any request made.
-     * @ingroup atom_internment
+     * @ingroup string_stashing
      */
     struct _StashedStringID {
         /**
@@ -139,12 +138,11 @@ private:
             }
         };
     };
-    // TBD change grouping?
     /**
      * @brief Temporary storage for strings defined in requests that are then
      *  later needed for when parsing the corresponding reply (eg InternAtom
      *   and QueryExtension).
-     * @ingroup atom_internment
+     * @ingroup string_stashing
      */
     std::unordered_map< _StashedStringID, std::string_view,
                         _StashedStringID::Hash >
@@ -152,13 +150,25 @@ private:
     /**
      * @brief Temporarily store a string encoded in a request that will be
      *   needed when parsing its reply.
-     * @param ss_id unique identifier combining connection id + request
-     *   sequence number
+     * @param conn_id [Connection](#Connection) unique serial number.
+     * @param seq_num Request serial number, unique for a on a given
+     *   [connection](#Connection).
      * @param str string to be stored
-     * @ingroup atom_internment
+     * @ingroup string_stashing
      */
     void
-    _stashString( const _StashedStringID ss_id, const std::string_view str );
+    _stashString( const uint32_t conn_id, const uint16_t seq_num,
+                  const std::string_view str );
+    /**
+     * @brief Retrieves strings stashed with #_stashString.
+     * @param conn_id [Connection](#Connection) unique serial number.
+     * @param seq_num Request serial number, unique for a on a given
+     *   [connection](#Connection).
+     * @return stored string
+     * @ingroup string_stashing
+     */
+    std::string_view
+    _unstashString( const uint32_t conn_id, const uint16_t seq_num );
     /**
      * @brief Internment of strings at least partially mirroring that of actual
      *   X server, indexed by ATOM.
@@ -167,18 +177,9 @@ private:
      *   - any atoms in InternAtom requests made by any client during main queue
      *   - optionally with --prefetchatoms, all server interned strings in the
      *     first contiguous range of ATOMs starting with 1
-     * @ingroup atom_internment
+     * @ingroup string_stashing
      */
     std::unordered_map< uint32_t, std::string > _interned_atoms;
-    /**
-     * @brief Moves string from temporary storage to local internment as atom.
-     * @param ss_id unique identifier for combining connection id + request
-     *   sequence number
-     * @param atom ATOM XId to map string onto
-     * @ingroup atom_internment
-     */
-    void
-    _internStashedAtom( const _StashedStringID ss_id, const protocol::ATOM atom );
 
 public:
     // CLIENT_TO_SERVER and SERVER_TO_CLIENT need to be accessible to
@@ -1467,7 +1468,7 @@ private:
     static const std::unordered_map<
         std::string_view, _ExtensionTraits > _extensions;
     void
-    _activateExtension( const _StashedStringID name_ss_id, Connection* conn,
+    _activateExtension( const std::string_view& name, Connection* conn,
                         const protocol::CARD8 major_opcode,
                         const protocol::CARD8 first_event,
                         const protocol::CARD8 first_error );

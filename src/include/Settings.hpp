@@ -214,6 +214,15 @@ public:
      * @param argv `argv` from [main](#main); C array of CLI tokens
      */
     void parseFromArgv( const int argc, const char* argv[] );
+    /**
+     * @brief Returns whether extension name was passed with `--denyextensions`.
+     * @param name extension name
+     * @return whether extension name was passes with `--denyextensions`
+     */
+    inline
+    bool extensionDenied( const std::string_view name ) {
+        return _denied_extensions.find( name ) != _denied_extensions.end();
+    }
 };
 
 
