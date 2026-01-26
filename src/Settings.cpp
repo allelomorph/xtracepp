@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <string_view>
 #include <string>
+#include <algorithm>  // min
 
 #include <fmt/format.h>
 
@@ -79,16 +80,31 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
                 denyallextensions = true;
             } else {
                 bool recognized {};
+                int max_match_score {};
+                std::string partial_matches;
                 for ( const std::string_view& re_name : _recognized_extensions ) {
                     if ( e_name == re_name ) {
                         recognized = true;
                         break;
                     }
+                    int match_score {};
+                    for ( int i {}, min_len ( std::min( e_name.size(), re_name.size() ) );
+                          i < min_len && e_name.at( i ) == re_name.at( i ); ++i ) {
+                        ++match_score;
+                    }
+                    if ( match_score > max_match_score ) {
+                        partial_matches = fmt::format( "{:?}", re_name );
+                        max_match_score = match_score;
+                    } else if ( match_score == max_match_score ) {
+                        partial_matches += fmt::format( ",{:?}", re_name );
+                    }
                 }
                 if ( !recognized ) {
-                    fmt::println(
-                        ::stderr, "{}: unrecognized extension name {:?}, "
-                        "expected among: {}", process_name, e_name, _VALID_EXT_NAMES );
+                    fmt::println( ::stderr, "{}: unrecognized extension name {:?}, {}",
+                                  process_name, e_name,
+                                  max_match_score == 0 ?
+                                  fmt::format( "expected among: {}", _VALID_EXT_NAMES ) :
+                                  fmt::format( "partial matches: {}", partial_matches ) );
                     ::exit( EXIT_FAILURE );
                 }
                 _denied_extensions.emplace( e_name );
