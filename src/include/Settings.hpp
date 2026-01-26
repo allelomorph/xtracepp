@@ -46,6 +46,7 @@ private:
         { "proxydisplay",         required_argument, NULL,              'D' },
         { "keeprunning",          no_argument,       NULL,              'k' },
         { "denyextensions",       required_argument, NULL,              'e' },
+        { "allowextensions",      required_argument, NULL,              'E' },
         { "readwritedebug",       no_argument,       NULL,              'w' },
         { "outfile",              required_argument, NULL,              'o' },
         { "unbuffered",           no_argument,       NULL,              'u' },
@@ -61,7 +62,29 @@ private:
      *   `getopt_long(3)`.
      * @ingroup getopt_long
      */
-    static constexpr std::string_view _optstring { "+d:D:ke:wo:umvrp" };
+    static constexpr std::string_view _optstring { "+d:D:ke:E:wo:umvrp" };
+    /**
+     * @brief Message displayed with `--help`; intended for use with fmtlib or
+     *   `std::format`.
+     */
+    static constexpr std::string_view _help_msg {
+        R"({}: intercept, log, and modify (based on user options) packet data going between X server and clients
+  (usage: {} [options...] [-- subcommand args...]
+  options:
+    --display,            -d <display name>   : provide libX11 formatted display name of real X server
+    --proxydisplay,       -D <display name>   : provide libX11 formatted display name of this proxy server
+    --keeprunning,        -k                  : continue monitoring traffic after subcommand client exits
+    --denyextensions,     -e <extension name> : deny X extensions named ("all" disables all)
+    --allowextensions,    -E <extension name> : deny X extensions not named (default all enabled if option not used)
+    --readwritedebug,     -w                  : print amounts of data read/sent
+    --outfile,            -o <file path>      : output to file instead of stdout
+    --unbuffered,         -u                  : deactivate stream buffering for output
+    --multiline,          -m                  : break log lines along nested groupings of data
+    --verbose,            -v                  : print all data fields of every packet + alternate data formatting
+    --relativetimestamps, -r                  : X server timestamps interpreted against system time
+    --prefetchatoms,      -p                  : first fetch already interned strings to reduce unrecognized ATOMs
+)" };
+
     /**
      * @brief Records buffering state of [log_fs](#log_fs) before applying user
      *   settings.
@@ -117,9 +140,16 @@ private:
      */
     static constexpr std::string_view _ALL { "all" };
     /**
-     * @brief Toggles disabling of individual X extensions, by name.
+     * @brief Toggles use of individual X extensions, by name.
      */
-    std::unordered_set< std::string_view > _denied_extensions {};
+    std::unordered_set< std::string_view > _allowed_extensions {
+        _recognized_extensions };
+    /**
+     * @brief Exits process with error message if X extension name is not
+     *   recognized.
+     * @param name extension name
+     */
+    void validateExtensionName( const std::string_view& name );
 
 public:
     /**
@@ -219,9 +249,8 @@ public:
      * @param name extension name
      * @return whether extension name was passes with `--denyextensions`
      */
-    inline
-    bool extensionDenied( const std::string_view name ) {
-        return _denied_extensions.find( name ) != _denied_extensions.end();
+    inline bool extensionDenied( const std::string_view name ) {
+        return _allowed_extensions.find( name ) == _allowed_extensions.end();
     }
 };
 
