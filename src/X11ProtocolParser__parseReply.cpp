@@ -2005,7 +2005,6 @@ X11ProtocolParser::_parseReply<
     const std::string_view ext_name {
         _unstashString(
             conn->id, _ordered( encoding->header.sequence_num, byteswap ) ) };
-
     if ( settings.denyallextensions ||
          settings.extensionDenied( ext_name ) ) {
         // setting to false/0 should not need byte ordering
@@ -2013,13 +2012,17 @@ X11ProtocolParser::_parseReply<
             reinterpret_cast< const QueryExtension::Reply::Encoding* >(
                 data ) )->present.data = false;
     }
-
-    // Activate extension for this connection, if not already done
     if ( encoding->present.data ) {
-        _activateExtension( ext_name, conn,
-                            _ordered( encoding->major_opcode, byteswap ),
-                            _ordered( encoding->first_event, byteswap ),
-                            _ordered( encoding->first_error, byteswap ) );
+        _enableExtensionParsing( ext_name, conn,
+                                 _ordered( encoding->major_opcode, byteswap ),
+                                 _ordered( encoding->first_event, byteswap ),
+                                 _ordered( encoding->first_error, byteswap ) );
+        // BIG-REQUESTS is a special case in that it is not considered activated
+        //   until the server replies to request BigReqEnable
+        if ( ext_name != protocol::extensions::big_requests::name ) {
+            assert( !conn->extensions.active( ext_name ) );
+            conn->extensions.activate( ext_name );
+        }
     }
 
     const uint32_t memb_name_w (

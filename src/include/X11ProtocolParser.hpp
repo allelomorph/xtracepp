@@ -27,6 +27,7 @@
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
 #include "protocol/connection_setup.hpp"
+#include "protocol/extensions/big_requests.hpp"  // EXTENDED_LENGTH_FLAG
 
 
 /**
@@ -78,7 +79,8 @@ private:
          * @param sz raw byte count
          * @return sz padded to aligned size (nearest larger multiple of 4)
          */
-        inline size_t pad( const size_t sz ) {
+        static inline
+        size_t pad( const size_t sz ) {
             return sz + ( ( _ALIGN - ( sz % _ALIGN ) ) % _ALIGN );
         }
         /**
@@ -86,7 +88,8 @@ private:
          * @param sz raw byte count
          * @return padded sz in alignment units
          */
-        inline size_t units( const size_t sz ) {
+        static inline
+        size_t units( const size_t sz ) {
             return pad( sz ) / _ALIGN;
         }
         /**
@@ -94,7 +97,8 @@ private:
          * @param units alignment unit count
          * @return units in bytes
          */
-        inline size_t size( const size_t units ) {
+        static inline
+        size_t size( const size_t units ) {
             return units * _ALIGN;
         }
     };
@@ -365,7 +369,8 @@ private:
      */
     template< typename IntT,
               std::enable_if_t< std::is_integral_v< IntT >, bool > = true >
-    inline IntT _ordered( const IntT val, const bool byteswap ) {
+    static inline
+    IntT _ordered( const IntT val, const bool byteswap ) {
         if ( byteswap ) {
             switch ( sizeof( IntT ) ) {
             case sizeof( uint64_t ): return ::__builtin_bswap64( val );
@@ -1468,10 +1473,83 @@ private:
     static const std::unordered_map<
         std::string_view, _ExtensionTraits > _extensions;
     void
-    _activateExtension( const std::string_view& name, Connection* conn,
-                        const protocol::CARD8 major_opcode,
-                        const protocol::CARD8 first_event,
-                        const protocol::CARD8 first_error );
+    _enableExtensionParsing( const std::string_view& name, Connection* conn,
+                             const protocol::CARD8 major_opcode,
+                             const protocol::CARD8 first_event,
+                             const protocol::CARD8 first_error );
+    // test for member type
+    template < typename RequestT, typename = void >
+    struct _has_encoding_member : public std::false_type {};
+    template < typename RequestT >
+    struct _has_encoding_member <
+            RequestT, std::void_t< typename RequestT::Encoding > > :
+        public std::true_type {};
+    template< typename RequestT, bool has_encoding_member = false >
+    struct _RequestFixedEncodingBase {
+        using Prefix    = typename RequestT::Prefix;
+        using Length    = typename RequestT::Length;
+        using BigLength = typename RequestT::BigLength;
+        using XPP       = X11ProtocolParser;
+        const Prefix*    prefix {};
+        const Length*    length {};
+        const BigLength* big_length {};
+        size_t bytes_parsed {};
+        bool big_request {};
+        bool header_only { true };
+
+        _RequestFixedEncodingBase() = delete;
+        _RequestFixedEncodingBase(
+            Connection* conn, const uint8_t* data, const size_t sz ) {
+            assert( conn != nullptr );
+            assert( data != nullptr );
+            assert( sz >= RequestT::BASE_ENCODING_SZ );
+
+            const bool byteswap { conn->byteswap };
+            prefix = reinterpret_cast< const Prefix* >( data );
+            bytes_parsed += sizeof( Prefix );
+            length = reinterpret_cast< const Length* >(
+                data + bytes_parsed );
+            big_length = reinterpret_cast< const BigLength* >(
+                data + bytes_parsed );
+            big_request =
+                XPP::_ordered( big_length->extended_length_flag, byteswap ) ==
+                protocol::extensions::big_requests::EXTENDED_LENGTH_FLAG;
+            if ( big_request ) {
+                assert( conn->extensions.big_requests );
+                bytes_parsed += sizeof( BigLength );
+            } else {
+                bytes_parsed += sizeof( Length );
+            }
+        }
+        virtual ~_RequestFixedEncodingBase() = 0;
+    };
+    template< typename RequestT >
+    struct _RequestFixedEncodingBase< RequestT, true > :
+        public _RequestFixedEncodingBase< RequestT, false > {
+        using Encoding = typename RequestT::Encoding;
+        const Encoding* encoding {};
+
+        _RequestFixedEncodingBase() = delete;
+        _RequestFixedEncodingBase(
+            Connection* conn, const uint8_t* data, const size_t sz ) :
+            _RequestFixedEncodingBase< RequestT >( conn, data, sz ) {
+            encoding = reinterpret_cast< const Encoding* >(
+                data + this->bytes_parsed );
+            this->bytes_parsed += sizeof( Encoding );
+            this->header_only = false;
+        }
+        virtual ~_RequestFixedEncodingBase() = 0;
+    };
+    template< typename RequestT,
+              typename BaseT = _RequestFixedEncodingBase<
+                  RequestT, _has_encoding_member< RequestT >::value > >
+    struct _RequestFixedEncoding : public BaseT {
+        _RequestFixedEncoding(
+            Connection* conn, const uint8_t* data, const size_t sz ) :
+            BaseT( conn, data, sz ) {
+            assert( this->bytes_parsed == RequestT::BASE_ENCODING_SZ );
+        }
+    };
 
 public:
     /**
@@ -1493,7 +1571,7 @@ public:
     /**
      * @brief Encoding memory alignment calculator.
      */
-    _Alignment alignment;
+    static const _Alignment alignment;
     /**
      * @brief User settings imported from [ProxyX11Server](#ProxyX11Server).
      */
@@ -1507,6 +1585,13 @@ public:
     void importSettings( const Settings& settings_,
                          const std::vector< std::string >& fetched_atoms );
 };
+
+template< typename T, bool B >
+X11ProtocolParser::_RequestFixedEncodingBase<
+    T, B >::~_RequestFixedEncodingBase() = default;
+template< typename T >
+X11ProtocolParser::_RequestFixedEncodingBase<
+    T, true >::~_RequestFixedEncodingBase() = default;
 
 #undef _LESSTHAN
 #undef _PARSELISTMEMBER

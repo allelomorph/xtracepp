@@ -18,6 +18,7 @@
 #include "protocol/requests.hpp"  // PolySegment::SEGMENT
 #include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
 #include "protocol/errors.hpp"  // errors::ENCODING_SZ
+#include "protocol/extensions/big_requests.hpp"
 
 
 void
@@ -64,11 +65,12 @@ X11ProtocolParser::_logRequest(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::requests::Request::Header ) );
+    assert( sz >= sizeof( protocol::requests::Request::Prefix ) +
+            sizeof( protocol::requests::Request::Length ) );
 
-    const protocol::requests::Request::Header* header {
-        reinterpret_cast< const protocol::requests::Request::Header* >( data ) };
-    const uint8_t major_opcode { _ordered( header->opcode, conn->byteswap ) };
+    const protocol::requests::Request::Prefix* prefix {
+        reinterpret_cast< const protocol::requests::Request::Prefix* >( data ) };
+    const uint8_t major_opcode { _ordered( prefix->opcode, conn->byteswap ) };
     // map opcode to sequence number to aid in parsing request errors and replies
     const protocol::CARD16 sequence { conn->registerRequest( major_opcode ) };
     const _MajorOpcodeTraits& opcode_traits { _major_opcodes.at( major_opcode ) };
@@ -277,11 +279,10 @@ size_t X11ProtocolParser::_logServerPacket(
     return bytes_parsed;
 }
 
-// needed due to derived classes actually being instantiated in maps
 X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
 X11ProtocolParser::_SingleCodeTraits::~_SingleCodeTraits() = default;
 
-void X11ProtocolParser::_activateExtension(
+void X11ProtocolParser::_enableExtensionParsing(
     const std::string_view& name, Connection* conn,
     const protocol::CARD8 major_opcode, const protocol::CARD8 first_event,
     const protocol::CARD8 first_error ) {
@@ -307,11 +308,6 @@ void X11ProtocolParser::_activateExtension(
             _error_codes.emplace( first_error + offset, error );
         }
     }
-    //// Enable extension for connection
-    // TBD valgrind: Conditional jump or move depends on uninitialised value(s)
-    //   if using ext_name
-    assert( !conn->extensions.active( name ) );
-    conn->extensions.activate( name );
 }
 
 size_t X11ProtocolParser::logClientPackets( Connection* conn ) {

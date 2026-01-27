@@ -4,7 +4,9 @@ if(NOT COMMAND set_strict_compile_options)
   include(SetStrictCompileOptions)
 endif()
 
-add_executable(xtracepp
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+add_library(src OBJECT
   bufferHexDump.cpp
   errors.cpp
   main.cpp
@@ -25,21 +27,22 @@ add_executable(xtracepp
   X11ProtocolParser__core_requests.cpp
   X11ProtocolParser__core_events.cpp
   X11ProtocolParser__core_errors.cpp
-  # TBD consider separate lists file for extensions/
-  extensions/X11ProtocolParser__extensions.cpp
 )
 
-set_strict_compile_options(xtracepp)
-set_target_properties(xtracepp PROPERTIES
+set_strict_compile_options(src)
+set_target_properties(src PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
 )
 
-target_include_directories(xtracepp PRIVATE
-  include
+set(XTRACEPP_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(src PRIVATE
+  ${XTRACEPP_INCLUDE_PATH}
 )
 
-target_link_libraries(xtracepp PUBLIC
+target_link_libraries(src PUBLIC
   fmt
 )
+
+add_subdirectory(extensions)

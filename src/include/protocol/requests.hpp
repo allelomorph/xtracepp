@@ -158,29 +158,40 @@ inline constexpr int MAX { NOOPERATION };
 /**
  * @brief Interface class providing default [encoding] for protocol requests.
  * @note Unlike with [Response](#protocol::Response)-derived classes like Reply,
- *   a Request-derived class will not have the Header included in the Encoding.
- *   This allows for implementation of the [BIG-REQUESTS] extension.
+ *   encoding is segmented into a [prefix](#Request::Prefix), a length, optionally
+ *   more fixed encoding, and ending in variable length suffixes. This allows for
+ *   support of the [BIG-REQUESTS] extension.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#request_format
  * [BIG-REQUESTS]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html
  */
 struct Request : public Message {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
-        union [[gnu::packed]] {
-            /** @brief Core opcode. */
-            uint8_t opcode;
-            /** @brief Extension major-opcode. */
-            uint8_t major_opcode;
-        };
-        union [[gnu::packed]] {
-            uint8_t _unused;
-            /** @brief Extension minor-opcode. */
-            uint8_t minor_opcode;
-        };
+    struct [[gnu::packed]] Prefix {
+        /** @brief Core opcode. */
+        uint8_t opcode;
+    private:
+        /** @brief Ignored bytes. */
+        uint8_t _unused;
+    };
+    /**
+     * @brief Default fixed encoding after #Prefix.
+     */
+    struct [[gnu::packed]] Length {
         /** @brief Total length of request encoding in 4B units. */
         uint16_t tl_aligned_units;
+    };
+    /**
+     * @brief Default fixed encoding after #Prefix, if [BIG-REQUESTS] extension
+     *   is enabled and #extended_length_flag is 0.
+     * [BIG-REQUESTS]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding
+     */
+    struct [[gnu::packed]] BigLength {
+        /** @brief When 0, indicates BIG-REQUESTS encoding (32-bit #tl_aligned_units). */
+        uint16_t extended_length_flag;
+        /** @brief Total length of request encoding in 4B units. */
+        uint32_t tl_aligned_units;
     };
     virtual ~Request() = 0;
 };
@@ -425,19 +436,17 @@ struct WindowValueListRequest : public Request {
  */
 struct CreateWindow : public impl::WindowValueListRequest {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal CREATEWINDOW(1). */
         uint8_t  opcode;
         /** @brief Protocol name: depth. */
         CARD8    depth;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // (8+n)
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -473,18 +482,20 @@ struct CreateWindow : public impl::WindowValueListRequest {
         protocol::enum_names::zero_copy_from_parent };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ChangeWindowAttributes request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CHANGEWINDOWATTRIBUTES(1) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ChangeWindowAttributes : public impl::WindowValueListRequest {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -495,7 +506,11 @@ struct ChangeWindowAttributes : public impl::WindowValueListRequest {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -506,7 +521,7 @@ namespace impl {
  */
 struct SimpleWindowRequest : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -514,7 +529,11 @@ struct SimpleWindowRequest : public Request {
     };
     /** @brief Total encoding size in bytes (before suffixes). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffixes) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     virtual ~SimpleWindowRequest() = 0;
 };
 
@@ -522,8 +541,6 @@ struct SimpleWindowRequest : public Request {
 
 /**
  * @brief Represents X11 %GetWindowAttributes request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETWINDOWATTRIBUTES(3) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetWindowAttributes : public impl::SimpleWindowRequest {
@@ -615,16 +632,12 @@ struct GetWindowAttributes : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %DestroyWindow request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   DESTROYWINDOW(4) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct DestroyWindow : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %DestroySubwindows request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   DESTROYSUBWINDOWS(5) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct DestroySubwindows : public impl::SimpleWindowRequest {
@@ -635,40 +648,40 @@ struct DestroySubwindows : public impl::SimpleWindowRequest {
  */
 struct ChangeSaveSet : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal CHANGESAVESET(6). */
         uint8_t  opcode;
         /** @brief Protocol name: mode; uses enum: 0=Insert 1=Delete. */
         uint8_t  mode;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 2
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
         WINDOW window;
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view >& mode_names {
         protocol::enum_names::change_mode };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ReparentWindow request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   REPARENTWINDOW(7) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ReparentWindow : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -682,50 +695,44 @@ struct ReparentWindow : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %MapWindow request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   MAPWINDOW(8) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct MapWindow : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %MapSubwindows request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   MAPSUBWINDOWS(9) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct MapSubwindows : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %UnmapWindow request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   UNMAPWINDOW(10) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct UnmapWindow : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %UnmapSubwindows request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   UNMAPSUBWINDOWS(11) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct UnmapSubwindows : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %ConfigureWindow request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CONFIGUREWINDOW(12) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ConfigureWindow : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of (4n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -758,9 +765,13 @@ struct ConfigureWindow : public Request {
     inline static const
     std::vector< std::string_view >& stack_mode_names {
         protocol::enum_names::window_value_stack_mode };
-    /** @brief Total encoding size in bytes (before suffix). */
+    /** @brief Total encoding size in bytes (before variable length suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before variable length suffix)
+     *    when using BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CirculateWindow request [encoding].
@@ -768,25 +779,23 @@ struct ConfigureWindow : public Request {
  */
 struct CirculateWindow : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal CIRCULATEWINDOW(13). */
         uint8_t   opcode;
         /** @brief Protocol name: direction; uses enum:
          *    0=RaiseLowest 1=LowerHighest. */
         uint8_t   direction;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t  tl_aligned_units;  // 2
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
         WINDOW    window;
     };
-    /** @brief [direction](#Header::direction) enum names. */
+    /** @brief [direction](#Prefix::direction) enum names. */
     inline static const
     std::vector< std::string_view > direction_names {
         "RaiseLowest",  // 0
@@ -794,17 +803,19 @@ struct CirculateWindow : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetGeometry request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETGEOMETRY(14) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetGeometry : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: drawable. */
@@ -812,7 +823,11 @@ struct GetGeometry : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetGeometry reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -860,8 +875,6 @@ struct GetGeometry : public Request {
 };
 /**
  * @brief Represents X11 %QueryTree request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   QUERYTREE(15) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct QueryTree : public impl::SimpleWindowRequest {
@@ -872,7 +885,7 @@ struct QueryTree : public impl::SimpleWindowRequest {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofWINDOW children` of (4 *
          *     [children_ct](#Encoding::children_ct))B
          */
@@ -902,19 +915,17 @@ struct QueryTree : public impl::SimpleWindowRequest {
  */
 struct InternAtom : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should always equal INTERNATOM(16). */
         uint8_t   opcode;
         /** @brief Protocol name: only-if-exists. */
         BOOL      only_if_exists;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t  tl_aligned_units;  // 2 + pad(name_len)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -926,7 +937,11 @@ struct InternAtom : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %InternAtom reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -953,13 +968,11 @@ struct InternAtom : public Request {
 };
 /**
  * @brief Represents X11 %GetAtomName request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETATOMNAME(17) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetAtomName : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: atom. */
@@ -967,7 +980,11 @@ struct GetAtomName : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetAtomName reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -975,7 +992,7 @@ struct GetAtomName : public Request {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Reply::Header](#requests::Reply::Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `STRING8 name` of
          *   [pad](#X11ProtocolParser::_Alignment::pad)([name_len](#name_len))B
          */
@@ -997,19 +1014,17 @@ struct GetAtomName : public Request {
  */
 struct ChangeProperty : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal CHANGEPROPERTY(18). */
         uint8_t  opcode;
         /** @brief Protocol name: mode; uses enum: 0=Replace 1=Prepend 2=Append. */
         uint8_t  mode;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 6+pad(n)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofBYTE data` of pad(([format](#Encoding::format)
      *      / 8) * [data_fmt_unit_len](#Encoding::data_fmt_unit_len))B
      */
@@ -1029,7 +1044,7 @@ struct ChangeProperty : public Request {
         /** @brief Length of `data` in format units. */
         CARD32  data_fmt_unit_len;
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view > mode_names {
         "Replace",  // 0
@@ -1038,17 +1053,19 @@ struct ChangeProperty : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %DeleteProperty request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   DELETEPROPERTY(19) and `tl_aligned_units` of 3.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct DeleteProperty : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -1058,7 +1075,11 @@ struct DeleteProperty : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetProperty request [encoding].
@@ -1066,18 +1087,16 @@ struct DeleteProperty : public Request {
  */
 struct GetProperty : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal GETPROPERTY(20). */
         uint8_t  opcode;
         /** @brief Protocol name: delete. */
         BOOL     delete_;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 6
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -1098,7 +1117,11 @@ struct GetProperty : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetProperty reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -1121,7 +1144,7 @@ struct GetProperty : public Request {
         };
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofBYTE value` of
          *   [pad](#X11ProtocolParser::_Alignment::pad)(
          *   [value_fmt_unit_len](#Encoding::value_fmt_unit_len) *
@@ -1153,8 +1176,6 @@ struct GetProperty : public Request {
 };
 /**
  * @brief Represents X11 %ListProperties request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LISTPROPERTIES(21) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ListProperties : public impl::SimpleWindowRequest {
@@ -1165,7 +1186,7 @@ struct ListProperties : public impl::SimpleWindowRequest {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header)).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofATOM atoms` of (sizeof(ATOM) *
          *   [atoms_ct](#Encoding::atoms_ct))B
          */
@@ -1183,13 +1204,11 @@ struct ListProperties : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %SetSelectionOwner request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   SETSELECTIONOWNER(22) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct SetSelectionOwner : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: owner; uses enum: 0=None. */
@@ -1209,17 +1228,19 @@ struct SetSelectionOwner : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetSelectionOwner request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETSELECTIONOWNER(23) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetSelectionOwner : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: selection. */
@@ -1227,7 +1248,11 @@ struct GetSelectionOwner : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetSelectionOwner reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -1254,13 +1279,11 @@ struct GetSelectionOwner : public Request {
 };
 /**
  * @brief Represents X11 %ConvertSelection request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CONVERTSELECTION(24) and `tl_aligned_units` of 6.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ConvertSelection : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: requestor. */
@@ -1284,7 +1307,11 @@ struct ConvertSelection : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %SendEvent request [encoding].
@@ -1292,19 +1319,17 @@ struct ConvertSelection : public Request {
  */
 struct SendEvent : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal SENDEVENT(25). */
         uint8_t  opcode;
         /** @brief Protocol name: propagate. */
         BOOL     propagate;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 11
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - [Event](#protocol::events::Event) of 32B
      */
     struct [[gnu::packed]] Encoding {
@@ -1320,13 +1345,17 @@ struct SendEvent : public Request {
         "PointerWindow",  // 0
         "InputFocus"      // 1
     };
-    /** @brief Total encoding size in bytes (before suffix). */
-    static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
     /** @brief Generated events will have codes with msb toggled on. */
     static constexpr uint8_t GENERATED_EVENT_FLAG { 0x80 };
     /** @brief Masks out generated event flag. */
     static constexpr uint8_t EVENT_CODE_MASK { uint8_t( ~GENERATED_EVENT_FLAG ) };
+    /** @brief Total encoding size in bytes (before suffix). */
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GrabPointer request [encoding].
@@ -1334,18 +1363,16 @@ struct SendEvent : public Request {
  */
 struct GrabPointer : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal GRABPOINTER(26). */
         uint8_t  opcode;
         /** @brief Protocol name: owner-events. */
         BOOL     owner_events;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 6
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1387,7 +1414,11 @@ struct GrabPointer : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GrabPointer reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -1428,13 +1459,11 @@ struct GrabPointer : public Request {
 };
 /**
  * @brief Represents X11 %UngrabPointer request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   UNGRABPOINTER(27) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct UngrabPointer : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: time; uses enum: 0=CurrentTime. */
@@ -1446,7 +1475,11 @@ struct UngrabPointer : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GrabButton request [encoding].
@@ -1454,18 +1487,16 @@ struct UngrabPointer : public Request {
  */
 struct GrabButton : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal GRABBUTTON(28). */
         uint8_t  opcode;
         /** @brief Protocol name: owner-events. */
         BOOL     owner_events;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 6
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1514,7 +1545,11 @@ struct GrabButton : public Request {
         protocol::enum_names::button };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %UngrabButton request [encoding].
@@ -1522,18 +1557,16 @@ struct GrabButton : public Request {
  */
 struct UngrabButton : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal UNGRABBUTTON(29). */
         uint8_t  opcode;
         /** @brief Protocol name: button; uses enum: 0=AnyButton. */
         BUTTON   button;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 3
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1545,23 +1578,25 @@ struct UngrabButton : public Request {
         /** @brief Ignored bytes. */
         uint8_t      _unused[2];
     };
-    /** @brief [button](#Header::button) enum names. */
+    /** @brief [button](#Prefix::button) enum names. */
     inline static const
     std::vector< std::string_view >& button_names {
         protocol::enum_names::button };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ChangeActivePointerGrab request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CHANGEACTIVEPOINTERGRAB(30) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ChangeActivePointerGrab : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cursor; uses enum: 0=None. */
@@ -1584,7 +1619,11 @@ struct ChangeActivePointerGrab : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GrabKeyboard request [encoding].
@@ -1592,18 +1631,16 @@ struct ChangeActivePointerGrab : public Request {
  */
 struct GrabKeyboard : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal GRABKEYBOARD(31). */
         uint8_t  opcode;
         /** @brief Protocol name: owner-events. */
         BOOL     owner_events;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 4
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1634,7 +1671,11 @@ struct GrabKeyboard : public Request {
         protocol::enum_names::input_mode };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GrabKeyboard reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -1675,13 +1716,11 @@ struct GrabKeyboard : public Request {
 };
 /**
  * @brief Represents X11 %UngrabKeyboard request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   UNGRABKEYBOARD(32) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct UngrabKeyboard : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: time; uses enum: 0=CurrentTime. */
@@ -1693,7 +1732,11 @@ struct UngrabKeyboard : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GrabKey request [encoding].
@@ -1701,18 +1744,16 @@ struct UngrabKeyboard : public Request {
  */
 struct GrabKey : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal GRABKEY(33). */
         uint8_t  opcode;
         /** @brief Protocol name: owner-events. */
         BOOL     owner_events;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 4
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1746,7 +1787,11 @@ struct GrabKey : public Request {
         protocol::enum_names::input_mode };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %UngrabKey request [encoding].
@@ -1754,18 +1799,16 @@ struct GrabKey : public Request {
  */
 struct UngrabKey : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal UNGRABKEY(34). */
         uint8_t  opcode;
         /** @brief Protocol name: key; uses enum: 0=AnyKey. */
         KEYCODE  key;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 3
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1777,13 +1820,17 @@ struct UngrabKey : public Request {
         /** @brief Ignored bytes. */
         uint8_t      _unused[2];
     };
-    /** @brief [key](#Header::key) enum names. */
+    /** @brief [key](#Prefix::key) enum names. */
     inline static const
     std::vector< std::string_view >& key_names {
         protocol::enum_names::key };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %AllowEvents request [encoding].
@@ -1791,26 +1838,24 @@ struct UngrabKey : public Request {
  */
 struct AllowEvents : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal ALLOWEVENTS(35). */
         uint8_t  opcode;
         /** @brief Protocol name: mode; uses enum:
          *   0=AsyncPointer 1=SyncPointer 2=ReplayPointer 3=AsyncKeyboard
          *   4=SyncKeyboard 5=ReplayKeyboard 6=AsyncBoth 7=SyncBoth. */
         uint8_t  mode;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 2
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: time; uses enum: 0=CurrentTime. */
         TIMESTAMP time;
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view > mode_names {
         "AsyncPointer",    // 0
@@ -1828,7 +1873,11 @@ struct AllowEvents : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -1840,7 +1889,12 @@ namespace impl {
  */
 struct SimpleRequest : public Request {
     /** @brief Total encoding size in bytes (before suffixes). */
-    static constexpr size_t BASE_ENCODING_SZ { sizeof( Header ) };
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffixes) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
     virtual ~SimpleRequest() = 0;
 };
 
@@ -1848,24 +1902,18 @@ struct SimpleRequest : public Request {
 
 /**
  * @brief Represents X11 %GrabServer request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GRABSERVER(36) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GrabServer : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %UngrabServer request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   UNGRABSERVER(37) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct UngrabServer : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %QueryPointer request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   QUERYPOINTER(38) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct QueryPointer : public impl::SimpleWindowRequest {
@@ -1922,13 +1970,11 @@ struct QueryPointer : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %GetMotionEvents request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETMOTIONEVENTS(39) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetMotionEvents : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1948,7 +1994,11 @@ struct GetMotionEvents : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetMotionEvents reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -1956,7 +2006,7 @@ struct GetMotionEvents : public Request {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Reply::Header](#requests::Reply::Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofTIMECOORD events` of (sizeof(TIMECOORD) *
          *   [events_ct](#Encoding::events_ct))B
          */
@@ -1985,13 +2035,11 @@ struct GetMotionEvents : public Request {
 };
 /**
  * @brief Represents X11 %TranslateCoordinates request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   TRANSLATECOORDINATES(40) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct TranslateCoordinates : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-window. */
@@ -2005,7 +2053,11 @@ struct TranslateCoordinates : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %TranslateCoordinates reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -2051,13 +2103,11 @@ struct TranslateCoordinates : public Request {
 };
 /**
  * @brief Represents X11 %WarpPointer request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   WARPPOINTER(41) and `tl_aligned_units` of 6.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct WarpPointer : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-window; uses enum: 0=None. */
@@ -2087,7 +2137,11 @@ struct WarpPointer : public Request {
         protocol::enum_names::zero_none };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %SetInputFocus request [encoding].
@@ -2095,19 +2149,17 @@ struct WarpPointer : public Request {
  */
 struct SetInputFocus : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal SETINPUTFOCUS(42). */
         uint8_t  opcode;
         /** @brief Protocol name: revert-to; uses enum:
          *   0=None 1=PointerRoot 2=Parent. */
         uint8_t  revert_to;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 3
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: focus; uses enum: 0=None 1=PointerRoot. */
@@ -2115,7 +2167,7 @@ struct SetInputFocus : public Request {
         /** @brief Protocol name: focus; uses enum: 0=CurrentTime. */
         TIMESTAMP time;
     };
-    /** @brief [revert-to](#Header::revert_to) enum names. */
+    /** @brief [revert-to](#Prefix::revert_to) enum names. */
     inline static const
     std::vector< std::string_view >& revert_to_names {
         protocol::enum_names::input_focus };
@@ -2131,12 +2183,14 @@ struct SetInputFocus : public Request {
         protocol::enum_names::time };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetInputFocus request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETINPUTFOCUS(43) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetInputFocus : public impl::SimpleRequest {
@@ -2188,8 +2242,6 @@ struct GetInputFocus : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %QueryKeymap request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   QUERYKEYMAP(44) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct QueryKeymap : public impl::SimpleRequest {
@@ -2213,14 +2265,12 @@ struct QueryKeymap : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %OpenFont request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   OPENFONT(45) and `tl_aligned_units` of 3+pad(name_len)/4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct OpenFont : public Request {
     /**
-     * @brief Fixed encoding betweem [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -2234,17 +2284,19 @@ struct OpenFont : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CloseFont request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CLOSEFONT(46) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CloseFont : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: font. */
@@ -2252,7 +2304,11 @@ struct CloseFont : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -2290,13 +2346,11 @@ struct [[gnu::packed]] CHARINFO : public protocol::impl::Struct {
 
 /**
  * @brief Represents X11 %QueryFont request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   QUERYFONT(47) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct QueryFont : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: font. */
@@ -2304,7 +2358,11 @@ struct QueryFont : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %QueryFont reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -2314,7 +2372,7 @@ struct QueryFont : public Request {
         using CHARINFO = impl::CHARINFO;
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffixes:
+         * @note Followed by variable length suffixes:
          *   - `LISTofFONTPROP properties` of
          *   (8 * [properties_ct](#Encoding::properties_ct))B
          *   - `LISTofCHARINFO char-infos` of
@@ -2374,19 +2432,17 @@ struct QueryFont : public Request {
  */
 struct QueryTextExtents : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal QUERYTEXTEXTENTS(48). */
         uint8_t  opcode;
         /** @brief True if `string` padded by 2. */
         BOOL     odd_length;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 2+pad(2n)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING16 string` of pad(2n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -2395,7 +2451,11 @@ struct QueryTextExtents : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %QueryTextExtents reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -2458,8 +2518,8 @@ namespace impl {
  */
 struct ListFontsRequest : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 pattern` of pad(pattern_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -2470,7 +2530,11 @@ struct ListFontsRequest : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     virtual ~ListFontsRequest() = 0;
 };
 
@@ -2478,10 +2542,9 @@ struct ListFontsRequest : public Request {
 
 /**
  * @brief Represents X11 %ListFonts request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LISTFONTS(49) and `tl_aligned_units` of 2+pad(Encoding::pattern_len)/4.
- *   [Encoding](#impl::ListFontsRequest::Encoding) followed by `STRING8 pattern` of
- *   pad(Encoding::pattern_len)B.
+ * @note [Encoding](#impl::ListFontsRequest::Encoding) followed by variable
+ *   length suffix:
+ *     - `STRING8 pattern` of pad(Encoding::pattern_len)B.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ListFonts : public impl::ListFontsRequest {
@@ -2492,7 +2555,7 @@ struct ListFonts : public impl::ListFontsRequest {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofSTR names` of pad(n)B (LISTofSTRING8 in [description])
          * [description]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:ListFonts
          */
@@ -2510,10 +2573,8 @@ struct ListFonts : public impl::ListFontsRequest {
 };
 /**
  * @brief Represents X11 %ListFontsWithInfo request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LISTFONTSWITHINFO(50) and `tl_aligned_units` of 2+pad(Encoding::pattern_len)/4.
- *   [Encoding](#impl::ListFontsRequest::Encoding) followed by `STRING8 pattern` of
- *   pad(Encoding::pattern_len)B.
+ * @note [Encoding](#impl::ListFontsRequest::Encoding) followed by variable length suffix:
+ *   - `STRING8 pattern` of pad(Encoding::pattern_len)B.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ListFontsWithInfo : public impl::ListFontsRequest {
@@ -2547,7 +2608,7 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
         static constexpr uint8_t LAST_REPLY {};
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffixes:
+         * @note Followed by variable length suffixes:
          *   - `LISTofFONTPROP properties` of
          *   (8 * [properties_ct](#Encoding::properties_ct))B
          *   - `STRING8 name` of
@@ -2601,14 +2662,12 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
 };
 /**
  * @brief Represents X11 %SetFontPath request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   SETFONTPATH(51) and `tl_aligned_units` of 2+pad(n)/4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct SetFontPath : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofSTR path` of pad(n)B (`LISTofSTRING8` in [description])
      * [description]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:SetFontPath
      */
@@ -2621,12 +2680,14 @@ struct SetFontPath : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetFontPath request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETFONTPATH(52) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetFontPath : public impl::SimpleRequest {
@@ -2637,7 +2698,7 @@ struct GetFontPath : public impl::SimpleRequest {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofSTR path` of [pad](#X11ProtocolParser::_Alignment::pad)(n)B
          *   (`LISTofSTRING8` in [description])
          * [description]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:GetFontPath
@@ -2660,18 +2721,16 @@ struct GetFontPath : public impl::SimpleRequest {
  */
 struct CreatePixmap : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal CREATEPIXMAP(53). */
         uint8_t  opcode;
         /** @brief Protocol name: depth. */
         CARD8    depth;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 2
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: pid. */
@@ -2685,17 +2744,19 @@ struct CreatePixmap : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %FreePixmap request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   FREEPIXMAP(54) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct FreePixmap : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: pixmap. */
@@ -2703,7 +2764,11 @@ struct FreePixmap : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -2794,14 +2859,12 @@ struct GCRequest : public Request {
 
 /**
  * @brief Represents X11 %CreateGC request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CREATEGC(55) and `tl_aligned_units` of 4+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CreateGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -2814,18 +2877,20 @@ struct CreateGC : public impl::GCRequest {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ChangeGC request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CHANGEGC(56) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ChangeGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -2836,17 +2901,19 @@ struct ChangeGC : public impl::GCRequest {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CopyGC request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   COPYGC(57) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CopyGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-gc. */
@@ -2858,18 +2925,20 @@ struct CopyGC : public impl::GCRequest {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %SetDashes request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   SETDASHES(58) and `tl_aligned_units` of 3+pad(Encoding::dashes_len)/4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct SetDashes : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofCARD8 dashes` of pad(dashes_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -2882,7 +2951,11 @@ struct SetDashes : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %SetClipRectangles request [encoding].
@@ -2890,20 +2963,18 @@ struct SetDashes : public Request {
  */
 struct SetClipRectangles : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal SETCLIPRECTANGLES(59). */
         uint8_t  opcode;
         /** @brief Protocol name: ordering; uses enum:
          *   0=UnSorted 1=YSorted 2=YXSorted 3=YXBanded. */
         uint8_t  ordering;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 3+2n
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofRECTANGLE rectangles` of 8nB
      */
     struct [[gnu::packed]] Encoding {
@@ -2914,7 +2985,7 @@ struct SetClipRectangles : public Request {
         /** @brief Protocol name: clip-y-origin. */
         INT16    clip_y_origin;
     };
-    /** @brief [ordering](#Header::ordering) enum names. */
+    /** @brief [ordering](#Prefix::ordering) enum names. */
     inline static const
     std::vector< std::string_view > ordering_names {
         "UnSorted",  // 0
@@ -2924,17 +2995,19 @@ struct SetClipRectangles : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %FreeGC request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   FREEGC(60) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct FreeGC : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: gc. */
@@ -2942,7 +3015,11 @@ struct FreeGC : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ClearArea request [encoding].
@@ -2950,18 +3027,16 @@ struct FreeGC : public Request {
  */
 struct ClearArea : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal CLEARAREA(61). */
         uint8_t  opcode;
         /** @brief Protocol name: exposures. */
         BOOL     exposures;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 4
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -2977,17 +3052,19 @@ struct ClearArea : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CopyArea request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   COPYAREA(62) and `tl_aligned_units` of 7.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CopyArea : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-drawable. */
@@ -3011,17 +3088,19 @@ struct CopyArea : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CopyPlane request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   COPYPLANE(63) and `tl_aligned_units` of 8.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CopyPlane : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-drawable. */
@@ -3047,7 +3126,11 @@ struct CopyPlane : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -3059,19 +3142,17 @@ namespace impl {
  */
 struct PolyPointRequest : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier. */
         uint8_t  opcode;
         /** @brief Protocol name: coordinate-mode; uses enum 0=Origin 1=Previous. */
         uint8_t  coordinate_mode;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 3+n
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofPOINT points` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3080,13 +3161,17 @@ struct PolyPointRequest : public Request {
         /** @brief Protocol name: gc. */
         GCONTEXT gc;
     };
-    /** @brief [coordinate-mode](#Header::coordinate_mode) enum names. */
+    /** @brief [coordinate-mode](#Prefix::coordinate_mode) enum names. */
     inline static const
     std::vector< std::string_view >& coordinate_mode_names {
         protocol::enum_names::poly_coordinate_mode };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     virtual ~PolyPointRequest() = 0;
 };
 
@@ -3094,30 +3179,24 @@ struct PolyPointRequest : public Request {
 
 /**
  * @brief Represents X11 %PolyPoint request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYPOINT(64) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyPoint : public impl::PolyPointRequest {
 };
 /**
  * @brief Represents X11 %PolyLine request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYLINE(65) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyLine : public impl::PolyPointRequest {
 };
 /**
  * @brief Represents X11 %PolySegment request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYSEGMENT(66) and `tl_aligned_units` of 3+2n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolySegment : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofSEGMENT segments` of 8nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3141,18 +3220,20 @@ struct PolySegment : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %PolyRectangle request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYRECTANGLE(67) and `tl_aligned_units` of 3+2n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyRectangle : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffixes.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofRECTANGLE rectangles` of 8nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3163,18 +3244,20 @@ struct PolyRectangle : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %PolyArc request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYARC(68) and `tl_aligned_units` of 3+3n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyArc : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofARC arcs` of 12nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3185,18 +3268,20 @@ struct PolyArc : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %FillPoly request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   FILLPOLY(69) and `tl_aligned_units` of 4+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct FillPoly : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofPOINT points` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3226,18 +3311,20 @@ struct FillPoly : public Request {
         protocol::enum_names::poly_coordinate_mode };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %PolyFillRectangle request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYFILLRECTANGLE(70) and `tl_aligned_units` of 3+2n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyFillRectangle : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofRECTANGLE rectangles` of 8nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3248,18 +3335,20 @@ struct PolyFillRectangle : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %PolyFillArc request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYFILLARC(71) and `tl_aligned_units` of 3+3n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyFillArc : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofARC arcs` of 12nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3270,7 +3359,11 @@ struct PolyFillArc : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %PutImage request [encoding].
@@ -3278,19 +3371,17 @@ struct PolyFillArc : public Request {
  */
 struct PutImage : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal PUTIMAGE(72). */
         uint8_t  opcode;
         /** @brief Protocol name: format; uses enum: 0=Bitmap 1=XYPixmap 2=ZPixmap. */
         uint8_t  format;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 6+pad(n)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofBYTE data` of pad(n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -3314,13 +3405,17 @@ struct PutImage : public Request {
         /** @brief Ignored bytes. */
         uint8_t  _unused[2];
     };
-    /** @brief [format](#Header::format) enum names. */
+    /** @brief [format](#Prefix::format) enum names. */
     inline static const
     std::vector< std::string_view >& format_names {
         protocol::enum_names::image_format };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetImage request [encoding].
@@ -3328,18 +3423,16 @@ struct PutImage : public Request {
  */
 struct GetImage : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal GETIMAGE(73). */
         uint8_t  opcode;
         /** @brief Protocol name: format; uses enum: 1=XYPixmap 2=ZPixmap. */
         uint8_t  format;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 5
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: drawable. */
@@ -3355,15 +3448,19 @@ struct GetImage : public Request {
         /** @brief Protocol name: plane-mask. */
         CARD32   plane_mask;
     };
-    /** @brief [format](#Header::format) enum names. */
+    /** @brief [format](#Prefix::format) enum names. */
     inline static const
     std::vector< std::string_view >& format_names {
         protocol::enum_names::image_format };
-    /** @brief [format](#Header::format) minimum value to use enum. */
+    /** @brief [format](#Prefix::format) minimum value to use enum. */
     static constexpr uint8_t FORMAT_ENUM_MIN { 1 };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetImage reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -3386,7 +3483,7 @@ struct GetImage : public Request {
         };
         /**
          * @brief Fixed encoding between [Header](#Header) and suffix.
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofBYTE data` of pad(n)B
          */
         struct [[gnu::packed]] Encoding {
@@ -3415,8 +3512,8 @@ namespace impl {
  */
 struct PolyTextRequest : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffixes:
      *   - `LISTofTEXTITEM8 items` of pad(n)B
      *     or
      *   - `LISTofTEXTITEM16 items` of pad(n)B
@@ -3449,7 +3546,11 @@ struct PolyTextRequest : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     virtual ~PolyTextRequest() = 0;
 };
 
@@ -3457,9 +3558,7 @@ struct PolyTextRequest : public Request {
 
 /**
  * @brief Represents X11 %PolyText8 request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYTEXT8(74) and `tl_aligned_units` of 4+pad(n)/4.
- *   [Encoding](#PolyTextRequest::Encoding) followed by suffix:
+ * @note [Encoding](#PolyTextRequest::Encoding) followed by variable length suffix:
  *   - `LISTofTEXTITEM8 items` of pad(n)B
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
@@ -3471,7 +3570,7 @@ struct PolyText8 : public impl::PolyTextRequest {
         impl::PolyTextRequest::FONT font;
         /**
          * @brief Header for variable length single-byte char string.
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `STRING8 string` of string_lenB
          */
         struct [[gnu::packed]] TEXTELT8 : public protocol::impl::StructWithSuffixes {
@@ -3485,9 +3584,7 @@ struct PolyText8 : public impl::PolyTextRequest {
 };
 /**
  * @brief Represents X11 %PolyText16 request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   POLYTEXT16(75) and `tl_aligned_units` of 4+pad(n)/4.
- *   [Encoding](#PolyTextRequest::Encoding) followed by suffix:
+ * @note [Encoding](#PolyTextRequest::Encoding) followed by variable length suffix:
  *   - `LISTofTEXTITEM16 items` of pad(n)B
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
@@ -3499,7 +3596,7 @@ struct PolyText16 : public impl::PolyTextRequest {
         impl::PolyTextRequest::FONT font;
         /**
          * @brief Header for variable length 2-byte char string.
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `STRING16 string` of 2string_lenB
          */
         struct [[gnu::packed]] TEXTELT16 : public protocol::impl::StructWithSuffixes {
@@ -3517,19 +3614,17 @@ struct PolyText16 : public impl::PolyTextRequest {
  */
 struct ImageText8 : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal IMAGETEXT8(76). */
         uint8_t  opcode;
         /** @brief Length of suffix `string` in bytes. */
         uint8_t  string_len;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 4+(n+p)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 string` of pad(n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -3544,7 +3639,11 @@ struct ImageText8 : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ImageText16 request [encoding].
@@ -3552,19 +3651,17 @@ struct ImageText8 : public Request {
  */
 struct ImageText16 : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal IMAGETEXT16(77). */
         uint8_t  opcode;
         /** @brief Length of suffix `string` in [CHAR2B](#protocol::CHAR2B)s. */
         uint8_t  string_2B_len;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 4+(2n+p)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING16 string` of pad(2n)B
      */
     struct [[gnu::packed]] Encoding {
@@ -3579,7 +3676,11 @@ struct ImageText16 : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CreateColormap request [encoding].
@@ -3587,18 +3688,16 @@ struct ImageText16 : public Request {
  */
 struct CreateColormap : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal CREATECOLORMAP(78). */
         uint8_t  opcode;
         /** @brief Protocol name: alloc; uses enum: 0=None 1=All. */
         uint8_t  alloc;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 4
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: mid. */
@@ -3608,7 +3707,7 @@ struct CreateColormap : public Request {
         /** @brief Protocol name: visual. */
         VISUALID visual;
     };
-    /** @brief [alloc](#Header::alloc) enum names. */
+    /** @brief [alloc](#Prefix::alloc) enum names. */
     inline static const
     std::vector< std::string_view > alloc_names {
         "None",  // 0
@@ -3616,7 +3715,11 @@ struct CreateColormap : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 
 namespace impl {
@@ -3628,7 +3731,7 @@ namespace impl {
  */
 struct SimpleCmapRequest : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -3636,7 +3739,11 @@ struct SimpleCmapRequest : public Request {
     };
     /** @brief Total encoding size in bytes (before suffixes). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffixes) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     virtual ~SimpleCmapRequest() = 0;
 };
 
@@ -3644,21 +3751,17 @@ struct SimpleCmapRequest : public Request {
 
 /**
  * @brief Represents X11 %FreeColormap request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   FREECOLORMAP(79) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct FreeColormap : public impl::SimpleCmapRequest {
 };
 /**
  * @brief Represents X11 %CopyColormapAndFree request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   COPYCOLORMAPANDFREE(80) and `tl_aligned_units` of 3.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CopyColormapAndFree : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: mid. */
@@ -3668,28 +3771,26 @@ struct CopyColormapAndFree : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %InstallColormap request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   INSTALLCOLORMAP(81) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct InstallColormap : public impl::SimpleCmapRequest {
 };
 /**
  * @brief Represents X11 %UninstallColormap request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   UNINSTALLCOLORMAP(82) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct UninstallColormap : public impl::SimpleCmapRequest {
 };
 /**
  * @brief Represents X11 %ListInstalledColormaps request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LISTINSTALLEDCOLORMAPS(83) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ListInstalledColormaps : public impl::SimpleWindowRequest {
@@ -3715,7 +3816,7 @@ struct ListInstalledColormaps : public impl::SimpleWindowRequest {
         };
         /**
          * @brief Fixed encoding between [Header](#Header) and suffix.
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofCOLORMAP cmaps` of (4 * cmaps_ct)B
          */
         struct [[gnu::packed]] Encoding {
@@ -3732,13 +3833,11 @@ struct ListInstalledColormaps : public impl::SimpleWindowRequest {
 };
 /**
  * @brief Represents X11 %AllocColor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   ALLOCCOLOR(84) and `tl_aligned_units` of 4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct AllocColor : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -3755,7 +3854,11 @@ struct AllocColor : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %AllocColor reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -3788,14 +3891,12 @@ struct AllocColor : public Request {
 };
 /**
  * @brief Represents X11 %AllocNamedColor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   ALLOCNAMEDCOLOR(85) and `tl_aligned_units` of 3+pad(Encoding::name_len)/4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct AllocNamedColor : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(name_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -3809,7 +3910,11 @@ struct AllocNamedColor : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %AllocNamedColor reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -3848,18 +3953,16 @@ struct AllocNamedColor : public Request {
  */
 struct AllocColorCells : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal ALLOCCOLORCELLS(86). */
         uint8_t  opcode;
         /** @brief Protocol name: contiguous. */
         BOOL     contiguous;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 3
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -3871,7 +3974,11 @@ struct AllocColorCells : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %AllocColorCells reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -3879,7 +3986,7 @@ struct AllocColorCells : public Request {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffixes:
+         * @note Followed by variable length suffixes:
          *   - `LISTofCARD32 pixels` of (4 * [pixels_ct](#pixels_ct))B
          *   - `LISTofCARD32 masks` of (4 * [masks_ct](#masks_ct))B
          */
@@ -3903,18 +4010,16 @@ struct AllocColorCells : public Request {
  */
 struct AllocColorPlanes : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal ALLOCCOLORPLANES(87). */
         uint8_t  opcode;
         /** @brief Protocol name: contiguous. */
         BOOL     contiguous;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 4
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -3930,7 +4035,11 @@ struct AllocColorPlanes : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %AllocColorPlanes reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -3938,7 +4047,7 @@ struct AllocColorPlanes : public Request {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofCARD32 pixels` of (4 * [pixels_ct](#pixels_ct))B
          */
         struct [[gnu::packed]] Encoding {
@@ -3965,14 +4074,12 @@ struct AllocColorPlanes : public Request {
 };
 /**
  * @brief Represents X11 %FreeColors request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   FREECOLORS(88) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct FreeColors : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofCARD32 pixels` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -3983,18 +4090,20 @@ struct FreeColors : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %StoreColors request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   STORECOLORS(89) and `tl_aligned_units` of 2+3n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct StoreColors : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofCOLORITEM items` of 12nB
      */
     struct [[gnu::packed]] Encoding {
@@ -4029,7 +4138,11 @@ struct StoreColors : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %StoreNamedColor request [encoding].
@@ -4037,20 +4150,18 @@ struct StoreColors : public Request {
  */
 struct StoreNamedColor : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal STORENAMEDCOLOR(90). */
         uint8_t  opcode;
         /** @brief BITMASK of following flags: 0x01=do-red 0x02=do-green
          *    0x04=do-blue (0xF8 bits unused). */
         uint8_t  do_rgb_mask;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 4+pad(name_len)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffixes:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffixes:
      *   - `STRING8 name` of pad(name_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -4064,26 +4175,28 @@ struct StoreNamedColor : public Request {
         /** @brief Ignored bytes. */
         uint16_t _unused;
     };
-    /** @brief [do_rgb_mask](#Header::do_rgb_mask) flag names. */
+    /** @brief [do_rgb_mask](#Prefix::do_rgb_mask) flag names. */
     inline static const
     std::vector< std::string_view >& do_rgb_names {
         protocol::enum_names::do_rgb_mask };
-    /** @brief [do_rgb_mask](#Header::do_rgb_mask) bits which should always be 0. */
+    /** @brief [do_rgb_mask](#Prefix::do_rgb_mask) bits which should always be 0. */
     static constexpr uint8_t DO_RGB_ZERO_BITS { 0xF8 };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %QueryColors request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   QUERYCOLORS(91) and `tl_aligned_units` of 2+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct QueryColors : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffixes:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofCARD32 pixels` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -4097,7 +4210,7 @@ struct QueryColors : public Request {
     struct Reply : public requests::Reply {
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
-         * @note Followed by suffixes:
+         * @note Followed by variable length suffixes:
          *   - `LISTofRGB colors` of (8 * [colors_ct](#Encoding::colors_ct))B
          */
         struct [[gnu::packed]] Encoding {
@@ -4127,18 +4240,20 @@ struct QueryColors : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %LookupColor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LOOKUPCOLOR(92) and `tl_aligned_units` of 3+pad(Encoding::name_len)/4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct LookupColor : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(name_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -4181,17 +4296,19 @@ struct LookupColor : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CreateCursor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CREATECURSOR(93) and `tl_aligned_units` of 8.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CreateCursor : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cid. */
@@ -4223,17 +4340,19 @@ struct CreateCursor : public Request {
         protocol::enum_names::zero_none };
     /** @brief Total encoding size in bytes (before suffixes). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffixes) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %CreateGlyphCursor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CREATEGLYPHCURSOR(94) and `tl_aligned_units` of 8.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct CreateGlyphCursor : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cid. */
@@ -4265,17 +4384,19 @@ struct CreateGlyphCursor : public Request {
         protocol::enum_names::zero_none };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %FreeCursor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   FREECURSOR(95) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct FreeCursor : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cursor. */
@@ -4283,17 +4404,19 @@ struct FreeCursor : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %RecolorCursor request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   RECOLORCURSOR(96) and `tl_aligned_units` of 5.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct RecolorCursor : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cursor. */
@@ -4313,7 +4436,11 @@ struct RecolorCursor : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %QueryBestSize request [encoding].
@@ -4321,18 +4448,16 @@ struct RecolorCursor : public Request {
  */
 struct QueryBestSize : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal QUERYBESTSIZE(97). */
         uint8_t  opcode;
         /** @brief Protocol name: class; uses enum: 0=Cursor 1=Tile 2=Stipple. */
         uint8_t  class_;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 3
     };
     /**
-     * @brief Fixed encoding after [Header](#Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: drawable. */
@@ -4342,7 +4467,7 @@ struct QueryBestSize : public Request {
         /** @brief Protocol name: height. */
         CARD16   height;
     };
-    /** @brief [class](#Header::class_) enum names. */
+    /** @brief [class](#Prefix::class_) enum names. */
     inline static const
     std::vector< std::string_view > class_names {
         "Cursor",  // 0
@@ -4351,7 +4476,11 @@ struct QueryBestSize : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %QueryBestSize request [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -4376,14 +4505,12 @@ struct QueryBestSize : public Request {
 };
 /**
  * @brief Represents X11 %QueryExtension request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   QUERYEXTENSION(98) and `tl_aligned_units` of 2+pad(Encoding::name_len)/4.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct QueryExtension : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(name_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -4395,7 +4522,11 @@ struct QueryExtension : public Request {
     };
     /** @brief Total encoding size in bytes (before suffixes). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffixes) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %QueryExtension reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -4424,8 +4555,6 @@ struct QueryExtension : public Request {
 };
 /**
  * @brief Represents X11 %ListExtensions request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LISTEXTENSIONS(99) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ListExtensions : public impl::SimpleRequest {
@@ -4451,7 +4580,7 @@ struct ListExtensions : public impl::SimpleRequest {
         };
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofSTR names` of [pad](#X11ProtocolParser::_Alignment::pad)(n)B
          */
         struct [[gnu::packed]] Encoding {
@@ -4470,19 +4599,17 @@ struct ListExtensions : public impl::SimpleRequest {
  */
 struct ChangeKeyboardMapping : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal CHANGEKEYBOARDMAPPING(100). */
         uint8_t  opcode;
         /** @brief Protocol name: keycode-count; affects length of suffix `keysyms`. */
         uint8_t  keycode_count;     // n
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 2+nm
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofKEYSYM keysyms` of 4nmB
      */
     struct [[gnu::packed]] Encoding {
@@ -4496,17 +4623,19 @@ struct ChangeKeyboardMapping : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetKeyboardMapping request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETKEYBOARDMAPPING(101) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetKeyboardMapping : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: first-keycode. */
@@ -4519,7 +4648,11 @@ struct GetKeyboardMapping : public Request {
     };
     /** @brief Total encoding size in bytes (before suffixes). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffixes) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
     /**
      * @brief Represents X11 %GetKeyboardMapping reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -4542,7 +4675,7 @@ struct GetKeyboardMapping : public Request {
         };
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofKEYSYM keysyms` of
          *   ([keysyms_per_keycode](#Header::keysyms_per_keycode) *
          *   [count](#GetKeyboardMapping::Encoding::count))B
@@ -4559,14 +4692,12 @@ struct GetKeyboardMapping : public Request {
 };
 /**
  * @brief Represents X11 %ChangeKeyboardControl request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CHANGEKEYBOARDCONTROL(102) and `tl_aligned_units` of 2+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ChangeKeyboardControl : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -4611,12 +4742,14 @@ struct ChangeKeyboardControl : public Request {
         protocol::enum_names::off_on };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetKeyboardControl request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETKEYBOARDCONTROL(103) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetKeyboardControl : public impl::SimpleRequest {
@@ -4681,28 +4814,29 @@ struct GetKeyboardControl : public impl::SimpleRequest {
  */
 struct Bell : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal BELL(104). */
         uint8_t  opcode;
         /** @brief Protocol name: percent. */
         INT8     percent;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 1
     };
     /** @brief Total encoding size in bytes. */
-    static constexpr size_t BASE_ENCODING_SZ { sizeof( Header ) };
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
 };
 /**
  * @brief Represents X11 %ChangePointerControl request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   CHANGEPOINTERCONTROL(105) and `tl_aligned_units` of 3.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ChangePointerControl : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: acceleration-numerator. */
@@ -4718,12 +4852,14 @@ struct ChangePointerControl : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetPointerControl request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETPOINTERCONTROL(106) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetPointerControl : public impl::SimpleRequest {
@@ -4752,13 +4888,11 @@ struct GetPointerControl : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %SetScreenSaver request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   SETSCREENSAVER(107) and `tl_aligned_units` of 3.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct SetScreenSaver : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: timeout. */
@@ -4783,12 +4917,14 @@ struct SetScreenSaver : public Request {
         protocol::enum_names::no_yes };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %GetScreenSaver request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETSCREENSAVER(108) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetScreenSaver : public impl::SimpleRequest {
@@ -4838,19 +4974,17 @@ struct GetScreenSaver : public impl::SimpleRequest {
  */
 struct ChangeHosts : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal CHANGEHOSTS(109). */
         uint8_t  opcode;
         /** @brief Protocol name: mode; uses enum: 0=Insert 1=Delete. */
         uint8_t  mode;
-        /** @brief Total length of request encoding in 4B units. */
-        uint16_t tl_aligned_units;  // 2+pad(address_len)/4
     };
     /**
-     * @brief Fixed encoding between [Header](#Header) and suffix.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after #Length/#BigLength.
+     * @note Followed by variable length suffix:
      *   - `LISTofCARD8 address` of pad(address_len)B
      */
     struct [[gnu::packed]] Encoding {
@@ -4863,7 +4997,7 @@ struct ChangeHosts : public Request {
         /** @brief Length of suffix `address` in bytes. */
         uint16_t address_len;
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view > mode_names {
         "Insert",  // 0
@@ -4877,12 +5011,14 @@ struct ChangeHosts : public Request {
     static constexpr uint8_t FAMILY_ENUM_MAX { 2 };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %ListHosts request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   LISTHOSTS(110) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct ListHosts : public impl::SimpleRequest {
@@ -4908,7 +5044,7 @@ struct ListHosts : public impl::SimpleRequest {
         };
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofHOST hosts` of (4 * [hosts_ct](#Encoding::hosts_ct))B
          */
         struct [[gnu::packed]] Encoding {
@@ -4935,17 +5071,15 @@ struct ListHosts : public impl::SimpleRequest {
  */
 struct SetAccessControl : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal SETACCESSCONTROL(111). */
         uint8_t    opcode;
         /** @brief Protocol name: mode; uses enum: 0=Disable 1=Enable. */
         uint8_t    mode;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t   tl_aligned_units;  // 1
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view > mode_names {
         "Disable",  // 0
@@ -4953,7 +5087,11 @@ struct SetAccessControl : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) };
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
 };
 /**
  * @brief Represents X11 %SetCloseDownMode request [encoding].
@@ -4961,18 +5099,16 @@ struct SetAccessControl : public Request {
  */
 struct SetCloseDownMode : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal SETCLOSEDOWNMODE(112). */
         uint8_t    opcode;
         /** @brief Protocol name: mode; uses enum:
          *    0=Destroy 1=RetainPermanent 2=RetainTemporary. */
         uint8_t    mode;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t   tl_aligned_units;  // 1
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view > mode_names {
         "Destroy",          // 0
@@ -4981,17 +5117,19 @@ struct SetCloseDownMode : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) };
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
 };
 /**
  * @brief Represents X11 %KillClient request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   KILLCLIENT(113) and `tl_aligned_units` of 2.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct KillClient : public Request {
     /**
-     * @brief Fixed encoding after [Header](#Request::Header).
+     * @brief Fixed encoding after #Length/#BigLength.
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: resource; uses enum: 0=AllTemporary. */
@@ -5004,18 +5142,21 @@ struct KillClient : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) + sizeof( Encoding ) };
+        sizeof( Prefix ) + sizeof( Length ) + sizeof( Encoding ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) + sizeof( Encoding ) };
 };
 /**
  * @brief Represents X11 %RotateProperties request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   ROTATEPROPERTIES(114) and `tl_aligned_units` of 3+n.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct RotateProperties : public Request {
     /**
-     * @brief Fixed encoding between [Header](#Request::Header) and suffixes.
-     * @note Followed by suffix:
+     * @brief Fixed encoding after [Length](#Request::Length)/
+     *   [BigLength](#Request::BigLength).
+     * @note Followed by variable length suffix:
      *   - `LISTofATOM properties` of 4nB
      */
     struct [[gnu::packed]] Encoding {
@@ -5028,7 +5169,11 @@ struct RotateProperties : public Request {
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) };
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
 };
 /**
  * @brief Represents X11 %ForceScreenSaver request [encoding].
@@ -5036,17 +5181,15 @@ struct RotateProperties : public Request {
  */
 struct ForceScreenSaver : public Request {
     /**
-     * @brief Fixed encoding prefix.
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal FORCESCREENSAVER(115). */
         uint8_t  opcode;
         /** @brief Protocol name: mode; uses enum: 0=Reset 1=Activate. */
         uint8_t  mode;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 1
     };
-    /** @brief [mode](#Header::mode) enum names. */
+    /** @brief [mode](#Prefix::mode) enum names. */
     inline static const
     std::vector< std::string_view > mode_names {
         "Reset",    // 0
@@ -5054,29 +5197,35 @@ struct ForceScreenSaver : public Request {
     };
     /** @brief Total encoding size in bytes. */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) };
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
 };
 /**
  * @brief Represents X11 %SetPointerMapping request [encoding].
+ * @note #Request::Length/#Request::BigLength followed by variable length suffix:
+ *   - `LISTofCARD8 map` of pad(#SetPointerMapping::Prefix::map_len)B
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct SetPointerMapping : public Request {
     /**
-     * @brief Fixed encoding prefix.
-     * @note Followed by suffix:
-     *   - `LISTofCARD8 map` of pad(map_len)B
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Protocol name: opcode; should equal SETPOINTERMAPPING(116). */
         uint8_t  opcode;
         /** @brief Length of suffix `map` in bytes. */
         uint8_t  map_len;
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;  // 1+pad(map_len)/4
     };
     /** @brief Total encoding size in bytes (before suffix). */
     static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) };
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
     /**
      * @brief Represents X11 %SetPointerMapping reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -5118,8 +5267,6 @@ struct SetPointerMapping : public Request {
 };
 /**
  * @brief Represents X11 %GetPointerMapping request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETPOINTERMAPPING(117) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetPointerMapping : public impl::SimpleRequest {
@@ -5145,7 +5292,7 @@ struct GetPointerMapping : public impl::SimpleRequest {
         };
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofCARD8 map` of pad(n)B
          */
         struct [[gnu::packed]] Encoding {
@@ -5160,29 +5307,31 @@ struct GetPointerMapping : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %SetModifierMapping request [encoding].
+ * @note #Request::Length/#Request::BigLength followed by variable length suffix:
+ *     - `LISTofKEYCODE keycodes` of 8nB
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct SetModifierMapping : public Request {
     /**
-     * @brief Fixed encoding prefix.
-     * @note Followed by suffix:
-     *   - `LISTofKEYCODE keycodes` of 8nB
+     * @brief Start of fixed encoding.
      */
-    struct [[gnu::packed]] Header {
+    struct [[gnu::packed]] Prefix {
         /** @brief Unique request identifier, should equal SETMODIFIERMAPPING(118). */
         uint8_t  opcode;
         /** @brief Protocol name: keycodes-per-modifier. */
         uint8_t  keycodes_per_modifier;  // n
-        /** @brief Total encoded length in 4B units. */
-        uint16_t tl_aligned_units;       // 1+2n
     };
-    /** @brief Total encoding size in bytes (before suffix). */
-    static constexpr size_t BASE_ENCODING_SZ {
-        sizeof( Header ) };
-    /** @brief Used with [keycodes-per-modifier](#Header::keycodes_per_modifier)
+    /** @brief Used with [keycodes-per-modifier](#Prefix::keycodes_per_modifier)
      *    to [calculate] length of suffix `keycodes`.
      *  [calculate]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:SetModifierMapping */
     static constexpr uint8_t MODIFIER_CT { 8 };
+    /** @brief Total encoding size in bytes (before suffix). */
+    static constexpr size_t BASE_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( Length ) };
+    /** @brief Total encoding size in bytes (before suffix) when using
+     *    BIG-REQUESTS encoding. */
+    static constexpr size_t BASE_BIG_ENCODING_SZ {
+        sizeof( Prefix ) + sizeof( BigLength ) };
     /**
      * @brief Represents X11 %SetModifierMapping reply [encoding].
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
@@ -5222,8 +5371,6 @@ struct SetModifierMapping : public Request {
 };
 /**
  * @brief Represents X11 %GetModifierMapping request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   GETMODIFIERMAPPING(119) and `tl_aligned_units` of 1.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct GetModifierMapping : public impl::SimpleRequest {
@@ -5249,7 +5396,7 @@ struct GetModifierMapping : public impl::SimpleRequest {
         };
         /**
          * @brief Fixed encoding, including [Header](#Header).
-         * @note Followed by suffix:
+         * @note Followed by variable length suffix:
          *   - `LISTofKEYCODE keycodes` of
          *     (8 * [keycodes_per_modifier](#Header::keycodes_per_modifier))B
          */
@@ -5269,14 +5416,13 @@ struct GetModifierMapping : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %NoOperation request [encoding].
- * @note Uses [Request::Header](#Request::Header) with expected `opcode` of
- *   NOOPERATION(127) and `tl_aligned_units` of 1+n, possibly followed by 4nB
- *   of unused data.
+ * @note #Request::Length/#Request::BigLength followed by variable length suffix:
+ *     - unused data 4nB
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct NoOperation : public impl::SimpleRequest {
 };
-        /** @brief Ignored bytes. */
+
 
 }  // namespace requests
 

@@ -146,11 +146,13 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     //////   reporting PropertyNotify events
     {
         using protocol::requests::ChangeWindowAttributes;
-        ChangeWindowAttributes::Header cwa_header {};
-        cwa_header.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
-        cwa_header.tl_aligned_units = _parser.alignment.units(
+        ChangeWindowAttributes::Prefix cwa_prefix {};
+        cwa_prefix.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
+        sbuffer.load( &cwa_prefix, sizeof( cwa_prefix ) );
+        ChangeWindowAttributes::Length cwa_length {};
+        cwa_length.tl_aligned_units = _parser.alignment.units(
             ChangeWindowAttributes::BASE_ENCODING_SZ + sizeof( protocol::VALUE ) );
-        sbuffer.load( &cwa_header, sizeof( cwa_header ) );
+        sbuffer.load( &cwa_length, sizeof( cwa_length ) );
         ChangeWindowAttributes::Encoding cwa_encoding {};
         cwa_encoding.window = screen0_root;
         cwa_encoding.value_mask = /*XCB_CW_EVENT_MASK*/ 1 << 11;
@@ -176,12 +178,14 @@ void ProxyX11Server::_fetchCurrentServerTime() {
     //      - https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#events:PropertyNotify
     {
         using protocol::requests::ChangeProperty;
-        ChangeProperty::Header cp_header {};
-        cp_header.opcode = protocol::requests::opcodes::CHANGEPROPERTY;
-        cp_header.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
-        cp_header.tl_aligned_units =
+        ChangeProperty::Prefix cp_prefix {};
+        cp_prefix.opcode = protocol::requests::opcodes::CHANGEPROPERTY;
+        cp_prefix.mode = /*XCB_PROP_MODE_APPEND 2*/0x02;
+        sbuffer.load( &cp_prefix, sizeof( cp_prefix ) );
+        ChangeProperty::Length cp_length {};
+        cp_length.tl_aligned_units =
             _parser.alignment.units( ChangeProperty::BASE_ENCODING_SZ );
-        sbuffer.load( &cp_header, sizeof( cp_header ) );
+        sbuffer.load( &cp_length, sizeof( cp_length ) );
         ChangeProperty::Encoding cp_encoding {};
         cp_encoding.window = screen0_root;
         cp_encoding.property.data = /*XCB_ATOM_WM_NAME 39*/0x27;
@@ -275,9 +279,10 @@ ProxyX11Server::_fetchInternedAtoms() {
         ::exit( EXIT_FAILURE );
     }
 
-    GetAtomName::Header req_header {};
-    req_header.opcode = protocol::requests::opcodes::GETATOMNAME;
-    req_header.tl_aligned_units =
+    GetAtomName::Prefix req_prefix {};
+    req_prefix.opcode = protocol::requests::opcodes::GETATOMNAME;
+    GetAtomName::Length req_length {};
+    req_length.tl_aligned_units =
         _parser.alignment.units( GetAtomName::BASE_ENCODING_SZ );
     GetAtomName::Encoding req_encoding {};
     GetAtomName::Reply::Encoding rep_encoding {};
@@ -288,7 +293,8 @@ ProxyX11Server::_fetchInternedAtoms() {
     for ( uint32_t i { 1 }; true; ++i ) {
         ////// Send GetAtomName request on ATOMs starting with 1
         //////   ( expecting large contiguous region of ATOM ids )
-        sbuffer.load( &req_header, sizeof( req_header ) );
+        sbuffer.load( &req_prefix, sizeof( req_prefix ) );
+        sbuffer.load( &req_length, sizeof( req_length ) );
         req_encoding.atom.data = i;
         sbuffer.load( &req_encoding, sizeof( req_encoding ) );
         assert( sbuffer.size() == GetAtomName::BASE_ENCODING_SZ );

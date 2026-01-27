@@ -8,8 +8,10 @@
 
 #include <cstdint>
 
-#include "protocol/requests.hpp"
+#include <array>
+
 #include "protocol/common_types.hpp"
+#include "protocol/extensions/requests.hpp"
 
 
 namespace protocol {
@@ -45,19 +47,17 @@ std::array< std::string_view, opcodes::MAX + 1 > names {
 
 /**
  * @brief Represents X11 BIG-REQUESTS extension %BigReqEnable request [encoding].
- * @note Uses [Request::Header](#protocol::Request::Header) with expected
- *  `major-opcode` assigned by server to BIG-REQUESTS, `minor-opcode` of
- *   BIGREQENABLE(0) and `tl_aligned_units` of 1.
  * [encoding]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding
  */
-struct BigReqEnable : public protocol::requests::impl::SimpleRequest {
+struct BigReqEnable : public protocol::extensions::requests::impl::SimpleRequest {
     /**
      * @brief Represents X11 BIG-REQUESTS extension %BigReqEnable reply [encoding].
      * [encoding]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding
      */
-    struct Reply : public protocol::requests::Reply {
+    struct Reply : public protocol::extensions::requests::Reply {
         /**
-         * @brief Fixed encoding, including [Header](#protocol::requests::Reply::Header).
+         * @brief Fixed encoding, including
+         *   [Header](#protocol::extensions::requests::Reply::Header).
          */
         struct [[gnu::packed]] Encoding {
             /** @brief Included prefix. */
@@ -69,7 +69,8 @@ struct BigReqEnable : public protocol::requests::impl::SimpleRequest {
             /** @brief Ignored bytes. */
             uint8_t _unused[2];
         };
-        static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
+        /** @brief Total encoding size in bytes. */
+        static constexpr size_t BASE_ENCODING_SZ { sizeof( Encoding ) };
     };
 };
 

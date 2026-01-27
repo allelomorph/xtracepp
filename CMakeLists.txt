@@ -15,7 +15,13 @@ include(PreventInSourceBuild)
 
 include(Getfmt)
 
+add_executable(xtracepp)
 add_subdirectory(src)
+target_link_libraries(xtracepp PUBLIC
+  src
+  extensions
+  big_requests
+)
 
 if(XTRACEPP_BUILD_TESTING)
   add_subdirectory(test)
