@@ -46,26 +46,7 @@ struct Request : public protocol::requests::Request {
  *   [default](#protocol::requests::Reply::DEFAULT_ENCODING_SZ) encoding size.
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#reply_format
  */
-struct Reply : public protocol::Response {
-    /**
-     * @brief Fixed encoding prefix.
-     */
-    struct [[gnu::packed]] Header {
-        /** @brief Identifies message as reply; should always equal [REPLY](#REPLY). */
-        uint8_t  reply;
-    private:
-        /** @brief Ignored bytes. */
-        uint8_t  _unused;
-    public:
-        /** @brief [Serial number on current connection](#Connection::sequence)
-         *   of relevant request. */
-        CARD16   sequence_num;
-        /** @brief Length of encoding in excess of default, in 4B units. */
-        uint32_t extra_aligned_units;
-    };
-    /** @brief Identifies message as reply when found in
-     *   [Header::reply](#Header::reply). */
-    static constexpr uint8_t REPLY { REPLY_PREFIX };
+struct Reply : public protocol::requests::Reply {
     virtual ~Reply() = 0;
 };
 

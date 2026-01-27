@@ -18,7 +18,7 @@
 #include "protocol/requests.hpp"  // PolySegment::SEGMENT
 #include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
 #include "protocol/errors.hpp"  // errors::ENCODING_SZ
-#include "protocol/extensions/big_requests.hpp"
+#include "protocol/extensions/requests.hpp"
 
 
 void
@@ -73,19 +73,35 @@ X11ProtocolParser::_logRequest(
     const uint8_t major_opcode { _ordered( prefix->opcode, conn->byteswap ) };
     // map opcode to sequence number to aid in parsing request errors and replies
     const protocol::CARD16 sequence { conn->registerRequest( major_opcode ) };
-    const _MajorOpcodeTraits& opcode_traits { _major_opcodes.at( major_opcode ) };
+    const _MajorOpcodeTraits& major_opcode_traits {
+        _major_opcodes.at( major_opcode ) };
     _ParsingOutputs request {};
-    if ( opcode_traits.extension ) {
-        // TBD
+    if ( major_opcode_traits.extension ) {
+        namespace ext = protocol::extensions;
+        const ext::requests::Request::Prefix* ext_prefix {
+            reinterpret_cast< const ext::requests::Request::Prefix* >( data ) };
+        const uint8_t minor_opcode {
+            _ordered( ext_prefix->minor_opcode, conn->byteswap ) };
+        const _RequestOpcodeTraits& request_traits {
+            major_opcode_traits.extension.requests.at( minor_opcode ) };
+        request = (this->*request_traits.request_parse_func)( conn, data, sz );
+        fmt::println( settings.log_fs,
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Request {}({})-{}({}): {}",
+                      conn->id, request.bytes_parsed, CLIENT_TO_SERVER, sequence,
+                      major_opcode_traits.extension.name, major_opcode,
+                      request_traits.name, minor_opcode, request.str );
     } else {
-        assert( opcode_traits.request );
+        assert( major_opcode_traits.request );
+        const _RequestOpcodeTraits& request_traits { major_opcode_traits.request };
         // pointer-to-member access operator
-        request = (this->*opcode_traits.request.request_parse_func)( conn, data, sz );
+        request = (this->*request_traits.request_parse_func)( conn, data, sz );
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Request {}({}): {}",
                       conn->id, request.bytes_parsed, CLIENT_TO_SERVER, sequence,
-                      opcode_traits.request.name, major_opcode, request.str );
+                      request_traits.name, major_opcode, request.str );
     }
+    assert( request.bytes_parsed != 0 );
+    assert( request.bytes_parsed <= sz );
     return request.bytes_parsed;
 }
 
@@ -95,28 +111,36 @@ size_t X11ProtocolParser::_logReply(
     assert( data != nullptr );
     assert( sz >= protocol::requests::Reply::DEFAULT_ENCODING_SZ );
 
-    // get request opcode via sequence number
     using protocol::requests::Reply;
     const bool byteswap { conn->byteswap };
     const Reply::Header* header {
         reinterpret_cast< const Reply::Header* >( data ) };
     assert( _ordered( header->reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
+    // get request opcode via sequence number
     const protocol::CARD16 sequence { _ordered( header->sequence_num, byteswap ) };
     const Connection::RequestOpcodes opcodes { conn->lookupRequest( sequence ) };
-    const _MajorOpcodeTraits& opcode_traits { _major_opcodes.at( opcodes.major ) };
+    const _MajorOpcodeTraits& major_opcode_traits { _major_opcodes.at( opcodes.major ) };
     _ParsingOutputs reply;
-    if ( opcode_traits.extension ) {
-        // TBD
+    if ( major_opcode_traits.extension ) {
+        const _RequestOpcodeTraits& request_traits {
+            major_opcode_traits.extension.requests.at( opcodes.minor ) };
+        reply = (this->*request_traits.reply_parse_func)( conn, data, sz );
+        fmt::println( settings.log_fs,
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({})-{}({}): {}",
+                      conn->id, reply.bytes_parsed, CLIENT_TO_SERVER, sequence,
+                      major_opcode_traits.extension.name, opcodes.major,
+                      request_traits.name, opcodes.minor, reply.str );
     } else {
-        assert( opcode_traits.request );
-        assert( opcode_traits.request.reply_parse_func != nullptr );
+        assert( major_opcode_traits.request );
+        const _RequestOpcodeTraits& request_traits { major_opcode_traits.request };
+        assert( request_traits.reply_parse_func != nullptr );
         // pointer-to-member access operator
-        reply = (this->*opcode_traits.request.reply_parse_func)( conn, data, sz );
+        reply = (this->*request_traits.reply_parse_func)( conn, data, sz );
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
                       conn->id, reply.bytes_parsed, SERVER_TO_CLIENT, sequence,
-                      opcode_traits.request.name, opcodes.major, reply.str );
+                      request_traits.name, opcodes.major, reply.str );
     }
     // ListFontsWithInfo presents edge case as it issues a series of replies
     using protocol::requests::ListFontsWithInfo;
@@ -126,8 +150,8 @@ size_t X11ProtocolParser::_logReply(
          ListFontsWithInfo::Reply::LAST_REPLY ) {
         conn->unregisterRequest( sequence );
     }
-    assert( reply.bytes_parsed >=
-            protocol::requests::Reply::DEFAULT_ENCODING_SZ );
+    assert( reply.bytes_parsed != 0 );
+    assert( reply.bytes_parsed <= sz );
     return reply.bytes_parsed;
 }
 
@@ -226,6 +250,7 @@ size_t X11ProtocolParser::_logClientPacket(
     default:
         break;
     }
+    assert( bytes_parsed != 0 );
     assert( bytes_parsed <= sz );
     return bytes_parsed;
 }
@@ -275,6 +300,7 @@ size_t X11ProtocolParser::_logServerPacket(
     default:
         break;
     }
+    assert( bytes_parsed != 0 );
     assert( bytes_parsed <= sz );
     return bytes_parsed;
 }

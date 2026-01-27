@@ -5,6 +5,7 @@
 
 #include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
+#include "protocol/extensions/requests.hpp"  // Reply::DEFAULT_ENCODING_SZ
 #include "protocol/extensions/big_requests/requests.hpp"
 
 
@@ -18,7 +19,7 @@ X11ProtocolParser::_parseReply<
     using ext::big_requests::requests::BigReqEnable;
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= BigReqEnable::Reply::BASE_ENCODING_SZ );
+    assert( sz >= ext::requests::Reply::DEFAULT_ENCODING_SZ );
 
     _ParsingOutputs reply;
     const _Whitespace& ws { _ROOT_WS };
@@ -30,7 +31,7 @@ X11ProtocolParser::_parseReply<
             BigReqEnable::Reply::REPLY );
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units(
-                reply.bytes_parsed - BigReqEnable::Reply::BASE_ENCODING_SZ ) );
+                reply.bytes_parsed - ext::requests::Reply::DEFAULT_ENCODING_SZ ) );
     // BIG-REQUESTS is a special case in that it is not considered activated
     //   until the server replies to request BigReqEnable
     assert( !conn->extensions.active(

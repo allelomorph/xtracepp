@@ -58,6 +58,11 @@ struct BigReqEnable : public protocol::extensions::requests::impl::SimpleRequest
         /**
          * @brief Fixed encoding, including
          *   [Header](#protocol::extensions::requests::Reply::Header).
+         * @note Documented [encoding] only implies 2 unused bytes at end, which
+         *   would make the total less than the core protocol reply size
+         *   [default](#protocol::requests::Reply::DEFAULT_ENCODING_SZ) of 32.
+         *   Based on testing, the reply is in fact encoded as 32 bytes.
+         * [encoding]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding
          */
         struct [[gnu::packed]] Encoding {
             /** @brief Included prefix. */
@@ -67,10 +72,9 @@ struct BigReqEnable : public protocol::extensions::requests::impl::SimpleRequest
             CARD32   maximum_request_length;
         private:
             /** @brief Ignored bytes. */
-            uint8_t _unused[2];
+            uint8_t _unused[20];
         };
-        /** @brief Total encoding size in bytes. */
-        static constexpr size_t BASE_ENCODING_SZ { sizeof( Encoding ) };
+        static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
     };
 };
 
