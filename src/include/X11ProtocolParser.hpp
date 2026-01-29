@@ -109,7 +109,7 @@ private:
          */
         uint32_t conn_id {};
         /**
-         * @brief Request serial number, unique for a on a given
+         * @brief Request serial number, unique for a given
          *   [connection](#Connection).
          */
         uint16_t seq_num {};
