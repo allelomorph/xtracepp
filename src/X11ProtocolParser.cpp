@@ -65,40 +65,50 @@ X11ProtocolParser::_logRequest(
     Connection* conn, const uint8_t* data, const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
-    assert( sz >= sizeof( protocol::requests::Request::Prefix ) +
-            sizeof( protocol::requests::Request::Length ) );
+    namespace ext = protocol::extensions;
+    assert( sz >= sizeof( ext::requests::Request::Prefix ) +
+            sizeof( ext::requests::Request::Length ) );
 
-    const protocol::requests::Request::Prefix* prefix {
-        reinterpret_cast< const protocol::requests::Request::Prefix* >( data ) };
-    const uint8_t major_opcode { _ordered( prefix->opcode, conn->byteswap ) };
+    const ext::requests::Request::Prefix* prefix {
+        reinterpret_cast< const ext::requests::Request::Prefix* >( data ) };
+    const uint8_t major_opcode { _ordered( prefix->major_opcode, conn->byteswap ) };
+    const uint8_t minor_opcode { _ordered( prefix->minor_opcode, conn->byteswap ) };
     // map opcode to sequence number to aid in parsing request errors and replies
     const protocol::CARD16 sequence { conn->registerRequest( major_opcode ) };
-    const _MajorOpcodeTraits& major_opcode_traits {
-        _major_opcodes.at( major_opcode ) };
-    _ParsingOutputs request {};
-    if ( major_opcode_traits.extension ) {
-        namespace ext = protocol::extensions;
-        const ext::requests::Request::Prefix* ext_prefix {
-            reinterpret_cast< const ext::requests::Request::Prefix* >( data ) };
-        const uint8_t minor_opcode {
-            _ordered( ext_prefix->minor_opcode, conn->byteswap ) };
-        const _RequestOpcodeTraits& request_traits {
-            major_opcode_traits.extension.requests.at( minor_opcode ) };
-        request = (this->*request_traits.request_parse_func)( conn, data, sz );
+    std::string_view request_name { "(unknown opcode)" };
+    _RequestOpcodeTraits::ParseFuncT request_parse_func {
+        &X11ProtocolParser::_parseRequest< X11ProtocolParser::_UnknownRequest > };
+    std::string_view extension_name {};
+    if ( const auto major_oc_it { _major_opcodes.find( major_opcode ) };
+         major_oc_it != _major_opcodes.end() ) {
+        const _MajorOpcodeTraits& major_oct { major_oc_it->second };
+        if ( major_oct.extension ) {
+            extension_name = major_oct.extension.name;
+            if ( const auto minor_oc_it {
+                    major_oct.extension.requests.find( minor_opcode ) };
+                minor_oc_it != major_oct.extension.requests.end() ) {
+                request_name = minor_oc_it->second.name;
+                request_parse_func = minor_oc_it->second.request_parse_func;
+            }
+        } else {
+            assert( major_oct.request );
+            request_name = major_oct.request.name;
+            request_parse_func = major_oct.request.request_parse_func;
+        }
+    }
+    // pointer-to-member access operator
+    const _ParsingOutputs request { ( this->*request_parse_func )( conn, data, sz ) };
+    if ( !extension_name.empty() ) {
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Request {}({})-{}({}): {}",
                       conn->id, request.bytes_parsed, CLIENT_TO_SERVER, sequence,
-                      major_opcode_traits.extension.name, major_opcode,
-                      request_traits.name, minor_opcode, request.str );
+                      extension_name, major_opcode,
+                      request_name, minor_opcode, request.str );
     } else {
-        assert( major_opcode_traits.request );
-        const _RequestOpcodeTraits& request_traits { major_opcode_traits.request };
-        // pointer-to-member access operator
-        request = (this->*request_traits.request_parse_func)( conn, data, sz );
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Request {}({}): {}",
                       conn->id, request.bytes_parsed, CLIENT_TO_SERVER, sequence,
-                      request_traits.name, major_opcode, request.str );
+                      request_name, major_opcode, request.str );
     }
     assert( request.bytes_parsed != 0 );
     assert( request.bytes_parsed <= sz );
@@ -120,27 +130,42 @@ size_t X11ProtocolParser::_logReply(
     // get request opcode via sequence number
     const protocol::CARD16 sequence { _ordered( header->sequence_num, byteswap ) };
     const Connection::RequestOpcodes opcodes { conn->lookupRequest( sequence ) };
-    const _MajorOpcodeTraits& major_opcode_traits { _major_opcodes.at( opcodes.major ) };
-    _ParsingOutputs reply;
-    if ( major_opcode_traits.extension ) {
-        const _RequestOpcodeTraits& request_traits {
-            major_opcode_traits.extension.requests.at( opcodes.minor ) };
-        reply = (this->*request_traits.reply_parse_func)( conn, data, sz );
+    std::string_view request_name { "(unknown opcode)" };
+    _RequestOpcodeTraits::ParseFuncT reply_parse_func {
+        &X11ProtocolParser::_parseReply< X11ProtocolParser::_UnknownRequest > };
+    std::string_view extension_name {};
+    if ( const auto major_oc_it { _major_opcodes.find( opcodes.major ) };
+         major_oc_it != _major_opcodes.end() ) {
+        const _MajorOpcodeTraits& major_oct { major_oc_it->second };
+        if ( major_oct.extension ) {
+            extension_name = major_oct.extension.name;
+            if ( const auto minor_oc_it {
+                    major_oct.extension.requests.find( opcodes.minor ) };
+                 minor_oc_it != major_oct.extension.requests.end() ) {
+                request_name = minor_oc_it->second.name;
+                reply_parse_func = minor_oc_it->second.reply_parse_func;
+                assert( reply_parse_func != nullptr );
+            }
+        } else {
+            assert( major_oct.request );
+            request_name = major_oct.request.name;
+            reply_parse_func = major_oct.request.reply_parse_func;
+            assert( reply_parse_func != nullptr );
+        }
+    }
+    // pointer-to-member access operator
+    const _ParsingOutputs reply { ( this->*reply_parse_func )( conn, data, sz ) };
+    if ( !extension_name.empty() ) {
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({})-{}({}): {}",
                       conn->id, reply.bytes_parsed, CLIENT_TO_SERVER, sequence,
-                      major_opcode_traits.extension.name, opcodes.major,
-                      request_traits.name, opcodes.minor, reply.str );
+                      extension_name, opcodes.major,
+                      request_name, opcodes.minor, reply.str );
     } else {
-        assert( major_opcode_traits.request );
-        const _RequestOpcodeTraits& request_traits { major_opcode_traits.request };
-        assert( request_traits.reply_parse_func != nullptr );
-        // pointer-to-member access operator
-        reply = (this->*request_traits.reply_parse_func)( conn, data, sz );
         fmt::println( settings.log_fs,
-                      "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
-                      conn->id, reply.bytes_parsed, SERVER_TO_CLIENT, sequence,
-                      request_traits.name, opcodes.major, reply.str );
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Reply {}({}): {}",
+                      conn->id, reply.bytes_parsed, CLIENT_TO_SERVER, sequence,
+                      request_name, opcodes.major, reply.str );
     }
     // ListFontsWithInfo presents edge case as it issues a series of replies
     using protocol::requests::ListFontsWithInfo;

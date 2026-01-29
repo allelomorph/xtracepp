@@ -1069,6 +1069,10 @@ private:
     template< typename ConnectionSetupT >
     size_t _logConnectionSetup(
         Connection* conn, const uint8_t* data, const size_t sz );
+    struct _UnknownRequest :
+        public protocol::extensions::requests::impl::SimpleRequest {
+        struct Reply : public protocol::requests::Reply {};
+    };
     /**
      * @brief Parse X11 request from raw bytes.
      * @tparam RequestT type of request encoding (eg protocol::requests::InternAtom)

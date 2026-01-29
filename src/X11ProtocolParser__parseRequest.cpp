@@ -19,6 +19,64 @@ namespace ext = protocol::extensions;
 
 template<>
 X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseRequest< X11ProtocolParser::_UnknownRequest >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= _UnknownRequest::BASE_ENCODING_SZ );
+
+    _ParsingOutputs request {};
+    const _Whitespace& ws { _ROOT_WS };
+    const bool byteswap { conn->byteswap };
+    const _RequestFixedEncoding< _UnknownRequest > fe { conn, data, sz };
+    request.bytes_parsed += fe.bytes_parsed;
+    assert( fe.header_only );
+    // potentially followed by unparsable suffix
+    const auto tl_aligned_units {
+        fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
+                         _ordered( fe.length->tl_aligned_units, byteswap ) };
+    const size_t data_len { alignment.size( tl_aligned_units ) -
+                            fe.big_request ? _UnknownRequest::BASE_ENCODING_SZ :
+                                             _UnknownRequest::BASE_BIG_ENCODING_SZ };
+    request.bytes_parsed += alignment.pad( data_len );
+    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+
+    const uint32_t memb_name_w (
+        !ws.multiline     ? 0 :
+        !settings.verbose ? sizeof( "(unparseable suffix)" ) - 1 :
+        fe.big_request    ? sizeof( "(extended length flag)" ) - 1 :
+                            sizeof( "(total aligned units)" ) - 1 );
+    request.str = fmt::format(
+        "{{{}"
+        "{}{: <{}}{}{}{}{}{: <{}}{}{}{}"
+        "{}{}"
+        "{}{: <{}}{}({} bytes){}"
+        "{}}}",
+        ws.separator,
+        ws.memb_indent, "major-opcode", memb_name_w, ws.equals,
+        _formatVariable( fe.prefix->major_opcode, byteswap ), ws.separator,
+        ws.memb_indent, "minor-opcode", memb_name_w, ws.equals,
+        _formatVariable( fe.prefix->minor_opcode, byteswap ), ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, fe.big_request ? "(extended length flag)" : "(total aligned units)",
+            memb_name_w, ws.equals,
+            fe.big_request ? _formatVariable( fe.big_length->extended_length_flag, byteswap ) :
+                             _formatVariable( fe.length->tl_aligned_units, byteswap ),
+            ws.separator ),
+        !settings.verbose || !fe.big_request ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(total aligned units)", memb_name_w, ws.equals,
+            _formatVariable( fe.big_length->tl_aligned_units, byteswap ), ws.separator ),
+        ws.memb_indent, "(unparseable suffix)", memb_name_w, ws.equals,
+        data_len, ws.separator,
+        ws.encl_indent
+        );
+    return request;
+}
+
+template<>
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseRequest<
     protocol::requests::impl::SimpleRequest >(
         Connection* conn, const uint8_t* data, const size_t sz ) {

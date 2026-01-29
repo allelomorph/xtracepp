@@ -14,6 +14,59 @@
 
 template<>
 X11ProtocolParser::_ParsingOutputs
+X11ProtocolParser::_parseReply< X11ProtocolParser::_UnknownRequest >(
+        Connection* conn, const uint8_t* data, const size_t sz ) {
+    assert( conn != nullptr );
+    assert( data != nullptr );
+    assert( sz >= protocol::requests::Reply::DEFAULT_ENCODING_SZ );
+
+    _ParsingOutputs reply;
+    const _Whitespace& ws { _ROOT_WS };
+    const bool byteswap { conn->byteswap };
+    const _UnknownRequest::Reply::Encoding* encoding {
+        reinterpret_cast< const _UnknownRequest::Reply::Encoding* >( data ) };
+    reply.bytes_parsed += sizeof( _UnknownRequest::Reply::Encoding );
+    assert( _ordered( encoding->header.reply, byteswap ) ==
+            protocol::requests::Reply::REPLY );
+    // potentially followed by unparsable suffix
+    const uint32_t extra_aligned_units {
+        _ordered( encoding->header.extra_aligned_units, byteswap ) };
+    reply.bytes_parsed += alignment.size( extra_aligned_units );
+    assert( extra_aligned_units ==
+            alignment.units( reply.bytes_parsed -
+                             protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+
+    const uint32_t memb_name_w (
+        !ws.multiline ? 0 :
+        !settings.verbose ? sizeof( "(unparseable suffix)" ) - 1 :
+                            sizeof( "(extra aligned units)" ) - 1 );
+    reply.str = fmt::format(
+        "{{{}"
+        "{}{}{}"
+        "{}{: <{}}{}({} bytes){}"
+        "{}}}",
+        ws.separator,
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "reply", memb_name_w, ws.equals,
+            _formatVariable( encoding->header.reply, byteswap ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(sequence number)", memb_name_w, ws.equals,
+            _formatVariable( encoding->header.sequence_num, byteswap ), ws.separator ),
+        !settings.verbose ? "" : fmt::format(
+            "{}{: <{}}{}{}{}",
+            ws.memb_indent, "(extra aligned units)", memb_name_w, ws.equals,
+            _formatVariable( encoding->header.extra_aligned_units, byteswap ), ws.separator ),
+        ws.memb_indent, "(unparseable suffix)", memb_name_w, ws.equals,
+        alignment.size( extra_aligned_units ), ws.separator,
+        ws.encl_indent
+        );
+    return reply;
+}
+
+template<>
+X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetWindowAttributes >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
