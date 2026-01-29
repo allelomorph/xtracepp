@@ -1551,7 +1551,9 @@ private:
         _RequestFixedEncoding(
             Connection* conn, const uint8_t* data, const size_t sz ) :
             BaseT( conn, data, sz ) {
-            assert( this->bytes_parsed == RequestT::BASE_ENCODING_SZ );
+            assert( this->bytes_parsed ==
+                    ( this->big_request ? RequestT::BASE_BIG_ENCODING_SZ :
+                                          RequestT::BASE_ENCODING_SZ ) );
         }
     };
 

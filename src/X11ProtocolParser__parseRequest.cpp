@@ -36,8 +36,8 @@ X11ProtocolParser::_parseRequest< X11ProtocolParser::_UnknownRequest >(
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t data_len { alignment.size( tl_aligned_units ) -
-                            fe.big_request ? _UnknownRequest::BASE_ENCODING_SZ :
-                                             _UnknownRequest::BASE_BIG_ENCODING_SZ };
+        ( fe.big_request ? _UnknownRequest::BASE_BIG_ENCODING_SZ :
+                           _UnknownRequest::BASE_ENCODING_SZ ) };
     request.bytes_parsed += alignment.pad( data_len );
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
@@ -269,7 +269,9 @@ X11ProtocolParser::_parseRequest<
         _ordered( fe.big_length->tl_aligned_units, byteswap ) :
         _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t points_sz {
-        alignment.size( tl_aligned_units ) - PolyPointRequest::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? PolyPointRequest::BASE_BIG_ENCODING_SZ :
+                           PolyPointRequest::BASE_ENCODING_SZ ) };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
     const _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
@@ -2872,8 +2874,10 @@ X11ProtocolParser::_parseRequest<
     const uint32_t tl_aligned_units {
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
-    const size_t string_sz { alignment.size( tl_aligned_units ) -
-                             QueryTextExtents::BASE_ENCODING_SZ };
+    const size_t string_sz {
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? QueryTextExtents::BASE_BIG_ENCODING_SZ :
+                           QueryTextExtents::BASE_ENCODING_SZ ) };
     const size_t string_len {
         ( string_sz / sizeof( protocol::CHAR2B/*char16_t*/ ) ) -
         ( _ordered( fe.prefix->odd_length.data, byteswap ) ? 1 : 0 ) };
@@ -3542,7 +3546,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
-        alignment.size( tl_aligned_units ) - SetClipRectangles::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? SetClipRectangles::BASE_BIG_ENCODING_SZ :
+                           SetClipRectangles::BASE_ENCODING_SZ ) };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
@@ -3929,7 +3935,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t segments_sz {
-        alignment.size( tl_aligned_units ) - PolySegment::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? PolySegment::BASE_BIG_ENCODING_SZ :
+                           PolySegment::BASE_ENCODING_SZ ) };
     const size_t segments_ct { segments_sz / sizeof( PolySegment::SEGMENT ) };
     const _ParsingOutputs segments {
         _parseLISTof< PolySegment::SEGMENT >(
@@ -3998,7 +4006,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
-        alignment.size( tl_aligned_units ) - PolyRectangle::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? PolyRectangle::BASE_BIG_ENCODING_SZ :
+                           PolyRectangle::BASE_ENCODING_SZ ) };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
     _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
@@ -4067,7 +4077,8 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t arcs_sz {
-        tl_aligned_units - PolyArc::BASE_ENCODING_SZ };
+        tl_aligned_units - ( fe.big_request ? PolyArc::BASE_BIG_ENCODING_SZ :
+                                              PolyArc::BASE_ENCODING_SZ ) };
     const size_t arcs_ct { arcs_sz / sizeof( protocol::ARC ) };
     const _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
@@ -4136,7 +4147,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t points_sz {
-        alignment.size( tl_aligned_units ) - FillPoly::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? FillPoly::BASE_BIG_ENCODING_SZ :
+                           FillPoly::BASE_ENCODING_SZ ) };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
     const _ParsingOutputs points {
         _parseLISTof< protocol::POINT >(
@@ -4350,7 +4363,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t data_len {
-        alignment.size( tl_aligned_units ) - PutImage::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? PutImage::BASE_BIG_ENCODING_SZ :
+                           PutImage::BASE_ENCODING_SZ ) };
     // - as in xtrace, we will only print the size in bytes of the image data
     request.bytes_parsed += alignment.pad( data_len );
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
@@ -4508,7 +4523,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t items_sz {
-        alignment.size( tl_aligned_units ) - PolyText8::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? PolyText8::BASE_BIG_ENCODING_SZ :
+                           PolyText8::BASE_ENCODING_SZ ) };
     // TEXTITEM8 count undetermined due to their variable length
     const _ParsingOutputs items {
         _parseLISTof< PolyText8::TEXTITEM8 >(
@@ -4582,7 +4599,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t items_sz {
-        alignment.size( tl_aligned_units ) - PolyText16::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? PolyText16::BASE_BIG_ENCODING_SZ :
+                           PolyText16::BASE_ENCODING_SZ ) };
     // TEXTITEM8 count undetermined due to their variable length
     const _ParsingOutputs items {
         _parseLISTof< PolyText16::TEXTITEM16 >(
@@ -5262,7 +5281,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t pixels_sz {
-        alignment.size( tl_aligned_units ) - FreeColors::BASE_ENCODING_SZ  };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? FreeColors::BASE_BIG_ENCODING_SZ :
+                           FreeColors::BASE_ENCODING_SZ ) };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
@@ -5333,7 +5354,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t items_sz {
-        alignment.size( tl_aligned_units ) - StoreColors::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? StoreColors::BASE_BIG_ENCODING_SZ :
+                           StoreColors::BASE_ENCODING_SZ ) };
     const size_t items_ct { items_sz / sizeof( StoreColors::COLORITEM ) };
     const _ParsingOutputs items {
         _parseLISTof< StoreColors::COLORITEM >(
@@ -5479,7 +5502,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t pixels_sz {
-        alignment.size( tl_aligned_units ) - QueryColors::BASE_ENCODING_SZ  };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? QueryColors::BASE_BIG_ENCODING_SZ :
+                           QueryColors::BASE_ENCODING_SZ ) };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
     const _ParsingOutputs pixels {
         _parseLISTof< protocol::CARD32 >(
@@ -6052,7 +6077,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t keysyms_sz {
-        alignment.size( tl_aligned_units ) - ChangeKeyboardMapping::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? ChangeKeyboardMapping::BASE_BIG_ENCODING_SZ :
+                           ChangeKeyboardMapping::BASE_ENCODING_SZ ) };
     const uint16_t keysyms_ct (
         fe.prefix->keycode_count * fe.encoding->keysyms_per_keycode );
     assert( keysyms_ct == keysyms_sz / sizeof( protocol::KEYSYM ) );
@@ -6501,7 +6528,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t address_sz {
-        alignment.size( tl_aligned_units ) - ChangeHosts::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? ChangeHosts::BASE_BIG_ENCODING_SZ :
+                           ChangeHosts::BASE_ENCODING_SZ ) };
     const _ParsingOutputs address {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, address_sz,
@@ -6770,7 +6799,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t properties_sz {
-        alignment.size( tl_aligned_units ) - RotateProperties::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? RotateProperties::BASE_BIG_ENCODING_SZ :
+                           RotateProperties::BASE_ENCODING_SZ ) };
     const _ParsingOutputs properties {
         _parseLISTof< protocol::ATOM >(
             data + request.bytes_parsed, properties_sz,
@@ -6903,7 +6934,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t map_sz {
-        alignment.size( tl_aligned_units ) - SetPointerMapping::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? SetPointerMapping::BASE_BIG_ENCODING_SZ :
+                           SetPointerMapping::BASE_ENCODING_SZ ) };
     const _ParsingOutputs map {
         _parseLISTof< protocol::CARD8 >(
             data + request.bytes_parsed, map_sz,
@@ -6988,7 +7021,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t keycodes_sz {
-        alignment.size( tl_aligned_units ) - SetModifierMapping::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? SetModifierMapping::BASE_BIG_ENCODING_SZ :
+                           SetModifierMapping::BASE_ENCODING_SZ ) };
     const uint16_t keycodes_ct (
         SetModifierMapping::MODIFIER_CT * fe.prefix->keycodes_per_modifier );
     const _ParsingOutputs keycodes {
@@ -7073,7 +7108,9 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t dummy_sz {
-        alignment.size( tl_aligned_units ) - NoOperation::BASE_ENCODING_SZ };
+        alignment.size( tl_aligned_units ) -
+        ( fe.big_request ? NoOperation::BASE_BIG_ENCODING_SZ :
+                           NoOperation::BASE_ENCODING_SZ ) };
     request.bytes_parsed += dummy_sz;
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
 
