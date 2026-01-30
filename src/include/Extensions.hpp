@@ -12,15 +12,28 @@
 
 
 /**
- * @brief Tracks activation of extension features, both by unique [ids](#Ids)
+ * @brief Tracks activation of extension features, both by extension names
  *   and by named boolean members.
  */
 class Extensions {
 private:
-    /** @brief Allows for toggling of extension flags by extension name rather
-     *    than member name. */
-    std::unordered_map< std::string_view, bool& > _flags_by_id {
-        { "BIG-REQUESTS", this->big_requests }
+    enum class _Toggle { Off, On };
+    using _ToggleFuncT = void (Extensions::*)( const _Toggle );
+    using _CheckFuncT = bool (Extensions::*)();
+    struct _MembFuncs {
+        _ToggleFuncT toggle_func {};
+        _CheckFuncT check_func {};
+    };
+    inline void _toggleBigRequests( const _Toggle toggle ) {
+        big_requests = static_cast< bool >( toggle );
+    }
+    inline bool _checkBigRequests() {
+        return big_requests;
+    }
+    /** @brief Allows for extension flag access by extension name string. */
+    std::unordered_map< std::string_view, _MembFuncs > _funcs_by_ext_name {
+        { "BIG-REQUESTS",
+          _MembFuncs{ &Extensions::_toggleBigRequests, &Extensions::_checkBigRequests } }
     };
 
 public:
@@ -35,9 +48,11 @@ public:
      */
     inline void
     activate( const std::string_view& name ) {
-        auto it { _flags_by_id.find( name ) };
-        if ( it != _flags_by_id.end() )
-            it->second = true;
+        auto it { _funcs_by_ext_name.find( name ) };
+        if ( it != _funcs_by_ext_name.end() ) {
+            const _ToggleFuncT toggle_func { it->second.toggle_func };
+            (this->*toggle_func)( _Toggle::On );
+        }
     }
     /**
      * @brief Check by name if extension is active.
@@ -46,9 +61,11 @@ public:
      */
     inline bool
     active( const std::string_view& name ) {
-        auto it { _flags_by_id.find( name ) };
-        if ( it != _flags_by_id.end() )
-            return it->second;
+        auto it { _funcs_by_ext_name.find( name ) };
+        if ( it != _funcs_by_ext_name.end() ) {
+            const _CheckFuncT check_func { it->second.check_func };
+            return (this->*check_func)();
+        }
         return false;
     }
     /**
@@ -57,9 +74,11 @@ public:
      */
     inline void
     deactivate( const std::string_view& name ) {
-        auto it { _flags_by_id.find( name ) };
-        if ( it != _flags_by_id.end() )
-            it->second = false;
+        auto it { _funcs_by_ext_name.find( name ) };
+        if ( it != _funcs_by_ext_name.end() ) {
+            const _ToggleFuncT toggle_func { it->second.toggle_func };
+            (this->*toggle_func)( _Toggle::Off );
+        }
     }
 };
 
