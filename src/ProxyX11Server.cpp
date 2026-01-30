@@ -588,7 +588,7 @@ void ProxyX11Server::_processPolledSockets() {
                               "C{:03d}:{:04d}B:{}: wrote packet from buffer to client",
                               conn.id, bytes_written, _parser.SERVER_TO_CLIENT );
             }
-        } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
+        } else if ( const auto error { _socketPollError( conn.client_fd ) }; error ) {
             fmt::println( settings.log_fs,
                           "C{:03d}: poll failure on client socket: {}",
                           conn.id, *error );
@@ -654,7 +654,7 @@ void ProxyX11Server::_processPolledSockets() {
                               "C{:03d}:{:04d}B:{}: wrote packet from buffer to server",
                               conn.id, bytes_written, _parser.CLIENT_TO_SERVER );
             }
-        } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
+        } else if ( const auto error { _socketPollError( conn.server_fd ) }; error ) {
             fmt::println(
                 settings.log_fs,
                 "C{:03d}: poll failure on server socket: {}",
