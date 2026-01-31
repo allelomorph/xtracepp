@@ -114,18 +114,18 @@ public:
      * @brief Closes client-facing socket.
      */
     void
-    closeClientSocket();
+    closeClientSide();
     /**
      * @brief Closes server-facing socket.
      */
     void
-    closeServerSocket();
+    closeServerSide();
     /**
      * @brief Syntax sweetener for checking socket status.
      * @return whether client-facing socket is closed
      */
     inline bool
-    clientSocketIsClosed() {
+    clientSideClosed() {
         return ( client_fd == _FD_CLOSED );
     }
     /**
@@ -133,7 +133,7 @@ public:
      * @return whether client-facing socket is open
      */
     inline bool
-    clientSocketIsOpen() {
+    clientSideOpen() {
         return ( client_fd != _FD_CLOSED );
     }
     /**
@@ -141,7 +141,7 @@ public:
      * @return whether server-facing socket is closed
      */
     inline bool
-    serverSocketIsClosed() {
+    serverSideClosed() {
         return ( server_fd == _FD_CLOSED );
     }
     /**
@@ -149,7 +149,7 @@ public:
      * @return whether server-facing socket is open
      */
     inline bool
-    serverSocketIsOpen() {
+    serverSideOpen() {
         return ( server_fd != _FD_CLOSED );
     }
     /**
@@ -157,7 +157,7 @@ public:
      * @return bytes buffered from client-facing socket
      */
     inline size_t
-    bufferPacketFromClient() {
+    bufferFromClient() {
         return client_buffer.read( client_fd );
     }
     /**
@@ -165,7 +165,7 @@ public:
      * @return bytes buffered from server-facing socket
      */
     inline size_t
-    bufferPacketFromServer() {
+    bufferFromServer() {
         return server_buffer.read( server_fd );
     }
     /**
@@ -173,7 +173,7 @@ public:
      * @return bytes sent to client-facing socket
      */
     inline size_t
-    forwardPacketToClient() {
+    forwardToClient() {
         return server_buffer.write( client_fd );
     }
     /**
@@ -181,7 +181,7 @@ public:
      * @return bytes sent to server-facing socket
      */
     inline size_t
-    forwardPacketToServer() {
+    forwardToServer() {
         return client_buffer.write( server_fd );
     }
     /**

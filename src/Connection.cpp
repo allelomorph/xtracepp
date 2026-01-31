@@ -20,8 +20,8 @@ Connection::Connection() :
 }
 
 void
-Connection::closeClientSocket() {
-    if ( clientSocketIsClosed() )
+Connection::closeClientSide() {
+    if ( clientSideClosed() )
         return;
     if ( ::close( client_fd ) == -1 && errno != EBADF ) {
         throw errors::system::exception( __PRETTY_FUNCTION__ );
@@ -30,8 +30,8 @@ Connection::closeClientSocket() {
 }
 
 void
-Connection::closeServerSocket() {
-    if ( serverSocketIsClosed() )
+Connection::closeServerSide() {
+    if ( serverSideClosed() )
         return;
     if ( ::close( server_fd ) == -1 && errno != EBADF ) {
         throw errors::system::exception( __PRETTY_FUNCTION__ );

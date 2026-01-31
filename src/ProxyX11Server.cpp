@@ -527,12 +527,12 @@ void ProxyX11Server::_updatePollFlags() {
 void ProxyX11Server::_processPolledSockets() {
     std::vector< int > conns_to_close;
     for ( auto& [ id, conn ] : _connections ) {
-        assert( conn.clientSocketIsOpen() );
-        assert( conn.serverSocketIsOpen() );
+        assert( conn.clientSideOpen() );
+        assert( conn.serverSideOpen() );
         if ( _socketReadReady( conn.client_fd ) ) {
             size_t bytes_read {};
             try {
-                bytes_read = conn.bufferPacketFromClient();
+                bytes_read = conn.bufferFromClient();
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
@@ -572,7 +572,7 @@ void ProxyX11Server::_processPolledSockets() {
             assert( !conn.server_buffer.empty() );
             size_t bytes_written {};
             try {
-                bytes_written = conn.forwardPacketToClient();
+                bytes_written = conn.forwardToClient();
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
@@ -598,7 +598,7 @@ void ProxyX11Server::_processPolledSockets() {
         if ( _socketReadReady( conn.server_fd ) ) {
             size_t bytes_read {};
             try {
-                bytes_read = conn.bufferPacketFromServer();
+                bytes_read = conn.bufferFromServer();
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
@@ -638,7 +638,7 @@ void ProxyX11Server::_processPolledSockets() {
             assert( !conn.client_buffer.empty() );
             size_t bytes_written {};
             try {
-                bytes_written = conn.forwardPacketToServer();
+                bytes_written = conn.forwardToServer();
             } catch ( const std::system_error& e ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
@@ -863,7 +863,7 @@ void ProxyX11Server::_openConnection() {
     if ( conn.server_fd == -1 ) {
         fmt::println( ::stderr, "{}: {}: failure to connect to X server for display: {:?}",
                       settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
-        conn.closeClientSocket();
+        conn.closeClientSide();
         return;
     }
     assert( conn.server_fd > _listener_fd );
@@ -889,9 +889,9 @@ void ProxyX11Server::_closeConnections( const std::vector< int >& ids ) {
                 conn.id, conn.server_buffer.size(), _parser.SERVER_TO_CLIENT );
         }
         _pfds_i_by_fd.erase( conn.client_fd );
-        conn.closeClientSocket();
+        conn.closeClientSide();
         _pfds_i_by_fd.erase( conn.server_fd );
-        conn.closeServerSocket();
+        conn.closeServerSide();
         _connections.erase( id );
     }
     // zip _pfds array to _pfds_i_by_fd keys
