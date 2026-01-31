@@ -178,7 +178,8 @@ exception( const std::string& msg/* = {}*/ ) {
     assert( errno <= detail::MAX_ERRNO );
     return std::system_error(
         errno, std::generic_category(),
-        message( msg ) );
+        fmt::format( "{}{}errno {}", msg, msg.empty() ? "" : ": ",
+                     detail::errno_names.at( errno ) ) );
 }
 
 }  // namespace errors::system
@@ -224,8 +225,8 @@ static const std::unordered_map<
 std::string
 message( const int gai_ret, const std::string& msg/* = {}*/ ) {
     assert( gai_ret < 0 );
-    return fmt::format( "{}: retval {}: {}",
-                        msg.empty() ? "getaddrinfo" : msg,
+    return fmt::format( "{}{}getaddrinfo retval {}: {}",
+                        msg, msg.empty() ? "" : ": ",
                         detail::gai_error_names.at( gai_ret ),
                         ::gai_strerror( gai_ret ) );
 }
@@ -235,7 +236,9 @@ exception( const int gai_ret, const std::string& msg/* = {}*/ ) {
     assert( gai_ret < 0 );
     static const detail::Category category {};
     return std::system_error(
-        std::error_code{ gai_ret, category }, message( gai_ret, msg ) );
+        std::error_code{ gai_ret, category },
+        fmt::format( "{}{}getaddrinfo retval {}", msg, msg.empty() ? "" : ": ",
+                     detail::gai_error_names.at( gai_ret ) ) );
 }
 
 
