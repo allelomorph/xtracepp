@@ -43,14 +43,16 @@ static void pollSingleSocket(
             fmt::format( "{}: poll", __PRETTY_FUNCTION__ ) );
         break;
     default:
-        if ( !( pfds[0].revents & events ) ) {
+        const std::string_view err_msg {
+            ( pfds[0].revents & POLLERR )  ? "error condition" :
+            ( pfds[0].revents & POLLHUP )  ? "hang up" :
+            ( pfds[0].revents & POLLNVAL ) ? "invalid fd (not open)" :
+            ( pfds[0].revents & POLLPRI )  ? "exceptional condition" :
+                                             "" };
+        if ( !err_msg.empty() ) {
             throw std::runtime_error(
-                fmt::format(
-                    "{}: poll marked failure from {}",
-                    __PRETTY_FUNCTION__,
-                    pfds[0].revents & POLLERR ? "error condition" :
-                    pfds[0].revents & POLLHUP ? "hangup" :
-                    /*pfds[0].revents & POLLNVAL ?*/ "invalid (closed) fd" ) );
+                fmt::format( "{}: poll marked failure from {}",
+                             __PRETTY_FUNCTION__, err_msg ) );
         }
         break;
     }
