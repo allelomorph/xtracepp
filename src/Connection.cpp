@@ -23,7 +23,7 @@ void
 Connection::closeClientSide() {
     if ( clientSideClosed() )
         return;
-    if ( ::close( client_fd ) == -1 && errno != EBADF ) {
+    if ( ::close( client_fd ) == -1 ) {
         throw errors::system::exception( __PRETTY_FUNCTION__ );
     }
     client_fd = _FD_CLOSED;
@@ -33,7 +33,7 @@ void
 Connection::closeServerSide() {
     if ( serverSideClosed() )
         return;
-    if ( ::close( server_fd ) == -1 && errno != EBADF ) {
+    if ( ::close( server_fd ) == -1 ) {
         throw errors::system::exception( __PRETTY_FUNCTION__ );
     }
     server_fd = _FD_CLOSED;
