@@ -24,15 +24,13 @@ static void pollSingleSocket(
     const int socket_fd, const short events, int timeout = -1 ) {
     assert( events == POLLIN || events == POLLOUT ||
             events == ( POLLIN | POLLOUT ) );
-    const      nfds_t   nfds { 1 };
-    /*struct */pollfd   pfds[1];
-    pfds[0].fd = socket_fd;
+    ::pollfd pfd {};
+    pfd.fd = socket_fd;
+    pfd.events = events;
     static constexpr int DEFAULT_POLL_TIMEOUT_MS { 3000 };
     if ( timeout == -1 )
         timeout = DEFAULT_POLL_TIMEOUT_MS;
-
-    pfds[0].events = events;
-    switch ( ::poll( pfds, nfds, timeout ) ) {
+    switch ( ::poll( &pfd, 1, timeout ) ) {
     case 0:
         throw std::runtime_error(
             fmt::format( "{}: poll timeout in {} ms",
@@ -44,10 +42,10 @@ static void pollSingleSocket(
         break;
     default:
         const std::string_view err_msg {
-            ( pfds[0].revents & POLLERR )  ? "error condition" :
-            ( pfds[0].revents & POLLHUP )  ? "hang up" :
-            ( pfds[0].revents & POLLNVAL ) ? "invalid fd (not open)" :
-            ( pfds[0].revents & POLLPRI )  ? "exceptional condition" :
+            ( pfd.revents & POLLERR )  ? "error condition" :
+            ( pfd.revents & POLLHUP )  ? "hang up" :
+            ( pfd.revents & POLLNVAL ) ? "invalid fd (not open)" :
+            ( pfd.revents & POLLPRI )  ? "exceptional condition" :
                                              "" };
         if ( !err_msg.empty() ) {
             throw std::runtime_error(

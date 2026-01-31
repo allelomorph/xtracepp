@@ -900,10 +900,10 @@ void ProxyX11Server::_closeConnections( const std::vector< int >& ids ) {
         _connections.erase( id );
     }
     // zip _pfds array to _pfds_i_by_fd keys
-    std::vector< pollfd > new_pfds;
+    std::vector< ::pollfd > new_pfds;
     int i {};
     for ( auto& [ fd, pfds_i ] : _pfds_i_by_fd ) {
-        const pollfd& pfd { _pfds.at( pfds_i ) };
+        const ::pollfd& pfd { _pfds.at( pfds_i ) };
         assert( pfd.fd == fd );
         new_pfds.emplace_back( pfd );
         pfds_i = i;
