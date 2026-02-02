@@ -2058,8 +2058,8 @@ X11ProtocolParser::_parseReply<
     const std::string_view ext_name {
         _unstashString(
             conn->id, _ordered( encoding->header.sequence_num, byteswap ) ) };
-    if ( settings.denyallextensions ||
-         settings.extensionDenied( ext_name ) ) {
+    // control use of extensions by spoofing `present` in reply
+    if ( settings.extensionDenied( ext_name ) ) {
         // setting to false/0 should not need byte ordering
         const_cast< QueryExtension::Reply::Encoding* >(
             reinterpret_cast< const QueryExtension::Reply::Encoding* >(

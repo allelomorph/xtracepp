@@ -16,6 +16,8 @@
 
 #include <fmt/format.h>
 
+#include "protocol/extensions/big_requests.hpp"
+
 
 /**
  * @brief Encapsulates parsing of `argv` from [main](#main) into user settings.
@@ -114,13 +116,30 @@ private:
      */
     inline static const
     std::unordered_set< std::string_view > _recognized_extensions {
-        // TBD temporarily hard-coded, will eventually be initialized with
-        //   extensions::<ext>::name strings
-        "Generic Event Extension", "SHAPE", "MIT-SHM", "XInputExtension",
-        "XTEST", "BIG-REQUESTS", "SYNC", "XKEYBOARD", "XC-MISC", "XFIXES",
-        "RENDER", "RANDR", "XINERAMA", "Composite", "DAMAGE", "DOUBLE-BUFFER",
-        "RECORD", "Present", "DRI3", "X-Resource", "XVideo", "GLX",
-        "XFree86-VidModeExtension"
+        // TBD disable by omission all unimplemented extensions
+        // "Generic Event Extension",
+        // "SHAPE",
+        // "MIT-SHM",
+        // "XInputExtension",
+        // "XTEST",
+        protocol::extensions::big_requests::name,  // BIG-REQUESTS
+        // "SYNC",
+        // "XKEYBOARD",
+        // "XC-MISC",
+        // "XFIXES",
+        // "RENDER",
+        // "RANDR",
+        // "XINERAMA",
+        // "Composite",
+        // "DAMAGE",
+        // "DOUBLE-BUFFER",
+        // "RECORD",
+        // "Present",
+        // "DRI3",
+        // "X-Resource",
+        // "XVideo",
+        // "GLX",
+        // "XFree86-VidModeExtension"
     };
     /**
      * @brief #_recognized_extensions as list appropriate for error messages.
@@ -164,10 +183,6 @@ public:
      * @brief Toggles indefinte packet logging, independent of subcommand client.
      */
     bool keeprunning              { false };
-    /**
-     * @brief Toggles disabling of all X extensions.
-     */
-    bool denyallextensions        { false };
     /**
      * @brief Toggles logging most protocol structs in multiline format, with
      *   one line per member.

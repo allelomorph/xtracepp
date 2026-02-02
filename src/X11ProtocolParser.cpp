@@ -339,9 +339,10 @@ void X11ProtocolParser::_enableExtensionParsing(
     const protocol::CARD8 first_error ) {
     assert( conn != nullptr );
 
-    auto ext_it { _extensions.find( name ) };
     // No complex validation of extension name, as we expect the X server to
     //   have already replied to QueryExtension with `present` == True
+    assert( !settings.extensionDenied( name ) );
+    auto ext_it { _extensions.find( name ) };
     assert( ext_it != _extensions.end() );
     const auto& extension { ext_it->second };
 
