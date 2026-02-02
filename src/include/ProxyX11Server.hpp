@@ -206,11 +206,15 @@ private:
     //   std::unordered_map
     std::map< int, size_t > _pfds_i_by_fd;
     /**
-     * @brief Returns error message describing `POLL*` events constant
+     * @brief Returns error message describing `POLL*` revents constant
      *   (`poll(2)`), or `std::nullopt` if no error.
      * @param fd socket file descriptor
-     * @return error message describing `POLL*` events constant (`poll(2)`),
-     *   or `std::nullopt` if no error
+     * @return error message describing `POLL*` revents constant, or
+     *   `std::nullopt` if no error
+     * @note `POLLHUP` not considered a #Connection ending error, as a socket
+     *   that polls as such may still have data left to be read (see `poll(2)`).
+     *   Instead we rely on a later read of that socket returning 0/EOF to
+     *   trigger closing the #Connection.
      * @ingroup socket_polling
      */
     std::optional< std::string_view >

@@ -490,7 +490,7 @@ ProxyX11Server::_socketPollError( const int fd ) {
     const short revents { _pfds.at( _pfds_i_by_fd.at( fd ) ).revents };
     std::string_view err_msg {
         ( revents & POLLERR )  ? "error condition" :
-        ( revents & POLLHUP )  ? "hang up" :
+        // ( revents & POLLHUP )  ? "hang up" :
         ( revents & POLLNVAL ) ? "invalid fd (not open)" :
         ( revents & POLLPRI )  ? "exceptional condition" :
                                  "" };
