@@ -70,7 +70,7 @@ private:
      *   `std::format`.
      */
     static constexpr std::string_view _help_msg {
-        R"({}: intercept, log, and modify (based on user options) packet data going between X server and clients
+        R"({}: intercept, log, and modify (based on user options) message data going between X server and clients
   (usage: {} [options...] [-- subcommand args...]
   options:
     --display,            -d <display name>   : provide libX11 formatted display name of real X server
@@ -82,7 +82,7 @@ private:
     --outfile,            -o <file path>      : output to file instead of stdout
     --unbuffered,         -u                  : deactivate stream buffering for output
     --multiline,          -m                  : break log lines along nested groupings of data
-    --verbose,            -v                  : print all data fields of every packet + alternate data formatting
+    --verbose,            -v                  : print all data fields of every message + alternate data formatting
     --relativetimestamps, -r                  : X server timestamps interpreted against system time
     --prefetchatoms,      -p                  : first fetch already interned strings to reduce unrecognized ATOMs
 )" };
@@ -180,7 +180,7 @@ public:
      */
     bool copyauth                 { true };
     /**
-     * @brief Toggles indefinte packet logging, independent of subcommand client.
+     * @brief Toggles indefinte logging, independent of subcommand client.
      */
     bool keeprunning              { false };
     /**

@@ -27,7 +27,7 @@
 
 /**
  * @brief Represents a proxy server that intercepts, logs, and sometimes
- *   modifies packets sent between an X server and its clients.
+ *   modifies messages sent between an X server and its clients.
  */
 class ProxyX11Server {
 public:
@@ -252,9 +252,9 @@ private:
     }
     /**
      * @brief Final stage of client queue loop; surveys socket polling results
-     *   for every [Connection](#Connection) to: receive new packets,
-     *   parse/log/send current packets, close any connections that failed or
-     *   detected EOF in either socket, and open a new connection if
+     *   for every [Connection](#Connection) to: receive new messages,
+     *   parse/log/send currently buffered messages, close any connections that
+     *   failed or detected EOF in either socket, and open a new connection if
      *   [_listener_fd](#_listener_fd) is read-ready.
      * @ingroup socket_polling
      */
@@ -322,7 +322,7 @@ private:
      */
     int  _processClientQueue();
     /**
-     * @brief X11 protocol data packet parser/logger.
+     * @brief X11 protocol message parser/logger.
      */
     X11ProtocolParser _parser;
 };

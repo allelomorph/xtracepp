@@ -13,6 +13,8 @@
 #include <algorithm>      // max
 #include <limits>
 #include <unordered_map>
+#include <utility>        // pair
+#include <optional>
 
 #include <cassert>
 
@@ -56,11 +58,22 @@
 #define _PARSELISTMEMBER( type_ ) _parseListMember< type_ >
 
 /**
- * @brief Parses server and client data packets sent encoded in the X11 protocol,
+ * @brief Parses server and client messages sent encoded in the X11 protocol,
  *   logging them to an output file stream.
  */
 class X11ProtocolParser {
 private:
+    /**
+     * @brief Whether system running application is little-endian; only needed
+     *   when compiling with C++17 or below.
+     */
+    inline static const bool
+    _little_endian { [](){
+        const uint32_t i { 1 };
+        const uint8_t* arr {
+            reinterpret_cast< const uint8_t* >( &i ) };
+        return ( arr[0] == 1 );
+    }() };
     /**
      * @brief Calculator for converting raw byte counts to and from [padded]
      *   lengths commonly used in encoding.
@@ -189,12 +202,12 @@ public:
     // CLIENT_TO_SERVER and SERVER_TO_CLIENT need to be accessible to
     //   ProxyX11Server for use in error messages
     /**
-     * @brief Log formatting token indicating X server-bound packet.
+     * @brief Log formatting token indicating X server-bound message.
      * @ingroup non_data_text_formatting
      */
     static constexpr std::string_view CLIENT_TO_SERVER { "s<c" };
     /**
-     * @brief Log formatting token indicating client-bound packet.
+     * @brief Log formatting token indicating client-bound message.
      * @ingroup non_data_text_formatting
      */
     static constexpr std::string_view SERVER_TO_CLIENT { "s>c" };
@@ -1179,28 +1192,6 @@ private:
     size_t _logError(
         Connection* conn, const uint8_t* data, const size_t sz );
     /**
-     * @brief Parse server-bound client packet as X11 message, and print it to
-     *   log file stream.
-     * @param[in,out] conn status of current connection, see [Connection](#Connection)
-     * @param data bytes to parse
-     * @param sz maximum bytes readable from `data`
-     * @return bytes parsed
-     * @ingroup logging
-     */
-    size_t _logClientPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
-    /**
-     * @brief Parse client-bound server packet as X11 message, and print it to
-     *   log file stream.
-     * @param[in,out] conn status of current connection, see [Connection](#Connection)
-     * @param data bytes to parse
-     * @param sz maximum bytes readable from `data`
-     * @return bytes parsed
-     * @ingroup logging
-     */
-    size_t _logServerPacket(
-        Connection* conn, uint8_t* data, const size_t sz );
-    /**
      * @brief Base interface for classes that store parsing function pointers.
      * @ingroup dispatch
      */
@@ -1559,21 +1550,23 @@ private:
 
 public:
     /**
-     * @brief Parse server-bound client packets as X11 messages, and print them to
+     * @brief Parse server-bound client data as X11 messages, and print them to
      *   log file stream.
      * @param[in,out] conn status of current connection, see [Connection](#Connection)
-     * @return bytes parsed
+     * @return bytes parsed and potential error message
      * @ingroup logging
      */
-    size_t logClientPackets( Connection* conn );
+    std::pair< size_t, std::optional< std::string > >
+    logClientMessages( Connection* conn );
     /**
-     * @brief Parse client-bound server packets as X11 messages, and print them to
+     * @brief Parse client-bound client data as X11 messages, and print them to
      *   log file stream.
      * @param[in,out] conn status of current connection, see [Connection](#Connection)
-     * @return bytes parsed
+     * @return bytes parsed and potential error message
      * @ingroup logging
      */
-    size_t logServerPackets( Connection* conn );
+    std::pair< size_t, std::optional< std::string > >
+    logServerMessages( Connection* conn );
     /**
      * @brief Encoding memory alignment calculator.
      */

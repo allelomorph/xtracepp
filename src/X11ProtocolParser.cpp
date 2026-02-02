@@ -1,6 +1,7 @@
 #include <string>
 #include <string_view>
-#include <utility>   // move
+#include <utility>   // move piar
+#include <optional>
 
 #include <cassert>
 #include <cstdint>
@@ -248,88 +249,6 @@ X11ProtocolParser::_logError(
     return error.bytes_parsed;
 }
 
-size_t X11ProtocolParser::_logClientPacket(
-    Connection* conn, uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );
-    assert( conn->status != Connection::CLOSED &&
-            conn->status != Connection::FAILED );
-
-    size_t bytes_parsed {};
-    switch ( conn->status ) {
-    case Connection::UNESTABLISHED:
-        bytes_parsed = _logConnectionSetup<
-            protocol::connection_setup::Initiation >( conn, data, sz );
-        break;
-    case Connection::AUTHENTICATION:
-        throw std::runtime_error(
-            fmt::format( "{}: must close connection {} - cannot parse packets "
-                         "as X11 protocol does not specify an encoding for "
-                         "authentication negotiation",
-                         __PRETTY_FUNCTION__, conn->id ) );
-        break;
-    case Connection::OPEN:
-        bytes_parsed = _logRequest( conn, data, sz );
-        break;
-    default:
-        break;
-    }
-    assert( bytes_parsed != 0 );
-    assert( bytes_parsed <= sz );
-    return bytes_parsed;
-}
-
-size_t X11ProtocolParser::_logServerPacket(
-    Connection* conn, uint8_t* data, const size_t sz ) {
-    assert( conn != nullptr );
-    assert( data != nullptr );
-    assert( sz > 0 );
-    assert( conn->status != Connection::CLOSED &&
-            conn->status != Connection::FAILED );
-
-    size_t bytes_parsed {};
-    switch ( conn->status ) {
-    case Connection::UNESTABLISHED:
-        bytes_parsed = _logConnectionSetup<
-            protocol::connection_setup::InitResponse >( conn, data, sz );
-        break;
-    case Connection::AUTHENTICATION:
-        throw std::runtime_error(
-            fmt::format( "{}: must close connection {} - cannot parse packets "
-                         "as X11 protocol does not specify an encoding for "
-                         "authentication negotiation",
-                         __PRETTY_FUNCTION__, conn->id ) );
-        break;
-    case Connection::OPEN: {
-        assert( sz >= sizeof( protocol::Response::Header ) );
-        switch ( auto header {
-                reinterpret_cast< const protocol::Response::Header* >( data ) };
-            _ordered( header->prefix, conn->byteswap ) ) {
-        case protocol::Response::ERROR_PREFIX:
-            bytes_parsed = _logError( conn, data, sz );
-            assert( bytes_parsed == protocol::errors::Error::ENCODING_SZ );
-            break;
-        case protocol::Response::REPLY_PREFIX:
-            bytes_parsed = _logReply( conn, data, sz );
-            assert( bytes_parsed >= protocol::requests::Reply::DEFAULT_ENCODING_SZ );
-            break;
-        default:
-            // event codes
-            bytes_parsed = _logEvent( conn, data, sz );
-            assert( bytes_parsed == protocol::events::Event::ENCODING_SZ );
-            break;
-        }
-    }
-        break;
-    default:
-        break;
-    }
-    assert( bytes_parsed != 0 );
-    assert( bytes_parsed <= sz );
-    return bytes_parsed;
-}
-
 X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
 X11ProtocolParser::_SingleCodeTraits::~_SingleCodeTraits() = default;
 
@@ -362,42 +281,243 @@ void X11ProtocolParser::_enableExtensionParsing(
     }
 }
 
-size_t X11ProtocolParser::logClientPackets( Connection* conn ) {
+std::pair< size_t, std::optional< std::string > >
+X11ProtocolParser::logClientMessages( Connection* conn ) {
     assert( conn != nullptr );
 
-    uint8_t* data { conn->client_buffer.data() };
-    size_t   tl_bytes_parsed {};
-    for ( const size_t bytes_to_parse { conn->client_buffer.size() };
-          tl_bytes_parsed < bytes_to_parse; ) {
-        size_t bytes_parsed {
-            _logClientPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
+    size_t tl_bytes_parsed {};
+    SocketBuffer& buffer { conn->client_buffer };
+    uint8_t* data { buffer.data() };
+    while ( !buffer.allParsed() ) {
+        if ( !buffer.messageSizeSet() ) {
+            switch ( conn->status ) {
+            case Connection::UNESTABLISHED: {
+                using protocol::connection_setup::Initiation;
+                if ( buffer.size() < sizeof( Initiation::Header ) ) {
+                    goto length_checks;
+                }
+                const Initiation::Header* header {
+                    reinterpret_cast< const Initiation::Header* >( data ) };
+                assert( header->byte_order == Initiation::MSBFIRST ||
+                        header->byte_order == Initiation::LSBFIRST );
+                // determine if host byte order is same as client ( potentially
+                //   different with remote clients )
+                conn->byteswap =
+                    ( _little_endian != ( header->byte_order == Initiation::LSBFIRST ) );
+                buffer.setMessageSize(
+                    sizeof( protocol::connection_setup::Initiation::Header ) +
+                    alignment.pad( _ordered( header->name_len, conn->byteswap ) ) +
+                    alignment.pad( _ordered( header->data_len, conn->byteswap ) ) );
+            }
+                break;
+            case Connection::AUTHENTICATION:
+                return {
+                    tl_bytes_parsed, fmt::format(
+                        "must close connection - cannot parse messages as X11 "
+                        "protocol does not specify an encoding for "
+                        "authentication negotiation" ) };
+            case Connection::OPEN: {
+                using protocol::requests::Request;
+                namespace ext = protocol::extensions;
+                if ( buffer.size() <
+                     sizeof( Request::Prefix ) + sizeof( Request::Length ) ) {
+                    goto length_checks;
+                }
+                const Request::BigLength* big_length {
+                    reinterpret_cast< const Request::BigLength* >(
+                        data + sizeof( Request::Prefix ) ) };
+                if ( big_length->extended_length_flag ==
+                     ext::big_requests::EXTENDED_LENGTH_FLAG ) {
+                    if ( buffer.size() <
+                         sizeof( Request::Prefix ) + sizeof( Request::BigLength ) ) {
+                        goto length_checks;
+                    }
+                    buffer.setMessageSize(
+                        alignment.size(
+                            _ordered( big_length->tl_aligned_units,
+                                      conn->byteswap ) ) );
+                } else {
+                    const Request::Length* length {
+                        reinterpret_cast< const Request::Length* >(
+                            data + sizeof( Request::Prefix ) ) };
+                    buffer.setMessageSize(
+                        alignment.size(
+                            _ordered( length->tl_aligned_units,
+                                      conn->byteswap ) ) );
+                }
+            }
+                break;
+            default:
+                break;
+            }
+        }
+    length_checks:
+        if ( !buffer.messageSizeSet() ) {
+            if ( settings.readwritedebug ) {
+                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                              "{:04d}B insufficent to determine length",
+                              conn->id, CLIENT_TO_SERVER, buffer.unparsed() );
+            }
+            break;
+        }
+        if ( buffer.incompleteMessage() ) {
+            if ( settings.readwritedebug ) {
+                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                              "received {:04d} of expected {:04d}B",
+                              conn->id, CLIENT_TO_SERVER, buffer.unparsed(),
+                              buffer.messageSize() );
+            }
+            break;
+        }
+        assert( conn->status != Connection::AUTHENTICATION );
+        size_t bytes_parsed {};
+        switch ( conn->status ) {
+        case Connection::UNESTABLISHED:
+            bytes_parsed = _logConnectionSetup<
+                protocol::connection_setup::Initiation >(
+                    conn, data, buffer.messageSize() );
+            break;
+        case Connection::OPEN:
+            bytes_parsed = _logRequest(
+                conn, data, buffer.messageSize() );
+            break;
+        default:
+            break;
+        }
+        assert( bytes_parsed == buffer.messageSize() );
+        buffer.markMessageParsed();
         if ( settings.readwritedebug ) {
-            fmt::println( settings.log_fs, "C{:03d}:{:04d}B:{}: parsed buffer segment",
+            fmt::println( settings.log_fs,
+                          "C{:03d}:{:04d}B:{}: parsed message in buffer",
                           conn->id, bytes_parsed, CLIENT_TO_SERVER );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
     }
-    assert( tl_bytes_parsed == conn->client_buffer.size() );
-    return tl_bytes_parsed;
+    return { tl_bytes_parsed, std::nullopt };
 }
 
-size_t X11ProtocolParser::logServerPackets( Connection* conn ) {
+std::pair< size_t, std::optional< std::string > >
+X11ProtocolParser::logServerMessages( Connection* conn ) {
     assert( conn != nullptr );
 
-    uint8_t* data { conn->server_buffer.data() };
-    size_t   tl_bytes_parsed {};
-    for ( const size_t bytes_to_parse { conn->server_buffer.size() };
-          tl_bytes_parsed < bytes_to_parse; ) {
-        size_t bytes_parsed {
-            _logServerPacket( conn, data, bytes_to_parse - tl_bytes_parsed ) };
+    size_t tl_bytes_parsed {};
+    SocketBuffer& buffer { conn->server_buffer };
+    uint8_t* data { buffer.data() };
+    while ( !buffer.allParsed() ) {
+        if ( !buffer.messageSizeSet() ) {
+            switch ( conn->status ) {
+            case Connection::UNESTABLISHED: {
+                using protocol::connection_setup::InitResponse;
+                if ( buffer.size() < sizeof( InitResponse::Header ) ) {
+                    goto length_checks;
+                }
+                const InitResponse::Header* header {
+                    reinterpret_cast< const InitResponse::Header* >( data ) };
+                buffer.setMessageSize(
+                    sizeof( InitResponse::Header ) +
+                    alignment.size(
+                        _ordered( header->following_aligned_units,
+                                  conn->byteswap ) ) );
+            }
+                break;
+            case Connection::AUTHENTICATION:
+                return {
+                    tl_bytes_parsed, fmt::format(
+                        "must close connection - cannot parse messages as X11 "
+                        "protocol does not specify an encoding for "
+                        "authentication negotiation" ) };
+            case Connection::OPEN: {
+                using protocol::Response;
+                if ( buffer.size() < sizeof( Response::Header ) ) {
+                    goto length_checks;
+                }
+                const Response::Header* resp_header {
+                    reinterpret_cast< const Response::Header* >( data ) };
+                switch ( _ordered( resp_header->prefix, conn->byteswap ) ) {
+                case Response::ERROR_PREFIX:
+                    buffer.setMessageSize(
+                        protocol::errors::Error::ENCODING_SZ );
+                    break;
+                case Response::REPLY_PREFIX: {
+                    using protocol::requests::Reply;
+                    const Reply::Header* reply_header {
+                        reinterpret_cast< const Reply::Header* >( data ) };
+                    buffer.setMessageSize(
+                        Reply::DEFAULT_ENCODING_SZ +
+                        alignment.size(
+                            _ordered( reply_header->extra_aligned_units,
+                                      conn->byteswap ) ) );
+                }
+                    break;
+                default:  // event codes
+                    buffer.setMessageSize(
+                        protocol::events::Event::ENCODING_SZ );
+                    break;
+                }
+            }
+                break;
+            default:
+                break;
+            }
+        }
+    length_checks:
+        if ( !buffer.messageSizeSet() ) {
+            if ( settings.readwritedebug ) {
+                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                              "{:04d}B insufficent to determine length",
+                              conn->id, SERVER_TO_CLIENT, buffer.unparsed() );
+            }
+            break;
+        }
+        if ( buffer.incompleteMessage() ) {
+            if ( settings.readwritedebug ) {
+                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                              "received {:04d} of expected {:04d}B",
+                              conn->id, SERVER_TO_CLIENT, buffer.unparsed(),
+                              buffer.messageSize() );
+            }
+            break;
+        }
+        assert( conn->status != Connection::AUTHENTICATION );
+        size_t bytes_parsed {};
+        switch ( conn->status ) {
+        case Connection::UNESTABLISHED:
+            bytes_parsed = _logConnectionSetup<
+                protocol::connection_setup::InitResponse >(
+                    conn, data, buffer.messageSize() );
+            assert( conn->status == Connection::OPEN );
+            break;
+        case Connection::OPEN: {
+            const protocol::Response::Header* resp_header {
+                reinterpret_cast< const protocol::Response::Header* >( data ) };
+            switch ( _ordered( resp_header->prefix, conn->byteswap ) ) {
+            case protocol::Response::ERROR_PREFIX:
+                bytes_parsed = _logError(
+                    conn, data, buffer.messageSize() );
+                break;
+            case protocol::Response::REPLY_PREFIX:
+                bytes_parsed = _logReply(
+                    conn, data, buffer.messageSize() );
+                break;
+            default: // event codes
+                bytes_parsed = _logEvent(
+                    conn, data, buffer.messageSize() );
+                break;
+            }
+        }   break;
+        default:
+            break;
+        }
+        assert( bytes_parsed == buffer.messageSize() );
+        buffer.markMessageParsed();
         if ( settings.readwritedebug ) {
-            fmt::println( settings.log_fs, "C{:03d}:{:04d}B:{}: parsed buffer segment",
+            fmt::println( settings.log_fs,
+                          "C{:03d}:{:04d}B:{}: parsed message in buffer",
                           conn->id, bytes_parsed, SERVER_TO_CLIENT );
         }
         data += bytes_parsed;
         tl_bytes_parsed += bytes_parsed;
     }
-    assert( tl_bytes_parsed == conn->server_buffer.size() );
-    return tl_bytes_parsed;
+    return { tl_bytes_parsed, std::nullopt };
 }

@@ -93,7 +93,7 @@ public:
     /**
      * @brief Connection state constants.
      * - `UNESTABLISHED` before initial handshake is completed
-     * - `OPEN` normal packet exchange
+     * - `OPEN` normal message exchange
      * - `CLOSED` closed properly after normal operation
      * - `FAILED` general failure to open (other than due to insufficient authentication)
      * - `AUTHENTICATION` follow-up authentication negotation after failure to open normally
@@ -167,38 +167,38 @@ public:
     serverSideOpen() {
         return ( server_fd != _FD_CLOSED );
     }
-    /**
-     * @brief Syntax sweetener for reading from socket.
-     * @return bytes buffered from client-facing socket
-     */
-    inline size_t
-    bufferFromClient() {
-        return client_buffer.read( client_fd );
-    }
-    /**
-     * @brief Syntax sweetener for reading from socket.
-     * @return bytes buffered from server-facing socket
-     */
-    inline size_t
-    bufferFromServer() {
-        return server_buffer.read( server_fd );
-    }
-    /**
-     * @brief Syntax sweetener for writing to socket.
-     * @return bytes sent to client-facing socket
-     */
-    inline size_t
-    forwardToClient() {
-        return server_buffer.write( client_fd );
-    }
-    /**
-     * @brief Syntax sweetener for writing to socket.
-     * @return bytes sent to server-facing socket
-     */
-    inline size_t
-    forwardToServer() {
-        return client_buffer.write( server_fd );
-    }
+    // /**
+    //  * @brief Syntax sweetener for reading from socket.
+    //  * @return bytes buffered from client-facing socket
+    //  */
+    // inline size_t
+    // bufferFromClient() {
+    //     return client_buffer.read( client_fd );
+    // }
+    // /**
+    //  * @brief Syntax sweetener for reading from socket.
+    //  * @return bytes buffered from server-facing socket
+    //  */
+    // inline size_t
+    // bufferFromServer() {
+    //     return server_buffer.read( server_fd );
+    // }
+    // /**
+    //  * @brief Syntax sweetener for writing to socket.
+    //  * @return bytes sent to client-facing socket
+    //  */
+    // inline size_t
+    // forwardToClient() {
+    //     return server_buffer.write( client_fd );
+    // }
+    // /**
+    //  * @brief Syntax sweetener for writing to socket.
+    //  * @return bytes sent to server-facing socket
+    //  */
+    // inline size_t
+    // forwardToServer() {
+    //     return client_buffer.write( server_fd );
+    // }
     /**
      * @brief Assign serial number to request and store opcodes, thus
      *   marking request as open.

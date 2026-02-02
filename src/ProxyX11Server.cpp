@@ -513,14 +513,16 @@ void ProxyX11Server::_updatePollFlags() {
             _pfds.at( _pfds_i_by_fd.at( conn.server_fd ) ) };
         client_pfd.events = POLLPRI;
         server_pfd.events = POLLPRI;
-        if ( conn.client_buffer.empty() ) {
+        if ( conn.client_buffer.readReady() ) {
             client_pfd.events |= POLLIN;
         } else {
+            assert( conn.client_buffer.writeReady() );
             server_pfd.events |= POLLOUT;
         }
-        if ( conn.server_buffer.empty() ) {
+        if ( conn.server_buffer.readReady() ) {
             server_pfd.events |= POLLIN;
         } else {
+            assert( conn.server_buffer.writeReady() );
             client_pfd.events |= POLLOUT;
         }
     }
@@ -532,144 +534,126 @@ void ProxyX11Server::_processPolledSockets() {
         assert( conn.clientSideOpen() );
         assert( conn.serverSideOpen() );
         if ( _socketReadReady( conn.client_fd ) ) {
-            size_t bytes_read {};
-            try {
-                bytes_read = conn.bufferFromClient();
-            } catch ( const std::system_error& e ) {
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "C{:03d}:{}: error reading from client: {}",
-                                  conn.id, _parser.CLIENT_TO_SERVER, e.what() );
-                }
-                conns_to_close.emplace_back( id );
-                continue;
+            const auto& [ bytes_read, read_error ] {
+                conn.client_buffer.read( conn.client_fd ) };  // bufferFromClient();
+            if ( read_error ) {
+                fmt::println( ::stderr, "C{:03d}:{}: error reading from client: "
+                              "{}, closing connection",
+                              conn.id, _parser.CLIENT_TO_SERVER, *read_error );
+                goto close_connection;
             }
             if ( bytes_read == 0 ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "C{:03d}:{}: got EOF",
+                                  "C{:03d}:{}: got EOF, closing connection",
                                   conn.id, _parser.CLIENT_TO_SERVER );
                 }
-                conns_to_close.emplace_back( id );
-                continue;
-            }
-            if ( settings.readwritedebug ) {
-                fmt::println( settings.log_fs,
-                              "C{:03d}:{:04d}B:{}: packet read from client into buffer",
-                              conn.id, bytes_read, _parser.CLIENT_TO_SERVER );
+                goto close_connection;
             }
             assert( !conn.client_buffer.empty() );
-            try {
-                const size_t bytes_parsed { _parser.logClientPackets( &conn ) };
-                assert( bytes_parsed == bytes_read );
-            } catch ( const std::runtime_error& e ) {
-                fmt::println( ::stderr, "{}", e.what() );
+            if ( settings.readwritedebug ) {
+                fmt::println( settings.log_fs,
+                              "C{:03d}:{:04d}B:{}: read from client into buffer",
+                              conn.id, bytes_read, _parser.CLIENT_TO_SERVER );
+            }
+            const auto& [ bytes_parsed, parse_error ] {
+                _parser.logClientMessages( &conn ) };
+            if ( parse_error ) {
+                fmt::println( ::stderr, "C{:03d}:{}: error parsing client "
+                              "messages: {}, closing connection",
+                              conn.id, _parser.CLIENT_TO_SERVER, *parse_error );
                 // without knowing that this connection is to the child process,
                 //   we rely on the expectation that closing the connection
                 //   should force EOF and thus exit for any client X app
-                conns_to_close.emplace_back( id );
-                continue;
+                goto close_connection;
             }
-        } else if ( _socketWriteReady( conn.client_fd ) ) {
-            assert( !conn.server_buffer.empty() );
-            size_t bytes_written {};
-            try {
-                bytes_written = conn.forwardToClient();
-            } catch ( const std::system_error& e ) {
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "C{:03d}:{}: error writing to client: {}",
-                                  conn.id, _parser.SERVER_TO_CLIENT, e.what() );
-                }
-                conns_to_close.emplace_back( id );
-                continue;
+        } else if ( _socketWriteReady( conn.client_fd ) &&
+                    conn.server_buffer.writeReady() ) {
+            const auto& [ bytes_written, write_error ] {
+                conn.server_buffer.write( conn.client_fd ) }; // forwardToClient();
+            if ( write_error ) {
+                fmt::println( ::stderr, "C{:03d}:{}: error writing to client: "
+                              "{}, closing connection",
+                              conn.id, _parser.SERVER_TO_CLIENT, *write_error );
+                goto close_connection;
             }
             assert( bytes_written > 0 );
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
-                              "C{:03d}:{:04d}B:{}: wrote packet from buffer to client",
+                              "C{:03d}:{:04d}B:{}: wrote from buffer to client",
                               conn.id, bytes_written, _parser.SERVER_TO_CLIENT );
             }
-        } else if ( const auto error { _socketPollError( conn.client_fd ) }; error ) {
-            fmt::println(
-                ::stderr, "{}: {}: poll failure on connection {:03d} client socket: {}",
-                settings.process_name, __PRETTY_FUNCTION__, conn.id, *error );
-            conns_to_close.emplace_back( id );
-            continue;
+        } else if ( const auto poll_error { _socketPollError( conn.client_fd ) };
+                    poll_error ) {
+            fmt::println( ::stderr, "C{:03d}: client socket poll error: {}, "
+                          "closing connection",
+                          conn.id, *poll_error );
+            goto close_connection;
         }
         if ( _socketReadReady( conn.server_fd ) ) {
-            size_t bytes_read {};
-            try {
-                bytes_read = conn.bufferFromServer();
-            } catch ( const std::system_error& e ) {
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "C{:03d}:{}: error reading from server: {}",
-                                  conn.id, _parser.SERVER_TO_CLIENT, e.what() );
-                }
-                conns_to_close.emplace_back( id );
-                continue;
+            const auto& [ bytes_read, read_error ] {
+                conn.server_buffer.read( conn.server_fd ) };  // bufferFromServer();
+            if ( read_error ) {
+                fmt::println( ::stderr, "C{:03d}:{}: error reading from server: "
+                              "{}, closing connection",
+                              conn.id, _parser.SERVER_TO_CLIENT, *read_error );
+                goto close_connection;
             }
             if ( bytes_read == 0 ) {
                 if ( settings.readwritedebug ) {
                     fmt::println( settings.log_fs,
-                                  "C{:03d}:{}: got EOF",
+                                  "C{:03d}:{}: got EOF, closing connection",
                                   conn.id, _parser.SERVER_TO_CLIENT );
                 }
-                conns_to_close.emplace_back( id );
-                continue;
-            }
-            if ( settings.readwritedebug ) {
-                fmt::println( settings.log_fs,
-                              "C{:03d}:{:04d}B:{}: packet read from server into buffer",
-                              conn.id, bytes_read, _parser.SERVER_TO_CLIENT );
+                goto close_connection;
             }
             assert( !conn.server_buffer.empty() );
-            try {
-                const size_t bytes_parsed { _parser.logServerPackets( &conn ) };
-                assert( bytes_parsed == bytes_read );
-            } catch ( const std::runtime_error& e ) {
-                fmt::println( ::stderr, "{}", e.what() );
-                // without knowing that this connection is to the child process,
-                //   we rely on the expectation that closing the connection
-                //   should force EOF and thus exit for any client X app
-                conns_to_close.emplace_back( id );
-                continue;
+            if ( settings.readwritedebug ) {
+                fmt::println( settings.log_fs,
+                              "C{:03d}:{:04d}B:{}: read from server into buffer",
+                              conn.id, bytes_read, _parser.SERVER_TO_CLIENT );
             }
-        } else if ( _socketWriteReady( conn.server_fd ) ) {
-            assert( !conn.client_buffer.empty() );
-            size_t bytes_written {};
-            try {
-                bytes_written = conn.forwardToServer();
-            } catch ( const std::system_error& e ) {
-                if ( settings.readwritedebug ) {
-                    fmt::println( settings.log_fs,
-                                  "C{:03d}:{}: error writing to server: {}",
-                                  conn.id, _parser.CLIENT_TO_SERVER, e.what() );
-                }
-                conns_to_close.emplace_back( id );
-                continue;
+            const auto& [ bytes_parsed, parse_error ] {
+                _parser.logServerMessages( &conn ) };
+            if ( parse_error ) {
+                fmt::println( ::stderr, "C{:03d}:{}: error parsing server "
+                              "messages: {}, closing connection",
+                              conn.id, _parser.SERVER_TO_CLIENT, *parse_error );
+                goto close_connection;
+            }
+        } else if ( _socketWriteReady( conn.server_fd ) &&
+                    conn.client_buffer.writeReady() ) {
+            const auto& [ bytes_written, write_error ] {
+                conn.client_buffer.write( conn.server_fd ) }; // forwardToServer();
+            if ( write_error ) {
+                fmt::println( ::stderr, "C{:03d}:{}: error writing to server: "
+                              "{}, closing connection",
+                              conn.id, _parser.CLIENT_TO_SERVER, *write_error );
+                goto close_connection;
             }
             assert( bytes_written > 0 );
             if ( settings.readwritedebug ) {
                 fmt::println( settings.log_fs,
-                              "C{:03d}:{:04d}B:{}: wrote packet from buffer to server",
+                              "C{:03d}:{:04d}B:{}: wrote from buffer to server",
                               conn.id, bytes_written, _parser.CLIENT_TO_SERVER );
             }
-        } else if ( const auto error { _socketPollError( conn.server_fd ) }; error ) {
-            fmt::println(
-                ::stderr, "{}: {}: poll failure on connection {:03d} server socket: {}",
-                settings.process_name, __PRETTY_FUNCTION__, conn.id, *error );
-            conns_to_close.emplace_back( id );
-            continue;
+        } else if ( const auto poll_error { _socketPollError( conn.server_fd ) };
+                    poll_error ) {
+            fmt::println( ::stderr, "C{:03d}: server socket poll error: {}, "
+                          "closing connection",
+                          conn.id, *poll_error );
+            goto close_connection;
         }
+        continue;
+    close_connection:
+        conns_to_close.emplace_back( id );
     }
     _closeConnections( conns_to_close );
 
     if ( _socketReadReady( _listener_fd ) ) {
         _openConnection();
     } else if ( const auto error { _socketPollError( _listener_fd ) }; error ) {
-        fmt::println( ::stderr, "{}: {}: poll failure on listening socket: {}",
+        fmt::println( ::stderr, "{}: {}: listening socket poll error: {}",
                       settings.process_name, __PRETTY_FUNCTION__, *error );
     }
 }
@@ -686,7 +670,7 @@ void ProxyX11Server::_listenForClients() {
     }
     switch ( _in_display.ai_family ) {
     case AF_INET6: {
-        // `ipv6(7)` IPV6_V6ONLY: if false, then can send and receive packets to
+        // `ipv6(7)` IPV6_V6ONLY: if false, then can send and receive messages to
         //   and from an IPv6 address or an IPv4-mapped IPv6 address
         const int off {};
         if ( ::setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off) ) ) {
@@ -860,9 +844,7 @@ void ProxyX11Server::_openConnection() {
     }
     assert( conn.client_fd > _listener_fd );
     assert( !conn.client_desc.empty() );
-    fmt::println( ::stderr, "Connected to client: {}",
-                  conn.client_desc );
-
+    fmt::println( ::stderr, "Connected to client: {}", conn.client_desc );
     conn.server_fd = _connectToServer();
     if ( conn.server_fd == -1 ) {
         fmt::println( ::stderr, "{}: {}: failure to connect to X server for display: {:?}",

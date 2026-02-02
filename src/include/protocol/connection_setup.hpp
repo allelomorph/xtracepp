@@ -15,7 +15,7 @@ namespace protocol {
 namespace connection_setup {
 
 /**
- * @brief Represents client packet sent to [initiate] connection to X server.
+ * @brief Represents client message sent to [initiate] connection to X server.
  * [initiate]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup
  */
 struct Initiation : public Message {

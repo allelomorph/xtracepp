@@ -22,21 +22,11 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const _Whitespace& ws { _ROOT_WS };
     const Initiation::Header* header {
         reinterpret_cast< const Initiation::Header* >( data ) };
-    // No error yet if client's requested protocol version does not match
-    //   parser's, will error out based on server's offered version
     assert( header->byte_order == Initiation::MSBFIRST ||
             header->byte_order == Initiation::LSBFIRST );
-    // determine if host byte order is same as client ( potentially different
-    //   with remote clients )
-    const bool little_endian { [](){
-        const uint32_t i { 1 };
-         const uint8_t* arr {
-            reinterpret_cast< const uint8_t* >( &i ) };
-        return ( arr[0] == 1 );
-    }() };
-    const bool byteswap { little_endian !=
-                          ( header->byte_order == Initiation::LSBFIRST ) };
-    conn->byteswap = byteswap;
+    const bool byteswap { conn->byteswap };
+    assert( byteswap ==
+            ( _little_endian != ( header->byte_order == Initiation::LSBFIRST ) ) );
     bytes_parsed += sizeof( Initiation::Header );
     // followed by STRING8 authorization-protocol-name
     const uint16_t name_len { _ordered( header->name_len, byteswap ) };
@@ -51,7 +41,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
             data + bytes_parsed, data_len, data_len,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     bytes_parsed += alignment.pad( data_len );
-    assert( bytes_parsed == sz );  // (should not be batched with other packetss)
+    assert( bytes_parsed == sz );  // (should not be batched with other messages)
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -245,13 +235,12 @@ size_t X11ProtocolParser::_logConnectionSetup<
             _ordered( header->protocol_minor_version, byteswap ) };
         major_ver != protocol::MAJOR_VERSION ||
         minor_ver != protocol::MINOR_VERSION ) {
-        throw std::runtime_error(
-            fmt::format( "{}: must close connection {} - cannot parse packets "
-                         "as server will encode in X version {}.{} and parser "
-                         "only supports {}.{}",
-                         __PRETTY_FUNCTION__, conn->id,
-                         major_ver, minor_ver,
-                         protocol::MAJOR_VERSION, protocol::MINOR_VERSION ) );
+        fmt::println( ::stderr, "{}: {}: cannot parse any messages as server will "
+                      "encode in X version {}.{} and parser only supports {}.{}",
+                      settings.process_name, __PRETTY_FUNCTION__,
+                      major_ver, minor_ver,
+                      protocol::MAJOR_VERSION, protocol::MINOR_VERSION );
+        ::exit( EXIT_FAILURE );
     }
     bytes_parsed += sizeof( Acceptance::Header );
     assert( _ordered( header->success, byteswap ) ==
