@@ -288,7 +288,7 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
     size_t tl_bytes_parsed {};
     SocketBuffer& buffer { conn->client_buffer };
     uint8_t* data { buffer.data() };
-    while ( !buffer.allParsed() ) {
+    while ( buffer.parsed() < buffer.size() ) {
         if ( !buffer.messageSizeSet() ) {
             switch ( conn->status ) {
             case Connection::UNESTABLISHED: {
@@ -404,7 +404,7 @@ X11ProtocolParser::logServerMessages( Connection* conn ) {
     size_t tl_bytes_parsed {};
     SocketBuffer& buffer { conn->server_buffer };
     uint8_t* data { buffer.data() };
-    while ( !buffer.allParsed() ) {
+    while ( buffer.parsed() < buffer.size() ) {
         if ( !buffer.messageSizeSet() ) {
             switch ( conn->status ) {
             case Connection::UNESTABLISHED: {

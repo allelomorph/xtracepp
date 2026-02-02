@@ -21,6 +21,20 @@
 /**
  * @brief Buffers read/write operations between two sockets into user-accessible
  *   byte array.
+ *   Message bytes go through four stages:
+ *   - reading/loading into buffer (advances #_bytes_read (`br`))
+ *   - measuring (#_next_message_sz (`nms`) is set with #setMessageSize)
+ *   - parsing (#markMessageParsed adds #_next_message_sz to #_bytes_parsed (`bp`))
+ *   - writing/unloading from buffer (advances #_bytes_written (`bw`)
+ * ```
+ *        <------------size()-----------><--capacity()-->
+ *        data()
+ *        bw                            br              _buffer.size()
+ *        |                             |               |
+ * ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉
+ *        <--prev nms--><--nms-->
+ *        <---------bp---------->
+ * ````
  * @note This [example] shows the possiblilty of doing this more idiomatically
  *   with `std::streambuf` or `std::stringbuf`. [Another example].
  *
@@ -33,11 +47,6 @@ private:
      * @brief Buffer allocation block size in bytes.
      */
     static constexpr size_t _BLOCK_SZ { 2048 };
-    /**
-     * @brief Indicates a read of all bytes available from socket when passed
-     *   as second param to [read](#read).
-     */
-    static constexpr size_t _READ_ALL { std::numeric_limits< size_t >::max() };
     /**
      * @brief Indicates no MSG_* flags used with `send(2)`.
      */
@@ -61,56 +70,61 @@ private:
      */
     size_t _bytes_written {};
     /**
-     * @brief Capacity for bytes to read/load without resize.
+     * @brief Default for next message size, indicates that it has not been set.
      */
-    size_t _bytes_available { _BLOCK_SZ };
-    // // TBD could be queue of sizes?
-    // /**
-    //  * @brief Amount of complete messages stored in buffer ready to #write/#unload.
-    //  */
-    // size_t _message_ct {};
     static constexpr size_t
     _UNKNOWN_SZ { std::numeric_limits< size_t >::max() };
+    /**
+     * @brief Size of next message to be parsed.
+     */
     size_t _next_message_sz { _UNKNOWN_SZ };
 
 public:
-
-    SocketBuffer() : _buffer( _BLOCK_SZ ), _bytes_available( _buffer.size() ) {
-        assert( !_buffer.empty() ); }
     /**
-     * @brief .
+     * @brief Default ctor.
+     */
+    SocketBuffer() : _buffer( _BLOCK_SZ ) {
+        assert( !_buffer.empty() );
+    }
+    /**
+     * @brief Sets next message size.
      */
     inline void setMessageSize( const size_t message_sz ) {
         assert( message_sz != _UNKNOWN_SZ );
-        assert( _next_message_sz == _UNKNOWN_SZ );
+        assert( !messageSizeSet() );
         _next_message_sz = message_sz;
     }
     /**
-     * @brief .
+     * @brief Idicates whether next message size has been set.
+     * @return whether next message size has been set
      */
     inline bool messageSizeSet() {
         return _next_message_sz != _UNKNOWN_SZ;
     }
     /**
-     * @brief .
+     * @brief Gets next message size.
+     * @return next message size
      */
     inline size_t messageSize() {
         return _next_message_sz;
     }
     /**
-     * @brief .
+     * @brief Returns n bytes buffered and marked as parsed.
+     * @return n bytes buffered and marked as parsed.
      */
     inline size_t parsed() {
         return _bytes_parsed;
     }
     /**
-     * @brief .
+     * @brief Returns n bytes buffered but not marked as parsed.
+     * @return n bytes buffered but not marked as parsed.
      */
     inline size_t unparsed() {
         return size() - _bytes_parsed;
     }
     /**
-     * @brief .
+     * @brief Detects whether last #read recieved a partial message.
+     * @return whether last #read recieved a partial message
      */
     inline bool incompleteMessage() {
         return unparsed() > 0 &&
@@ -127,15 +141,10 @@ public:
         _next_message_sz = _UNKNOWN_SZ;
     }
     /**
-     * @brief Returns whether all unwritten bytes are marked by #markParsed.
-     * @return whether all unwritten bytes are marked by #markParsed
-     */
-    inline bool allParsed() {
-        return parsed() == size();
-    }
-    /**
-     * @brief .
-     * @return 
+     * @brief Detects whether buffer is empty or is still building incomplete
+     *   message.
+     * @return whether buffer is empty or is still building incomplete
+     *   message
      */
     inline bool readReady() {
         return empty() || incompleteMessage();
@@ -229,18 +238,18 @@ public:
      * @brief Resets buffer to empty, but maintains current storage size.
      */
     inline void clear() {
+        assert( parsed() == size() );
         _bytes_read      = 0;
         _next_message_sz = _UNKNOWN_SZ;
         _bytes_parsed    = 0;
         _bytes_written   = 0;
-        _bytes_available = _buffer.size();
     }
     /**
      * @brief Returns amount of bytes available for read/load.
      * @return bytes available for read/load
      */
     inline size_t capacity() {
-        return _bytes_available;
+        return _buffer.size() - _bytes_read;
     }
 };
 
