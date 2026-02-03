@@ -1,4 +1,6 @@
 #include <vector>
+#include <optional>
+#include <string>
 
 #include <cassert>
 
@@ -20,7 +22,8 @@
 #include "protocol/errors.hpp"
 
 
-static void pollSingleSocket(
+static std::optional< std::string >
+pollSingleSocket(
     const int socket_fd, const short events, int timeout = -1 ) {
     assert( events == POLLIN || events == POLLOUT ||
             events == ( POLLIN | POLLOUT ) );
@@ -31,29 +34,27 @@ static void pollSingleSocket(
     if ( timeout == -1 )
         timeout = DEFAULT_POLL_TIMEOUT_MS;
     switch ( ::poll( &pfd, 1, timeout ) ) {
-    case 0:
-        throw std::runtime_error(
-            fmt::format( "{}: poll timeout in {} ms",
-                         __PRETTY_FUNCTION__, timeout ) );
-        break;
     case -1:
-        throw errors::system::exception(
+        return errors::system::message(
             fmt::format( "{}: poll", __PRETTY_FUNCTION__ ) );
         break;
-    default:
+    case 0:
+        return fmt::format( "{}: poll timeout in {} ms",
+                            __PRETTY_FUNCTION__, timeout );
+        break;
+    default: {
         const std::string_view err_msg {
             ( pfd.revents & POLLERR )  ? "error condition" :
-            ( pfd.revents & POLLHUP )  ? "hang up" :
+         // ( pfd.revents & POLLHUP )  ? "hang up" :
             ( pfd.revents & POLLNVAL ) ? "invalid fd (not open)" :
             ( pfd.revents & POLLPRI )  ? "exceptional condition" :
-                                             "" };
-        if ( !err_msg.empty() ) {
-            throw std::runtime_error(
-                fmt::format( "{}: poll marked failure from {}",
-                             __PRETTY_FUNCTION__, err_msg ) );
-        }
+                                         "" };
+        return fmt::format( "{}: poll marked failure from {}",
+                            __PRETTY_FUNCTION__, err_msg );
+    }
         break;
     }
+    return std::nullopt;
 }
 
 bool ProxyX11Server::_authenticateServerConnection(
@@ -74,21 +75,17 @@ bool ProxyX11Server::_authenticateServerConnection(
     assert( sbuffer.size() ==
               sizeof(init_header) + _parser.alignment.pad( _AUTH_NAME.size() ) +
               _parser.alignment.pad( _AUTH_DATA_SZ ) );
-    try {
-        pollSingleSocket( server_fd, POLLOUT );
-    } catch ( const std::exception& e ) {
-        fmt::println( ::stderr, "{}: {}",
-                      settings.process_name, e.what() );
+    if ( const auto poll_error { pollSingleSocket( server_fd, POLLOUT ) };
+         poll_error ) {
+        fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
         return false;
     }
     sbuffer.write( server_fd );
     assert( sbuffer.empty() );
 
-    try {
-        pollSingleSocket( server_fd, POLLIN );
-    } catch ( const std::exception& e ) {
-        fmt::println( ::stderr, "{}: {}",
-                      settings.process_name, e.what() );
+    if ( const auto poll_error { pollSingleSocket( server_fd, POLLIN ) };
+         poll_error ) {
+        fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
         return false;
     }
     sbuffer.read( server_fd );
@@ -162,11 +159,10 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         sbuffer.load( value_list, sizeof( value_list ) );
         assert( sbuffer.size() == ChangeWindowAttributes::BASE_ENCODING_SZ +
                   sizeof( protocol::VALUE ) );
-        try {
-            pollSingleSocket( server_fd, POLLOUT );
-        } catch ( const std::exception& e ) {
-            fmt::println( ::stderr, "{}: {}",
-                          settings.process_name, e.what() );
+
+        if ( const auto poll_error { pollSingleSocket( server_fd, POLLOUT ) };
+             poll_error ) {
+            fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
             goto close_socket;
         }
         sbuffer.write( server_fd );
@@ -194,11 +190,9 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         cp_encoding.data_fmt_unit_len = 0;  // 0-length append to act as noop
         sbuffer.load( &cp_encoding, sizeof( cp_encoding ) );
         assert( sbuffer.size() == ChangeProperty::BASE_ENCODING_SZ );
-        try {
-            pollSingleSocket( server_fd, POLLOUT );
-        } catch ( const std::exception& e ) {
-            fmt::println( ::stderr, "{}: {}",
-                          settings.process_name, e.what() );
+        if ( const auto poll_error { pollSingleSocket( server_fd, POLLOUT ) };
+             poll_error ) {
+            fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
             goto close_socket;
         }
         sbuffer.write( server_fd );
@@ -207,11 +201,9 @@ void ProxyX11Server::_fetchCurrentServerTime() {
 
     ////// Parse PropertyNotify event, collect reference TIMESTAMP
     {
-        try {
-            pollSingleSocket( server_fd, POLLIN );
-        } catch ( const std::exception& e ) {
-            fmt::println( ::stderr, "{}: {}",
-                          settings.process_name, e.what() );
+        if ( const auto poll_error { pollSingleSocket( server_fd, POLLIN ) };
+             poll_error ) {
+            fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
             goto close_socket;
         }
         sbuffer.read( server_fd );
@@ -236,7 +228,7 @@ close_socket:
 }
 
 static void handleTerminatingSignal( int sig ) {
-    assert( sig == SIGINT || sig == SIGTERM ||
+    assert( sig == SIGINT  || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
     // show cursor if currently hidden
     ::write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
@@ -245,8 +237,6 @@ static void handleTerminatingSignal( int sig ) {
 
 std::vector< std::string >
 ProxyX11Server::_fetchInternedAtoms() {
-    using protocol::requests::GetAtomName;
-
     const int server_fd { _connectToServer() };
     if( server_fd < 0 ) {
         fmt::println(
@@ -254,119 +244,118 @@ ProxyX11Server::_fetchInternedAtoms() {
             settings.process_name, __PRETTY_FUNCTION__, _out_display.name );
         ::exit( EXIT_FAILURE );
     }
-    if ( !_authenticateServerConnection( server_fd ) ) {
-        fmt::println(
-            ::stderr, "{}: {}: failed to authenticate connection to X server",
-            settings.process_name, __PRETTY_FUNCTION__ );
-        ::close( server_fd );  // sends EOF
-        ::exit( EXIT_FAILURE );
-    }
-
-    constexpr char CSI[ sizeof( "\x1b[" ) ] { "\x1b[" };
-    fmt::print( ::stderr, "fetching interned ATOMs: " );
-    fmt::print( ::stderr, "{}?25l", CSI );  // hide cursor
-    // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
-    struct ::sigaction act {};  // `struct` needed to disambiguate from sigaction(2)
-    act.sa_handler = &handleTerminatingSignal;
-    if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
-         ::sigaction( SIGINT, &act, nullptr ) == -1  ||
-         ::sigaction( SIGSEGV, &act, nullptr ) == -1 ||
-         ::sigaction( SIGTERM, &act, nullptr ) == -1 ) {
-        fmt::println(
-            ::stderr, "{}: {}", __PRETTY_FUNCTION__,
-            errors::system::message( "sigaction" ) );
-        ::close( server_fd );  // sends EOF
-        ::exit( EXIT_FAILURE );
-    }
-
-    GetAtomName::Prefix req_prefix {};
-    req_prefix.opcode = protocol::requests::opcodes::GETATOMNAME;
-    GetAtomName::Length req_length {};
-    req_length.tl_aligned_units =
-        _parser.alignment.units( GetAtomName::BASE_ENCODING_SZ );
-    GetAtomName::Encoding req_encoding {};
-    GetAtomName::Reply::Encoding rep_encoding {};
     std::vector< std::string > fetched_atoms ( 1 );  // indices start at 1
-    static constexpr size_t STRINGBUF_SZ { 1000 };
-    char stringbuf[ STRINGBUF_SZ ];
-    SocketBuffer sbuffer;
-    for ( uint32_t i { 1 }; true; ++i ) {
-        ////// Send GetAtomName request on ATOMs starting with 1
-        //////   ( expecting large contiguous region of ATOM ids )
-        sbuffer.load( &req_prefix, sizeof( req_prefix ) );
-        sbuffer.load( &req_length, sizeof( req_length ) );
-        req_encoding.atom.data = i;
-        sbuffer.load( &req_encoding, sizeof( req_encoding ) );
-        assert( sbuffer.size() == GetAtomName::BASE_ENCODING_SZ );
-        try {
-            pollSingleSocket( server_fd, POLLOUT, 500 );
-        } catch ( const std::exception& e ) {
-            fmt::println( ::stderr, "{}", e.what() );
-            ::close( server_fd );  // sends EOF
-            ::exit( EXIT_FAILURE );
+    {
+        if ( !_authenticateServerConnection( server_fd ) ) {
+            fmt::println(
+                ::stderr, "{}: {}: failed to authenticate connection to X server",
+                settings.process_name, __PRETTY_FUNCTION__ );
+            goto failure;
         }
-        sbuffer.write( server_fd );
 
-        ////// Parse GetAtomName reply to get string interned at ATOM i
-        //////   ( or parse first error and break loop )
-        assert( sbuffer.empty() );
-        try {
-            pollSingleSocket( server_fd, POLLIN, 500 );
-        } catch ( const std::exception& e ) {
-            fmt::println( ::stderr, "{}", e.what() );
-            close( server_fd );  // sends EOF
-            ::exit( EXIT_FAILURE );
+        constexpr char CSI[ sizeof( "\x1b[" ) ] { "\x1b[" };
+        fmt::print( ::stderr, "fetching interned ATOMs: " );
+        fmt::print( ::stderr, "{}?25l", CSI );  // hide cursor
+        // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
+        struct ::sigaction act {};  // `struct` needed to disambiguate from sigaction(2)
+        act.sa_handler = &handleTerminatingSignal;
+        if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
+             ::sigaction( SIGINT, &act, nullptr ) == -1  ||
+             ::sigaction( SIGSEGV, &act, nullptr ) == -1 ||
+             ::sigaction( SIGTERM, &act, nullptr ) == -1 ) {
+            fmt::println( ::stderr, "{}: {}", __PRETTY_FUNCTION__,
+                          errors::system::message( "sigaction" ) );
+            goto failure;
         }
-        sbuffer.read( server_fd );
-        assert( sbuffer.size() >= sizeof( rep_encoding ) );
-        if ( reinterpret_cast< protocol::Response::Header* >(
-                 sbuffer.data() )->prefix == protocol::errors::Error::ERROR ) {
-            assert( sbuffer.size() == protocol::errors::Error::ENCODING_SZ );
-            protocol::errors::Error::Encoding err_encoding;
-            sbuffer.unload( &err_encoding, sizeof( err_encoding ) );
-            // expect Atom error at end of first contiguous region of server's ATOMs
-            if ( err_encoding.header.code == protocol::errors::codes::ATOM ) {
-                // need newline after cursor looping horizontally
-                fmt::println( ::stderr, "" );
-            } else {
-                fmt::println( ::stderr, "failed atom prefech with X error {}, "
-                              "reverting to default atom lookup",
-                              protocol::errors::names[ err_encoding.header.code ] );
-                fetched_atoms.clear();
+
+        using protocol::requests::GetAtomName;
+        GetAtomName::Prefix req_prefix {};
+        req_prefix.opcode = protocol::requests::opcodes::GETATOMNAME;
+        GetAtomName::Length req_length {};
+        req_length.tl_aligned_units =
+            _parser.alignment.units( GetAtomName::BASE_ENCODING_SZ );
+        GetAtomName::Encoding req_encoding {};
+        GetAtomName::Reply::Encoding rep_encoding {};
+        static constexpr size_t STRINGBUF_SZ { 1000 };
+        char stringbuf[ STRINGBUF_SZ ];
+        SocketBuffer sbuffer;
+        for ( uint32_t i { 1 }; true; ++i ) {
+            ////// Send GetAtomName request on ATOMs starting with 1
+            //////   ( expecting large contiguous region of ATOM ids )
+            sbuffer.load( &req_prefix, sizeof( req_prefix ) );
+            sbuffer.load( &req_length, sizeof( req_length ) );
+            req_encoding.atom.data = i;
+            sbuffer.load( &req_encoding, sizeof( req_encoding ) );
+            assert( sbuffer.size() == GetAtomName::BASE_ENCODING_SZ );
+            if ( const auto poll_error { pollSingleSocket( server_fd, POLLOUT, 500 ) };
+                 poll_error ) {
+                fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
+                goto failure;
             }
-            break;
+            sbuffer.write( server_fd );
+
+            ////// Parse GetAtomName reply to get string interned at ATOM i
+            //////   ( or parse first error and break loop )
+            assert( sbuffer.empty() );
+            if ( const auto poll_error { pollSingleSocket( server_fd, POLLIN, 500 ) };
+                 poll_error ) {
+                fmt::println( ::stderr, "{}: {}", settings.process_name, *poll_error );
+                goto failure;
+            }
+            sbuffer.read( server_fd );
+            assert( sbuffer.size() >= sizeof( rep_encoding ) );
+            if ( reinterpret_cast< protocol::Response::Header* >(
+                     sbuffer.data() )->prefix == protocol::errors::Error::ERROR ) {
+                assert( sbuffer.size() == protocol::errors::Error::ENCODING_SZ );
+                protocol::errors::Error::Encoding err_encoding;
+                sbuffer.unload( &err_encoding, sizeof( err_encoding ) );
+                // expect Atom error at end of first contiguous region of server's ATOMs
+                if ( err_encoding.header.code == protocol::errors::codes::ATOM ) {
+                    // need newline after cursor looping horizontally
+                    fmt::println( ::stderr, "" );
+                } else {
+                    fmt::println( ::stderr, "{}: failed atom prefech with X error {}, "
+                                  "reverting to default atom lookup",
+                                  settings.process_name,
+                                  protocol::errors::names[ err_encoding.header.code ] );
+                    fetched_atoms.clear();
+                }
+                break;
+            }
+            sbuffer.unload( &rep_encoding, sizeof( rep_encoding ) );
+            assert( rep_encoding.header.reply == protocol::requests::Reply::REPLY );
+            assert( rep_encoding.header.sequence_num == i );
+            assert( rep_encoding.header.extra_aligned_units ==
+                    _parser.alignment.units( _parser.alignment.pad( rep_encoding.name_len ) ) );
+            assert( sbuffer.size() < STRINGBUF_SZ );
+            assert( sbuffer.size() == _parser.alignment.pad( rep_encoding.name_len ) );
+            sbuffer.unload( stringbuf, sbuffer.size() );
+            stringbuf[ rep_encoding.name_len ] = '\0';
+            fetched_atoms.emplace_back( stringbuf );
+            assert( sbuffer.empty() );
+
+            // Update ATOM counter in place to keep user aware of progress
+            static constexpr int COUNTER_W { 5 };
+            fmt::print( ::stderr, "{:{}d}{}{}D",  // \x1b[#D right # cols
+                        i, COUNTER_W, CSI, COUNTER_W );
         }
-        sbuffer.unload( &rep_encoding, sizeof( rep_encoding ) );
-        assert( rep_encoding.header.reply == protocol::requests::Reply::REPLY );
-        assert( rep_encoding.header.sequence_num == i );
-        assert( rep_encoding.header.extra_aligned_units ==
-                  _parser.alignment.units( _parser.alignment.pad( rep_encoding.name_len ) ) );
-        assert( sbuffer.size() < STRINGBUF_SZ );
-        assert( sbuffer.size() == _parser.alignment.pad( rep_encoding.name_len ) );
-        sbuffer.unload( stringbuf, sbuffer.size() );
-        stringbuf[ rep_encoding.name_len ] = '\0';
-        fetched_atoms.emplace_back( stringbuf );
-        assert( sbuffer.empty() );
-
-        // Update ATOM counter in place to keep user aware of progress
-        static constexpr int COUNTER_W { 5 };
-        fmt::print( ::stderr, "{:{}d}{}{}D",  // \x1b[#D right # cols
-                    i, COUNTER_W, CSI, COUNTER_W );
+        fmt::print( ::stderr, "{}?25h", CSI );  // show cursor
+        // restore default signal behavior
+        act.sa_handler = SIG_DFL;
+        if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
+             ::sigaction( SIGINT, &act, nullptr ) == -1  ||
+             ::sigaction( SIGSEGV, &act, nullptr ) == -1 ||
+             ::sigaction( SIGTERM, &act, nullptr ) == -1 ) {
+            fmt::println(
+                ::stderr, "{}: {}: {}", settings.process_name, __PRETTY_FUNCTION__,
+                errors::system::message( "sigaction" ) );
+            goto failure;
+        }
     }
 
-    fmt::print( ::stderr, "{}?25h", CSI );  // show cursor
-    // restore default signal behavior
-    act.sa_handler = SIG_DFL;
-    if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
-         ::sigaction( SIGINT, &act, nullptr ) == -1  ||
-         ::sigaction( SIGSEGV, &act, nullptr ) == -1 ||
-         ::sigaction( SIGTERM, &act, nullptr ) == -1 ) {
-        fmt::println(
-            ::stderr, "{}: {}: {}", settings.process_name, __PRETTY_FUNCTION__,
-            errors::system::message( "sigaction" ) );
-        ::close( server_fd );  // sends EOF
-        ::exit( EXIT_FAILURE );
-    }
-
+    ::close( server_fd );
     return fetched_atoms;
+failure:
+    ::close( server_fd );
+    ::exit( EXIT_FAILURE );
 }
