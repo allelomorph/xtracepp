@@ -20,10 +20,18 @@
  */
 class Connection {
 public:
+    /**
+     * @brief Bundles major and minor request opcodes for mapping by
+     *   sequence number.
+     */
     struct RequestOpcodes {
+        /** @brief Request major opcode. */
         uint8_t major {};
+        /** @brief Request minor opcode. */
         uint8_t minor {};
-
+        /**
+         * @brief Default ctor.
+         */
         RequestOpcodes( const uint8_t major_, const uint8_t minor_ = {} ) :
             major( major_ ), minor( minor_ ) {}
     };
@@ -202,7 +210,8 @@ public:
     /**
      * @brief Assign serial number to request and store opcodes, thus
      *   marking request as open.
-     * @param opcode major opcode of request
+     * @param major request major opcode
+     * @param minor request minor opcode
      * @return request sequence (serial) number
      * @note A request is considered open until a corresponding error or reply
      *   is received from server.

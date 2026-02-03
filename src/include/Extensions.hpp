@@ -17,23 +17,46 @@
  */
 class Extensions {
 private:
+    /**
+     * @brief Boolean enum for use by extension toggling functions.
+     */
     enum class _Toggle { Off, On };
-    using _ToggleFuncT = void (Extensions::*)( const _Toggle );
-    using _CheckFuncT = bool (Extensions::*)();
-    struct _MembFuncs {
-        _ToggleFuncT toggle_func {};
-        _CheckFuncT check_func {};
-    };
+    /**
+     * @brief Toggles BIG-REQUESTS extension activation.
+     * @param toggle whether to toggle on/off
+     */
     inline void _toggleBigRequests( const _Toggle toggle ) {
         big_requests = static_cast< bool >( toggle );
     }
+    /**
+     * @brief Checks whether BIG-REQUESTS extension activated.
+     * @return whether BIG-REQUESTS extension activated
+     */
     inline bool _checkBigRequests() {
         return big_requests;
     }
+    /**
+     * @brief Prototype of private member extension toggling functions.
+     */
+    using _ToggleFuncT = void (Extensions::*)( const _Toggle );
+    /**
+     * @brief Prototype of private member extension activation detection functions.
+     */
+    using _CheckFuncT = bool (Extensions::*)();
+    /**
+     * @brief Bundles #_ToggleFuncT and #_CheckFuncT for use as a map value.
+     */
+    struct _MembFuncs {
+        /** @brief Extension activation toggling function. */
+        _ToggleFuncT toggle_func {};
+        /** @brief Extension activation detection function. */
+        _CheckFuncT  check_func {};
+    };
     /** @brief Allows for extension flag access by extension name string. */
     std::unordered_map< std::string_view, _MembFuncs > _funcs_by_ext_name {
         { "BIG-REQUESTS",
-          _MembFuncs{ &Extensions::_toggleBigRequests, &Extensions::_checkBigRequests } }
+          _MembFuncs{ &Extensions::_toggleBigRequests,
+                      &Extensions::_checkBigRequests } }
     };
 
 public:
@@ -41,7 +64,6 @@ public:
      *    [encoding] and an increase in maximum request size.
      *  [encoding]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding */
     bool big_requests {};
-
     /**
      * @brief Activate an extension by name.
      * @param name extension name

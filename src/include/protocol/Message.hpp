@@ -18,7 +18,7 @@ struct Message {
     /**
      * @brief Alignment size in bytes; used to interpret values like:
      *   [following_aligned_units](#connection_setup::InitResponse::Header::following_aligned_units),
-     *   [tl_aligned_units](#requests::Request::Header::tl_aligned_units),
+     *   [tl_aligned_units](#requests::Request::Length::tl_aligned_units),
      *   [extra_aligned_units](#requests::Reply::Header::extra_aligned_units).
      */
     static constexpr uint32_t ALIGN { 4 };

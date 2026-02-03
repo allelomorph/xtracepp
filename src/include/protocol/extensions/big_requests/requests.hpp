@@ -45,6 +45,7 @@ std::array< std::string_view, opcodes::MAX + 1 > names {
     "BigReqEnable"  //   0
 };
 
+//using hdr = protocol::extensions::requests::Reply::Header;
 /**
  * @brief Represents X11 BIG-REQUESTS extension %BigReqEnable request [encoding].
  * [encoding]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding
@@ -57,7 +58,7 @@ struct BigReqEnable : public protocol::extensions::requests::impl::SimpleRequest
     struct Reply : public protocol::extensions::requests::Reply {
         /**
          * @brief Fixed encoding, including
-         *   [Header](#protocol::extensions::requests::Reply::Header).
+         *   [Header](#protocol::requests::Reply::Header).
          * @note Documented [encoding] only implies 2 unused bytes at end, which
          *   would make the total less than the core protocol reply size
          *   [default](#protocol::requests::Reply::DEFAULT_ENCODING_SZ) of 32.

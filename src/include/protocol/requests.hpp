@@ -176,15 +176,15 @@ struct Request : public Message {
         uint8_t _unused;
     };
     /**
-     * @brief Default fixed encoding after #Prefix.
+     * @brief Default fixed encoding after [Prefix](#requests::Request::Prefix).
      */
     struct [[gnu::packed]] Length {
         /** @brief Total length of request encoding in 4B units. */
         uint16_t tl_aligned_units;
     };
     /**
-     * @brief Default fixed encoding after #Prefix, if [BIG-REQUESTS] extension
-     *   is enabled and #extended_length_flag is 0.
+     * @brief Default fixed encoding after [Prefix](#requests::Request::Prefix),
+     *   if [BIG-REQUESTS] extension is enabled and #extended_length_flag is 0.
      * [BIG-REQUESTS]: https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html#Encoding
      */
     struct [[gnu::packed]] BigLength {
@@ -445,7 +445,8 @@ struct CreateWindow : public impl::WindowValueListRequest {
         CARD8    depth;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -494,7 +495,8 @@ struct CreateWindow : public impl::WindowValueListRequest {
  */
 struct ChangeWindowAttributes : public impl::WindowValueListRequest {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -521,7 +523,8 @@ namespace impl {
  */
 struct SimpleWindowRequest : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -657,7 +660,8 @@ struct ChangeSaveSet : public Request {
         uint8_t  mode;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -681,7 +685,8 @@ struct ChangeSaveSet : public Request {
  */
 struct ReparentWindow : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -731,7 +736,8 @@ struct UnmapSubwindows : public impl::SimpleWindowRequest {
  */
 struct ConfigureWindow : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of (4n)B
      */
@@ -789,7 +795,8 @@ struct CirculateWindow : public Request {
         uint8_t   direction;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -815,7 +822,8 @@ struct CirculateWindow : public Request {
  */
 struct GetGeometry : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: drawable. */
@@ -924,7 +932,8 @@ struct InternAtom : public Request {
         BOOL      only_if_exists;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(n)B
      */
@@ -972,7 +981,8 @@ struct InternAtom : public Request {
  */
 struct GetAtomName : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: atom. */
@@ -1023,7 +1033,8 @@ struct ChangeProperty : public Request {
         uint8_t  mode;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofBYTE data` of pad(([format](#Encoding::format)
      *      / 8) * [data_fmt_unit_len](#Encoding::data_fmt_unit_len))B
@@ -1065,7 +1076,8 @@ struct ChangeProperty : public Request {
  */
 struct DeleteProperty : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -1096,7 +1108,8 @@ struct GetProperty : public Request {
         BOOL     delete_;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -1208,7 +1221,8 @@ struct ListProperties : public impl::SimpleWindowRequest {
  */
 struct SetSelectionOwner : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: owner; uses enum: 0=None. */
@@ -1240,7 +1254,8 @@ struct SetSelectionOwner : public Request {
  */
 struct GetSelectionOwner : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: selection. */
@@ -1283,7 +1298,8 @@ struct GetSelectionOwner : public Request {
  */
 struct ConvertSelection : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: requestor. */
@@ -1328,7 +1344,8 @@ struct SendEvent : public Request {
         BOOL     propagate;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - [Event](#protocol::events::Event) of 32B
      */
@@ -1372,7 +1389,8 @@ struct GrabPointer : public Request {
         BOOL     owner_events;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1463,7 +1481,8 @@ struct GrabPointer : public Request {
  */
 struct UngrabPointer : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: time; uses enum: 0=CurrentTime. */
@@ -1496,7 +1515,8 @@ struct GrabButton : public Request {
         BOOL     owner_events;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1566,7 +1586,8 @@ struct UngrabButton : public Request {
         BUTTON   button;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1596,7 +1617,8 @@ struct UngrabButton : public Request {
  */
 struct ChangeActivePointerGrab : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cursor; uses enum: 0=None. */
@@ -1640,7 +1662,8 @@ struct GrabKeyboard : public Request {
         BOOL     owner_events;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1720,7 +1743,8 @@ struct GrabKeyboard : public Request {
  */
 struct UngrabKeyboard : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: time; uses enum: 0=CurrentTime. */
@@ -1753,7 +1777,8 @@ struct GrabKey : public Request {
         BOOL     owner_events;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1808,7 +1833,8 @@ struct UngrabKey : public Request {
         KEYCODE  key;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -1849,7 +1875,8 @@ struct AllowEvents : public Request {
         uint8_t  mode;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: time; uses enum: 0=CurrentTime. */
@@ -1974,7 +2001,8 @@ struct QueryPointer : public impl::SimpleWindowRequest {
  */
 struct GetMotionEvents : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: grab-window. */
@@ -2039,7 +2067,8 @@ struct GetMotionEvents : public Request {
  */
 struct TranslateCoordinates : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-window. */
@@ -2107,7 +2136,8 @@ struct TranslateCoordinates : public Request {
  */
 struct WarpPointer : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-window; uses enum: 0=None. */
@@ -2159,7 +2189,8 @@ struct SetInputFocus : public Request {
         uint8_t  revert_to;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: focus; uses enum: 0=None 1=PointerRoot. */
@@ -2269,7 +2300,8 @@ struct QueryKeymap : public impl::SimpleRequest {
  */
 struct OpenFont : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(n)B
      */
@@ -2296,7 +2328,8 @@ struct OpenFont : public Request {
  */
 struct CloseFont : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: font. */
@@ -2350,7 +2383,8 @@ struct [[gnu::packed]] CHARINFO : public protocol::impl::Struct {
  */
 struct QueryFont : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: font. */
@@ -2368,7 +2402,13 @@ struct QueryFont : public Request {
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
      */
     struct Reply : public requests::Reply {
+        /**
+         * @brief Suffix `properties` list member type.
+         */
         using FONTPROP = impl::FONTPROP;
+        /**
+         * @brief [Encoding](#QueryFont::Reply::Encoding) member type.
+         */
         using CHARINFO = impl::CHARINFO;
         /**
          * @brief Fixed encoding, including [Header](#requests::Reply::Header).
@@ -2400,7 +2440,7 @@ struct QueryFont : public Request {
             CARD16   max_char_or_byte2;
             /** @brief Protocol name: default-char. */
             CARD16   default_char;
-            /** @brief Length of suffix `properties` in [FONTPROP](#FONTPROP)s. */
+            /** @brief Length of suffix `properties` in [FONTPROP](#impl::FONTPROP)s. */
             uint16_t properties_ct;
             /** @brief Protocol name: draw-direction; uses enum:
              *   0=LeftToRight 1=RightToLeft. */
@@ -2415,7 +2455,8 @@ struct QueryFont : public Request {
             INT16    font_ascent;
             /** @brief Protocol name: font-descent. */
             INT16    font_descent;
-            /** @brief Length of suffix `char-infos` in [CHARINFO](#CHARINFO)s. */
+            /** @brief Length of suffix `char-infos` in
+             *    [CHARINFO](#impl::CHARINFO)s. */
             uint32_t char_infos_ct;
         };
         static_assert( sizeof( Encoding ) ==
@@ -2441,7 +2482,8 @@ struct QueryTextExtents : public Request {
         BOOL     odd_length;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING16 string` of pad(2n)B
      */
@@ -2518,7 +2560,8 @@ namespace impl {
  */
 struct ListFontsRequest : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 pattern` of pad(pattern_len)B
      */
@@ -2583,7 +2626,14 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
      * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
      */
     struct Reply : public requests::Reply {
+        /**
+         * @brief Suffix `properties` list member type.
+         */
         using FONTPROP = impl::FONTPROP;
+        /**
+         * @brief [Encoding](#requests::ListFontsWithInfo::Reply::Encoding)
+         *   member type.
+         */
         using CHARINFO = impl::CHARINFO;
         /**
          * @brief Fixed encoding prefix.
@@ -2604,7 +2654,8 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
             /** @brief Length of encoding in excess of default, in 4B units. */
             uint32_t extra_aligned_units;  // 7 + (2 * properties_ct) + pad(name_len) / 4
         };
-        /** @brief [name_len](#Header::name_len) sentinel value to indicate last-reply. */
+        /** @brief [name_len](#Header::name_len) sentinel value to indicate
+         *    last-reply. */
         static constexpr uint8_t LAST_REPLY {};
         /**
          * @brief Fixed encoding, including [Header](#Header).
@@ -2666,7 +2717,8 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
  */
 struct SetFontPath : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofSTR path` of pad(n)B (`LISTofSTRING8` in [description])
      * [description]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#requests:SetFontPath
@@ -2730,7 +2782,8 @@ struct CreatePixmap : public Request {
         CARD8    depth;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: pid. */
@@ -2756,7 +2809,8 @@ struct CreatePixmap : public Request {
  */
 struct FreePixmap : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: pixmap. */
@@ -2863,7 +2917,8 @@ struct GCRequest : public Request {
  */
 struct CreateGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -2889,7 +2944,8 @@ struct CreateGC : public impl::GCRequest {
  */
 struct ChangeGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -2913,7 +2969,8 @@ struct ChangeGC : public impl::GCRequest {
  */
 struct CopyGC : public impl::GCRequest {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-gc. */
@@ -2937,7 +2994,8 @@ struct CopyGC : public impl::GCRequest {
  */
 struct SetDashes : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofCARD8 dashes` of pad(dashes_len)B
      */
@@ -2973,7 +3031,8 @@ struct SetClipRectangles : public Request {
         uint8_t  ordering;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofRECTANGLE rectangles` of 8nB
      */
@@ -3007,7 +3066,8 @@ struct SetClipRectangles : public Request {
  */
 struct FreeGC : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: gc. */
@@ -3036,7 +3096,8 @@ struct ClearArea : public Request {
         BOOL     exposures;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: window. */
@@ -3064,7 +3125,8 @@ struct ClearArea : public Request {
  */
 struct CopyArea : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-drawable. */
@@ -3100,7 +3162,8 @@ struct CopyArea : public Request {
  */
 struct CopyPlane : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: src-drawable. */
@@ -3151,7 +3214,8 @@ struct PolyPointRequest : public Request {
         uint8_t  coordinate_mode;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofPOINT points` of 4nB
      */
@@ -3195,7 +3259,8 @@ struct PolyLine : public impl::PolyPointRequest {
  */
 struct PolySegment : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofSEGMENT segments` of 8nB
      */
@@ -3232,7 +3297,8 @@ struct PolySegment : public Request {
  */
 struct PolyRectangle : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofRECTANGLE rectangles` of 8nB
      */
@@ -3256,7 +3322,8 @@ struct PolyRectangle : public Request {
  */
 struct PolyArc : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofARC arcs` of 12nB
      */
@@ -3280,7 +3347,8 @@ struct PolyArc : public Request {
  */
 struct FillPoly : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofPOINT points` of 4nB
      */
@@ -3323,7 +3391,8 @@ struct FillPoly : public Request {
  */
 struct PolyFillRectangle : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofRECTANGLE rectangles` of 8nB
      */
@@ -3347,7 +3416,8 @@ struct PolyFillRectangle : public Request {
  */
 struct PolyFillArc : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofARC arcs` of 12nB
      */
@@ -3380,7 +3450,8 @@ struct PutImage : public Request {
         uint8_t  format;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofBYTE data` of pad(n)B
      */
@@ -3432,7 +3503,8 @@ struct GetImage : public Request {
         uint8_t  format;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: drawable. */
@@ -3512,7 +3584,8 @@ namespace impl {
  */
 struct PolyTextRequest : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffixes:
      *   - `LISTofTEXTITEM8 items` of pad(n)B
      *     or
@@ -3530,8 +3603,8 @@ struct PolyTextRequest : public Request {
     };
     /**
      * @brief Stores X11 font code in network byte order; used in
-     *   [TEXTITEM8](#PolyText8::TEXTITEM8) and [TEXTITEM16](#PolyText16::TEXTITEM16)
-     *   unions.
+     *   [TEXTITEM8](#PolyText8::TEXTITEM8) and
+     *   [TEXTITEM16](#PolyText16::TEXTITEM16) unions.
      * @see [X11 fonts](https://www.x.org/wiki/guide/fonts/)
      */
     struct [[gnu::packed]] FONT : public protocol::impl::Struct {
@@ -3558,13 +3631,13 @@ struct PolyTextRequest : public Request {
 
 /**
  * @brief Represents X11 %PolyText8 request [encoding].
- * @note [Encoding](#PolyTextRequest::Encoding) followed by variable length suffix:
+ * @note [Encoding](#impl::PolyTextRequest::Encoding) followed by variable length suffix:
  *   - `LISTofTEXTITEM8 items` of pad(n)B
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyText8 : public impl::PolyTextRequest {
     /**
-     * @brief [Encoding](#PolyTextRequest::Encoding) suffix list members.
+     * @brief [Encoding](#impl::PolyTextRequest::Encoding) suffix list members.
      */
     union TEXTITEM8 {
         impl::PolyTextRequest::FONT font;
@@ -3575,7 +3648,7 @@ struct PolyText8 : public impl::PolyTextRequest {
          */
         struct [[gnu::packed]] TEXTELT8 : public protocol::impl::StructWithSuffixes {
             /** @brief Length of suffix `string` in bytes (cannot equal
-             *    [FONT_SHIFT](#PolyTextRequest::FONT::FONT_SHIFT)). */
+             *    [FONT_SHIFT](#impl::PolyTextRequest::FONT::FONT_SHIFT)). */
             uint8_t string_len;
             /** @brief Protocol name: delta. */
             INT8    delta;
@@ -3584,13 +3657,13 @@ struct PolyText8 : public impl::PolyTextRequest {
 };
 /**
  * @brief Represents X11 %PolyText16 request [encoding].
- * @note [Encoding](#PolyTextRequest::Encoding) followed by variable length suffix:
+ * @note [Encoding](#impl::PolyTextRequest::Encoding) followed by variable length suffix:
  *   - `LISTofTEXTITEM16 items` of pad(n)B
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
 struct PolyText16 : public impl::PolyTextRequest {
     /**
-     * @brief [Encoding](#PolyTextRequest::Encoding) suffix list members.
+     * @brief [Encoding](#impl::PolyTextRequest::Encoding) suffix list members.
      */
     union TEXTITEM16 {
         impl::PolyTextRequest::FONT font;
@@ -3601,7 +3674,7 @@ struct PolyText16 : public impl::PolyTextRequest {
          */
         struct [[gnu::packed]] TEXTELT16 : public protocol::impl::StructWithSuffixes {
             /** @brief Length of suffix `string` in [CHAR2B](#protocol::CHAR2B)
-             *    (cannot equal [FONT_SHIFT](#PolyTextRequest::FONT::FONT_SHIFT)). */
+             *    (cannot equal [FONT_SHIFT](#impl::PolyTextRequest::FONT::FONT_SHIFT)). */
             uint8_t string_2B_len;
             /** @brief Protocol name: delta. */
             INT8    delta;
@@ -3623,7 +3696,8 @@ struct ImageText8 : public Request {
         uint8_t  string_len;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 string` of pad(n)B
      */
@@ -3660,7 +3734,8 @@ struct ImageText16 : public Request {
         uint8_t  string_2B_len;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING16 string` of pad(2n)B
      */
@@ -3697,7 +3772,8 @@ struct CreateColormap : public Request {
         uint8_t  alloc;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: mid. */
@@ -3731,7 +3807,8 @@ namespace impl {
  */
 struct SimpleCmapRequest : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -3761,7 +3838,8 @@ struct FreeColormap : public impl::SimpleCmapRequest {
  */
 struct CopyColormapAndFree : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: mid. */
@@ -3837,7 +3915,8 @@ struct ListInstalledColormaps : public impl::SimpleWindowRequest {
  */
 struct AllocColor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -3895,7 +3974,8 @@ struct AllocColor : public Request {
  */
 struct AllocNamedColor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(name_len)B
      */
@@ -3962,7 +4042,8 @@ struct AllocColorCells : public Request {
         BOOL     contiguous;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -4019,7 +4100,8 @@ struct AllocColorPlanes : public Request {
         BOOL     contiguous;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cmap. */
@@ -4078,7 +4160,8 @@ struct AllocColorPlanes : public Request {
  */
 struct FreeColors : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofCARD32 pixels` of 4nB
      */
@@ -4102,7 +4185,8 @@ struct FreeColors : public Request {
  */
 struct StoreColors : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofCOLORITEM items` of 12nB
      */
@@ -4160,7 +4244,8 @@ struct StoreNamedColor : public Request {
         uint8_t  do_rgb_mask;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffixes:
      *   - `STRING8 name` of pad(name_len)B
      */
@@ -4195,7 +4280,8 @@ struct StoreNamedColor : public Request {
  */
 struct QueryColors : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofCARD32 pixels` of 4nB
      */
@@ -4252,7 +4338,8 @@ struct QueryColors : public Request {
  */
 struct LookupColor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(name_len)B
      */
@@ -4308,7 +4395,8 @@ struct LookupColor : public Request {
  */
 struct CreateCursor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cid. */
@@ -4352,7 +4440,8 @@ struct CreateCursor : public Request {
  */
 struct CreateGlyphCursor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cid. */
@@ -4396,7 +4485,8 @@ struct CreateGlyphCursor : public Request {
  */
 struct FreeCursor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cursor. */
@@ -4416,7 +4506,8 @@ struct FreeCursor : public Request {
  */
 struct RecolorCursor : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: cursor. */
@@ -4457,7 +4548,8 @@ struct QueryBestSize : public Request {
         uint8_t  class_;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: drawable. */
@@ -4509,7 +4601,8 @@ struct QueryBestSize : public Request {
  */
 struct QueryExtension : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `STRING8 name` of pad(name_len)B
      */
@@ -4608,14 +4701,16 @@ struct ChangeKeyboardMapping : public Request {
         uint8_t  keycode_count;     // n
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofKEYSYM keysyms` of 4nmB
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: first-keycode. */
         KEYCODE first_keycode;
-        /** @brief Protocol name: keysyms-per-keycode; affects length of suffix `keysyms`. */
+        /** @brief Protocol name: keysyms-per-keycode; affects length of suffix
+         *    `keysyms`. */
         uint8_t keysyms_per_keycode;  // m
     private:
         /** @brief Ignored bytes. */
@@ -4635,7 +4730,8 @@ struct ChangeKeyboardMapping : public Request {
  */
 struct GetKeyboardMapping : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: first-keycode. */
@@ -4696,7 +4792,8 @@ struct GetKeyboardMapping : public Request {
  */
 struct ChangeKeyboardControl : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofVALUE value-list` of 4nB
      */
@@ -4836,7 +4933,8 @@ struct Bell : public Request {
  */
 struct ChangePointerControl : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: acceleration-numerator. */
@@ -4892,7 +4990,8 @@ struct GetPointerControl : public impl::SimpleRequest {
  */
 struct SetScreenSaver : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: timeout. */
@@ -4983,7 +5082,8 @@ struct ChangeHosts : public Request {
         uint8_t  mode;
     };
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      * @note Followed by variable length suffix:
      *   - `LISTofCARD8 address` of pad(address_len)B
      */
@@ -5129,7 +5229,8 @@ struct SetCloseDownMode : public Request {
  */
 struct KillClient : public Request {
     /**
-     * @brief Fixed encoding after #Length/#BigLength.
+     * @brief Fixed encoding after [Length](#protocol::requests::Request::Length)/
+     *   [BigLength](#protocol::requests::Request::BigLength).
      */
     struct [[gnu::packed]] Encoding {
         /** @brief Protocol name: resource; uses enum: 0=AllTemporary. */
@@ -5154,8 +5255,8 @@ struct KillClient : public Request {
  */
 struct RotateProperties : public Request {
     /**
-     * @brief Fixed encoding after [Length](#Request::Length)/
-     *   [BigLength](#Request::BigLength).
+     * @brief Fixed encoding after [Length]([Length](#protocol::requests::Request::Length))/
+     *   [BigLength]([BigLength](#protocol::requests::Request::BigLength)).
      * @note Followed by variable length suffix:
      *   - `LISTofATOM properties` of 4nB
      */
@@ -5205,7 +5306,9 @@ struct ForceScreenSaver : public Request {
 };
 /**
  * @brief Represents X11 %SetPointerMapping request [encoding].
- * @note #Request::Length/#Request::BigLength followed by variable length suffix:
+ * @note [Length](#protocol::requests::Request::Length)/
+ *   [BigLength](#protocol::requests::Request::BigLength) followed by variable
+ *   length suffix:
  *   - `LISTofCARD8 map` of pad(#SetPointerMapping::Prefix::map_len)B
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
@@ -5307,7 +5410,9 @@ struct GetPointerMapping : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %SetModifierMapping request [encoding].
- * @note #Request::Length/#Request::BigLength followed by variable length suffix:
+ * @note [Length](#protocol::requests::Request::Length)/
+ *   [BigLength](#protocol::requests::Request::BigLength) followed by variable
+ *   length suffix:
  *     - `LISTofKEYCODE keycodes` of 8nB
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */
@@ -5416,7 +5521,9 @@ struct GetModifierMapping : public impl::SimpleRequest {
 };
 /**
  * @brief Represents X11 %NoOperation request [encoding].
- * @note #Request::Length/#Request::BigLength followed by variable length suffix:
+ * @note [Length](#protocol::requests::Request::Length)/
+ *   [BigLength](#protocol::requests::Request::BigLength) followed by variable
+ *   length suffix:
  *     - unused data 4nB
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Requests
  */

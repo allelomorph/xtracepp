@@ -622,7 +622,7 @@ private:
      * @return formatted string representing `var`
      * @note ATOM not appropriate for `ResourceIdT` template due to special
      *   handling required for internment and stashing (see
-     *   [_internStashedAtom](#_internStashedAtom).)
+     *   #_parseRequest and #_parseReply for InternAtom request.)
      * @ingroup individual_data_field_formatting
      */
     std::string _formatVariable( const protocol::ATOM var,
@@ -1208,6 +1208,7 @@ private:
     };
     /**
      * @brief Stores parsing function pointers for requests.
+     * @ingroup dispatch
      */
     struct _RequestOpcodeTraits : public _CodeTraits {
         /** @brief Request name. */
@@ -1237,15 +1238,17 @@ private:
             assert( request_parse_func != nullptr );
         }
         /** @brief Syntax sweetener to differentiate use cases of
-         *    #_MajorOpcodeTraits. */
+         *    #X11ProtocolParser::_MajorOpcodeTraits. */
         operator bool() const {
             return !name.empty() && request_parse_func != nullptr;
         }
     };
     /**
      * @brief Stores request parsing function pointers for extensions.
+     * @ingroup dispatch
      */
     struct _ExtensionOpcodeTraits : public _CodeTraits {
+        /** @brief Abbreviation of minor opcode map type. */
         using MinorOpcodeMapT =
             std::unordered_map< uint8_t, _RequestOpcodeTraits >;
     private:
@@ -1277,7 +1280,7 @@ private:
             assert( !requests.empty() );
         }
         /** @brief Syntax sweetener to differentiate use cases of
-         *    #_MajorOpcodeTraits. */
+         *    #X11ProtocolParser::_MajorOpcodeTraits. */
         operator bool() const {
             return !name.empty() && !requests.empty();
         }
@@ -1444,19 +1447,30 @@ private:
      *  @ingroup dispatch */
     std::unordered_map< uint8_t, _ErrorCodeTraits > _error_codes {
         _core_errors };
-
+    /**
+     * @brief Bundles parsing function pointers for extensions.
+     * @ingroup dispatch
+     */
     struct _ExtensionTraits {
+        /** @brief Local use of [_ExtensionOpcodeTraits](
+         *    #X11ProtocolParser::_ExtensionOpcodeTraits) minor opcode map type. */
         using MinorOpcodeMapT =
             _ExtensionOpcodeTraits::MinorOpcodeMapT;
+        /** @brief Abbreviation of mapping type for event codes. */
         using EventCodeOffsetMapT =
             std::unordered_map< uint8_t, _EventCodeTraits >;
+        /** @brief Abbreviation of mapping type for error codes. */
         using ErrorCodeOffsetMapT =
             std::unordered_map< uint8_t, _ErrorCodeTraits >;
-
+        /** brief Request parsing function pointers mapped by minor opcode. */
         MinorOpcodeMapT requests;
+        /** brief Event parsing function pointers mapped by event code. */
         EventCodeOffsetMapT events;
+        /** brief Error parsing function pointers mapped by error code. */
         ErrorCodeOffsetMapT errors;
-
+        /**
+         * @brief Default ctor.
+         */
         _ExtensionTraits(
             const MinorOpcodeMapT& requests_,
             const EventCodeOffsetMapT& events_ = {},
@@ -1465,34 +1479,80 @@ private:
             assert( !requests.empty() );
         }
     };
+    /**
+     * @brief Maps parsing function pointer bundles for implemented extensions
+     *   to extension names.
+     *  @ingroup dispatch
+     */
     static const std::unordered_map<
         std::string_view, _ExtensionTraits > _extensions;
+    /**
+     * @brief Activates extension parsing for all connections if not done already,
+     *   and extension use for a given connection.
+     * @param name extension name
+     * @param conn #Connection on which to activate extension
+     * @param major_opcode major opcode for extension, server-assigned
+     * @param first_event first in series of consecutive event codes for
+     *   extension, server-assigned
+     * @param first_error first in series of consecutive error codes for
+     *   extension, server-assigned
+     *  @ingroup dispatch
+     */
     void
     _enableExtensionParsing( const std::string_view& name, Connection* conn,
                              const protocol::CARD8 major_opcode,
                              const protocol::CARD8 first_event,
                              const protocol::CARD8 first_error );
-    // test for member type
+    /**
+     * @brief SFINAE filter to test for protocol classes having an `Encoding`
+     *   member (used in resolution of
+     *   [_RequestFixedEncodingBase](#_RequestFixedEncodingBase)).
+     * @ingroup logging
+     */
     template < typename RequestT, typename = void >
     struct _has_encoding_member : public std::false_type {};
+    /**
+     * @brief SFINAE filter to test for protocol classes having an `Encoding`
+     *   member (used in resolution of
+     *   [_RequestFixedEncodingBase](#_RequestFixedEncodingBase)).
+     * @ingroup logging
+     */
     template < typename RequestT >
     struct _has_encoding_member <
             RequestT, std::void_t< typename RequestT::Encoding > > :
         public std::true_type {};
+    /**
+     * @brief Constructor helps to reduce boilerplate parsing in #_parseRequest
+     *   when request type is header-only (has no Encoding member).
+     * @ingroup logging
+     */
     template< typename RequestT, bool has_encoding_member = false >
     struct _RequestFixedEncodingBase {
+        /** @brief Local use of request prefix type. */
         using Prefix    = typename RequestT::Prefix;
+        /** @brief Local use of request length type. */
         using Length    = typename RequestT::Length;
+        /** @brief Local use of request big length type. */
         using BigLength = typename RequestT::BigLength;
+        /** @brief Local abbreviation of enclosing type. */
         using XPP       = X11ProtocolParser;
+        /** @brief First two bytes of header for request type. */
         const Prefix*    prefix {};
+        /** @brief Core protocol length encoding. */
         const Length*    length {};
+        /** @brief BIG-REQUESTS protocol length encoding. */
         const BigLength* big_length {};
+        /** @brief Total bytes in header parsed. */
         size_t bytes_parsed {};
+        /** @brief Whether core or BIG-REQUESTS protocol used. */
         bool big_request {};
+        /** @brief Whether any bytes are expected after #Prefix and #Length/#BigLength. */
         bool header_only { true };
 
         _RequestFixedEncodingBase() = delete;
+        /**
+         * @brief Default ctor.
+         */
         _RequestFixedEncodingBase(
             Connection* conn, const uint8_t* data, const size_t sz ) {
             assert( conn != nullptr );
@@ -1518,13 +1578,23 @@ private:
         }
         virtual ~_RequestFixedEncodingBase() = 0;
     };
+    /**
+     * @brief Constructor helps to reduce boilerplate parsing in #_parseRequest
+     *   when request type is has Encoding member.
+     * @ingroup logging
+     */
     template< typename RequestT >
     struct _RequestFixedEncodingBase< RequestT, true > :
         public _RequestFixedEncodingBase< RequestT, false > {
+        /** @brief Local use of request encoding type. */
         using Encoding = typename RequestT::Encoding;
+        /** @brief Post-header fixed encoding for request type. */
         const Encoding* encoding {};
 
         _RequestFixedEncodingBase() = delete;
+        /**
+         * @brief Default ctor.
+         */
         _RequestFixedEncodingBase(
             Connection* conn, const uint8_t* data, const size_t sz ) :
             _RequestFixedEncodingBase< RequestT >( conn, data, sz ) {
@@ -1535,10 +1605,18 @@ private:
         }
         virtual ~_RequestFixedEncodingBase() = 0;
     };
+    /**
+     * @brief Constructor helps to reduce boilerplate parsing in #_parseRequest
+     *   based on request type.
+     * @ingroup logging
+     */
     template< typename RequestT,
               typename BaseT = _RequestFixedEncodingBase<
                   RequestT, _has_encoding_member< RequestT >::value > >
     struct _RequestFixedEncoding : public BaseT {
+        /**
+         * @brief Default ctor.
+         */
         _RequestFixedEncoding(
             Connection* conn, const uint8_t* data, const size_t sz ) :
             BaseT( conn, data, sz ) {

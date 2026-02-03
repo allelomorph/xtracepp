@@ -34,7 +34,7 @@
  * ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉
  *        <--prev nms--><--nms-->
  *        <---------bp---------->
- * ````
+ * ```
  * @note This [example] shows the possiblilty of doing this more idiomatically
  *   with `std::streambuf` or `std::stringbuf`. [Another example].
  *

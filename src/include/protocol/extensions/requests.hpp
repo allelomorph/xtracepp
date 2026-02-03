@@ -52,9 +52,9 @@ struct Reply : public protocol::requests::Reply {
 
 namespace impl {
 
-// TBD add encoding reference link
 /**
- * @brief Interface class representing minimal encoding for X11 extension requests.
+ * @brief Interface class representing [minimal encoding](
+ *   #protocol::extensions::requests::Request) for X11 extension requests.
  */
 struct SimpleRequest : public protocol::extensions::requests::Request {
     /** @brief Total encoding size in bytes (before suffixes). */
