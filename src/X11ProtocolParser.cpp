@@ -164,7 +164,7 @@ size_t X11ProtocolParser::_logReply(
                       request_name, opcodes.minor, reply.str );
     } else {
         fmt::println( settings.log_fs,
-                      "C{:03d}:{:04d}B:{}:S{:05d}: Reply {}({}): {}",
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Reply to {}({}): {}",
                       conn->id, reply.bytes_parsed, CLIENT_TO_SERVER, sequence,
                       request_name, opcodes.major, reply.str );
     }
@@ -197,7 +197,7 @@ size_t X11ProtocolParser::_logEvent(
     const bool generated ( _ordered( header->code, byteswap ) &
                            SendEvent::GENERATED_EVENT_FLAG );
     // KeymapNotify presents edge case, as it does not encode a sequence number
-    const std::string sequence_num_str {
+    const std::string sequence_str {
         ( code == protocol::events::codes::KEYMAPNOTIFY ) ? "?????" :
         fmt::format( "{:05d}", _ordered( header->sequence_num, byteswap ) ) };
     const _ParsingOutputs event {
@@ -205,12 +205,17 @@ size_t X11ProtocolParser::_logEvent(
     assert( event.bytes_parsed == protocol::events::Event::ENCODING_SZ );
     const _EventCodeTraits& code_traits { _event_codes.at( code ) };
     if ( code_traits.extension ) {
-        // TBD
+        fmt::println( settings.log_fs,
+                      "C{:03d}:{:04d}B:{}:S{}: Event {}-{}({}){}: {}",
+                      conn->id, event.bytes_parsed, SERVER_TO_CLIENT,
+                      sequence_str, code_traits.extension_name,
+                      code_traits.name, code,
+                      generated ? " (generated)" : "", event.str );
     } else {
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{}: Event {}({}){}: {}",
                       conn->id, event.bytes_parsed, SERVER_TO_CLIENT,
-                      sequence_num_str, code_traits.name, code,
+                      sequence_str, code_traits.name, code,
                       generated ? " (generated)" : "", event.str );
     }
     return event.bytes_parsed;
@@ -237,7 +242,11 @@ X11ProtocolParser::_logError(
         // pointer-to-member access operator
         (this->*code_traits.parse_func)( conn, data, sz ) };
     if ( code_traits.extension ) {
-        // TBD
+        fmt::println( settings.log_fs,
+                      "C{:03d}:{:04d}B:{}:S{:05d}: Error {}-{}({}): {}",
+                      conn->id, error.bytes_parsed, CLIENT_TO_SERVER, sequence,
+                      code_traits.extension_name,
+                      code_traits.name, code, error.str );
     } else {
         fmt::println( settings.log_fs,
                       "C{:03d}:{:04d}B:{}:S{:05d}: Error {}({}): {}",
