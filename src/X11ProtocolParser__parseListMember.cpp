@@ -255,9 +255,7 @@ X11ProtocolParser::_parseListMember<
          PolyText8::FONT::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText8::FONT );
         // font bytes in array from MSB to LSB
-        // TBD (can't use brace init here due to issues with
-        //   protocol::impl::Integer ctor and how its children must stay
-        //   literal types for use in std::tuple<>)
+        // (cannot use a FONT ctor, see protocol::impl::ResourceId)
         protocol::FONT font;
         font.data = ntohl(
             *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) );
@@ -331,9 +329,7 @@ X11ProtocolParser::_parseListMember<
          PolyText16::FONT::FONT_SHIFT ) {
         outputs.bytes_parsed += sizeof( PolyText16::FONT );
         // font bytes in array from MSB to LSB
-        // TBD (can't use brace init here due to issues with
-        //   protocol::impl::Integer ctor and how its children must stay
-        //   literal types for use in std::tuple<>)
+        // (cannot use a FONT ctor, see protocol::impl::ResourceId)
         protocol::FONT font;
         font.data = ntohl(
             *reinterpret_cast< const uint32_t* >( item.font.font_bytes ) );

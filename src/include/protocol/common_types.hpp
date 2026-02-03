@@ -39,18 +39,22 @@ using VALUE  = CARD32;
 
 namespace impl {
 
-// TBD while these are used as interface classes, we can't use pure virtual
-//   dtors as they add 8 bytes to the packed size of child classes
 /**
  * @brief Parent class to allow template filtering of protocol types via
  *   inheritance; represents protocol integer types.
  */
-struct [[gnu::packed]] Integer {};
+struct [[gnu::packed]] Integer {
+    // Intended for use as interface class, but cannot be made virtual
+    //   as vtable pointer adds 8 bytes to packed size of derived classes.
+};
 /**
  * @brief Parent class to allow template filtering of protocol types via
  *   inheritance; represents protocol bitmask types.
  */
-struct [[gnu::packed]] Bitmask : public Integer {};
+struct [[gnu::packed]] Bitmask : public Integer {
+    // Intended for use as interface class, but cannot be made virtual
+    //   as vtable pointer adds 8 bytes to packed size of derived classes.
+};
 /**
  * @brief Parent class to allow template filtering of protocol types via
  *   inheritance; represents protocol X ID/resource ID types.
@@ -64,17 +68,27 @@ struct [[gnu::packed]] ResourceId : public Integer {
      * @brief Bitmask for all bits that must be always be zero.
      */
     static constexpr uint32_t ZERO_BITS { 0xE0000000 };
+    // Intended for use as interface class, but cannot be made virtual
+    //   as vtable pointer adds 8 bytes to packed size of derived classes.
+    // Cannot add a ctor that accepts a CARD32 at runtime as derived classes
+    //   must be literal (have a constexpr ctor) to be later included in tuples.
 };
 /**
  * @brief Parent class to allow template filtering of protocol types via
  *   inheritance; represents protocol struct types.
  */
-struct [[gnu::packed]] Struct {};
+struct [[gnu::packed]] Struct {
+    // Intended for use as interface class, but cannot be made virtual
+    //   as vtable pointer adds 8 bytes to packed size of derived classes.
+};
 /**
  * @brief Parent class to allow template filtering of protocol types via
  *   inheritance; represents protocol struct types.
  */
-struct [[gnu::packed]] StructWithSuffixes : public Struct {};
+struct [[gnu::packed]] StructWithSuffixes : public Struct {
+    // Intended for use as interface class, but cannot be made virtual
+    //   as vtable pointer adds 8 bytes to packed size of derived classes.
+};
 
 
 }  // namespace impl
