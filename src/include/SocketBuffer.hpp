@@ -21,23 +21,24 @@
 /**
  * @brief Buffers read/write operations between two sockets into user-accessible
  *   byte array.
+ *
  *   Message bytes go through four stages:
  *   - reading/loading into buffer (advances #_bytes_read (`br`))
  *   - measuring (#_next_message_sz (`nms`) is set with #setMessageSize)
  *   - parsing (#markMessageParsed adds #_next_message_sz to #_bytes_parsed (`bp`))
  *   - writing/unloading from buffer (advances #_bytes_written (`bw`)
- * ```
- *        <------------size()-----------><--capacity()-->
- *        data()
- *        bw                            br              _buffer.size()
- *        |                             |               |
- * ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉
- *        <--prev nms--><--nms-->
- *        <---------bp---------->
- * ```
- * @note This [example] shows the possiblilty of doing this more idiomatically
- *   with `std::streambuf` or `std::stringbuf`. [Another example].
+ *   ```
+ *          <------------size()-----------><--capacity()-->
+ *          data()
+ *          bw                            br              _buffer.size()
+ *          |                             |               |
+ *   ######################################################
+ *          <--prev nms--><--nms-->
+ *          <---------bp---------->
+ *   ```
  *
+ * @note This [example] shows the possiblilty of a more idiomatic implementation
+ *   with `std::streambuf` or `std::stringbuf`. [Another example].
  * [example]: https://gist.github.com/amezin/c4bfc0dd11dd200c13b3
  * [Another example]: https://stackoverflow.com/a/8116698
  */
