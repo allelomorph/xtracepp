@@ -77,7 +77,7 @@ X11ProtocolParser::_formatVariable(
             + settings.ref_unix_time );
         // RFC 3339 UTC format "yyyy-mm-ddThh:mm:ssZ":
         // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
-        return fmt::format( "{}({:%FT:%TZ}UTC)", hex_str,
+        return fmt::format( "{}({:%FT:%TZ%Z})", hex_str,
                             *std::localtime( &time_ ) );
     }
     return hex_str;
