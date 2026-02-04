@@ -312,7 +312,7 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
                 // determine if host byte order is same as client ( potentially
                 //   different with remote clients )
                 conn->byteswap =
-                    ( _little_endian != ( header->byte_order == Initiation::LSBFIRST ) );
+                    ( little_endian != ( header->byte_order == Initiation::LSBFIRST ) );
                 buffer.setMessageSize(
                     sizeof( protocol::connection_setup::Initiation::Header ) +
                     alignment.pad( _ordered( header->name_len, conn->byteswap ) ) +

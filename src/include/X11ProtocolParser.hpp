@@ -62,18 +62,20 @@
  *   logging them to an output file stream.
  */
 class X11ProtocolParser {
-private:
+public:
     /**
      * @brief Whether system running application is little-endian; only needed
      *   when compiling with C++17 or below.
      */
     inline static const bool
-    _little_endian { [](){
+    little_endian { [](){
         const uint32_t i { 1 };
         const uint8_t* arr {
             reinterpret_cast< const uint8_t* >( &i ) };
         return ( arr[0] == 1 );
     }() };
+
+private:
     /**
      * @brief Calculator for converting raw byte counts to and from [padded]
      *   lengths commonly used in encoding.

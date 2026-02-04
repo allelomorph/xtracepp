@@ -26,7 +26,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
             header->byte_order == Initiation::LSBFIRST );
     const bool byteswap { conn->byteswap };
     assert( byteswap ==
-            ( _little_endian != ( header->byte_order == Initiation::LSBFIRST ) ) );
+            ( little_endian != ( header->byte_order == Initiation::LSBFIRST ) ) );
     bytes_parsed += sizeof( Initiation::Header );
     // followed by STRING8 authorization-protocol-name
     const uint16_t name_len { _ordered( header->name_len, byteswap ) };
