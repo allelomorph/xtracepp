@@ -115,8 +115,8 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         case 'v':
             verbose = true;
             break;
-        case 'r':
-            relativetimestamps = true;
+        case 's':
+            systemtimeformat = true;
             break;
         case 'p':
             prefetchatoms = true;

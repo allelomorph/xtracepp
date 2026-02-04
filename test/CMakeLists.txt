@@ -83,20 +83,20 @@ target_link_libraries(core_error_test PUBLIC
   fmt
 )
 
-add_executable(relative_timestamps_test
-  relative_timestamps_test.cpp
+add_executable(systemtimeformat_test
+  systemtimeformat_test.cpp
 )
-set_strict_compile_options(relative_timestamps_test)
-set_target_properties(relative_timestamps_test PROPERTIES
+set_strict_compile_options(systemtimeformat_test)
+set_target_properties(systemtimeformat_test PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
 )
-target_include_directories(relative_timestamps_test PRIVATE
+target_include_directories(systemtimeformat_test PRIVATE
   ${X11_xcb_INCLUDE_PATH}
   ${PROJECT_SOURCE_DIR}/src/include
 )
-target_link_libraries(relative_timestamps_test PUBLIC
+target_link_libraries(systemtimeformat_test PUBLIC
   ${X11_xcb_LIB}
   fmt
 )

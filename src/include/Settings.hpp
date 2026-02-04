@@ -54,7 +54,7 @@ private:
         { "unbuffered",           no_argument,       NULL,              'u' },
         { "multiline",            no_argument,       NULL,              'm' },
         { "verbose",              no_argument,       NULL,              'v' },
-        { "relativetimestamps",   no_argument,       NULL,              'r' },
+        { "systemtimeformat",     no_argument,       NULL,              's' },
         { "prefetchatoms",        no_argument,       NULL,              'p' },
         { "help",                 no_argument,       &_long_only_option, LO_HELP },
         { NULL,                   0,                 NULL,               0 }
@@ -64,7 +64,7 @@ private:
      *   `getopt_long(3)`.
      * @ingroup getopt_long
      */
-    static constexpr std::string_view _optstring { "+d:D:ke:E:wo:umvrp" };
+    static constexpr std::string_view _optstring { "+d:D:ke:E:wo:umvsp" };
     /**
      * @brief Message displayed with `--help`; intended for use with fmtlib or
      *   `std::format`.
@@ -83,7 +83,7 @@ private:
     --unbuffered,         -u                  : deactivate stream buffering for output
     --multiline,          -m                  : break log lines along nested groupings of data
     --verbose,            -v                  : print all data fields of every message + alternate data formatting
-    --relativetimestamps, -r                  : X server timestamps interpreted against system time
+    --systemtimeformat,   -s                  : X protocol TIMESTAMPs interpreted against system time in formatting
     --prefetchatoms,      -p                  : first fetch already interned strings to reduce unrecognized ATOMs
 )" };
 
@@ -193,9 +193,9 @@ public:
      */
     bool verbose                  { false };
     /**
-     * @brief Toggles interpretation of X server TIMESTAMPs in context of system time.
+     * @brief Toggles formatting of X protocol TIMESTAMPs in context of system time.
      */
-    bool relativetimestamps       { false };
+    bool systemtimeformat         { false };
     /**
      * @brief Toggles fetching of all atom strings from real X server in
      *   contiguous range of ATOMs 1 to n; greatly reduces indcience of
@@ -239,13 +239,13 @@ public:
     /**
      * @brief Reference X server TIMESTAMP (milliseconds since ?) to compare
      *   against [ref_unix_time](#ref_unix_time) when calculating
-     *   [relativetimestamps](#relativetimestamps).
+     *   [systemtimeformat](#systemtimeformat).
      */
     uint32_t ref_TIMESTAMP {};
     /**
      * @brief Reference unix timestamp (seconds since unix epoch) to compare
      *   against [ref_TIMESTAMP](#ref_TIMESTAMP) when calculating
-     *   [relativetimestamps](#relativetimestamps).
+     *   [systemtimeformat](#systemtimeformat).
      */
     ::time_t ref_unix_time {};
     /**

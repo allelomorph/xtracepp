@@ -150,7 +150,7 @@ private:
      * @brief Optional setup client run before main queue begins; sets
      *   [ref_TIMESTAMP](#Settings::ref_TIMESTAMP) and
      *   [ref_unix_time](#Settings::ref_unix_time) in
-     *   [settings](#settings) to support `--relativetimestamps` user option.
+     *   [settings](#settings) to support `--systemtimeformat` user option.
      * @ingroup pre_queue_setup_clients
      */
     void _fetchCurrentServerTime();

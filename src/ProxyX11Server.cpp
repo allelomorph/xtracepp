@@ -124,7 +124,7 @@ void ProxyX11Server::init( const int argc, const char* argv[] ) {
 
     if ( settings.copyauth )
         _copyAuthentication();
-    if ( settings.relativetimestamps )
+    if ( settings.systemtimeformat )
         _fetchCurrentServerTime();
     std::vector< std::string > fetched_atoms;
     if ( settings.prefetchatoms )

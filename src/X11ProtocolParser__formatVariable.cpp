@@ -68,7 +68,7 @@ X11ProtocolParser::_formatVariable(
     if ( name_range.in( time.data ) ) {
         return fmt::format( "{}({})", hex_str, name_range.at( time.data ) );
     }
-    if ( settings.relativetimestamps ) {
+    if ( settings.systemtimeformat ) {
         static constexpr uint32_t TIMESTAMP_TICKS_PER_SEC { 1000 };
         const int64_t server_time_delta {
             static_cast< int64_t >( time.data ) - settings.ref_TIMESTAMP };
