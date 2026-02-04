@@ -70,8 +70,10 @@ X11ProtocolParser::_formatVariable(
     }
     if ( settings.relativetimestamps ) {
         static constexpr uint32_t TIMESTAMP_TICKS_PER_SEC { 1000 };
+        const int64_t server_time_delta {
+            static_cast< int64_t >( time.data ) - settings.ref_TIMESTAMP };
         const std::time_t time_ (
-            ( ( time.data - settings.ref_TIMESTAMP ) / TIMESTAMP_TICKS_PER_SEC )
+            ( server_time_delta / TIMESTAMP_TICKS_PER_SEC )
             + settings.ref_unix_time );
         // RFC 3339 UTC format "yyyy-mm-ddThh:mm:ssZ":
         // https://www.rfc-editor.org/rfc/rfc3339#section-5.6
