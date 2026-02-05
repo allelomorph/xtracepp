@@ -361,7 +361,7 @@ private:
      * @brief Whitespace format for parentheses nesting depth 0.
      * @ingroup non_data_text_formatting
      */
-    _Whitespace _ROOT_WS { 0, settings.multiline };
+    _Whitespace _ROOT_WS { 0, false };
     /**
      * @brief Determines field width in characters for fmt library printing of
      *   "{:#0x}"
@@ -1665,12 +1665,13 @@ public:
                          const std::vector< std::string >& fetched_atoms );
 };
 
+// using qualified reference to class to satisfy clang's -Wdtor-name
 template< typename T, bool B >
 X11ProtocolParser::_RequestFixedEncodingBase<
-    T, B >::~_RequestFixedEncodingBase() = default;
+    T, B >::_RequestFixedEncodingBase::~_RequestFixedEncodingBase() = default;
 template< typename T >
 X11ProtocolParser::_RequestFixedEncodingBase<
-    T, true >::~_RequestFixedEncodingBase() = default;
+    T, true >::_RequestFixedEncodingBase::~_RequestFixedEncodingBase() = default;
 
 #undef _LESSTHAN
 #undef _PARSELISTMEMBER

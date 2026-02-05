@@ -32,6 +32,7 @@ struct Initiation : public Message {
         CARD8    byte_order;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused1;
     public:
         /** @brief Protocol name: protocol-major-version. */
@@ -44,6 +45,7 @@ struct Initiation : public Message {
         uint16_t data_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint16_t _unused2;
     };
     /**
@@ -71,8 +73,10 @@ struct InitResponse : public Message {
         uint8_t  success;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused1;
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint16_t _unused2[2];
     public:
         /** @brief Length of suffix after header in 4B units. */
@@ -144,6 +148,7 @@ struct Acceptance : public InitResponse {
         uint8_t  success;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused;
     public:
         /** @brief Protocol name: protocol-major-version. */
@@ -194,6 +199,7 @@ struct Acceptance : public InitResponse {
         KEYCODE  max_keycode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused2[4];
     };
     /** @brief [image-byte-order](#Encoding::image_byte_order) enum names. */
@@ -219,6 +225,7 @@ struct Acceptance : public InitResponse {
         CARD8   scanline_pad;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[5];
     };
     /**
@@ -286,12 +293,14 @@ struct Acceptance : public InitResponse {
                 CARD8    depth;
             private:
                 /** @brief Ignored bytes. */
+                [[maybe_unused]]
                 uint8_t  _unused1;
             public:
                 /** @brief `visuals` length in [VISUALTYPE](#VISUALTYPE)s. */
                 uint16_t visuals_ct;
             private:
                 /** @brief Ignored bytes. */
+                [[maybe_unused]]
                 uint8_t  _unused2[4];
             };
             /**
@@ -314,6 +323,7 @@ struct Acceptance : public InitResponse {
                 CARD32   blue_mask;
             private:
                 /** @brief Ignored bytes. */
+                [[maybe_unused]]
                 uint8_t  _unused[4];
             public:
                 /** @brief [class](#class_) enum names. */

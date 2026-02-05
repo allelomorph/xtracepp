@@ -73,6 +73,7 @@ struct BigReqEnable : public protocol::extensions::requests::impl::SimpleRequest
             CARD32   maximum_request_length;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );

@@ -457,6 +457,7 @@ struct HOST : public impl::StructWithSuffixes {
         CARD8  family;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         CARD8  _unused;
     public:
         /**

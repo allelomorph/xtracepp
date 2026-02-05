@@ -774,7 +774,7 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
         assert( std::string_view( unaddr.sun_path ).empty() );
         // In testing, getpeername(2) also returns an empty unix socket path,
         //   so instead we assign a generic name
-        client_desc = { "unknown(local)" };
+        client_desc = std::string{ "unknown(local)" };
     }   break;
     default:
         break;

@@ -29,6 +29,7 @@ struct Response : public Message {
         uint8_t prefix;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused;
     public:
         /**

@@ -101,6 +101,7 @@ struct Error : public Response {
         Header   header;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint32_t _unused1;
     public:
         /** @brief Major opcode of relavant request. */
@@ -109,6 +110,7 @@ struct Error : public Response {
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused2[21];
     };
     /** @brief Identifies message as error when found in
@@ -148,6 +150,7 @@ struct ResourceIdError : public Error {
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused2[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -181,6 +184,7 @@ struct Value : public Error {
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );
@@ -214,6 +218,7 @@ struct Atom : public Error {
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused2[21];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );

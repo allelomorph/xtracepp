@@ -173,6 +173,7 @@ struct Request : public Message {
         uint8_t opcode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused;
     };
     /**
@@ -208,6 +209,7 @@ struct Reply : public Response {
         uint8_t  reply;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused;
     public:
         /** @brief [Serial number on current connection](#Connection::sequence)
@@ -224,6 +226,7 @@ struct Reply : public Response {
         Header  header;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[24];
     };
     /** @brief Identifies message as reply when found in
@@ -606,6 +609,7 @@ struct GetWindowAttributes : public impl::SimpleWindowRequest {
             SETofDEVICEEVENT do_not_propagate_mask;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t          _unused[2];
         };
         static_assert( sizeof( Encoding ) ==
@@ -748,6 +752,7 @@ struct ConfigureWindow : public Request {
         uint16_t value_mask;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief List of all parseable types potentially stored as VALUEs in
@@ -876,6 +881,7 @@ struct GetGeometry : public Request {
             CARD16   border_width;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[10];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -908,6 +914,7 @@ struct QueryTree : public impl::SimpleWindowRequest {
             uint16_t children_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[14];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -942,6 +949,7 @@ struct InternAtom : public Request {
         uint16_t  name_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t   _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -966,6 +974,7 @@ struct InternAtom : public Request {
             ATOM    atom;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused2[20];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1013,6 +1022,7 @@ struct GetAtomName : public Request {
             uint16_t name_len;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[22];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1050,6 +1060,7 @@ struct ChangeProperty : public Request {
         CARD8   format;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[3];
     public:
         /** @brief Length of `data` in format units. */
@@ -1174,6 +1185,7 @@ struct GetProperty : public Request {
             CARD32   value_fmt_unit_len;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[12];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1210,6 +1222,7 @@ struct ListProperties : public impl::SimpleWindowRequest {
             uint16_t atoms_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[22];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1283,6 +1296,7 @@ struct GetSelectionOwner : public Request {
             WINDOW  owner;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[20];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -1466,6 +1480,7 @@ struct GrabPointer : public Request {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -1537,6 +1552,7 @@ struct GrabButton : public Request {
         BUTTON            button;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t           unused;
     public:
         /** @brief Protocol name: modifiers; may use special flag
@@ -1597,6 +1613,7 @@ struct UngrabButton : public Request {
         SETofKEYMASK modifiers;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t      _unused[2];
     };
     /** @brief [button](#Prefix::button) enum names. */
@@ -1629,6 +1646,7 @@ struct ChangeActivePointerGrab : public Request {
         SETofPOINTEREVENT event_mask;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t           _unused[2];
     };
     /** @brief [cursor](#Encoding::cursor) enum names. */
@@ -1678,6 +1696,7 @@ struct GrabKeyboard : public Request {
         uint8_t   keyboard_mode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t   _unused[2];
     };
     /** @brief [time](#Encoding::time) enum names. */
@@ -1728,6 +1747,7 @@ struct GrabKeyboard : public Request {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -1796,6 +1816,7 @@ struct GrabKey : public Request {
         uint8_t      keyboard_mode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t      _unused[3];
     };
     /** @brief [key](#Encoding::key) enum names. */
@@ -1844,6 +1865,7 @@ struct UngrabKey : public Request {
         SETofKEYMASK modifiers;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t      _unused[2];
     };
     /** @brief [key](#Prefix::key) enum names. */
@@ -1986,6 +2008,7 @@ struct QueryPointer : public impl::SimpleWindowRequest {
             SETofKEYBUTMASK mask;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t         _unused[6];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -2045,6 +2068,7 @@ struct GetMotionEvents : public Request {
             uint32_t events_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[20];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -2121,6 +2145,7 @@ struct TranslateCoordinates : public Request {
             INT16   dst_y;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[16];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
@@ -2256,6 +2281,7 @@ struct GetInputFocus : public impl::SimpleRequest {
             WINDOW  focus;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -2312,6 +2338,7 @@ struct OpenFont : public Request {
         uint16_t name_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -2426,12 +2453,14 @@ struct QueryFont : public Request {
             CHARINFO min_bounds;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused1[4];
         public:
             /** @brief Protocol name: max-bounds. */
             CHARINFO max_bounds;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused2[4];
         public:
             /** @brief Protocol name: min-char-or-byte2. */
@@ -2541,6 +2570,7 @@ struct QueryTextExtents : public Request {
             INT32   overall_right;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[4];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -2609,7 +2639,8 @@ struct ListFonts : public impl::ListFontsRequest {
             CARD16  names_ct;
         private:
             /** @brief Ignored bytes. */
-            uint8_t _unused2[22];
+            [[maybe_unused]]
+            uint8_t _unused[22];
         };
         static_assert( sizeof(Encoding) == DEFAULT_ENCODING_SZ );
     };
@@ -2672,12 +2703,14 @@ struct ListFontsWithInfo : public impl::ListFontsRequest {
             CHARINFO min_bounds;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused1[4];
         public:
             /** @brief Protocol name: max-bounds. */
             CHARINFO max_bounds;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused2[4];
         public:
             /** @brief Protocol name: min-char-or-byte2. */
@@ -2728,6 +2761,7 @@ struct SetFontPath : public Request {
         CARD16  path_ct;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -2762,6 +2796,7 @@ struct GetFontPath : public impl::SimpleRequest {
             CARD16  path_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3364,6 +3399,7 @@ struct FillPoly : public Request {
         uint8_t  coordinate_mode;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief [shape](#Encoding::shape) enum names. */
@@ -3474,6 +3510,7 @@ struct PutImage : public Request {
         CARD8    depth;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief [format](#Prefix::format) enum names. */
@@ -3565,6 +3602,7 @@ struct GetImage : public Request {
             VISUALID visual;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3904,6 +3942,7 @@ struct ListInstalledColormaps : public impl::SimpleWindowRequest {
             uint16_t cmaps_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3929,6 +3968,7 @@ struct AllocColor : public Request {
         CARD16   blue;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes. */
@@ -3957,12 +3997,14 @@ struct AllocColor : public Request {
             CARD16  blue;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused1[2];
         public:
             /** @brief Protocol name: pixel. */
             CARD32  pixel;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused2[12];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -3986,6 +4028,7 @@ struct AllocNamedColor : public Request {
         uint16_t name_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -4022,6 +4065,7 @@ struct AllocNamedColor : public Request {
             CARD16  visual_blue;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[8];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4080,6 +4124,7 @@ struct AllocColorCells : public Request {
             uint16_t masks_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4139,6 +4184,7 @@ struct AllocColorPlanes : public Request {
             uint16_t pixels_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused1[2];
         public:
             /** @brief Protocol name: red-mask. */
@@ -4149,6 +4195,7 @@ struct AllocColorPlanes : public Request {
             CARD32   blue_mask;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused2[8];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4211,6 +4258,7 @@ struct StoreColors : public Request {
         uint8_t do_rgb_mask;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused;
     public:
         /** @brief [do_rgb_mask](#do_rgb_mask) flag names. */
@@ -4258,6 +4306,7 @@ struct StoreNamedColor : public Request {
         uint16_t name_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint16_t _unused;
     };
     /** @brief [do_rgb_mask](#Prefix::do_rgb_mask) flag names. */
@@ -4306,6 +4355,7 @@ struct QueryColors : public Request {
             uint16_t colors_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t  _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4321,6 +4371,7 @@ struct QueryColors : public Request {
             CARD16  blue;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[2];
         };
     };
@@ -4350,6 +4401,7 @@ struct LookupColor : public Request {
         uint16_t name_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /**
@@ -4377,6 +4429,7 @@ struct LookupColor : public Request {
             CARD16  visual_blue;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[12];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4590,6 +4643,7 @@ struct QueryBestSize : public Request {
             CARD16  height;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4611,6 +4665,7 @@ struct QueryExtension : public Request {
         uint16_t name_len;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffixes). */
@@ -4641,6 +4696,7 @@ struct QueryExtension : public Request {
             CARD8   first_error;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[20];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4681,6 +4737,7 @@ struct ListExtensions : public impl::SimpleRequest {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4714,6 +4771,7 @@ struct ChangeKeyboardMapping : public Request {
         uint8_t keysyms_per_keycode;  // m
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffix). */
@@ -4740,6 +4798,7 @@ struct GetKeyboardMapping : public Request {
         uint8_t count;  // m
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[2];
     };
     /** @brief Total encoding size in bytes (before suffixes). */
@@ -4781,6 +4840,7 @@ struct GetKeyboardMapping : public Request {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -4890,6 +4950,7 @@ struct GetKeyboardControl : public impl::SimpleRequest {
             CARD16  bell_duration;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[2];
         public:
             /** @brief Protocol name: auto-repeats (fixed length LISTofCARD8). */
@@ -4980,6 +5041,7 @@ struct GetPointerControl : public impl::SimpleRequest {
             CARD16  threshold;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[18];
         };
     };
@@ -5004,6 +5066,7 @@ struct SetScreenSaver : public Request {
         uint8_t allow_exposures;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t _unused[2];
     };
     /** @brief [prefer-blanking](#Encoding::prefer_blanking) enum names. */
@@ -5048,6 +5111,7 @@ struct GetScreenSaver : public impl::SimpleRequest {
             uint8_t allow_exposures;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[18];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5092,6 +5156,7 @@ struct ChangeHosts : public Request {
         uint8_t  family;
     private:
         /** @brief Ignored bytes. */
+        [[maybe_unused]]
         uint8_t  _unused;
     public:
         /** @brief Length of suffix `address` in bytes. */
@@ -5154,6 +5219,7 @@ struct ListHosts : public impl::SimpleRequest {
             CARD16  hosts_ct;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[22];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5357,6 +5423,7 @@ struct SetPointerMapping : public Request {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5403,6 +5470,7 @@ struct GetPointerMapping : public impl::SimpleRequest {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5465,6 +5533,7 @@ struct SetModifierMapping : public Request {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
@@ -5510,6 +5579,7 @@ struct GetModifierMapping : public impl::SimpleRequest {
             Header  header;
         private:
             /** @brief Ignored bytes. */
+            [[maybe_unused]]
             uint8_t _unused[24];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ );
