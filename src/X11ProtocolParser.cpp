@@ -363,7 +363,8 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
     length_checks:
         if ( !buffer.messageSizeSet() ) {
             if ( settings.readwritedebug ) {
-                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                fmt::println( settings.log_fs,
+                              "C{:03d}:{}: waiting on incomplete message, "
                               "{:04d}B insufficent to determine length",
                               conn->id, CLIENT_TO_SERVER, buffer.unparsed() );
             }
@@ -371,7 +372,8 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
         }
         if ( buffer.incompleteMessage() ) {
             if ( settings.readwritedebug ) {
-                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                fmt::println( settings.log_fs,
+                              "C{:03d}:{}: waiting on incomplete message, "
                               "received {:04d} of expected {:04d}B",
                               conn->id, CLIENT_TO_SERVER, buffer.unparsed(),
                               buffer.messageSize() );
@@ -473,7 +475,8 @@ X11ProtocolParser::logServerMessages( Connection* conn ) {
     length_checks:
         if ( !buffer.messageSizeSet() ) {
             if ( settings.readwritedebug ) {
-                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                fmt::println( settings.log_fs,
+                              "C{:03d}:{}: waiting on incomplete message, "
                               "{:04d}B insufficent to determine length",
                               conn->id, SERVER_TO_CLIENT, buffer.unparsed() );
             }
@@ -481,7 +484,8 @@ X11ProtocolParser::logServerMessages( Connection* conn ) {
         }
         if ( buffer.incompleteMessage() ) {
             if ( settings.readwritedebug ) {
-                fmt::println( ::stderr, "C{:03d}:{}: waiting on incomplete message, "
+                fmt::println( settings.log_fs,
+                              "C{:03d}:{}: waiting on incomplete message, "
                               "received {:04d} of expected {:04d}B",
                               conn->id, SERVER_TO_CLIENT, buffer.unparsed(),
                               buffer.messageSize() );
