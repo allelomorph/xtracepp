@@ -264,10 +264,10 @@ struct Colormap       : public impl::ResourceIdError {};
  */
 struct GContext       : public impl::ResourceIdError {};
 /**
- * @brief Represents X11 %IdChoice error [encoding].
+ * @brief Represents X11 %IDChoice error [encoding].
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors
  */
-struct IdChoice       : public impl::ResourceIdError {};
+struct IDChoice       : public impl::ResourceIdError {};
 /**
  * @brief Represents X11 %Name error [encoding].
  * [encoding]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Errors

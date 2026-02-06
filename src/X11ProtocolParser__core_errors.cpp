@@ -50,7 +50,7 @@ X11ProtocolParser::_core_errors {
                         &X11ProtocolParser::_parseError< GContext > ) },
     { codes::IDCHOICE,        // 14
       _ErrorCodeTraits( names.at( codes::IDCHOICE ),
-                        &X11ProtocolParser::_parseError< IdChoice > ) },
+                        &X11ProtocolParser::_parseError< IDChoice > ) },
     { codes::NAME,            // 15
       _ErrorCodeTraits( names.at( codes::NAME ),
                         &X11ProtocolParser::_parseError< Name > ) },

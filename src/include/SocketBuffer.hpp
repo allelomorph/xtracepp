@@ -96,7 +96,7 @@ public:
         _next_message_sz = message_sz;
     }
     /**
-     * @brief Idicates whether next message size has been set.
+     * @brief Indicates whether next message size has been set.
      * @return whether next message size has been set
      */
     inline bool messageSizeSet() {

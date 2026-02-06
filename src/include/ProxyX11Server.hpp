@@ -309,7 +309,7 @@ private:
     /**
      * @brief Closes all members of [_connections](#_connections) with matching
      *   `ids`.
-     * @param ids array of all connection IDs to close
+     * @param ids array of all connection ids to close
      * @ingroup main_client_queue
      */
     void _closeConnections( const std::vector< int >& ids );

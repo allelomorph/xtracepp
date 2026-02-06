@@ -411,14 +411,14 @@ X11ProtocolParser::_parseError<
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
-    protocol::errors::IdChoice >(
+    protocol::errors::IDChoice >(
         Connection* conn, const uint8_t* data, const size_t sz ) {
-    using protocol::errors::IdChoice;
+    using protocol::errors::IDChoice;
     using protocol::errors::impl::ResourceIdError;
-    static_assert( std::is_base_of_v< ResourceIdError, IdChoice > );
+    static_assert( std::is_base_of_v< ResourceIdError, IDChoice > );
     assert( data != nullptr );
-    assert( sz >= sizeof( IdChoice::Header ) );
-    assert( _ordered( reinterpret_cast< const IdChoice::Header* >(
+    assert( sz >= sizeof( IDChoice::Header ) );
+    assert( _ordered( reinterpret_cast< const IDChoice::Header* >(
                           data )->code, conn->byteswap ) ==
             protocol::errors::codes::IDCHOICE );
     return _parseError< ResourceIdError >( conn, data, sz );
