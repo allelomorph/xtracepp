@@ -102,6 +102,13 @@ enum {
 };
 
 /**
+ * @brief Constant representing min X11 predefined ATOM [code].
+ * [code]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#protocol_encoding
+ */
+inline constexpr
+uint32_t MIN ( PRIMARY );
+
+/**
  * @brief Constant representing max X11 predefined ATOM [code].
  * [code]: https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#protocol_encoding
  */

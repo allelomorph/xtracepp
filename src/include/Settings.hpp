@@ -10,7 +10,7 @@
 
 #include <cstdint>
 
-#include <vector>
+#include <string>
 #include <string_view>
 #include <unordered_set>
 
@@ -24,69 +24,6 @@
  */
 class Settings {
 private:
-    /**
-     * @brief Constants used to indentify longopt-only options in `::option`
-     *   structs passed to `getopt_long(3)`.
-     * @ingroup getopt_long
-     */
-    enum _LongOptId {
-        LO_DEFAULT = 0,
-        LO_HELP,
-    };
-    /**
-     * @brief Flag set to a [_LongOptId](#_LongOptId) value by `getopt_long(3)`
-     *   when handling a longopt.
-     * @ingroup getopt_long
-     */
-    inline static int _long_only_option {};
-    /**
-     * @brief Stores C array of `::option` structs to pass to `getopt_long(3)`.
-     * @ingroup getopt_long
-     */
-    inline static const std::vector< ::option > _longopts {
-        { "display",              required_argument, NULL,              'd' },
-        { "proxydisplay",         required_argument, NULL,              'D' },
-        { "keeprunning",          no_argument,       NULL,              'k' },
-        { "denyextensions",       required_argument, NULL,              'e' },
-        { "allowextensions",      required_argument, NULL,              'E' },
-        { "readwritedebug",       no_argument,       NULL,              'w' },
-        { "outfile",              required_argument, NULL,              'o' },
-        { "unbuffered",           no_argument,       NULL,              'u' },
-        { "multiline",            no_argument,       NULL,              'm' },
-        { "verbose",              no_argument,       NULL,              'v' },
-        { "systemtimeformat",     no_argument,       NULL,              's' },
-        { "prefetchatoms",        no_argument,       NULL,              'p' },
-        { "help",                 no_argument,       &_long_only_option, LO_HELP },
-        { NULL,                   0,                 NULL,               0 }
-    };
-    /**
-     * @brief Stores C string of legitimate option characters to pass to
-     *   `getopt_long(3)`.
-     * @ingroup getopt_long
-     */
-    static constexpr std::string_view _optstring { "+d:D:ke:E:wo:umvsp" };
-    /**
-     * @brief Message displayed with `--help`; intended for use with fmtlib or
-     *   `std::format`.
-     */
-    static constexpr std::string_view _help_msg {
-        R"({}: intercept, log, and modify (based on user options) message data going between X server and clients
-  (usage: {} [options...] [-- subcommand args...]
-  options:
-    --display,            -d <display name>   : provide libX11 formatted display name of real X server
-    --proxydisplay,       -D <display name>   : provide libX11 formatted display name of this proxy server
-    --keeprunning,        -k                  : continue monitoring traffic after subcommand client exits
-    --denyextensions,     -e <extension name> : deny X extensions named ("all" disables all)
-    --allowextensions,    -E <extension name> : deny X extensions not named (default all enabled if option not used)
-    --readwritedebug,     -w                  : print amounts of data read/sent
-    --outfile,            -o <file path>      : output to file instead of stdout
-    --unbuffered,         -u                  : deactivate stream buffering for output
-    --multiline,          -m                  : break log lines along nested groupings of data
-    --verbose,            -v                  : print all data fields of every message + alternate data formatting
-    --systemtimeformat,   -s                  : X protocol TIMESTAMPs interpreted against system time in formatting
-    --prefetchatoms,      -p                  : first fetch already interned strings to reduce unrecognized ATOMs
-)" };
-
     /**
      * @brief Records buffering state of [log_fs](#log_fs) before applying user
      *   settings.
@@ -168,74 +105,90 @@ private:
      *   recognized.
      * @param name extension name
      */
-    void validateExtensionName( const std::string_view& name );
+    void _validateExtensionName( const std::string_view& name );
+    /**
+     * @brief Parses `argv` from [main](#main) to populate data members.
+     * @param argc `argc` from [main](#main); count of CLI tokens
+     * @param argv `argv` from [main](#main); C array of CLI tokens
+     */
+    void _parseFromArgv( const int argc, const char* argv[] );
 
 public:
+    Settings() = delete;
+    /**
+     * @brief Default ctor.
+     */
+    Settings( const int argc, const char* argv[] );
+    /**
+     * @brief Flushes [log_fs](#log_fs), closes it if opened from file,
+     *   restores original system file stream buffering settings.
+     */
+    ~Settings();
     /**
      * @brief Toggles explicit logging of every buffer and socket read/write operation.
      */
-    bool readwritedebug           { false };
+    bool readwritedebug   { false };
     /**
      * @brief Toggles copying authorization data from real X server display.
      */
-    bool copyauth                 { true };
+    bool copyauth         { true };
     /**
      * @brief Toggles indefinte logging, independent of subcommand client.
      */
-    bool keeprunning              { false };
+    bool keeprunning      { false };
     /**
      * @brief Toggles logging most protocol structs in multiline format, with
      *   one line per member.
      */
-    bool multiline                { false };
+    bool multiline        { false };
     /**
      * @brief Toggles more verbose logging.
      */
-    bool verbose                  { false };
+    bool verbose          { false };
     /**
      * @brief Toggles formatting of X protocol TIMESTAMPs in context of system time.
      */
-    bool systemtimeformat         { false };
+    bool systemtimeformat { false };
     /**
      * @brief Toggles fetching of all atom strings from real X server in
      *   contiguous range of ATOMs 1 to n; greatly reduces indcience of
      *   "unknown ATOM" in logs.
      */
-    bool prefetchatoms            { false };
+    bool prefetchatoms    { false };
     /**
      * @brief Disables buffering on [log_fs](#log_fs).
      */
-    bool unbuffered               { false };
+    bool unbuffered       { false };
     /**
      * @brief Full path to log file, if not using `::stdout` or `::stderr`.
      */
-    const char*   log_path        { nullptr };
+    const char* log_path { nullptr };
     /**
      * @brief Log file stream.
      */
-    ::FILE*       log_fs          { ::stdout };
+    ::FILE* log_fs { ::stdout };
     /**
      * @brief X display name string for real X server.
      * @see [DisplayInfo](#DisplayInfo)
      */
-    const char*   out_displayname { nullptr };
+    const char* out_displayname { nullptr };
     /**
      * @brief X display name string for proxy server.
      * @see [DisplayInfo](#DisplayInfo)
      */
-    const char*   in_displayname  { nullptr };
+    const char* in_displayname { nullptr };
     /**
      * @brief Application name from `argv[0]`, for use in error messages.
      */
-    const char*   process_name    { nullptr };
+    const char* process_name { nullptr };
     /**
      * @brief Subcommand tokens (`argv` after `--`).
      */
-    const char**  subcmd_argv     { nullptr };
+    const char** subcmd_argv { nullptr };
     /**
      * @brief Subcommand token count (length of `argv` after `--`).
      */
-    int           subcmd_argc     {};
+    int subcmd_argc {};
     /**
      * @brief Reference X server TIMESTAMP (milliseconds since ?) to compare
      *   against [ref_unix_time](#ref_unix_time) when calculating
@@ -249,22 +202,11 @@ public:
      */
     ::time_t ref_unix_time {};
     /**
-     * @brief Flushes [log_fs](#log_fs), closes it if opened from file,
-     *   restores original system file stream buffering settings.
-     */
-    ~Settings();
-    /**
-     * @brief Parses `argv` from [main](#main) to populate data members.
-     * @param argc `argc` from [main](#main); count of CLI tokens
-     * @param argv `argv` from [main](#main); C array of CLI tokens
-     */
-    void parseFromArgv( const int argc, const char* argv[] );
-    /**
      * @brief Returns whether extension name was passed with `--denyextensions`.
      * @param name extension name
      * @return whether extension name was passes with `--denyextensions`
      */
-    inline bool extensionDenied( const std::string_view name ) {
+    inline bool extensionDenied( const std::string_view name ) const {
         return _allowed_extensions.find( name ) == _allowed_extensions.end();
     }
 };

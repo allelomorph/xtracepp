@@ -108,29 +108,37 @@ static void handleTerminatingSignal( int sig ) {
     ::_exit( ProxyX11Server::SIGNAL_RETVAL_OFFSET + sig );
 }
 
-ProxyX11Server::~ProxyX11Server() {
-    ::close( _listener_fd );
-    if ( _in_display.ai_family == AF_UNIX )
-        std::filesystem::remove( _in_display.unaddr.sun_path );
-    if ( _out_display.ai_family == AF_UNIX )
-        std::filesystem::remove( _out_display.unaddr.sun_path );
-    if ( !_xauth_path.empty() && !_xauth_bup_path.empty() )
-        std::filesystem::rename( _xauth_bup_path, _xauth_path );
-}
+ProxyX11Server::ProxyX11Server( const int argc, const char* argv[] ) :
+    settings( argc, argv ), _parser( settings ) {
+    // strict, cheap alternative to singleton pattern
+    static bool instantiated {};
+    if ( instantiated ) {
+        fmt::println( ::stderr, "{}: {}: constructor called more than once",
+                      settings.process_name, __PRETTY_FUNCTION__ );
+        ::exit( EXIT_FAILURE );
+    }
+    instantiated = true;
 
-void ProxyX11Server::init( const int argc, const char* argv[] ) {
-    settings.parseFromArgv( argc, argv );
     _parseDisplayNames();
 
     if ( settings.copyauth )
         _copyAuthentication();
     if ( settings.systemtimeformat )
         _fetchCurrentServerTime();
-    std::vector< std::string > fetched_atoms;
     if ( settings.prefetchatoms )
-        fetched_atoms = _fetchInternedAtoms();
+        _parser.importFetchedAtoms( _fetchInternedAtoms() );
+}
 
-    _parser.importSettings( settings, fetched_atoms );
+ProxyX11Server::~ProxyX11Server() {
+    ::close( _listener_fd );
+    // delete unix sockets
+    if ( _in_display.ai_family == AF_UNIX )
+        std::filesystem::remove( _in_display.unaddr.sun_path );
+    if ( _out_display.ai_family == AF_UNIX )
+        std::filesystem::remove( _out_display.unaddr.sun_path );
+    // restore .Xauthority if modified by _copyAuthentication()
+    if ( !_xauth_path.empty() && !_xauth_bup_path.empty() )
+        std::filesystem::rename( _xauth_bup_path, _xauth_path );
 }
 
 int ProxyX11Server::run() {
@@ -144,7 +152,7 @@ void ProxyX11Server::_parseDisplayNames() {
     if ( settings.out_displayname != nullptr ) {
         out_displayname = settings.out_displayname;
     } else {
-        out_displayname = getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
+        out_displayname = ::getenv( _OUT_DISPLAYNAME_ENV_VAR.data() );
     }
     assert( out_displayname != nullptr );
     _out_display = DisplayInfo( out_displayname, DisplayInfo::Direction::OUT,
@@ -157,7 +165,7 @@ void ProxyX11Server::_parseDisplayNames() {
     if( settings.in_displayname != nullptr ) {
         in_displayname = settings.in_displayname;
     } else {
-        in_displayname = getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
+        in_displayname = ::getenv( _IN_DISPLAYNAME_ENV_VAR.data() );
         if ( in_displayname == nullptr ) {
             fmt::println( ::stderr, "No display specified via --proxydisplay or "
                           "${}, defaulting to {:?}",

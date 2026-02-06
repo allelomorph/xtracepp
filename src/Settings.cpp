@@ -10,6 +10,8 @@
 #include <filesystem>
 #include <string_view>
 #include <string>
+#include <vector>
+#include <unordered_set>
 #include <algorithm>  // min
 
 #include <fmt/format.h>
@@ -18,27 +20,106 @@
 #include "errors.hpp"
 
 
-Settings::~Settings() {
-    ::fflush( log_fs );
-    if ( log_fs == ::stdout || log_fs == ::stderr ) {
-        _restoreFileStreamBufferDefaults();
-    } else {
-        fclose( log_fs );
+void Settings::_recordFileStreamBufferDefaults() {
+    assert( log_fs == ::stdout || log_fs == ::stderr );
+    _log_fs_buffer_sz = ::__fbufsize( log_fs );
+    _log_fs_mode =     ::__flbf( log_fs ) ? _IOLBF :
+                   _log_fs_buffer_sz == 0 ? _IONBF :
+                                            _IOFBF;
+}
+
+void Settings::_restoreFileStreamBufferDefaults() {
+    assert( log_fs == stdout || log_fs == ::stderr );
+    if ( ::setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz ) != 0 ) {
+        fmt::println( ::stderr, "{}: {}: {}",
+                      process_name, __PRETTY_FUNCTION__,
+                      errors::system::message( "setvbuf" ) );
+        ::exit( EXIT_FAILURE );
     }
 }
 
-void Settings::parseFromArgv( const int argc, const char* argv[] ) {
+void Settings::_validateExtensionName( const std::string_view& name ) {
+    bool recognized {};
+    int max_match_score {};
+    std::string partial_matches;
+    for ( const std::string_view& re_name : _recognized_extensions ) {
+        if ( name == re_name ) {
+            recognized = true;
+            break;
+        }
+        int match_score {};
+        for ( int i {}, min_len ( std::min( name.size(), re_name.size() ) );
+              i < min_len && name.at( i ) == re_name.at( i ); ++i ) {
+            ++match_score;
+        }
+        if ( match_score > max_match_score ) {
+            partial_matches = fmt::format( "{:?}", re_name );
+            max_match_score = match_score;
+        } else if ( match_score == max_match_score ) {
+            partial_matches += fmt::format( ",{:?}", re_name );
+        }
+    }
+    if ( !recognized ) {
+        fmt::println( ::stderr, "{}: unrecognized extension name {:?}, {}",
+                      process_name, name,
+                      max_match_score == 0 ?
+                      fmt::format( "expected among: {}", _VALID_EXT_NAMES ) :
+                      fmt::format( "partial matches: {}", partial_matches ) );
+        ::exit( EXIT_FAILURE );
+    }
+}
+
+void Settings::_parseFromArgv( const int argc, const char* argv[] ) {
     assert( argc > 0 );
     assert( argv != nullptr );
+    process_name = argv[ 0 ];
 
-    process_name = argv[0];
+    int long_only_option {};
+    enum {
+        LO_DEFAULT,
+        LO_HELP,
+    };
+    const std::vector< ::option > longopts {
+        { "display",              required_argument, nullptr,           'd' },
+        { "proxydisplay",         required_argument, nullptr,           'D' },
+        { "keeprunning",          no_argument,       nullptr,           'k' },
+        { "denyextensions",       required_argument, nullptr,           'e' },
+        { "allowextensions",      required_argument, nullptr,           'E' },
+        { "readwritedebug",       no_argument,       nullptr,           'w' },
+        { "outfile",              required_argument, nullptr,           'o' },
+        { "unbuffered",           no_argument,       nullptr,           'u' },
+        { "multiline",            no_argument,       nullptr,           'm' },
+        { "verbose",              no_argument,       nullptr,           'v' },
+        { "systemtimeformat",     no_argument,       nullptr,           's' },
+        { "prefetchatoms",        no_argument,       nullptr,           'p' },
+        { "help",                 no_argument,       &long_only_option, LO_HELP },
+        { nullptr,                0,                 nullptr,           0 }
+    };
+    const std::string_view optstring { "+d:D:ke:E:wo:umvsp" };
+    const std::string_view help_msg {
+        R"({}: intercept, log, and modify (based on user options) message data going between X server and clients
+  (usage: {} [options...] [-- subcommand args...]
+  options:
+    --display,            -d <display name>   : provide libX11 formatted display name of real X server
+    --proxydisplay,       -D <display name>   : provide libX11 formatted display name of this proxy server
+    --keeprunning,        -k                  : continue monitoring traffic after subcommand client exits
+    --denyextensions,     -e <extension name> : deny X extensions named ("all" disables all)
+    --allowextensions,    -E <extension name> : deny X extensions not named (default all enabled if option not used)
+    --readwritedebug,     -w                  : print amounts of data read/sent
+    --outfile,            -o <file path>      : output to file instead of stdout
+    --unbuffered,         -u                  : deactivate stream buffering for output
+    --multiline,          -m                  : break log lines along nested groupings of data
+    --verbose,            -v                  : print all data fields of every message + alternate data formatting
+    --systemtimeformat,   -s                  : X protocol TIMESTAMPs interpreted against system time in formatting
+    --prefetchatoms,      -p                  : first fetch already interned strings to reduce unrecognized ATOMs
+)" };
     std::unordered_set< std::string_view > enabled_extensions;
     std::unordered_set< std::string_view > disabled_extensions;
     for ( char c ( ::getopt_long( argc, const_cast< char* const* >( argv ),
-                                  _optstring.data(), _longopts.data(), nullptr ) );
+                                  optstring.data(), longopts.data(), nullptr ) );
           c != -1;
           c = ::getopt_long( argc, const_cast< char* const* >( argv ),
-                             _optstring.data(), _longopts.data(), nullptr ) ) {
+                             optstring.data(), longopts.data(), nullptr ) ) {
 
         if ( optarg != nullptr && optarg[0] == '-' ) {
             fmt::println( ::stderr, "{}: option arguments may not begin with '-' "
@@ -69,7 +150,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
                  e_name == _ALL ) {
                 disabled_extensions = _recognized_extensions;
             } else {
-                validateExtensionName( e_name );
+                _validateExtensionName( e_name );
                 disabled_extensions.emplace( e_name );
             }
         }   break;
@@ -82,7 +163,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
                 ::exit( EXIT_FAILURE );
             }
             const std::string_view e_name { optarg };
-            validateExtensionName( e_name );
+            _validateExtensionName( e_name );
             enabled_extensions.emplace( e_name );
         }   break;
         case 'w':
@@ -101,7 +182,7 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
             assert( optarg != nullptr );
             log_path = optarg;
             assert( log_path != nullptr && log_path[0] != '\0' );
-            log_fs = fopen( log_path, "w" );
+            log_fs = ::fopen( log_path, "w" );
             if ( log_fs == nullptr ) {
                 fmt::println( ::stderr, "{}: could not open log file {:?}, {}",
                               process_name, log_path,
@@ -122,9 +203,9 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
             prefetchatoms = true;
             break;
         case '\0':
-            switch( _long_only_option ) {
+            switch( long_only_option ) {
             case LO_HELP:
-                fmt::print( ::stderr, _help_msg, process_name, process_name );
+                fmt::print( ::stderr, help_msg, process_name, process_name );
                 ::exit( EXIT_SUCCESS );
             }
             break;
@@ -163,50 +244,24 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
     }
 }
 
-void Settings::_recordFileStreamBufferDefaults() {
-    assert( log_fs == ::stdout || log_fs == ::stderr );
-    _log_fs_buffer_sz = ::__fbufsize( log_fs );
-    _log_fs_mode = ::__flbf( log_fs ) ? _IOLBF :
-        _log_fs_buffer_sz == 0 ? _IONBF : _IOFBF;
-}
-
-void Settings::_restoreFileStreamBufferDefaults() {
-    assert( log_fs == stdout || log_fs == ::stderr );
-    if ( ::setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz ) != 0 ) {
-        fmt::println( ::stderr, "{}: {}: {}",
-                      process_name, __PRETTY_FUNCTION__,
-                      errors::system::message( "setvbuf" ) );
+Settings::Settings( const int argc, const char* argv[] ) {
+    // strict, cheap alternative to singleton pattern
+    static bool instantiated {};
+    if ( instantiated ) {
+        fmt::println( ::stderr, "{}: {}: constructor called more than once",
+                      process_name, __PRETTY_FUNCTION__ );
         ::exit( EXIT_FAILURE );
     }
+    instantiated = true;
+
+    _parseFromArgv( argc, argv );
 }
 
-void Settings::validateExtensionName( const std::string_view& name ) {
-    bool recognized {};
-    int max_match_score {};
-    std::string partial_matches;
-    for ( const std::string_view& re_name : _recognized_extensions ) {
-        if ( name == re_name ) {
-            recognized = true;
-            break;
-        }
-        int match_score {};
-        for ( int i {}, min_len ( std::min( name.size(), re_name.size() ) );
-              i < min_len && name.at( i ) == re_name.at( i ); ++i ) {
-            ++match_score;
-        }
-        if ( match_score > max_match_score ) {
-            partial_matches = fmt::format( "{:?}", re_name );
-            max_match_score = match_score;
-        } else if ( match_score == max_match_score ) {
-            partial_matches += fmt::format( ",{:?}", re_name );
-        }
-    }
-    if ( !recognized ) {
-        fmt::println( ::stderr, "{}: unrecognized extension name {:?}, {}",
-                      process_name, name,
-                      max_match_score == 0 ?
-                      fmt::format( "expected among: {}", _VALID_EXT_NAMES ) :
-                      fmt::format( "partial matches: {}", partial_matches ) );
-        ::exit( EXIT_FAILURE );
+Settings::~Settings() {
+    ::fflush( log_fs );
+    if ( log_fs == ::stdout || log_fs == ::stderr ) {
+        _restoreFileStreamBufferDefaults();
+    } else {
+        ::fclose( log_fs );
     }
 }

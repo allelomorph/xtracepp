@@ -41,23 +41,33 @@ X11ProtocolParser::_unstashString( const uint32_t conn_id,
     return str;
 }
 
-void X11ProtocolParser::importSettings(
-    const Settings& settings_,
-    const std::vector< std::string >& fetched_atoms ) {
+X11ProtocolParser::X11ProtocolParser( const Settings& settings_ ) :
+    _ROOT_WS( 0, settings_.multiline ), settings( settings_ ) {
+    // strict, cheap alternative to singleton pattern
+    static bool instantiated {};
+    if ( instantiated ) {
+        fmt::println( ::stderr, "{}: {}: constructor called more than once",
+                      settings.process_name, __PRETTY_FUNCTION__ );
+        ::exit( EXIT_FAILURE );
+    }
+    instantiated = true;
 
-    _ROOT_WS = _Whitespace{ 0, settings_.multiline };
-    settings = settings_;
     assert( settings.log_fs != nullptr );
     assert( !::feof( settings.log_fs ) && !::ferror( settings_.log_fs ) );
 
-    uint32_t i { 1 };
-    for ( ; i <= protocol::atoms::predefined::MAX; ++i ) {
-        _interned_atoms.emplace( i, protocol::atoms::predefined::strings[ i ] );
+    for ( uint32_t i { 1 }; i <= protocol::atoms::predefined::MAX; ++i ) {
+        _interned_atoms.emplace( i, protocol::atoms::predefined::strings.at( i ) );
     }
-    if ( settings.prefetchatoms ) {
-        for ( uint32_t sz ( fetched_atoms.size() ); i < sz; ++i ) {
-            _interned_atoms.emplace( i, fetched_atoms[ i ] );
-        }
+}
+
+void X11ProtocolParser::importFetchedAtoms(
+    const std::vector< std::string >& fetched_atoms ) {
+    assert( settings.prefetchatoms );
+    assert( _interned_atoms.size() ==
+            protocol::atoms::predefined::MAX - protocol::atoms::predefined::MIN );
+    for ( uint32_t i { protocol::atoms::predefined::MAX + 1 },
+              sz ( fetched_atoms.size() ); i < sz; ++i ) {
+        _interned_atoms.emplace( i, fetched_atoms.at( i ) );
     }
 }
 

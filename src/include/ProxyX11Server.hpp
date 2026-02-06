@@ -31,6 +31,14 @@
  */
 class ProxyX11Server {
 public:
+    ProxyX11Server() = delete;
+    /**
+     * @brief Default ctor; initializes #Settings from CLI options.
+     * @param argc count of CLI tokens
+     * @param argv array of CLI tokens
+     */
+    ProxyX11Server( const int argc, const char* argv[] );
+    ~ProxyX11Server();
     /**
      * @brief Options selected by user in CLI options and relevant environmental
      *   variables.
@@ -41,15 +49,6 @@ public:
      *   other exit codes.
      */
     static constexpr int SIGNAL_RETVAL_OFFSET { 128 };
-
-    ProxyX11Server() {}
-    ~ProxyX11Server();
-    /**
-     * @brief Initialize from CLI options.
-     * @param argc count of CLI tokens
-     * @param argv array of CLI tokens
-     */
-    void init( const int argc, const char* argv[] );
     /**
      * @brief Begin operation.
      * @return `EXIT_SUCCESS` by default, `EXIT_FAILURE` on error. If using

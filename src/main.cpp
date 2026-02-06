@@ -15,7 +15,6 @@
  *   by signal.
  */
 int main( const int argc, const char* argv[] ) {
-    ProxyX11Server server {};
-    server.init( argc, argv );
+    ProxyX11Server server { argc, argv };
     return server.run();
 }

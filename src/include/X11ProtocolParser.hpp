@@ -1629,6 +1629,12 @@ private:
     };
 
 public:
+    X11ProtocolParser() = delete;
+    /**
+     * @brief Default ctor.
+     * @param settings_ reference to server settings
+     */
+    X11ProtocolParser( const Settings& settings_ );
     /**
      * @brief Parse server-bound client data as X11 messages, and print them to
      *   log file stream.
@@ -1654,15 +1660,14 @@ public:
     /**
      * @brief User settings imported from [ProxyX11Server](#ProxyX11Server).
      */
-    Settings settings;
+    const Settings& settings;
     /**
-     * @brief Import settings from [ProxyX11Server](#ProxyX11Server) during startup.
-     * @param settings_ reference to server settings
+     * @brief Import fetched atom strings from #ProxyX11Server if
+     *   `--prefetchatoms` option is on.
      * @param fetched_atoms reference atom strings fetched from actual X server,
      *   representing contiguous interned ATOMs from 1 to n
      */
-    void importSettings( const Settings& settings_,
-                         const std::vector< std::string >& fetched_atoms );
+    void importFetchedAtoms( const std::vector< std::string >& fetched_atoms );
 };
 
 // using qualified reference to class to satisfy clang's -Wdtor-name
