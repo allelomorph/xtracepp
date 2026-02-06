@@ -160,7 +160,6 @@ void ProxyX11Server::_parseDisplayNames() {
     if ( _out_display.ai_family == AF_UNIX ) {
         out_display_sun_path.store( _out_display.unaddr.sun_path );
     }
-
     const char* in_displayname { nullptr };
     if( settings.in_displayname != nullptr ) {
         in_displayname = settings.in_displayname;
@@ -801,7 +800,7 @@ int ProxyX11Server::_connectToServer() {
                       errors::system::message( "socket" ) );
         return _UNINIT_FD;
     }
-    std::string connect_err;
+    std::string socket_desc;
     switch ( _out_display.ai_family ) {
     case AF_INET6:
         [[fallthrough]];
@@ -819,25 +818,24 @@ int ProxyX11Server::_connectToServer() {
                           errors::system::message( "setsockopt" ) );
             return _UNINIT_FD;
         }
-        connect_err = fmt::format(
-            "{}: {}: error connecting to {:?} (resolved to {:?}) for display {:?}: {}",
-            settings.process_name, __PRETTY_FUNCTION__,
-            _out_display.hostname, _out_display.addrstr, _out_display.name,
-            errors::system::message( "connect" ) );
+        socket_desc = fmt::format(
+            "{:?} (resolved to {:?})",
+            _out_display.hostname, _out_display.addrstr );
     }   break;
     case AF_UNIX: {
-        connect_err = fmt::format(
-            "{}: {}: error connecting to unix socket {:?} for display {:?}: {}",
-            settings.process_name, __PRETTY_FUNCTION__,
-            _out_display.unaddr.sun_path, _out_display.name,
-            errors::system::message( "connect" ) );
+        socket_desc = fmt::format(
+            "unix socket {:?}", _out_display.unaddr.sun_path  );
     }   break;
     default:
         break;
     }
     if ( ::connect( fd, &_out_display.ai_addr, _out_display.ai_addrlen ) != 0 ) {
         ::close( fd );
-        fmt::println( ::stderr, connect_err );
+        assert( !socket_desc.empty() );
+        fmt::println(
+            ::stderr, "{}: {}: error connecting to {} for display {:?}: {}",
+            settings.process_name, __PRETTY_FUNCTION__, socket_desc,
+            _out_display.name, errors::system::message( "connect" ) );
         return _UNINIT_FD;
     }
     return fd;

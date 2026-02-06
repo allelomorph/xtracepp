@@ -145,20 +145,22 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
     ai_socktype = results->ai_socktype;
     ai_protocol = results->ai_protocol;
     ai_addrlen  = results->ai_addrlen;
+    char addrstr_buf[ INET6_ADDRSTRLEN ] {};
     if ( ai_family == AF_INET ) {
         const ::sockaddr_in* inaddr_ {
             reinterpret_cast< ::sockaddr_in* >( viable_result->ai_addr ) };
         inaddr = *inaddr_;
         assert( ai_addrlen == sizeof( inaddr ) );
         ::inet_ntop( ai_family, &(inaddr.sin_addr),
-                     _addrstr_buf, INET_ADDRSTRLEN );
+                     addrstr_buf, INET_ADDRSTRLEN );
     } else {  // ai_family == AF_INET6
         const ::sockaddr_in6* in6addr_ {
             reinterpret_cast< ::sockaddr_in6* >( viable_result->ai_addr ) };
         in6addr = *in6addr_;
         assert( viable_result->ai_addrlen == sizeof( in6addr ) );
         ::inet_ntop( ai_family, &(in6addr.sin6_addr),
-                     _addrstr_buf, INET6_ADDRSTRLEN );
+                     addrstr_buf, INET6_ADDRSTRLEN );
     }
+    addrstr = std::string{ addrstr_buf };
     ::freeaddrinfo( results );
 }

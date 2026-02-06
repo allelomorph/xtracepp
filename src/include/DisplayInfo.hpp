@@ -119,10 +119,6 @@ private:
         _SCREEN_GROUP_I
     };
     /**
-     * @brief `char` buffer for use with `inet_ntop(3)`.
-     */
-    char _addrstr_buf[ INET6_ADDRSTRLEN ] {};
-    /**
      * @brief Whether display name string matches the unix socket pattern.
      */
     bool _unix_pattern {};
@@ -188,9 +184,9 @@ public:
                    sizeof( unaddr ) > sizeof( in6addr ) );
     static_assert( sizeof( unaddr.sun_path ) == _UNIX_PATH_MAX );
     /**
-     * @brief View into address buffer populated by `inet_ntop(3)`.
+     * @brief Holds address string populated by `inet_ntop(3)`.
      */
-    std::string_view addrstr { _addrstr_buf, INET6_ADDRSTRLEN };
+    std::string addrstr;
     /**
      * @brief Differentiates IN display (logging proxy server) from OUT
      *   display (actual X server).
