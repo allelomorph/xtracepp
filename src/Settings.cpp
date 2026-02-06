@@ -152,7 +152,8 @@ void Settings::parseFromArgv( const int argc, const char* argv[] ) {
         subcmd_argv = argv + optind;
     }
 
-    _recordFileStreamBufferDefaults();
+    if ( log_fs == ::stdout || log_fs == ::stderr )
+        _recordFileStreamBufferDefaults();
     if ( unbuffered ) {
         if ( setvbuf( log_fs, nullptr, _IONBF, 0 ) != 0 ) {
             fmt::println( ::stderr, "{}: {}",
@@ -172,8 +173,9 @@ void Settings::_recordFileStreamBufferDefaults() {
 void Settings::_restoreFileStreamBufferDefaults() {
     assert( log_fs == stdout || log_fs == ::stderr );
     if ( ::setvbuf( log_fs, nullptr, _log_fs_mode, _log_fs_buffer_sz ) != 0 ) {
-        fmt::println( ::stderr, "{}: {}",
-                      process_name, errors::system::message( "setvbuf" ) );
+        fmt::println( ::stderr, "{}: {}: {}",
+                      process_name, __PRETTY_FUNCTION__,
+                      errors::system::message( "setvbuf" ) );
         ::exit( EXIT_FAILURE );
     }
 }
