@@ -2290,7 +2290,7 @@ X11ProtocolParser::_parseReply<
             encoding->header.global_auto_repeat, byteswap,
             { GetKeyboardControl::Reply::global_auto_repeat_names,
               _EnumNameRange::Bound::MAX,
-              GetKeyboardControl::Reply::GLOBAL_AUTO_REPREAT_ENUM_MAX } ),
+              GetKeyboardControl::Reply::GLOBAL_AUTO_REPEAT_ENUM_MAX } ),
         ws.separator,
         !settings.verbose ? "" : fmt::format(
             "{}{: <{}}{}{}{}",

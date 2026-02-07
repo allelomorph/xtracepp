@@ -4967,7 +4967,7 @@ struct GetKeyboardControl : public impl::SimpleRequest {
             protocol::enum_names::off_on };
         /** @brief [global-auto-repeat](#Header::global_auto_repeat) maximum
          *    value to use enum. */
-        static constexpr uint8_t GLOBAL_AUTO_REPREAT_ENUM_MAX { 1 };
+        static constexpr uint8_t GLOBAL_AUTO_REPEAT_ENUM_MAX { 1 };
     };
 };
 /**
