@@ -1,8 +1,8 @@
-#include "ProxyX11Server.hpp"
-
 /**
  * @file main.cpp
  */
+
+#include "ProxyX11Server.hpp"
 
 
 /**
