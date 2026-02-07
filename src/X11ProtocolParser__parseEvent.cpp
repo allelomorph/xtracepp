@@ -442,7 +442,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
 
     const uint32_t memb_name_w (
-        !ws.multiline ? 0 : sizeof( "keys(0-7 omitted)" ) - 1 );
+        !ws.multiline ? 0 : sizeof( "keys (0-7 omitted)" ) - 1 );
     outputs.str = fmt::format(
         "{{{}"
         "{}"
@@ -453,7 +453,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
             "{}{: <{}}{}{}{}",
             ws.memb_indent, "code", memb_name_w, ws.equals,
             _formatVariable( encoding->header.code, byteswap ), ws.separator ),
-        ws.memb_indent, "keys(0-7 omitted)", memb_name_w, ws.equals,
+        ws.memb_indent, "keys (0-7 omitted)", memb_name_w, ws.equals,
         keys.str, ws.separator,
         ws.encl_indent
         );

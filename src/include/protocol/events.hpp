@@ -474,8 +474,15 @@ struct KeymapNotify : public Event {
     struct [[gnu::packed]] Encoding {
         /** @brief Included prefix. */
         Header header;
-        /** @brief Protocol name: keys; keycode - 8 is index in array
-         *    (keycodes 0-7 omitted). */
+        /** @brief Protocol name: keys; 31B LISTofCARD8 containing 248b
+         *    bit-vector of keycodes: byte n (from 0) contains the bits for
+         *    keycodes 8(n + 1) to 8(n + 1) + 7, going from lsb to msb.
+         * @note Same encoding as reply fields
+         *   [keys](#requests::QueryKeymap::Reply::Encoding::keys)
+         *   for QueryKeymap and
+         *   [auto-repeats](##requests::GetKeyboardControl::Reply::Encoding::auto_repeats)
+         *   for GetKeyboardControl, except the first byte (containing
+         *   keycodes 0-7) is omitted. */
         CARD8  keys[31];
     };
     static_assert( sizeof( Encoding ) == ENCODING_SZ );

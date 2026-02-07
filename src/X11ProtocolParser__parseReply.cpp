@@ -987,7 +987,7 @@ X11ProtocolParser::_parseReply<
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
-    // keys is included in QueryKeymap::Reply::Encoding
+    // Encoding includes fixed size LISTofCARD8 keys
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
@@ -2258,15 +2258,15 @@ X11ProtocolParser::_parseReply<
     reply.bytes_parsed += sizeof( GetKeyboardControl::Reply::Encoding );
     assert( _ordered( encoding->header.reply, byteswap ) ==
             protocol::requests::Reply::REPLY );
-    // Encoding includes fixed size LISTofCARD8 auto-repeats
-    const _ParsingOutputs auto_repeats {
-        _parseLISTof< protocol::CARD8 >(
-            data + reply.bytes_parsed, sz - reply.bytes_parsed,
-            GetKeyboardControl::Reply::AUTO_REPEATS_SZ,
-            byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
+    // Encoding includes fixed size LISTofCARD8 auto-repeats
+    const _ParsingOutputs auto_repeats {
+        _parseLISTof< protocol::CARD8 >(
+            encoding->auto_repeats,
+            sizeof( encoding->auto_repeats ), sizeof( encoding->auto_repeats ),
+            byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?

@@ -2313,7 +2313,9 @@ struct QueryKeymap : public impl::SimpleRequest {
         struct [[gnu::packed]] Encoding {
             /** @brief Included prefix. */
             Header header;  // `extra_aligned_units` of 2
-            /** @brief Protocol name: keys; LISTofCARD8 32B bit-vector. */
+            /** @brief Protocol name: keys; 32B LISTofCARD8 containing 256b
+             *    bit-vector of keycodes: byte n (from 0) contains the bits for
+             *    keycodes 8n to 8n + 7, going from lsb to msb. */
             CARD8  keys[32];
         };
         static_assert( sizeof( Encoding ) ==
@@ -4930,8 +4932,6 @@ struct GetKeyboardControl : public impl::SimpleRequest {
             /** @brief Length of encoding in excess of default, in 4B units. */
             uint32_t extra_aligned_units;  // 5
         };
-        /** @brief Fixed length of [auto-repeats](#Encoding::auto_repeats) in CARD8s. */
-        static constexpr uint32_t AUTO_REPEATS_SZ { 32 };
         /**
          * @brief Fixed encoding, including [Header](#Header).
          */
@@ -4953,8 +4953,12 @@ struct GetKeyboardControl : public impl::SimpleRequest {
             [[maybe_unused]]
             uint8_t _unused[2];
         public:
-            /** @brief Protocol name: auto-repeats (fixed length LISTofCARD8). */
-            CARD8   auto_repeats[AUTO_REPEATS_SZ];
+            /** @brief Protocol name: auto-repeats; 32B LISTofCARD8 containing 256b
+             *    bit-vector of keycodes: byte n (from 0) contains the bits for
+             *    keycodes 8n to 8n + 7, going from lsb to msb.
+             * @note Same encoding as QueryKeymap's reply field
+             *   [keys](#QueryKeymap::Reply::Encoding::keys). */
+            CARD8   auto_repeats[32];
         };
         static_assert( sizeof( Encoding ) == DEFAULT_ENCODING_SZ + (5 * ALIGN) );
         /** @brief [global-auto-repeat](#Header::global_auto_repeat) enum names. */
