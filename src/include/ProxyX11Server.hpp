@@ -159,6 +159,8 @@ private:
      *   [ATOM](#protocol::ATOM)s 1 to n to support `--prefetchatoms` user option.
      * @return vector of interned atom strings, indexed by
      *   [ATOM](#protocol::ATOM) value
+     * @note Uses [ANSI escape] sequences.
+     * [ANSI escape]: https://gist.github.com/ConnerWill/d4b6c776b509add763e17f9f113fd25b
      * @ingroup pre_queue_setup_clients
      */
     std::vector< std::string > _fetchInternedAtoms();

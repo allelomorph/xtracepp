@@ -178,7 +178,8 @@ void ProxyX11Server::_parseDisplayNames() {
     if ( _in_display.ai_family == AF_UNIX ) {
         in_display_sun_path.store( _in_display.unaddr.sun_path );
     }
-
+    // register handler so that any unix socket files created are deleted on
+    //   signal interrupt, not just on normal exit
     if ( out_display_sun_path.load() != nullptr ||
          in_display_sun_path.load() != nullptr ) {
         // `struct` needed to disambiguate from sigaction(2)

@@ -323,11 +323,15 @@ ProxyX11Server::_fetchInternedAtoms() {
     }
     {
         ////// prepare for loop
+        // ANSI Control Sequence Introducer
         constexpr char CSI[ sizeof( "\x1b[" ) ] { "\x1b[" };
         fmt::print( ::stderr, "fetching interned ATOMs: " );
-        fmt::print( ::stderr, "{}?25l", CSI );  // hide cursor
-        // ensure we unhide cursor if process exits unexpectedly ( unhide is idempotent )
-        struct ::sigaction act {};  // `struct` needed to disambiguate from sigaction(2)
+        // hide cursor
+        fmt::print( ::stderr, "{}?25l", CSI );
+        // register handler so that cursor is unhidden on on any signal
+        //   interrupt that may occur during InternAtom request loop
+        // `struct` needed to disambiguate from sigaction(2)
+        struct ::sigaction act {};
         act.sa_handler = &handleTerminatingSignal;
         if ( ::sigaction( SIGABRT, &act, nullptr ) == -1 ||
              ::sigaction( SIGINT, &act, nullptr ) == -1  ||
@@ -431,7 +435,8 @@ ProxyX11Server::_fetchInternedAtoms() {
             assert( buffer.empty() );
             // Update ATOM counter in place to keep user aware of progress
             static constexpr int COUNTER_W { 5 };
-            fmt::print( ::stderr, "{:{}d}{}{}D",  // \x1b[#D right # cols
+            // \x1b[#D cursor right # cols
+            fmt::print( ::stderr, "{:{}d}{}{}D",
                         atom_i, COUNTER_W, CSI, COUNTER_W );
         }
         ////// loop cleanup
