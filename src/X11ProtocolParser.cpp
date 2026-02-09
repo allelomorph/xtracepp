@@ -63,8 +63,8 @@ X11ProtocolParser::X11ProtocolParser( const Settings& settings_ ) :
 void X11ProtocolParser::importFetchedAtoms(
     const std::vector< std::string >& fetched_atoms ) {
     assert( settings.prefetchatoms );
-    assert( _interned_atoms.size() ==
-            protocol::atoms::predefined::MAX - protocol::atoms::predefined::MIN );
+    // by default core predefined ATOMS 1..68 should be interned
+    assert( _interned_atoms.size() == protocol::atoms::predefined::MAX );
     for ( uint32_t i { protocol::atoms::predefined::MAX + 1 },
               sz ( fetched_atoms.size() ); i < sz; ++i ) {
         _interned_atoms.emplace( i, fetched_atoms.at( i ) );

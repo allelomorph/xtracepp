@@ -7,9 +7,9 @@ Proxy between X11 display server (or [Wayland] compositor via [Xwayland]) and cl
 - add features to [xtrace]
 
 ### Primary Use Cases
-- logging protocol traffic for a given X11 server (or [Wayland] compositor via [Xwayland])
-- debugging client application communications with X11 server (or [Wayland] compositor via [Xwayland])
-- selective filtering of X11 extension use by client applications
+- recording protocol traffic for a given X11 server (or [Wayland] compositor via [Xwayland])
+- debugging client communications with X11 server (or [Wayland] compositor via [Xwayland])
+- selective filtering of X11 extension use by clients
 
 
 ## Usage
