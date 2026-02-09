@@ -4,7 +4,8 @@
 #include <string_view>
 #include <limits>
 
-#include <unistd.h>  // free usleep
+#include <stdlib.h>  // free
+#include <unistd.h>  // usleep
 
 #include <cassert>
 #include <cstdint>

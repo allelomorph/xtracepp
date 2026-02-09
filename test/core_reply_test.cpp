@@ -2,9 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>       // EXIT_FAILURE EXIT_SUCCESS
-
-#include <unistd.h>      // free
+#include <cstdlib>       // EXIT_FAILURE EXIT_SUCCESS free
 
 #include <fmt/format.h>
 

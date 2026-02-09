@@ -1,12 +1,6 @@
-#include <string>        // atoi
-
 #include <cassert>
-#include <cstdint>
-#include <cstdlib>       // EXIT_FAILURE EXIT_SUCCESS
 
-#include <unistd.h>      // free
-
-#include <fmt/format.h>
+#include <stdlib.h>      // free
 
 #include <xcb/xcb.h>
 
