@@ -71,7 +71,7 @@ int main( const int argc, const char* const* argv ) {
         free( const_cast< xcb_query_tree_reply_t* >( reply ) );
     }   break;
     case INTERNATOM:               {  //  16
-        const uint8_t  only_if_exists {};
+        const uint8_t  only_if_exists { true };
         const uint16_t name_len       { sizeof( "PRIMARY" ) - 1 };
         const char*    name           { "PRIMARY" };
         const xcb_intern_atom_cookie_t cookie {
