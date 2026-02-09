@@ -1,10 +1,10 @@
 # xtracepp
-Proxy between X11 display server (or [Wayland] compositor via [Xwayland]) and client applications, logging their communication and selectively altering message data based on user options. Is to [X11 protocol] traffic what [strace] is to Linux syscalls. Complete rebuild of the original [xtrace] in [C++17], with expanded features.
+Proxy between X11 display server (or [Wayland] compositor via [Xwayland]) and client applications, logging their communication and selectively altering message data based on user options. Is to [X11 protocol] traffic what [strace] is to Linux syscalls. Complete rebuild of the original [xtrace] in [C++17], with expanded [features](#added-features).
 
 ### Developer Objectives
 - improve personal understanding of [X11 protocol]
 - revise [xtrace] output format
-- add features to [xtrace]
+- add [features](#added-features) to [xtrace]
 
 ### Primary Use Cases
 - recording protocol traffic for a given X11 server (or [Wayland] compositor via [Xwayland])
