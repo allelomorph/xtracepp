@@ -38,5 +38,6 @@ if(XTRACEPP_BUILD_DOCS AND PROJECT_IS_TOP_LEVEL)
     ${PROJECT_SOURCE_DIR}/src/X11ProtocolParser__logReply.cpp
     ${PROJECT_SOURCE_DIR}/src/X11ProtocolParser__logRequest.cpp
     ${PROJECT_SOURCE_DIR}/src/X11ProtocolParser__parseListMember.cpp
-    EXTRACT_PRIVATE)
+    EXTRACT_PRIVATE
+  )
 endif()
