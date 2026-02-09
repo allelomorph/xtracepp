@@ -51,10 +51,11 @@ public:
     static constexpr int SIGNAL_RETVAL_OFFSET { 128 };
     /**
      * @brief Begin operation.
-     * @return `EXIT_SUCCESS` by default, `EXIT_FAILURE` on error. If using
-     *   subcommand child process but not `--keeprunning`, child return value or
-     *   signal value + [SIGNAL_RETVAL_OFFSET](#SIGNAL_RETVAL_OFFSET) if child
-     *   stopped by signal.
+     * @return
+     *   - normal exit: `EXIT_SUCCESS`, or `EXIT_FAILURE` on error
+     *   - stopped by signal: signal value + [SIGNAL_RETVAL_OFFSET](#SIGNAL_RETVAL_OFFSET)
+     *   - using child process (without `--keeprunning`): child return value
+     *   - using child process (without `--keeprunning`,) child stopped by signal: signal value + [SIGNAL_RETVAL_OFFSET](#SIGNAL_RETVAL_OFFSET)
      */
     int run();
 

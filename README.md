@@ -81,9 +81,14 @@ This can be combined with the `--keeprunning` option above to stay listening for
 
 
 ## Output
-`xtracepp` outputs:
-- errors and notifications to `stderr`
+- notifications, errors to `stderr`
 - logs to `stdout` by default, or to file with `--outfile`(`-o`)` log_file`
+- returns:
+  - normal exit: 0, or 1 on error
+  - stopped by signal: signal value + 128
+  - using child process (without `--keeprunning`): child return value
+  - using child process (without `--keeprunning`,) child stopped by signal: signal value + 128
+
 
 <details>
 <summary><h3>Formatting</h3></summary>
