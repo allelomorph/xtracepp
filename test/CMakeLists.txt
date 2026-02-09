@@ -101,4 +101,22 @@ target_link_libraries(systemtimeformat_test PUBLIC
   fmt
 )
 
+add_executable(prefetchatoms_test
+  prefetchatoms_test.cpp
+)
+set_strict_compile_options(prefetchatoms_test)
+set_target_properties(prefetchatoms_test PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
+)
+target_include_directories(prefetchatoms_test PRIVATE
+  ${X11_xcb_INCLUDE_PATH}
+  ${PROJECT_SOURCE_DIR}/src/include
+)
+target_link_libraries(prefetchatoms_test PUBLIC
+  ${X11_xcb_LIB}
+  fmt
+)
+
 add_subdirectory(extensions)
