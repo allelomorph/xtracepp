@@ -35,6 +35,34 @@ int main( const int argc, const char* const* argv ) {
     assert( setup  != nullptr );
     assert( screen != nullptr );
 
+    // AllocColorCells, AllocColorPlanes tests require that we find a VISUALTYPE
+    //   that has a class other than StaticGray, StaticColor, or TrueColor (this
+    //   allows client allocation of cells and planes after initial
+    //   CreateColormap request)
+    xcb_visualtype_t* alloc_visualtype {};
+    for ( xcb_depth_iterator_t depth_iter {
+            xcb_screen_allowed_depths_iterator( screen ) };
+          depth_iter.rem; xcb_depth_next( &depth_iter ) ) {
+        for ( xcb_visualtype_iterator_t visual_iter {
+                xcb_depth_visuals_iterator( depth_iter.data ) };
+              visual_iter.rem; xcb_visualtype_next( &visual_iter ) ) {
+            switch ( visual_iter.data->_class ) {
+            case XCB_VISUAL_CLASS_STATIC_GRAY:  [[fallthrough]];
+            case XCB_VISUAL_CLASS_STATIC_COLOR: [[fallthrough]];
+            case XCB_VISUAL_CLASS_TRUE_COLOR:   continue;
+            default:
+                alloc_visualtype = visual_iter.data;
+                goto alloc_visualtype_found;
+            }
+        }
+    }
+alloc_visualtype_found:
+    assert( alloc_visualtype != nullptr );
+    assert( alloc_visualtype->_class != XCB_VISUAL_CLASS_STATIC_GRAY );
+    assert( alloc_visualtype->_class != XCB_VISUAL_CLASS_STATIC_COLOR );
+    assert( alloc_visualtype->_class != XCB_VISUAL_CLASS_TRUE_COLOR );
+
+
     xcb_generic_error_t* error {};
     using namespace protocol::requests::opcodes;
     switch ( opcode ) {
@@ -352,14 +380,11 @@ int main( const int argc, const char* const* argv ) {
         const xcb_colormap_t mid   { xcb_generate_id( connection ) };
         const uint8_t        alloc { XCB_COLORMAP_ALLOC_NONE };
         xcb_create_colormap(
-            connection, alloc, mid, screen->root, screen->root_visual );
-        // TBD still getting Alloc error on AllocColorCells, see:
-        //   - https://man.archlinux.org/man/extra/libx11/XAllocColorCells.3.en
-        //   - https://man.archlinux.org/man/extra/libx11/XCreateColormap.3.en
-        const uint8_t        contiguous {};
+            connection, alloc, mid, screen->root, alloc_visualtype->visual_id );
+        const uint8_t        contiguous { 1 };
         const xcb_colormap_t cmap       { mid };
         const uint16_t       colors     { 1 };
-        const uint16_t       planes     {};
+        const uint16_t       planes     { 1 };
         const xcb_alloc_color_cells_cookie_t cookie {
             xcb_alloc_color_cells(
                 connection, contiguous, cmap, colors, planes ) };
@@ -371,13 +396,16 @@ int main( const int argc, const char* const* argv ) {
         xcb_free_colormap( connection, mid );
     }   break;
     case ALLOCCOLORPLANES:         {  //  87
-        // TBD fails with Colormap error (error != nullptr)
-        const uint8_t        contiguous {};
-        const xcb_colormap_t cmap       {};
-        const uint16_t       colors     {};
-        const uint16_t       reds       {};
-        const uint16_t       greens     {};
-        const uint16_t       blues      {};
+        const xcb_colormap_t mid   { xcb_generate_id( connection ) };
+        const uint8_t        alloc { XCB_COLORMAP_ALLOC_NONE };
+        xcb_create_colormap(
+            connection, alloc, mid, screen->root, alloc_visualtype->visual_id );
+        const uint8_t        contiguous { 1 };
+        const xcb_colormap_t cmap       { mid };
+        const uint16_t       colors     { 1 };
+        const uint16_t       reds       { 1 };
+        const uint16_t       greens     { 1 };
+        const uint16_t       blues      { 1 };
         const xcb_alloc_color_planes_cookie_t cookie {
             xcb_alloc_color_planes(
                 connection, contiguous, cmap, colors, reds, greens, blues ) };
@@ -386,6 +414,7 @@ int main( const int argc, const char* const* argv ) {
         assert( error == nullptr );
         assert( reply != nullptr );
         free( const_cast< xcb_alloc_color_planes_reply_t* >( reply ) );
+        xcb_free_colormap( connection, mid );
     }   break;
     case QUERYCOLORS:              {  //  91
         const xcb_colormap_t cmap        { screen->default_colormap };
@@ -446,9 +475,10 @@ int main( const int argc, const char* const* argv ) {
         free( const_cast< xcb_list_extensions_reply_t* >( reply ) );
     }   break;
     case GETKEYBOARDMAPPING:       {  // 101
-        // TBD fails with reply == nullptr
         const xcb_keycode_t first_keycode { 0x10 };
-        const uint8_t       count         { 3 };
+        assert( first_keycode >= setup->min_keycode );
+        const uint8_t       count         { 2 };
+        assert( first_keycode + count - 1 <= setup->max_keycode );
         const xcb_get_keyboard_mapping_cookie_t cookie {
             xcb_get_keyboard_mapping( connection, first_keycode, count ) };
         const xcb_get_keyboard_mapping_reply_t* reply {
@@ -458,7 +488,6 @@ int main( const int argc, const char* const* argv ) {
         free( const_cast< xcb_get_keyboard_mapping_reply_t* >( reply ) );
     }   break;
     case GETKEYBOARDCONTROL:       {  // 103
-        // TBD fails with reply == nullptr
         const xcb_get_keyboard_control_cookie_t cookie {
             xcb_get_keyboard_control( connection ) };
         const xcb_get_keyboard_control_reply_t* reply {

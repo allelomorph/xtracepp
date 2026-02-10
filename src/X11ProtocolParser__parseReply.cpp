@@ -1742,7 +1742,7 @@ X11ProtocolParser::_parseReply<
             _ordered( encoding->masks_ct, byteswap ),
             byteswap, ws.nested(),
             _ValueTraits{ {}, _ValueTraits::BITMASK } ) };  // force hex
-    reply.bytes_parsed += pixels.bytes_parsed;
+    reply.bytes_parsed += masks.bytes_parsed;
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
                              protocol::requests::Reply::DEFAULT_ENCODING_SZ ) );
@@ -2197,7 +2197,8 @@ X11ProtocolParser::_parseReply<
     // (keycode count is field in request, but here must be inferred)
     const auto extra_aligned_units {
         _ordered( encoding->header.extra_aligned_units, byteswap ) };
-    const uint32_t keysym_ct ( extra_aligned_units / sizeof( protocol::KEYSYM ) );
+    const uint32_t keysym_ct (
+        alignment.size( extra_aligned_units ) / sizeof( protocol::KEYSYM ) );
     const _ParsingOutputs keysyms {
         _parseLISTof< protocol::KEYSYM >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed, keysym_ct,
