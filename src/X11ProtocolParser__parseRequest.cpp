@@ -7029,7 +7029,7 @@ X11ProtocolParser::_parseRequest<
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
             data + request.bytes_parsed, keycodes_sz, keycodes_ct,
-            byteswap, ws.nested() ) };
+            byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     request.bytes_parsed += alignment.pad( keycodes.bytes_parsed );
     assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
 

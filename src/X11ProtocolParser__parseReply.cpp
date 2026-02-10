@@ -2700,7 +2700,7 @@ X11ProtocolParser::_parseReply<
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed, keycode_ct,
-            byteswap, ws.nested() ) };
+            byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     reply.bytes_parsed += keycodes.bytes_parsed;
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
