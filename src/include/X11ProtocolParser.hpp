@@ -1670,13 +1670,15 @@ public:
     void importFetchedAtoms( const std::vector< std::string >& fetched_atoms );
 };
 
-// using qualified reference to class to satisfy clang's -Wdtor-name
+// dtor names are explcitly qualified here to satisfy clang's questionable
+//   interpretation of the standard in `-Wdtor-name`, see:
+//   - https://stackoverflow.com/questions/68751682
 template< typename T, bool B >
 X11ProtocolParser::_RequestFixedEncodingBase<
-    T, B >::_RequestFixedEncodingBase::~_RequestFixedEncodingBase() = default;
+    T, B >::~_RequestFixedEncodingBase< T, B >() = default;
 template< typename T >
 X11ProtocolParser::_RequestFixedEncodingBase<
-    T, true >::_RequestFixedEncodingBase::~_RequestFixedEncodingBase() = default;
+    T, true >::~_RequestFixedEncodingBase< T, true >() = default;
 
 #undef _LESSTHAN
 #undef _PARSELISTMEMBER
