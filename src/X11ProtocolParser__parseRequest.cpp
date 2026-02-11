@@ -6080,9 +6080,12 @@ X11ProtocolParser::_parseRequest<
         alignment.size( tl_aligned_units ) -
         ( fe.big_request ? ChangeKeyboardMapping::BASE_BIG_ENCODING_SZ :
                            ChangeKeyboardMapping::BASE_ENCODING_SZ ) };
-    const uint16_t keysyms_ct (
-        fe.prefix->keycode_count * fe.encoding->keysyms_per_keycode );
-    assert( keysyms_ct == keysyms_sz / sizeof( protocol::KEYSYM ) );
+    [[maybe_unused]] const uint16_t expected_keysyms_ct (
+        _ordered( fe.prefix->keycode_count, byteswap ) *
+        _ordered( fe.encoding->keysyms_per_keycode, byteswap ) );
+    const uint16_t keysyms_ct ( keysyms_sz / sizeof( protocol::KEYSYM ) );
+    // normally insufficient keysyms length would get Length error from server
+    assert( keysyms_ct == expected_keysyms_ct );
     const _ParsingOutputs keysyms {
         _parseLISTof< protocol::KEYSYM >(
             data + request.bytes_parsed, keysyms_sz, keysyms_ct,
@@ -7024,8 +7027,12 @@ X11ProtocolParser::_parseRequest<
         alignment.size( tl_aligned_units ) -
         ( fe.big_request ? SetModifierMapping::BASE_BIG_ENCODING_SZ :
                            SetModifierMapping::BASE_ENCODING_SZ ) };
-    const uint16_t keycodes_ct (
-        SetModifierMapping::MODIFIER_CT * fe.prefix->keycodes_per_modifier );
+    [[maybe_unused]] const uint16_t expected_keycodes_ct (
+        SetModifierMapping::MODIFIER_CT *
+        _ordered( fe.prefix->keycodes_per_modifier, byteswap ) );
+    const uint16_t keycodes_ct ( keycodes_sz / sizeof( protocol::KEYCODE ) );
+    // normally insufficient keycodes length would get Length error from server
+    assert( keycodes_ct == expected_keycodes_ct );
     const _ParsingOutputs keycodes {
         _parseLISTof< protocol::KEYCODE >(
             data + request.bytes_parsed, keycodes_sz, keycodes_ct,
