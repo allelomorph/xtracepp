@@ -14,15 +14,13 @@ int main( const int argc, const char* const* argv ) {
     const char* process_name { argv[ 0 ] };
 
     // Open the connection to the X server
-    xcb_connection_t* connection  {
+    xcb_connection_t* conn {
         xcb_connect( nullptr, nullptr ) };
-    assert( connection != nullptr );
-
-    // Get the first screen
-    const xcb_setup_t*    setup  { xcb_get_setup( connection ) };
+    assert( conn != nullptr );
+    // Get the first screen in `roots`
+    const xcb_setup_t*  setup  { xcb_get_setup( conn ) };
     assert( setup  != nullptr );
-    xcb_screen_iterator_t iter   { xcb_setup_roots_iterator( setup ) };
-    xcb_screen_t*         screen { iter.data };
+    const xcb_screen_t* screen { xcb_setup_roots_iterator( setup ).data };
     assert( screen != nullptr );
 
     xcb_generic_error_t* error {};
@@ -34,8 +32,8 @@ int main( const int argc, const char* const* argv ) {
         XCB_EVENT_MASK_PROPERTY_CHANGE
     };
     cookie = xcb_change_window_attributes_checked(
-        connection, window, value_mask, value_list );
-    error = xcb_request_check( connection, cookie );
+        conn, window, value_mask, value_list );
+    error = xcb_request_check( conn, cookie );
     assert( error == nullptr );
 
     using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
@@ -49,9 +47,9 @@ int main( const int argc, const char* const* argv ) {
         const uint8_t      format   { 8 };  // (bits per fmt unit)
         const uint32_t     data_len { 0 };
         cookie = xcb_change_property(
-            connection, mode, window, property,
+            conn, mode, window, property,
             type, format, data_len, nullptr/*data*/ );
-        error = xcb_request_check( connection, cookie );
+        error = xcb_request_check( conn, cookie );
         assert( error == nullptr );
         fmt::println( ::stderr, "{}: sleeping for {} seconds",
                       process_name, i );
@@ -59,6 +57,6 @@ int main( const int argc, const char* const* argv ) {
     }
 
     // Make sure commands are sent before we pause so that the window gets shown
-    xcb_flush( connection );
-    xcb_disconnect( connection );
+    xcb_flush( conn );
+    xcb_disconnect( conn );
 }

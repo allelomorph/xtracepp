@@ -1,12 +1,12 @@
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>                // free EXIT_FAILURE EXIT_SUCCESS
+#include <cstdlib>                // EXIT_SUCCESS
 #include <sys/uio.h>              // iovec
 
 #include <xcb/xcb.h>
 #include <xcb/xcbext.h>           // xcb_protocol_request_t xcb_send_request
 
-#include <protocol/errors.hpp>
+#include <protocol/Message.hpp>
 #include <protocol/requests.hpp>
 
 #include <fmt/format.h>
@@ -18,26 +18,32 @@ int main() {
         xcb_connect( nullptr, nullptr ) };
     assert( connection != nullptr );
 
-    // Get the first screen
-    const xcb_setup_t*    setup  { xcb_get_setup( connection ) };
-    xcb_screen_iterator_t iter   { xcb_setup_roots_iterator( setup ) };
-    xcb_screen_t*         screen { iter.data };
+    // Open the connection to the X server
+    xcb_connection_t* conn {
+        xcb_connect( nullptr, nullptr ) };
+    assert( conn != nullptr );
+    // Get the first screen in `roots`
+    const xcb_setup_t*  setup  { xcb_get_setup( conn ) };
     assert( setup  != nullptr );
+    const xcb_screen_t* screen { xcb_setup_roots_iterator( setup ).data };
     assert( screen != nullptr );
 
-    xcb_generic_error_t* error          {};
-    // - https://xcb.freedesktop.org/ProtocolExtensionApi/
-    // - https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/master/src/xcbext.h?ref_type=heads#L47-L83
-    const int flags          { XCB_REQUEST_CHECKED };
+    // When greater customization of the request encoding than that provided
+    //   by the `xcb_`(request name) functions is required, we can use
+    //   xcb_send_request, see:
+    //   - https://xcb.freedesktop.org/ProtocolExtensionApi/
+    //   - https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/master/src/xcbext.h?ref_type=heads#L47-L83
+    xcb_generic_error_t* error {};
+    const int flags { XCB_REQUEST_CHECKED };
     // BIG-REQUESTS encoding should automatically be used above 262140 bytes/
     //   65535 alignment units
-    // byte count must be aligned to mulitple of 4
     static constexpr size_t SHORT_LEN_MAX { 262140 };
-    uint8_t buf[ SHORT_LEN_MAX + protocol::Message::ALIGN ] {};
-    // major-opcode encoded in header is ignored in favor of one passed in
-    //   xcb_protocol_request_t param)
+    assert( SHORT_LEN_MAX % protocol::Message::ALIGN == 0 );
+    assert( SHORT_LEN_MAX / protocol::Message::ALIGN ==
+            setup->maximum_request_length );
+    uint8_t iov0_data[ SHORT_LEN_MAX + protocol::Message::ALIGN ] {};
     ::iovec vector_[ 1 ] {
-        { buf, sizeof( buf ) }
+        { iov0_data, sizeof( iov0_data ) }
     };
     const xcb_protocol_request_t request {
         sizeof( vector_ ) / sizeof( ::iovec ),  // count (of elements in iovec array)
