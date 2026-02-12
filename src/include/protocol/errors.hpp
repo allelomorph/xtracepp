@@ -104,9 +104,9 @@ struct Error : public Response {
         [[maybe_unused]]
         uint32_t _unused1;
     public:
-        /** @brief Major opcode of relavant request. */
-        CARD16   minor_opcode;
         /** @brief Minor opcode of relavant request. */
+        CARD16   minor_opcode;
+        /** @brief Major opcode of relavant request. */
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
@@ -144,9 +144,9 @@ struct ResourceIdError : public Error {
         Header   header;
         /** @brief Value of resource ID that caused error. */
         CARD32   bad_resource_id;
-        /** @brief Major opcode of relavant request. */
-        CARD16   minor_opcode;
         /** @brief Minor opcode of relavant request. */
+        CARD16   minor_opcode;
+        /** @brief Major opcode of relavant request. */
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
@@ -178,9 +178,9 @@ struct Value : public Error {
         Header   header;
         /** @brief Value that caused error. */
         uint32_t bad_value;
-        /** @brief Major opcode of relavant request. */
-        CARD16   minor_opcode;
         /** @brief Minor opcode of relavant request. */
+        CARD16   minor_opcode;
+        /** @brief Major opcode of relavant request. */
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
@@ -212,9 +212,9 @@ struct Atom : public Error {
         Header   header;
         /** @brief Value of [ATOM](#protocol::ATOM) that caused error. */
         CARD32   bad_atom_id;
-        /** @brief Major opcode of relavant request. */
-        CARD16   minor_opcode;
         /** @brief Minor opcode of relavant request. */
+        CARD16   minor_opcode;
+        /** @brief Major opcode of relavant request. */
         CARD8    major_opcode;
     private:
         /** @brief Ignored bytes. */
