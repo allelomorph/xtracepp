@@ -1218,7 +1218,7 @@ X11ProtocolParser::_parseReply<
         _parseLISTof< protocol::STR >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
             _ordered( encoding->names_ct, byteswap ),
-            byteswap, ws.nested() ) };
+            byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += alignment.pad( names.bytes_parsed );
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
@@ -1420,7 +1420,7 @@ X11ProtocolParser::_parseReply<
         _parseLISTof< protocol::STR >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
             _ordered( encoding->path_ct, byteswap ),
-            byteswap, ws.nested() ) };
+            byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += alignment.pad( path.bytes_parsed );
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -
@@ -2136,7 +2136,7 @@ X11ProtocolParser::_parseReply<
         _parseLISTof< protocol::STR >(
             data + reply.bytes_parsed, sz - reply.bytes_parsed,
             _ordered( encoding->header.names_ct, byteswap ),
-            byteswap, ws.nested() ) };
+            byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     reply.bytes_parsed += alignment.pad( names.bytes_parsed );
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
             alignment.units( reply.bytes_parsed -

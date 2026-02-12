@@ -2984,7 +2984,7 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::STR >(
             data + request.bytes_parsed, sz - request.bytes_parsed,
             _ordered( fe.encoding->path_ct, byteswap ),
-            byteswap, ws.nested() ) };
+            byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
     request.bytes_parsed += alignment.pad( path.bytes_parsed );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
