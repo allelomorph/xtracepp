@@ -272,10 +272,9 @@ X11ProtocolParser::_CodeTraits::~_CodeTraits() = default;
 X11ProtocolParser::_SingleCodeTraits::~_SingleCodeTraits() = default;
 
 void X11ProtocolParser::_enableExtensionParsing(
-    const std::string_view& name, Connection* conn,
+    const std::string_view& name,
     const protocol::CARD8 major_opcode, const protocol::CARD8 first_event,
     const protocol::CARD8 first_error ) {
-    assert( conn != nullptr );
 
     // No complex validation of extension name, as we expect the X server to
     //   have already replied to QueryExtension with `present` == True

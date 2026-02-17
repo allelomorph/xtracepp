@@ -697,8 +697,8 @@ private:
               std::enable_if_t< std::is_integral_v< ProtocolT >,
                                 bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
-                      const _ValueTraits traits = {} ) {
+    _parseListMember( const uint8_t* data, [[maybe_unused]] const size_t sz,
+                      const bool byteswap, const _ValueTraits traits = {} ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
@@ -724,8 +724,8 @@ private:
                   std::is_base_of_v< protocol::impl::Integer, ProtocolT >,
                   bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
-                      const _ValueTraits traits = {} ) {
+    _parseListMember( const uint8_t* data, [[maybe_unused]] const size_t sz,
+                      const bool byteswap, const _ValueTraits traits = {} ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolT ) );
 
@@ -751,8 +751,8 @@ private:
                       protocol::impl::StructWithSuffixes, ProtocolStructT >,
                   bool > = true >
     _ParsingOutputs
-    _parseListMember( const uint8_t* data, const size_t sz, const bool byteswap,
-                      const _Whitespace& ws ) {
+    _parseListMember( const uint8_t* data, [[maybe_unused]] const size_t sz,
+                      const bool byteswap, const _Whitespace& ws ) {
         assert( data != nullptr );
         assert( sz >= sizeof( ProtocolStructT ) );
 
@@ -1489,10 +1489,9 @@ private:
     static const std::unordered_map<
         std::string_view, _ExtensionTraits > _extensions;
     /**
-     * @brief Activates extension parsing for all connections if not done already,
-     *   and extension use for a given connection.
+     * @brief Activates parsing of an extension for all connections, if not done
+     *   already.
      * @param name extension name
-     * @param conn #Connection on which to activate extension
      * @param major_opcode major opcode for extension, server-assigned
      * @param first_event first in series of consecutive event codes for
      *   extension, server-assigned
@@ -1501,7 +1500,7 @@ private:
      *  @ingroup dispatch
      */
     void
-    _enableExtensionParsing( const std::string_view& name, Connection* conn,
+    _enableExtensionParsing( const std::string_view& name,
                              const protocol::CARD8 major_opcode,
                              const protocol::CARD8 first_event,
                              const protocol::CARD8 first_error );
@@ -1556,7 +1555,8 @@ private:
          * @brief Default ctor.
          */
         _RequestFixedEncodingBase(
-            Connection* conn, const uint8_t* data, const size_t sz ) {
+            Connection* conn, const uint8_t* data,
+            [[maybe_unused]] const size_t sz ) {
             assert( conn != nullptr );
             assert( data != nullptr );
             assert( sz >= RequestT::BASE_ENCODING_SZ );

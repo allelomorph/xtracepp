@@ -12,7 +12,7 @@
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::InputEvent >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::impl::InputEvent;
     assert( conn != nullptr );
@@ -151,7 +151,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ButtonRelease >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::MotionNotify;
     assert( conn != nullptr );
@@ -222,7 +222,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MotionNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::BoundaryEvent >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::impl::BoundaryEvent;
     assert( conn != nullptr );
@@ -333,7 +333,7 @@ X11ProtocolParser::_parseEvent< protocol::events::LeaveNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::impl::FocusEvent;
     assert( conn != nullptr );
@@ -342,7 +342,6 @@ X11ProtocolParser::_parseEvent< protocol::events::impl::FocusEvent >(
 
     _ParsingOutputs outputs {};
     const bool byteswap { conn->byteswap };
-    assert( sz >= sizeof( FocusEvent::Encoding ) );
     const FocusEvent::Encoding* encoding {
         reinterpret_cast< const FocusEvent::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( FocusEvent::Encoding );
@@ -420,7 +419,7 @@ X11ProtocolParser::_parseEvent< protocol::events::FocusOut >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::KeymapNotify;
     assert( conn != nullptr );
@@ -432,10 +431,10 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
     const KeymapNotify::Encoding* encoding {
         reinterpret_cast< const KeymapNotify::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( KeymapNotify::Encoding );
-    assert( outputs.bytes_parsed == KeymapNotify::ENCODING_SZ );
     assert( ( _ordered( encoding->header.code, byteswap ) &
               protocol::requests::SendEvent::EVENT_CODE_MASK ) ==
             protocol::events::codes::KEYMAPNOTIFY );
+    assert( outputs.bytes_parsed == KeymapNotify::ENCODING_SZ );
     const _ParsingOutputs keys {
         _parseLISTof< protocol::CARD8 >(
             encoding->keys, sizeof( encoding->keys ), sizeof( encoding->keys ),
@@ -463,7 +462,7 @@ X11ProtocolParser::_parseEvent< protocol::events::KeymapNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::Expose >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::Expose;
     assert( conn != nullptr );
@@ -475,10 +474,10 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
     const Expose::Encoding* encoding {
         reinterpret_cast< const Expose::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( Expose::Encoding );
-    assert( outputs.bytes_parsed == Expose::ENCODING_SZ );
     assert( ( _ordered( encoding->header.code, byteswap ) &
               protocol::requests::SendEvent::EVENT_CODE_MASK ) ==
             protocol::events::codes::EXPOSE );
+    assert( outputs.bytes_parsed == Expose::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -519,7 +518,7 @@ X11ProtocolParser::_parseEvent< protocol::events::Expose >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::GraphicsExposure;
     assert( conn != nullptr );
@@ -580,7 +579,7 @@ X11ProtocolParser::_parseEvent< protocol::events::GraphicsExposure >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::NoExposure;
     assert( conn != nullptr );
@@ -629,7 +628,7 @@ X11ProtocolParser::_parseEvent< protocol::events::NoExposure >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::VisibilityNotify;
     assert( conn != nullptr );
@@ -677,7 +676,7 @@ X11ProtocolParser::_parseEvent< protocol::events::VisibilityNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::CreateNotify;
     assert( conn != nullptr );
@@ -737,7 +736,7 @@ X11ProtocolParser::_parseEvent< protocol::events::CreateNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::DestroyNotify;
     assert( conn != nullptr );
@@ -784,7 +783,7 @@ X11ProtocolParser::_parseEvent< protocol::events::DestroyNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::UnmapNotify;
     assert( conn != nullptr );
@@ -833,7 +832,7 @@ X11ProtocolParser::_parseEvent< protocol::events::UnmapNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::MapNotify;
     assert( conn != nullptr );
@@ -882,7 +881,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MapNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::MapRequest;
     assert( conn != nullptr );
@@ -929,7 +928,7 @@ X11ProtocolParser::_parseEvent< protocol::events::MapRequest >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::ReparentNotify;
     assert( conn != nullptr );
@@ -985,7 +984,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ReparentNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::ConfigureNotify;
     assert( conn != nullptr );
@@ -1049,7 +1048,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::ConfigureRequest;
     assert( conn != nullptr );
@@ -1058,7 +1057,6 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
 
     _ParsingOutputs outputs {};
     const bool byteswap { conn->byteswap };
-    assert( sz >= sizeof( ConfigureRequest::Encoding ) );
     const ConfigureRequest::Encoding* encoding {
         reinterpret_cast< const ConfigureRequest::Encoding* >( data ) };
     outputs.bytes_parsed += sizeof( ConfigureRequest::Encoding );
@@ -1121,7 +1119,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ConfigureRequest >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::GravityNotify;
     assert( conn != nullptr );
@@ -1172,7 +1170,7 @@ X11ProtocolParser::_parseEvent< protocol::events::GravityNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::ResizeRequest;
     assert( conn != nullptr );
@@ -1221,7 +1219,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ResizeRequest >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::CirculateNotify;
     assert( conn != nullptr );
@@ -1271,7 +1269,7 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::CirculateRequest;
     assert( conn != nullptr );
@@ -1321,7 +1319,7 @@ X11ProtocolParser::_parseEvent< protocol::events::CirculateRequest >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::PropertyNotify;
     assert( conn != nullptr );
@@ -1371,7 +1369,7 @@ X11ProtocolParser::_parseEvent< protocol::events::PropertyNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::SelectionClear;
     assert( conn != nullptr );
@@ -1420,7 +1418,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionClear >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::SelectionRequest;
     assert( conn != nullptr );
@@ -1478,7 +1476,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionRequest >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::SelectionNotify;
     assert( conn != nullptr );
@@ -1534,7 +1532,7 @@ X11ProtocolParser::_parseEvent< protocol::events::SelectionNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::ColormapNotify;
     assert( conn != nullptr );
@@ -1587,7 +1585,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ColormapNotify >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::ClientMessage;
     assert( conn != nullptr );
@@ -1602,7 +1600,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
     assert( ( _ordered( encoding->header.code, byteswap ) &
               protocol::requests::SendEvent::EVENT_CODE_MASK ) ==
             protocol::events::codes::CLIENTMESSAGE );
-    assert( sz >= ClientMessage::ENCODING_SZ );
+    assert( outputs.bytes_parsed == ClientMessage::ENCODING_SZ );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -1638,7 +1636,7 @@ X11ProtocolParser::_parseEvent< protocol::events::ClientMessage >(
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseEvent< protocol::events::MappingNotify >(
-    Connection* conn, const uint8_t* data, const size_t sz,
+    Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz,
     const X11ProtocolParser::_Whitespace& ws ) {
     using protocol::events::MappingNotify;
     assert( conn != nullptr );

@@ -42,9 +42,11 @@ static_assert( decltype( child_retval )::is_always_lock_free );
  * @param ucontext signal context information (`ucontext_t*` cast to `void*`)
  * @see `sigaction(2)` for prototype `sa_sigaction`
  */
-static void handleSIGCHLD( int sig, ::siginfo_t* info, void*/* ucontext*/ ) {
+static void handleSIGCHLD( [[maybe_unused]] int sig, ::siginfo_t* info,
+                           void*/* ucontext*/ ) {
     assert( sig == SIGCHLD );
     assert( info != nullptr );
+    assert( sig == info->si_status );
     assert( child_running.load() == true );
     child_running.store( false );
     switch ( info->si_code ) {

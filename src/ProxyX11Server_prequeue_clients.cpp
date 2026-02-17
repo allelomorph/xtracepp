@@ -1,6 +1,7 @@
 #include <vector>
 #include <optional>
 #include <string>
+#include <utility>   // ignore
 
 #include <cassert>
 
@@ -92,7 +93,7 @@ polledReadMessage( SocketBuffer& buffer, const int fd,
     if ( !buffer.messageSizeSet() )
         buffer.setMessageSize( message_sz );
     assert( buffer.messageSize() == message_sz );
-    const size_t initial_sz { buffer.size() };
+    [[maybe_unused]] const size_t initial_sz { buffer.size() };
     size_t tl_bytes_read {};
     while ( buffer.size() < buffer.messageSize() ) {
         if ( const auto poll_error { pollSingleSocket( fd, POLLIN, timeout ) };
@@ -259,8 +260,6 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         assert( buffer.size() == bytes_loaded );
         buffer.setMessageSize( bytes_loaded );
         buffer.markMessageParsed();
-        // fmt::println( ::stderr, "_fetchCurrentServerTime() ChangeProperty:\n{}",
-        //               bufferHexDump( buffer.data(), buffer.size() ) );
         const auto [ bytes_written, write_error ] {
             polledWriteMessage( buffer, server_fd, bytes_loaded ) };
         if ( write_error ) {
@@ -301,7 +300,13 @@ static void handleTerminatingSignal( int sig ) {
     assert( sig == SIGINT  || sig == SIGTERM ||
             sig == SIGABRT || sig == SIGSEGV );
     // show cursor if currently hidden
-    ::write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
+    // return of write(2) not checked as we are exiting regardless of its
+    //   success; casting to void preferable to std::ignore, but does not
+    //   suppress warn_unused_result here, see:
+    //   - https://stackoverflow.com/a/68760936
+    //   - https://en.cppreference.com/w/cpp/utility/tuple/ignore
+    std::ignore =
+        ::write( STDERR_FILENO, "\x1b[?25h", sizeof("\x1b[?25h") );
     ::_exit( ProxyX11Server::SIGNAL_RETVAL_OFFSET + sig );
 }
 

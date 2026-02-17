@@ -16,8 +16,13 @@
 
 
 int main( const int argc, const char* const* argv ) {
-    assert( argc > 1 );
+    assert( argc >= 1 );
     const char* process_name { argv[ 0 ] };
+    if ( argc == 1 ) {
+        fmt::println( ::stderr, "{}: please provide error code",
+                      process_name );
+        return EXIT_FAILURE;
+    }
     const int code { std::stoi( argv[ 1 ] ) };
     if ( !( code >= protocol::errors::codes::REQUEST &&            //  1
             code <= protocol::errors::codes::IMPLEMENTATION ) ) {  // 17
@@ -41,9 +46,9 @@ int main( const int argc, const char* const* argv ) {
     //   xcb_send_request, see:
     //   - https://xcb.freedesktop.org/ProtocolExtensionApi/
     //   - https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/master/src/xcbext.h?ref_type=heads#L47-L83
-    xcb_generic_error_t* error          {};
-    uint32_t             bad_resource   {};
-    uint16_t             request_opcode {};
+    xcb_generic_error_t*      error          {};
+    [[maybe_unused]] uint32_t bad_resource   {};
+    [[maybe_unused]] uint16_t request_opcode {};
     namespace err_codes = protocol::errors::codes;
     namespace req_opcodes = protocol::requests::opcodes;
     switch ( code ) {
@@ -104,7 +109,7 @@ int main( const int argc, const char* const* argv ) {
         const xcb_atom_t selection { XCB_ATOM_NONE };
         const xcb_get_selection_owner_cookie_t cookie {
             xcb_get_selection_owner( conn, selection ) };
-        const xcb_get_selection_owner_reply_t* reply {
+        [[maybe_unused]] const xcb_get_selection_owner_reply_t* reply {
             xcb_get_selection_owner_reply( conn, cookie, &error ) };
         assert( reply == nullptr );
         bad_resource = selection;
@@ -152,7 +157,7 @@ int main( const int argc, const char* const* argv ) {
         const xcb_drawable_t drawable {};
         const xcb_get_geometry_cookie_t cookie {
             xcb_get_geometry( conn, drawable ) };
-        const xcb_get_geometry_reply_t* reply {
+        [[maybe_unused]] const xcb_get_geometry_reply_t* reply {
             xcb_get_geometry_reply( conn, cookie, &error ) };
         assert( reply == nullptr );
         bad_resource = drawable;
@@ -210,7 +215,7 @@ int main( const int argc, const char* const* argv ) {
         const xcb_alloc_color_cells_cookie_t cookie {
             xcb_alloc_color_cells(
                 conn, contiguous, cmap, colors, planes ) };
-        const xcb_alloc_color_cells_reply_t* reply {
+        [[maybe_unused]] const xcb_alloc_color_cells_reply_t* reply {
             xcb_alloc_color_cells_reply( conn, cookie, &error ) };
         assert( reply == nullptr );
         request_opcode = req_opcodes::ALLOCCOLORCELLS;
@@ -281,7 +286,7 @@ int main( const int argc, const char* const* argv ) {
          };
         const xcb_set_modifier_mapping_cookie_t cookie {
             xcb_send_request( conn, flags, vector_, &request ) };
-        const xcb_set_modifier_mapping_reply_t* reply {
+        [[maybe_unused]] const xcb_set_modifier_mapping_reply_t* reply {
             xcb_set_modifier_mapping_reply( conn, cookie, &error ) };
         assert( reply == nullptr );
         request_opcode = req_opcodes::SETMODIFIERMAPPING;

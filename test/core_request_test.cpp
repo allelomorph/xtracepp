@@ -12,8 +12,13 @@
 
 
 int main( const int argc, const char* const* argv ) {
-    assert( argc > 1 );
+    assert( argc >= 1 );
     const char* process_name { argv[ 0 ] };
+    if ( argc == 1 ) {
+        fmt::println( ::stderr, "{}: please provide request opcode",
+                      process_name );
+        return EXIT_FAILURE;
+    }
     const int opcode { std::stoi( argv[ 1 ] ) };
     namespace opcodes = protocol::requests::opcodes;
     if ( !( ( opcode >= opcodes::CREATEWINDOW &&          //   1

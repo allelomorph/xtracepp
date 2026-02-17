@@ -13,7 +13,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::impl::SimpleError >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::errors::impl::SimpleError;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -27,10 +27,6 @@ X11ProtocolParser::_parseError<
     error.bytes_parsed += sizeof( SimpleError::Encoding );
     assert( _ordered( encoding->header.error, byteswap ) ==
             SimpleError::ERROR );
-    const uint8_t code {
-        _ordered( encoding->header.code, byteswap ) };
-    assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == SimpleError::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -68,7 +64,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::impl::ResourceIdError >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::errors::impl::ResourceIdError;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -82,9 +78,6 @@ X11ProtocolParser::_parseError<
     error.bytes_parsed += sizeof( ResourceIdError::Encoding );
     assert( _ordered( encoding->header.error, byteswap ) ==
             ResourceIdError::ERROR );
-    const uint8_t code { _ordered( encoding->header.code, byteswap ) };
-    assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
     assert( error.bytes_parsed == ResourceIdError::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -140,7 +133,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Value >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::errors::Value;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -154,9 +147,8 @@ X11ProtocolParser::_parseError<
     error.bytes_parsed += sizeof( Value::Encoding );
     assert( _ordered( encoding->header.error, byteswap ) ==
             Value::ERROR );
-    const uint8_t code { encoding->header.code };
-    assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+    assert( _ordered( encoding->header.code, conn->byteswap ) ==
+            protocol::errors::codes::VALUE );
     assert( error.bytes_parsed == Value::ENCODING_SZ );
 
     const uint32_t memb_name_w (
@@ -228,7 +220,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseError<
     protocol::errors::Atom >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::errors::Atom;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -242,9 +234,8 @@ X11ProtocolParser::_parseError<
     error.bytes_parsed += sizeof( Atom::Encoding );
     assert( _ordered( encoding->header.error, byteswap ) ==
             Atom::ERROR );
-    const uint8_t code { _ordered( encoding->header.code, byteswap ) };
-    assert( code >= protocol::errors::codes::MIN &&
-            code <= protocol::errors::codes::MAX );
+    assert( _ordered( encoding->header.code, conn->byteswap ) ==
+            protocol::errors::codes::ATOM );
     assert( error.bytes_parsed == Atom::ENCODING_SZ );
 
     const uint32_t memb_name_w (

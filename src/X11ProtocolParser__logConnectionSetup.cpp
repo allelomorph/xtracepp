@@ -12,7 +12,7 @@
 template<>
 size_t X11ProtocolParser::_logConnectionSetup<
     protocol::connection_setup::Initiation >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::connection_setup::Initiation;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -88,7 +88,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
 template<>
 size_t X11ProtocolParser::_logConnectionSetup<
     protocol::connection_setup::Refusal >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::connection_setup::Refusal;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -156,7 +156,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
 template<>
 size_t X11ProtocolParser::_logConnectionSetup<
     protocol::connection_setup::RequireFurtherAuthentication >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::connection_setup::RequireFurtherAuthentication;
     assert( conn != nullptr );
     assert( data != nullptr );

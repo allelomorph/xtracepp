@@ -15,7 +15,7 @@
 template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply< X11ProtocolParser::_UnknownRequest >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     assert( conn != nullptr );
     assert( data != nullptr );
     assert( sz >= protocol::requests::Reply::DEFAULT_ENCODING_SZ );
@@ -69,7 +69,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetWindowAttributes >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetWindowAttributes;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -156,7 +156,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetGeometry >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetGeometry;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -291,7 +291,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::InternAtom >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::InternAtom;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -355,7 +355,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetAtomName >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetAtomName;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -563,7 +563,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetSelectionOwner >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetSelectionOwner;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -615,7 +615,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GrabPointer >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GrabPointer;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -668,7 +668,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GrabKeyboard >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GrabKeyboard;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -721,7 +721,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryPointer >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::QueryPointer;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -851,7 +851,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::TranslateCoordinates >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::TranslateCoordinates;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -911,7 +911,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetInputFocus >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetInputFocus;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -970,7 +970,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryKeymap >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::QueryKeymap;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -1130,7 +1130,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryTextExtents >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::QueryTextExtents;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -1593,7 +1593,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::AllocColor >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::AllocColor;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -1650,7 +1650,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::AllocNamedColor >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::AllocNamedColor;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -1923,7 +1923,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::LookupColor >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::LookupColor;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -1985,7 +1985,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryBestSize >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::QueryBestSize;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -2038,7 +2038,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::QueryExtension >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::QueryExtension;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -2066,7 +2066,7 @@ X11ProtocolParser::_parseReply<
                 data ) )->present.data = false;
     }
     if ( encoding->present.data ) {
-        _enableExtensionParsing( ext_name, conn,
+        _enableExtensionParsing( ext_name,
                                  _ordered( encoding->major_opcode, byteswap ),
                                  _ordered( encoding->first_event, byteswap ),
                                  _ordered( encoding->first_error, byteswap ) );
@@ -2245,7 +2245,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetKeyboardControl >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetKeyboardControl;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -2323,7 +2323,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetPointerControl >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetPointerControl;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -2376,7 +2376,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::GetScreenSaver >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::GetScreenSaver;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -2508,7 +2508,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::SetPointerMapping >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::SetPointerMapping;
     assert( conn != nullptr );
     assert( data != nullptr );
@@ -2626,7 +2626,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     protocol::requests::SetModifierMapping >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using protocol::requests::SetModifierMapping;
     assert( conn != nullptr );
     assert( data != nullptr );

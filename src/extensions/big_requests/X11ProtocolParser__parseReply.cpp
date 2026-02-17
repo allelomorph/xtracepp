@@ -15,7 +15,7 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseReply<
     ext::big_requests::requests::BigReqEnable::Reply >(
-        Connection* conn, const uint8_t* data, const size_t sz ) {
+        Connection* conn, const uint8_t* data, [[maybe_unused]] const size_t sz ) {
     using ext::big_requests::requests::BigReqEnable;
     assert( conn != nullptr );
     assert( data != nullptr );

@@ -17,8 +17,8 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
     protocol::STR >(
-        const uint8_t* data, const size_t sz, const bool byteswap,
-        const _Whitespace& ws ) {
+        const uint8_t* data, [[maybe_unused]] const size_t sz,
+        const bool byteswap, const _Whitespace& ws ) {
     using protocol::STR;
     assert( data != nullptr );
     assert( sz >= sizeof( STR::Header ) );
@@ -60,8 +60,8 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
     protocol::HOST >(
-        const uint8_t* data, const size_t sz,  const bool byteswap,
-        const _Whitespace& ws ) {
+        const uint8_t* data, const size_t sz,
+        const bool byteswap, const _Whitespace& ws ) {
     using protocol::HOST;
     assert( data != nullptr );
     assert( sz >= sizeof( HOST::Header ) );
@@ -70,10 +70,10 @@ X11ProtocolParser::_parseListMember<
     const HOST::Header* header {
         reinterpret_cast< const HOST::Header* >( data ) };
     outputs.bytes_parsed += sizeof( HOST::Header );
-    const auto family { _ordered( header->family, byteswap ) };
+    [[maybe_unused]] const uint8_t family { _ordered( header->family, byteswap ) };
     assert( family < HOST::family_names.size() );
     // check for skipped enum values 4, 5
-    assert( !HOST::family_names[ family ].empty() );
+    assert( !HOST::family_names.at( family ).empty() );
     // no HOST::Encoding
     // followed by LISTofBYTE address
     const auto address_len {
@@ -113,8 +113,8 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
     protocol::connection_setup::Acceptance::SCREEN >(
-        const uint8_t* data, const size_t sz, const bool byteswap,
-        const _Whitespace& ws ) {
+        const uint8_t* data, const size_t sz,
+        const bool byteswap, const _Whitespace& ws ) {
     using SCREEN =
         protocol::connection_setup::Acceptance::SCREEN;
     assert( data != nullptr );
@@ -194,8 +194,8 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
     protocol::connection_setup::Acceptance::SCREEN::DEPTH >(
-        const uint8_t* data, const size_t sz, const bool byteswap,
-        const _Whitespace& ws ) {
+        const uint8_t* data, const size_t sz,
+        const bool byteswap, const _Whitespace& ws ) {
     using DEPTH = protocol::connection_setup::Acceptance::SCREEN::DEPTH;
     assert( data != nullptr );
     assert( sz >= sizeof( DEPTH::Header ) );
@@ -242,8 +242,8 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
     protocol::requests::PolyText8::TEXTITEM8 >(
-        const uint8_t* data, const size_t sz, const bool byteswap,
-        const _Whitespace& ws ) {
+        const uint8_t* data, [[maybe_unused]] const size_t sz,
+        const bool byteswap, const _Whitespace& ws ) {
     using protocol::requests::PolyText8;
     assert( data != nullptr );
     assert( sz >= sizeof( PolyText8::TEXTITEM8::TEXTELT8 ) );
@@ -316,8 +316,8 @@ template<>
 X11ProtocolParser::_ParsingOutputs
 X11ProtocolParser::_parseListMember<
     protocol::requests::PolyText16::TEXTITEM16 >(
-        const uint8_t* data, const size_t sz, const bool byteswap,
-        const _Whitespace& ws ) {
+        const uint8_t* data, const size_t sz,
+        const bool byteswap, const _Whitespace& ws ) {
     using protocol::requests::PolyText16;
     assert( data != nullptr );
     assert( sz >= sizeof( PolyText16::TEXTITEM16::TEXTELT16 ) );

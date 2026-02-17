@@ -2,6 +2,7 @@
 #include <thread>
 
 #include <cassert>
+#include <cstdlib>  // EXIT_FAILURE EXIT_SUCCESS
 
 #include <fmt/format.h>
 
@@ -9,7 +10,7 @@
 
 
 
-int main( const int argc, const char* const* argv ) {
+int main( [[maybe_unused]] const int argc, const char* const* argv ) {
     assert( argc >= 1 );
     const char* process_name { argv[ 0 ] };
 
@@ -23,7 +24,6 @@ int main( const int argc, const char* const* argv ) {
     const xcb_screen_t* screen { xcb_setup_roots_iterator( setup ).data };
     assert( screen != nullptr );
 
-    xcb_generic_error_t* error {};
     xcb_void_cookie_t cookie {};
     // toggle on reporting of property change events
     const xcb_window_t window { screen->root };
@@ -33,8 +33,12 @@ int main( const int argc, const char* const* argv ) {
     };
     cookie = xcb_change_window_attributes_checked(
         conn, window, value_mask, value_list );
-    error = xcb_request_check( conn, cookie );
-    assert( error == nullptr );
+    if ( const xcb_generic_error_t* error { xcb_request_check( conn, cookie ) };
+         error != nullptr ) {
+        fmt::println( ::stderr, "{}: ChangeWindowAttributes failure",
+                      process_name );
+        return EXIT_FAILURE;
+    }
 
     using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
     for ( int i { 1 }; i <= 10; ++i ) {
@@ -49,8 +53,12 @@ int main( const int argc, const char* const* argv ) {
         cookie = xcb_change_property(
             conn, mode, window, property,
             type, format, data_len, nullptr/*data*/ );
-        error = xcb_request_check( conn, cookie );
-        assert( error == nullptr );
+        if ( const xcb_generic_error_t* error { xcb_request_check( conn, cookie ) };
+             error != nullptr ) {
+            fmt::println( ::stderr, "{}: ChangeProperty failure",
+                          process_name );
+            return EXIT_FAILURE;
+        }
         fmt::println( ::stderr, "{}: sleeping for {} seconds",
                       process_name, i );
         std::this_thread::sleep_for( 1s * i );
