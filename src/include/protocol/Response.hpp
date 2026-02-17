@@ -5,8 +5,10 @@
  * @file Response.hpp
  */
 
+#include <cstdint>
+
 #include "protocol/Message.hpp"
-#include "protocol/common_types.hpp"  // CARD16
+#include "protocol/common_types.hpp"
 
 
 namespace protocol {

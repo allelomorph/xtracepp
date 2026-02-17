@@ -5,8 +5,8 @@
  * @file errors.hpp
  */
 
-#include <system_error>  // error_category
 #include <string>
+#include <system_error>  // error_category
 
 
 namespace errors {

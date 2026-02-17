@@ -6,11 +6,15 @@
  * @see [X protocol events](https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Events)
  */
 
-#include <cstdint>
 #include <array>
+#include <string_view>
+#include <vector>
+
+#include <cstdint>
 
 #include "protocol/Response.hpp"
 #include "protocol/common_types.hpp"
+#include "protocol/enum_names.hpp"
 
 
 namespace protocol {

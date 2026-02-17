@@ -8,8 +8,6 @@
 
 #include <cstdint>
 
-#include "protocol/common_types.hpp"
-#include "protocol/Response.hpp"
 #include "protocol/requests.hpp"
 
 

@@ -3,10 +3,11 @@
 
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
-#include "protocol/extensions/requests.hpp"  // Reply::DEFAULT_ENCODING_SZ
-#include "protocol/extensions/big_requests/requests.hpp"
+#include "X11ProtocolParser.hpp"
+
+#include "protocol/extensions/requests.hpp"
+#include "protocol/extensions/big_requests.hpp"
 
 
 namespace ext = protocol::extensions;

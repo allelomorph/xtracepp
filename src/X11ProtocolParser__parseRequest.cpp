@@ -1,20 +1,21 @@
 #include <string_view>
-#include <unordered_set>
-#include <type_traits>
+#include <type_traits>                // is_base_of_v
 
-#include <cctype>      // isprint
+#include <cassert>
+#include <cstdint>
 
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
-#include "protocol/common_types.hpp"
-#include "protocol/requests.hpp"
-#include "protocol/events.hpp"
+#include "X11ProtocolParser.hpp"
+
 #include "protocol/atoms.hpp"
-#include "protocol/extensions/big_requests.hpp"  // EXTENDED_LENGTH_FLAG
+#include "protocol/common_types.hpp"
+#include "protocol/events.hpp"
+#include "protocol/requests.hpp"
 
 
+// TBD remove
 namespace ext = protocol::extensions;
 
 template<>

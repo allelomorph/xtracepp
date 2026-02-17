@@ -6,9 +6,10 @@
  * @see [X protocol extension "BIG-REQUESTS"](https://www.x.org/releases/X11R7.7/doc/bigreqsproto/bigreq.html)
  */
 
-#include <cstdint>
-
 #include <array>
+#include <string_view>
+
+#include <cstdint>
 
 #include "protocol/common_types.hpp"
 #include "protocol/extensions/requests.hpp"

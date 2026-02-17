@@ -1,16 +1,18 @@
-#include <arpa/inet.h>  // ntohl
+#include <string_view>
 
 #include <cassert>
 #include <cstdint>
 
+#include <arpa/inet.h>                    // ntohl
+
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
+#include "X11ProtocolParser.hpp"
+
 #include "protocol/common_types.hpp"
-#include "protocol/enum_names.hpp"
-#include "protocol/requests.hpp"
 #include "protocol/connection_setup.hpp"
+#include "protocol/requests.hpp"
 
 
 template<>

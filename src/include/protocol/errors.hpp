@@ -6,8 +6,10 @@
  * @see [X protocol errors](https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Errors)
  */
 
-#include <cstdint>
+#include <string_view>
 #include <vector>
+
+#include <cstdint>
 
 #include "protocol/Response.hpp"
 #include "protocol/common_types.hpp"

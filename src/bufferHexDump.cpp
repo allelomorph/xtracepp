@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <cassert>
+#include <cctype>             // isprint
+
+#include <fmt/format.h>
 
 #include "bufferHexDump.hpp"
-#include "fmt/format.h"
 
 
 std::string bufferHexDump( const uint8_t* data, const size_t sz ) {

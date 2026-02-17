@@ -5,32 +5,31 @@
  * @file X11ProtocolParser.hpp
  */
 
-#include <tuple>          // tuple_size
+#include <algorithm>                             // max
+#include <limits>                                // numeric_limits
+#include <optional>
 #include <string>
 #include <string_view>
-#include <type_traits>    // enable_if_t remove_reference_t
-#include <vector>
-#include <algorithm>      // max
-#include <limits>
+#include <tuple>                                 // tuple_size
+#include <type_traits>                           // enable_if_t, remove_refer...
 #include <unordered_map>
-#include <utility>        // pair
-#include <optional>
+#include <utility>                               // pair
+#include <vector>
 
 #include <cassert>
-
-#include <stdio.h>        // stdout
+#include <cstdio>                                // stdout
+#include <cstdint>
 
 #include <fmt/format.h>
 
 #include "Connection.hpp"
 #include "Settings.hpp"
+
 #include "protocol/Message.hpp"
-#include "protocol/enum_names.hpp"
 #include "protocol/common_types.hpp"
 #include "protocol/requests.hpp"
-#include "protocol/connection_setup.hpp"
-#include "protocol/extensions/big_requests.hpp"  // EXTENDED_LENGTH_FLAG
-
+#include "protocol/extensions/big_requests.hpp"
+#include "protocol/extensions/requests.hpp"
 
 /**
  * @brief Obscures `operator<` to prevent Doxygen (v1.9.8) parsing it as an

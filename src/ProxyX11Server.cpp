@@ -1,25 +1,27 @@
-#include <atomic>
-#include <string>        // stoi to_string
+#include <atomic>              // atomic, atomic_bool, atomic_int
+#include <filesystem>          // filesystem::copy filesystem::remove
+#include <fstream>             // ifstream ofstream
+#include <optional>            // nullopt
+#include <string>
 #include <string_view>
-#include <optional>
-#include <filesystem>    // copy remove
-#include <fstream>
-#include <exception>     // runtime_error system_error
+#include <utility>             // for move
+#include <vector>
 
 #include <cassert>
-#include <cstdlib>       // getenv setenv
-#include <cstring>       // memcpy
+#include <cerrno>              // errno, EINTR
 #include <cstdint>
+#include <cstdio>              // rename
+#include <cstdlib>             // exit, EXIT_FAILURE, getenv, strtol
+#include <cstring>             // memcpy
 
-#include <sys/socket.h>  // 'struct sockaddr' SOCK_STREAM AF_INET AF_UNIX setsockopt SOL_SOCKET SO_KEEPALIVE 
-#include <linux/tcp.h>   // TCP_NODELAY
-#include <arpa/inet.h>   // htons htonl inet_ntoa ntohs
-#include <netinet/in.h>  // 'struct sockaddr_in'
-#include <sys/un.h>      // 'struct sockaddr_un'
-#include <unistd.h>      // unlink close pid_t fork STDERR_FILENO STDIN_FILENO _exit
-#include <signal.h>      // sigaction sigaction() SIGCHLD CLD_EXITED siginfo_t
-#include <netdb.h>       // 'struct addrinfo' getaddrinfo freeaddrinfo
-#include <stdio.h>       // rename
+#include <arpa/inet.h>         // ntohs, inet_ntop, htons
+#include <linux/tcp.h>         // TCP_NODELAY
+#include <netinet/in.h>        // sockaddr_in, sockaddr_in6, INET6_ADDRSTRLEN...
+#include <poll.h>              // pollfd, POLLPRI, POLLIN, POLLOUT, poll
+#include <signal.h>            // sigaction, si_status, SIGABRT, SIGCHLD
+#include <sys/socket.h>        // setsockopt, socket, accept, AF_INET, AF_INE...
+#include <sys/un.h>            // sockaddr_un
+#include <unistd.h>            // close, unlink, _exit, execvp, fork
 
 #include <fmt/format.h>
 

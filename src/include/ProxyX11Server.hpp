@@ -5,23 +5,21 @@
  * @file ProxyX11Server.hpp
  */
 
-#include <atomic>
+#include <map>
+#include <optional>
 #include <string>
 #include <string_view>
-#include <optional>
 #include <unordered_map>
-#include <set>
-#include <map>
 #include <vector>
 
-#include <cstdint>      // SIZE_MAX
+#include <cstdint>
 
-#include <poll.h>       // struct pollfd
-#include <signal.h>     // siginfo_t
+#include <poll.h>                 // pollfd
+#include <sys/types.h>            // pid_t
 
+#include "Connection.hpp"
 #include "DisplayInfo.hpp"
 #include "Settings.hpp"
-#include "Connection.hpp"
 #include "X11ProtocolParser.hpp"
 
 

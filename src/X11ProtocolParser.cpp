@@ -1,25 +1,30 @@
 #include <string>
 #include <string_view>
-#include <utility>   // move piar
-#include <optional>
+#include <optional>                              // nullopt
+#include <utility>                               // move pair
+#include <vector>
 
 #include <cassert>
 #include <cstdint>
-
-#include <stdio.h>  // FILE feof ferror
+#include <cstdio>                                // feof, ferror
+#include <cstdlib>                               // exit, EXIT_FAILURE
 
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
 #include "Settings.hpp"
-#include "protocol/common_types.hpp"
-#include "protocol/atoms.hpp"
+#include "SocketBuffer.hpp"
+#include "X11ProtocolParser.hpp"
+
 #include "protocol/Response.hpp"
-#include "protocol/requests.hpp"  // PolySegment::SEGMENT
-#include "protocol/events.hpp"  // codes::MAX events::ENCODING_SZ
-#include "protocol/errors.hpp"  // errors::ENCODING_SZ
+#include "protocol/atoms.hpp"
+#include "protocol/common_types.hpp"
+#include "protocol/connection_setup.hpp"
+#include "protocol/errors.hpp"
+#include "protocol/events.hpp"
+#include "protocol/requests.hpp"
 #include "protocol/extensions/requests.hpp"
+#include "protocol/extensions/big_requests.hpp"
 
 
 void

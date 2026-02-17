@@ -1,13 +1,14 @@
 #include <chrono>
-#include <thread>
+#include <thread>        // sleep_for
 
 #include <cassert>
-#include <cstdlib>  // EXIT_FAILURE EXIT_SUCCESS
+#include <cstdio>        // stderr
+#include <cstdint>
+#include <cstdlib>       // EXIT_FAILURE
 
 #include <fmt/format.h>
 
 #include <xcb/xcb.h>
-
 
 
 int main( [[maybe_unused]] const int argc, const char* const* argv ) {

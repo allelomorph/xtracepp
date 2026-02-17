@@ -8,8 +8,6 @@
 #include <string_view>
 #include <unordered_map>
 
-#include <cstdint>
-
 
 /**
  * @brief Tracks activation of extension features, both by extension names

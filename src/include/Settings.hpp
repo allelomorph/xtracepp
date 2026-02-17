@@ -5,14 +5,13 @@
  * @file Settings.hpp
  */
 
-#include <getopt.h>  // option required_argument no_argument
-#include <stdio.h>   // FILE stdout
-
-#include <cstdint>
-
 #include <string>
 #include <string_view>
 #include <unordered_set>
+
+#include <cstdint>
+#include <cstdio>                                // FILE, stdout
+#include <ctime>                                 // time_t
 
 #include <fmt/format.h>
 

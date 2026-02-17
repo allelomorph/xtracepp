@@ -1,14 +1,12 @@
-#include <algorithm>     // min
-#include <utility>       // pair
-#include <optional>
+#include <optional>          // nullopt
 #include <string>
+#include <utility>           // pair
 
 #include <cassert>
-#include <cstring>       // memcpy
+#include <cstring>           // memcpy
 
-#include <sys/socket.h>  // send recv
-#include <errno.h>
-#include <unistd.h>      // ssize_t
+#include <sys/socket.h>      // send, recv
+#include <unistd.h>          // ssize_t
 
 #include <fmt/format.h>
 

@@ -5,6 +5,8 @@
  * @file Message.hpp
  */
 
+#include <cstdint>
+
 
 namespace protocol {
 

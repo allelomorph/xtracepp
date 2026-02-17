@@ -1,15 +1,18 @@
 #include <string_view>
-#include <tuple>
 #include <unordered_map>
 
 #include <cassert>
+#include <cstdint>
 
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
-#include "protocol/requests.hpp"
+#include "X11ProtocolParser.hpp"
+
 #include "protocol/atoms.hpp"
+#include "protocol/common_types.hpp"
+#include "protocol/extensions/big_requests.hpp"
+#include "protocol/requests.hpp"
 
 
 template<>

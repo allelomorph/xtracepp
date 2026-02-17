@@ -1,8 +1,8 @@
-#include <unordered_map>
 #include <string_view>
+#include <unordered_map>
 
 #include "X11ProtocolParser.hpp"
-#include "Extensions.hpp"
+
 #include "protocol/extensions/big_requests.hpp"
 
 

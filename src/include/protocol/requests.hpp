@@ -6,9 +6,12 @@
  * @see [X protocol requests](https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Requests)
  */
 
-#include <cstdint>
 #include <array>
+#include <string_view>
 #include <tuple>
+#include <vector>
+
+#include <cstdint>
 
 #include "protocol/Message.hpp"
 #include "protocol/Response.hpp"

@@ -1,18 +1,17 @@
-#include <unistd.h>      // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
-#include <getopt.h>      // getopt_long
-#include <stdlib.h>      // strtoll ::exit
-#include <stdio.h>       // fclose fopen setvbuf _IONBF _IOLBF _IOFBF
-#include <stdio_ext.h>   // __flbf __fbufsize
-
-#include <cassert>
-
-#include <iostream>
-#include <filesystem>
+#include <algorithm>      // min
+#include <filesystem>     // filesystem::remove
 #include <string_view>
 #include <string>
 #include <vector>
 #include <unordered_set>
-#include <algorithm>  // min
+
+#include <cassert>
+#include <cstdio>         // stderr, stdout, setvbuf, _IONBF, fclose, fopen...
+#include <cstdlib>        // exit, EXIT_FAILURE, EXIT_SUCCESS
+
+#include <unistd.h>       // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
+#include <getopt.h>       // getopt_long
+#include <stdio_ext.h>    // __flbf __fbufsize
 
 #include <fmt/format.h>
 

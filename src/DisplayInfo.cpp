@@ -1,19 +1,21 @@
+#include <algorithm>        // transform
+#include <string>           // stoi
 #include <string_view>
-#include <string>        // stoi
-#include <regex>         // smatch regex_search
-#include <algorithm>     // transform
+#include <regex>            // match_results, regex_search, smatch
 
 #include <cassert>
-#include <cctype>        // tolower
+#include <cctype>           // tolower
+#include <cstdio>           // stderr
+#include <cstdlib>          // exit, EXIT_FAILURE
+#include <cstring>          // memcpy
 
-#include <sys/socket.h>  // sockaddr AF_INET AF_UNIX
-#include <sys/types.h>
-#include <sys/stat.h>    // stat S_IFSOCK
-#include <unistd.h>      // close ::exit
-#include <netdb.h>       // addrinfo getaddrinfo AI_PASSIVE
-#include <netinet/in.h>  // sockaddr_in INET_ADDRSTRLEN INET6_ADDRSTRLEN
-#include <sys/un.h>      // sockaddr_un
-#include <arpa/inet.h>   // inet_ntop
+#include <arpa/inet.h>      // htons, inet_ntop
+#include <netdb.h>          // addrinfo, getaddrinfo, freeaddrinfo, AI_PASSIV...
+#include <netinet/in.h>     // sockaddr_in, sockaddr_in6, INET_ADDRSTRLEN, IN...
+#include <sys/socket.h>     // AF_INET, socket, AF_INET6, AF_UNIX, SOCK_STREA...
+#include <sys/stat.h>       // stat, S_IFSOCK
+#include <sys/un.h>         // sockaddr_un
+#include <unistd.h>         // close
 
 #include <fmt/format.h>
 

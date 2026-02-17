@@ -1,14 +1,15 @@
-#include <string>  // atoi
+#include <string>                 // atoi
 
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>  // EXIT_FAILURE EXIT_SUCCESS
+#include <cstdio>                 // stderr
+#include <cstdlib>                // EXIT_FAILURE, EXIT_SUCCESS
 
 #include <fmt/format.h>
 
 #include <xcb/xcb.h>
 
-#include <protocol/requests.hpp>
+#include <protocol/requests.hpp>  //
 
 
 int main( const int argc, const char* const* argv ) {

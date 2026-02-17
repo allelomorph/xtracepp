@@ -10,9 +10,8 @@
 
 #include <cstdint>
 
-#include "SocketBuffer.hpp"
 #include "Extensions.hpp"
-#include "protocol/common_types.hpp"
+#include "SocketBuffer.hpp"
 
 
 /**

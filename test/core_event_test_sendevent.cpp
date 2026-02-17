@@ -1,14 +1,14 @@
-#include <string>   // stoi
+#include <string>               // stoi
 
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>  // EXIT_FAILURE EXIT_SUCCESS
+#include <cstdio>               // stderr
+#include <cstdlib>              // EXIT_FAILURE
 
 #include <fmt/format.h>
 
 #include <xcb/xcb.h>
 
-#include <protocol/requests.hpp>
 #include <protocol/events.hpp>
 
 

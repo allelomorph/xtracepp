@@ -3,16 +3,18 @@
 
 #include <cassert>
 #include <cstdint>
-#include <cstdlib>                // free EXIT_FAILURE EXIT_SUCCESS
+#include <cstdio>                 // stderr
+#include <cstdlib>                // free, EXIT_FAILURE, EXIT_SUCCESS
+
 #include <sys/uio.h>              // iovec
 
+#include <fmt/format.h>
+
 #include <xcb/xcb.h>
-#include <xcb/xcbext.h>           // xcb_protocol_request_t xcb_send_request
+#include <xcb/xcbext.h>           // xcb_protocol_request_t, xcb_send_request
 
 #include <protocol/errors.hpp>
 #include <protocol/requests.hpp>
-
-#include <fmt/format.h>
 
 
 int main( const int argc, const char* const* argv ) {

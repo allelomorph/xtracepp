@@ -9,7 +9,8 @@
 #include <string_view>
 #include <regex>
 
-#include <netinet/in.h>  // sockaddr_in sockaddr_in6 INET_ADDRSTRLEN
+#include <netinet/in.h>  // sockaddr_in, sockaddr_in6
+#include <sys/socket.h>  // sockaddr, socklen_t
 // linux/un.h provides a more straightforward definition of sockaddr_un
 //   along with UNIX_PATH_MAX, but sys/un.h seems more portable as it is the
 //   header referenced in sockaddr(3type)

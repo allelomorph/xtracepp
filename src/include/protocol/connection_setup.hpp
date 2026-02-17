@@ -6,8 +6,14 @@
  * @see [X protocol encoding](https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Encoding::Connection_Setup)
  */
 
+#include <string_view>
+#include <vector>
+
+#include <cstdint>
+
 #include "protocol/Message.hpp"
 #include "protocol/common_types.hpp"
+#include "protocol/enum_names.hpp"
 
 
 namespace protocol {

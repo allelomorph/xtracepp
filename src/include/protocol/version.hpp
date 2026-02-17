@@ -5,6 +5,9 @@
  * @file version.hpp
  */
 
+#include <cstdint>
+
+
 namespace protocol {
 
 // Supporting 11.0, release 7.7

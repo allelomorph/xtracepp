@@ -1,7 +1,8 @@
-#include <unistd.h>    // close exit EXIT_FAILURE
-#include <errno.h>
-#include <sys/time.h>  // timeval gettimeofday
-#include <stdio.h>     // stderr
+#include <cstdio>          // stderr
+#include <cstdint>
+
+#include <unistd.h>        // close, exit, EXIT_FAILURE
+#include <sys/time.h>      // timeval, gettimeofday
 
 #include <fmt/format.h>
 

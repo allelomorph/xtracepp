@@ -6,11 +6,12 @@
  * @see [X protocol](https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Common_Types)
  */
 
-#include <cstdint>
-#include <vector>
 #include <string_view>
+#include <vector>
 
-#include "protocol/enum_names.hpp"  // host_family
+#include <cstdint>
+
+#include "protocol/enum_names.hpp"    // host_family
 
 
 namespace protocol {

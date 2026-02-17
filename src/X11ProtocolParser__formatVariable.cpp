@@ -1,17 +1,18 @@
+#include <string>
+
 #include <cassert>
-#include <ctime>  // localtime
 #include <cstdint>
+#include <ctime>                          // localtime, time_t, tm
 
 #include <fmt/format.h>
-#include <fmt/chrono.h>
+#include <fmt/chrono.h>                   // fmt::format(tm)
 
 #include "X11ProtocolParser.hpp"
-#include "Connection.hpp"
+
 #include "protocol/common_types.hpp"
-#include "protocol/enum_names.hpp"
-#include "protocol/atoms.hpp"
-#include "protocol/requests.hpp"
 #include "protocol/connection_setup.hpp"
+#include "protocol/enum_names.hpp"
+#include "protocol/requests.hpp"
 
 
 std::string

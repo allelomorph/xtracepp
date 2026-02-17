@@ -8,8 +8,9 @@
  *   respective encoding.
  */
 
-#include <vector>
 #include <string_view>
+#include <vector>
+
 
 namespace protocol {
 

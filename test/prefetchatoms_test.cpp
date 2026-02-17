@@ -1,11 +1,12 @@
 #include <cassert>
-#include <cstdlib>       // free EXIT_FAILURE EXIT_SUCCESS
+#include <cstdlib>             // free, EXIT_FAILURE
+#include <cstdio>              // stderr
 
 #include <fmt/format.h>
 
 #include <xcb/xcb.h>
 
-#include <protocol/atoms.hpp>
+#include <protocol/atoms.hpp>  //
 
 
 int main( [[maybe_unused]] const int argc, const char* const* argv ) {

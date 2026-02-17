@@ -1,11 +1,17 @@
 #include <string_view>
 
+#include <cassert>
+#include <cstdint>
+#include <cstdio>                         // stderr
+#include <cstdlib>                        // exit, EXIT_FAILURE
+
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
+#include "X11ProtocolParser.hpp"
+
+#include "protocol/common_types.hpp"
 #include "protocol/connection_setup.hpp"
-#include "protocol/common_types.hpp"  // CARD16
 #include "protocol/version.hpp"
 
 

@@ -3,10 +3,10 @@
 
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
+#include "X11ProtocolParser.hpp"
+
 #include "protocol/extensions/requests.hpp"
-#include "protocol/extensions/big_requests.hpp"  // EXTENDED_LENGTH_FLAG
 
 
 namespace ext = protocol::extensions;

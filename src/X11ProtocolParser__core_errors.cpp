@@ -1,7 +1,9 @@
 #include <unordered_map>
+
 #include <cstdint>
 
 #include "X11ProtocolParser.hpp"
+
 #include "protocol/errors.hpp"
 
 

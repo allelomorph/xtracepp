@@ -6,11 +6,10 @@
  * @see [X protocol](https://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Predefined_Atoms)
  */
 
-#include <cstdint>
 #include <array>
 #include <string_view>
 
-#include "common_types.hpp"
+#include <cstdint>
 
 
 namespace protocol {

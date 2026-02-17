@@ -1,15 +1,17 @@
-#include <vector>
-#include <optional>
+#include <optional>                       // nullopt
 #include <string>
-#include <utility>   // ignore
+#include <utility>                        // ignore
+#include <vector>
 
 #include <cassert>
+#include <cstdint>
+#include <cstdio>                         // stderr
+#include <cstdlib>                        // exit, EXIT_FAILURE
 
-#include <poll.h>    // nfds_t pollfd POLL(IN|OUT|ERR|HUP|NVAL)
-#include <unistd.h>  // STDERR_FILENO EXIT_FAILURE
-#include <signal.h>  // sigaction
-#include <stdio.h>   // write
-#include <time.h>    // time time_t
+#include <poll.h>                         // pollfd, POLLIN, POLLOUT, poll
+#include <signal.h>                       // sigaction, SIGABRT, SIGINT, SIGS...
+#include <time.h>                         // time
+#include <unistd.h>                       // close, _exit, write, STDERR_FILE...
 
 #include <fmt/format.h>
 

@@ -1,11 +1,13 @@
-#include <string_view>
+#include <type_traits>            // is_base_of_v
 
 #include <cassert>
+#include <cstdint>
 
 #include <fmt/format.h>
 
-#include "X11ProtocolParser.hpp"
 #include "Connection.hpp"
+#include "X11ProtocolParser.hpp"
+
 #include "protocol/errors.hpp"
 
 
