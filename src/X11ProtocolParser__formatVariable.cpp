@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
-#include <ctime>                          // localtime, time_t, tm
+#include <ctime>                          // localtime, time_t
 
 #include <fmt/format.h>
 #include <fmt/chrono.h>                   // fmt::format(tm)

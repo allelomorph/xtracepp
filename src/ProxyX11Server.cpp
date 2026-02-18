@@ -4,7 +4,7 @@
 #include <optional>            // nullopt
 #include <string>
 #include <string_view>
-#include <utility>             // for move
+#include <utility>             // move
 #include <vector>
 
 #include <cassert>
@@ -18,7 +18,7 @@
 #include <linux/tcp.h>         // TCP_NODELAY
 #include <netinet/in.h>        // sockaddr_in, sockaddr_in6, INET6_ADDRSTRLEN...
 #include <poll.h>              // pollfd, POLLPRI, POLLIN, POLLOUT, poll
-#include <signal.h>            // sigaction, si_status, SIGABRT, SIGCHLD
+#include <signal.h>            // sigaction, SIGABRT, SIGCHLD
 #include <sys/socket.h>        // setsockopt, socket, accept, AF_INET, AF_INE...
 #include <sys/un.h>            // sockaddr_un
 #include <unistd.h>            // close, unlink, _exit, execvp, fork
@@ -306,9 +306,9 @@ void ProxyX11Server::_copyAuthentication() {
     static constexpr std::string_view HOME_ENV_VAR { "HOME" };
     static constexpr std::string_view XAUTHORITY_DEFAULT_FILENAME { ".Xauthority" };
 
-    const char* xauthority_value { getenv( XAUTHORITY_ENV_VAR.data() ) };
+    const char* xauthority_value { ::getenv( XAUTHORITY_ENV_VAR.data() ) };
     if ( xauthority_value == nullptr ) {
-        const char* home_value { getenv( HOME_ENV_VAR.data() ) };
+        const char* home_value { ::getenv( HOME_ENV_VAR.data() ) };
         if ( home_value == nullptr ) {
             fmt::println( ::stderr, "{}: Could not get HOME environmental variable "
                           "value to resolve auth path", settings.process_name );
@@ -338,28 +338,28 @@ void ProxyX11Server::_copyAuthentication() {
     for ( ; !ifs.eof(); ifs.peek() ) {
         _XAuthInfo auth;
         ifs.read( (char*)&auth.family_nbo, sizeof(auth.family_nbo) );
-        auth.family = ntohs( auth.family_nbo );
+        auth.family = ::ntohs( auth.family_nbo );
 
         ifs.read( (char*)&auth.addr_len_nbo, sizeof(auth.addr_len_nbo) );
-        auth.addr_len = ntohs( auth.addr_len_nbo );
+        auth.addr_len = ::ntohs( auth.addr_len_nbo );
         assert( auth.addr_len < sizeof(auth.addr) );
         ifs.read( auth.addr, auth.addr_len );
         auth.addr[auth.addr_len] = '\0';
 
         ifs.read( (char*)&auth.display_len_nbo, sizeof(auth.display_len_nbo) );
-        auth.display_len = ntohs( auth.display_len_nbo );
+        auth.display_len = ::ntohs( auth.display_len_nbo );
         assert( auth.display_len < sizeof(auth.display) );
         ifs.read( auth.display, auth.display_len );
         auth.display[auth.display_len] = '\0';
 
         ifs.read( (char*)&auth.name_len_nbo, sizeof(auth.name_len_nbo) );
-        auth.name_len = ntohs( auth.name_len_nbo );
+        auth.name_len = ::ntohs( auth.name_len_nbo );
         assert( auth.name_len < sizeof(auth.name) );
         ifs.read( auth.name, auth.name_len );
         auth.name[auth.name_len] = '\0';
 
         ifs.read( (char*)&auth.data_len_nbo, sizeof(auth.data_len_nbo) );
-        auth.data_len = ntohs( auth.data_len_nbo );
+        auth.data_len = ::ntohs( auth.data_len_nbo );
         assert( auth.data_len == sizeof(auth.data) );
         ifs.read( auth.data, auth.data_len );
 
@@ -764,7 +764,7 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
             return false;
         }
         client_desc = fmt::format( "[{}]:{}", addrstr,
-                                   ntohs( in6addr.sin6_port ) );
+                                   ::ntohs( in6addr.sin6_port ) );
     }   break;
     case AF_INET: {
         assert( addrlen == sizeof( inaddr ) );
@@ -778,7 +778,7 @@ bool ProxyX11Server::_acceptClient( Connection* conn ) {
             return false;
         }
         client_desc = fmt::format( "{}:{}", addrstr,
-                                   ntohs( inaddr.sin_port ) );
+                                   ::ntohs( inaddr.sin_port ) );
     }   break;
     case AF_UNIX: {
         // sun_path will likely always be unpopulated by connect(2), see:

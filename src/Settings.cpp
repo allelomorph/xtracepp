@@ -9,9 +9,9 @@
 #include <cstdio>         // stderr, stdout, setvbuf, _IONBF, fclose, fopen...
 #include <cstdlib>        // exit, EXIT_FAILURE, EXIT_SUCCESS
 
-#include <unistd.h>       // optarg optind _POSIX_MONOTONIC_CLOCK sysconf
 #include <getopt.h>       // getopt_long
 #include <stdio_ext.h>    // __flbf __fbufsize
+#include <unistd.h>       // optarg optind
 
 #include <fmt/format.h>
 

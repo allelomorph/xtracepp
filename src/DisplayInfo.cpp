@@ -54,7 +54,7 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
         display = std::stoi( match[ _DISPLAY_GROUP_I ] );
         if ( const std::string screen_str { match[ _SCREEN_GROUP_I ] };
              !screen_str.empty() ) {
-            screen  = std::stoi( screen_str );
+            screen = std::stoi( screen_str );
         }
     } else {
         fmt::println( ::stderr,
@@ -120,11 +120,11 @@ DisplayInfo::DisplayInfo( const char* display_name, const Direction direction,
           result != nullptr; result = result->ai_next ) {
         if ( direction == Direction::OUT ) {
             if ( result->ai_family == AF_INET ) {
-                reinterpret_cast< sockaddr_in* >( result->ai_addr )->sin_port =
-                    htons( _X_TCP_PORT + display );
+                reinterpret_cast< ::sockaddr_in* >( result->ai_addr )->sin_port =
+                    ::htons( _X_TCP_PORT + display );
             } else {  // result->ai_family == AF_INET6
-                reinterpret_cast< sockaddr_in6* >( result->ai_addr )->sin6_port =
-                    htons( _X_TCP_PORT + display );
+                reinterpret_cast< ::sockaddr_in6* >( result->ai_addr )->sin6_port =
+                    ::htons( _X_TCP_PORT + display );
             }
         }
         if ( const int fd { socket( result->ai_family, result->ai_socktype,
