@@ -21,10 +21,10 @@ int main( const int argc, const char* const* argv ) {
         return EXIT_FAILURE;
     }
     const int opcode { std::stoi( argv[ 1 ] ) };
-    namespace opcodes = protocol::requests::opcodes;
-    if ( !( ( opcode >= opcodes::CREATEWINDOW &&          //   1
-              opcode <= opcodes::GETMODIFIERMAPPING ) ||  // 119
-            opcode == opcodes::NOOPERATION ) ) {          // 127
+    namespace req_opcodes = protocol::requests::opcodes;
+    if ( !( ( opcode >= req_opcodes::CREATEWINDOW &&          //   1
+              opcode <= req_opcodes::GETMODIFIERMAPPING ) ||  // 119
+            opcode == req_opcodes::NOOPERATION ) ) {          // 127
         fmt::println( ::stderr, "{}: invalid core opcode: {} (expected 1-119,127)",
                       process_name, opcode );
         return EXIT_FAILURE;
@@ -70,9 +70,8 @@ int main( const int argc, const char* const* argv ) {
     // - https://man.archlinux.org/ (search xcb function name) (often better than official)
     // - https://www.x.org/releases/X11R7.7/doc/man/man3/ (official but many incomplete)
     xcb_generic_error_t* error {};
-    namespace opcodes = protocol::requests::opcodes;
     switch ( opcode ) {
-    case opcodes::GETWINDOWATTRIBUTES:      {  //   3
+    case req_opcodes::GETWINDOWATTRIBUTES:      {  //   3
         const xcb_window_t window { screen->root };
         const xcb_get_window_attributes_cookie_t cookie {
             xcb_get_window_attributes( conn, window ) };
@@ -82,7 +81,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_window_attributes_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETGEOMETRY:              {  //  14
+    case req_opcodes::GETGEOMETRY:              {  //  14
         const xcb_drawable_t drawable { screen->root };
         const xcb_get_geometry_cookie_t cookie {
             xcb_get_geometry( conn, drawable ) };
@@ -94,7 +93,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply->height == screen->height_in_pixels );
         ::free( const_cast< xcb_get_geometry_reply_t* >( reply ) );
     }   break;
-    case opcodes::QUERYTREE:                {  //  15
+    case req_opcodes::QUERYTREE:                {  //  15
         const xcb_window_t window { screen->root };
         const xcb_query_tree_cookie_t cookie {
             xcb_query_tree( conn, window ) };
@@ -104,7 +103,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_query_tree_reply_t* >( reply ) );
     }   break;
-    case opcodes::INTERNATOM:               {  //  16
+    case req_opcodes::INTERNATOM:               {  //  16
         const uint8_t  only_if_exists { true };
         const uint16_t name_len       { sizeof( "PRIMARY" ) - 1 };
         const char*    name           { "PRIMARY" };
@@ -116,7 +115,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_intern_atom_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETATOMNAME:              {  //  17
+    case req_opcodes::GETATOMNAME:              {  //  17
         const xcb_atom_t atom { XCB_ATOM_PRIMARY };
         const xcb_get_atom_name_cookie_t cookie {
             xcb_get_atom_name( conn, atom ) };
@@ -126,7 +125,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_atom_name_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETPROPERTY:              {  //  20
+    case req_opcodes::GETPROPERTY:              {  //  20
         const xcb_window_t window      { screen->root };
         const uint8_t      _delete     {};
         const xcb_atom_t   property    { XCB_ATOM_WM_NAME };
@@ -144,7 +143,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_property_reply_t* >( reply ) );
     }   break;
-    case opcodes::LISTPROPERTIES:           {  //  21
+    case req_opcodes::LISTPROPERTIES:           {  //  21
         const xcb_window_t window { screen->root };
         const xcb_list_properties_cookie_t cookie {
             xcb_list_properties( conn, window ) };
@@ -154,7 +153,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_list_properties_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETSELECTIONOWNER:        {  //  23
+    case req_opcodes::GETSELECTIONOWNER:        {  //  23
         const xcb_atom_t selection { XCB_ATOM_PRIMARY };
         const xcb_get_selection_owner_cookie_t cookie {
             xcb_get_selection_owner( conn, selection ) };
@@ -164,7 +163,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_selection_owner_reply_t* >( reply ) );
     }   break;
-    case opcodes::GRABPOINTER:              {  //  26
+    case req_opcodes::GRABPOINTER:              {  //  26
         const uint8_t         owner_events  {};
         const xcb_window_t    grab_window   { screen->root };
         const uint16_t        event_mask    {};
@@ -182,7 +181,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_grab_pointer_reply_t* >( reply ) );
     }   break;
-    case opcodes::GRABKEYBOARD:             {  //  31
+    case req_opcodes::GRABKEYBOARD:             {  //  31
         const uint8_t         owner_events  {};
         const xcb_window_t    grab_window   { screen->root };
         const xcb_timestamp_t time          {};
@@ -197,7 +196,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_grab_keyboard_reply_t* >( reply ) );
     }   break;
-    case opcodes::QUERYPOINTER:             {  //  38
+    case req_opcodes::QUERYPOINTER:             {  //  38
         const xcb_window_t window { screen->root };
         const xcb_query_pointer_cookie_t cookie {
             xcb_query_pointer( conn, window ) };
@@ -207,7 +206,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_query_pointer_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETMOTIONEVENTS:          {  //  39
+    case req_opcodes::GETMOTIONEVENTS:          {  //  39
         const xcb_window_t    window { screen->root };
         // start of 0 CurrentTime returns no events
         const xcb_timestamp_t start  { 1 };
@@ -221,7 +220,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_motion_events_reply_t* >( reply ) );
     }   break;
-    case opcodes::TRANSLATECOORDINATES:     {  //  40
+    case req_opcodes::TRANSLATECOORDINATES:     {  //  40
         const xcb_window_t src_window { screen->root };
         const xcb_window_t dst_window { screen->root };
         const int16_t      src_x      {};
@@ -235,7 +234,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_translate_coordinates_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETINPUTFOCUS:            {  //  43
+    case req_opcodes::GETINPUTFOCUS:            {  //  43
         const xcb_get_input_focus_cookie_t cookie {
             xcb_get_input_focus( conn ) };
         const xcb_get_input_focus_reply_t* reply {
@@ -244,7 +243,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_input_focus_reply_t* >( reply ) );
     }   break;
-    case opcodes::QUERYKEYMAP:              {  //  44
+    case req_opcodes::QUERYKEYMAP:              {  //  44
         const xcb_query_keymap_cookie_t cookie {
             xcb_query_keymap( conn ) };
         const xcb_query_keymap_reply_t* reply {
@@ -253,7 +252,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_query_keymap_reply_t* >( reply ) );
     }   break;
-    case opcodes::QUERYFONT:                {  //  47
+    case req_opcodes::QUERYFONT:                {  //  47
         xcb_font_t fid { xcb_generate_id ( conn ) };
         {
             const uint16_t max_names { 1 };
@@ -285,7 +284,7 @@ int main( const int argc, const char* const* argv ) {
         }
         xcb_close_font( conn, fid );
     }   break;
-    case opcodes::QUERYTEXTEXTENTS:         {  //  48
+    case req_opcodes::QUERYTEXTEXTENTS:         {  //  48
         xcb_font_t fid { xcb_generate_id ( conn ) };
         {
             const uint16_t max_names { 1 };
@@ -323,7 +322,7 @@ int main( const int argc, const char* const* argv ) {
         }
         xcb_close_font( conn, fid );
     }   break;
-    case opcodes::LISTFONTS:                {  //  49
+    case req_opcodes::LISTFONTS:                {  //  49
         const uint16_t     max_names   { 10 };
         constexpr char     pattern[]   { "*" };
         constexpr uint16_t pattern_len { sizeof( pattern ) - 1 };
@@ -335,7 +334,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_list_fonts_reply_t* >( reply ) );
     }   break;
-    case opcodes::LISTFONTSWITHINFO:        {  //  50
+    case req_opcodes::LISTFONTSWITHINFO:        {  //  50
         const uint16_t     max_names   { 2 };
         constexpr char     pattern[]   { "*" };
         constexpr uint16_t pattern_len { sizeof( pattern ) - 1 };
@@ -347,7 +346,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_list_fonts_with_info_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETFONTPATH:              {  //  52
+    case req_opcodes::GETFONTPATH:              {  //  52
         const xcb_get_font_path_cookie_t cookie {
             xcb_get_font_path( conn ) };
         const xcb_get_font_path_reply_t* reply {
@@ -356,7 +355,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_font_path_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETIMAGE:                 {  //  73
+    case req_opcodes::GETIMAGE:                 {  //  73
         // TBD attempting to reproduce screenshot example from:
         //   - https://www.apriorit.com/dev-blog/672-lin-how-to-take-multi-monitor-screenshots-on-linux
         //   but Match error if any of x, y, width, height are non-zero...
@@ -383,7 +382,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_image_reply_t* >( reply ) );
     }   break;
-    case opcodes::LISTINSTALLEDCOLORMAPS:   {  //  83
+    case req_opcodes::LISTINSTALLEDCOLORMAPS:   {  //  83
         const xcb_window_t window { screen->root };
         const xcb_list_installed_colormaps_cookie_t cookie {
             xcb_list_installed_colormaps( conn, window ) };
@@ -393,7 +392,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_list_installed_colormaps_reply_t* >( reply ) );
     }   break;
-    case opcodes::ALLOCCOLOR:               {  //  84
+    case req_opcodes::ALLOCCOLOR:               {  //  84
         const xcb_colormap_t cmap  { screen->default_colormap };
         const uint16_t       red   {};
         const uint16_t       green {};
@@ -406,7 +405,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_alloc_color_reply_t* >( reply ) );
     }   break;
-    case opcodes::ALLOCNAMEDCOLOR:          {  //  85
+    case req_opcodes::ALLOCNAMEDCOLOR:          {  //  85
         // https://en.wikipedia.org/wiki/X11_color_names
         const xcb_colormap_t cmap     { screen->default_colormap };
         const uint16_t       name_len { sizeof( "Red" ) - 1 };
@@ -419,7 +418,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_alloc_named_color_reply_t* >( reply ) );
     }   break;
-    case opcodes::ALLOCCOLORCELLS:          {  //  86
+    case req_opcodes::ALLOCCOLORCELLS:          {  //  86
         const xcb_colormap_t mid   { xcb_generate_id( conn ) };
         const uint8_t        alloc { XCB_COLORMAP_ALLOC_NONE };
         xcb_create_colormap(
@@ -438,7 +437,7 @@ int main( const int argc, const char* const* argv ) {
         ::free( const_cast< xcb_alloc_color_cells_reply_t* >( reply ) );
         xcb_free_colormap( conn, mid );
     }   break;
-    case opcodes::ALLOCCOLORPLANES:         {  //  87
+    case req_opcodes::ALLOCCOLORPLANES:         {  //  87
         const xcb_colormap_t mid   { xcb_generate_id( conn ) };
         const uint8_t        alloc { XCB_COLORMAP_ALLOC_NONE };
         xcb_create_colormap(
@@ -459,7 +458,7 @@ int main( const int argc, const char* const* argv ) {
         ::free( const_cast< xcb_alloc_color_planes_reply_t* >( reply ) );
         xcb_free_colormap( conn, mid );
     }   break;
-    case opcodes::QUERYCOLORS:              {  //  91
+    case req_opcodes::QUERYCOLORS:              {  //  91
         const xcb_colormap_t cmap        { screen->default_colormap };
         const uint32_t       pixels_len  { 3 };
         const uint32_t       pixels[ 3 ] { 1, 2, 3 };
@@ -471,7 +470,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_query_colors_reply_t* >( reply ) );
     }   break;
-    case opcodes::LOOKUPCOLOR:              {  //  92
+    case req_opcodes::LOOKUPCOLOR:              {  //  92
         // https://en.wikipedia.org/wiki/X11_color_names
         const xcb_colormap_t cmap     { screen->default_colormap };
         constexpr char       name[]   { "Red" };
@@ -484,7 +483,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_lookup_color_reply_t* >( reply ) );
     }   break;
-    case opcodes::QUERYBESTSIZE:            {  //  97
+    case req_opcodes::QUERYBESTSIZE:            {  //  97
         const uint8_t        _class   {};
         const xcb_drawable_t drawable { screen->root };
         const uint16_t       width    {};
@@ -497,7 +496,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_query_best_size_reply_t* >( reply ) );
     }   break;
-    case opcodes::QUERYEXTENSION:           {  //  98
+    case req_opcodes::QUERYEXTENSION:           {  //  98
         constexpr char     name[]   { "MIT-SHM" };
         constexpr uint16_t name_len { sizeof( name ) - 1 };
         const xcb_query_extension_cookie_t cookie {
@@ -508,7 +507,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_query_extension_reply_t* >( reply ) );
     }   break;
-    case opcodes::LISTEXTENSIONS:           {  //  99
+    case req_opcodes::LISTEXTENSIONS:           {  //  99
         const xcb_list_extensions_cookie_t cookie {
             xcb_list_extensions( conn ) };
         const xcb_list_extensions_reply_t* reply {
@@ -517,7 +516,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_list_extensions_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETKEYBOARDMAPPING:       {  // 101
+    case req_opcodes::GETKEYBOARDMAPPING:       {  // 101
         const xcb_keycode_t first_keycode { 0x10 };
         assert( first_keycode >= setup->min_keycode );
         const uint8_t       count         { 2 };
@@ -530,7 +529,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_keyboard_mapping_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETKEYBOARDCONTROL:       {  // 103
+    case req_opcodes::GETKEYBOARDCONTROL:       {  // 103
         const xcb_get_keyboard_control_cookie_t cookie {
             xcb_get_keyboard_control( conn ) };
         const xcb_get_keyboard_control_reply_t* reply {
@@ -539,7 +538,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_keyboard_control_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETPOINTERCONTROL:        {  // 106
+    case req_opcodes::GETPOINTERCONTROL:        {  // 106
         const xcb_get_pointer_control_cookie_t cookie {
             xcb_get_pointer_control( conn ) };
         const xcb_get_pointer_control_reply_t* reply {
@@ -548,7 +547,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_pointer_control_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETSCREENSAVER:           {  // 108
+    case req_opcodes::GETSCREENSAVER:           {  // 108
         const xcb_get_screen_saver_cookie_t cookie {
             xcb_get_screen_saver( conn ) };
         const xcb_get_screen_saver_reply_t* reply {
@@ -557,7 +556,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_screen_saver_reply_t* >( reply ) );
     }   break;
-    case opcodes::LISTHOSTS:                {  // 110
+    case req_opcodes::LISTHOSTS:                {  // 110
         // `hosts` empty by default
         // TBD to test a populated host list one could do a ChangeHosts Insert
         //   before and Delete after, but doing do results in Access error
@@ -576,7 +575,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_list_hosts_reply_t* >( reply ) );
     }   break;
-    case opcodes::SETPOINTERMAPPING:        {  // 116
+    case req_opcodes::SETPOINTERMAPPING:        {  // 116
         // SetPointerMapping map length must match that returned by
         //   GetPointerMapping
         const xcb_get_pointer_mapping_cookie_t gpm_cookie {
@@ -596,7 +595,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_set_pointer_mapping_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETPOINTERMAPPING:        {  // 117
+    case req_opcodes::GETPOINTERMAPPING:        {  // 117
         const xcb_get_pointer_mapping_cookie_t cookie {
             xcb_get_pointer_mapping( conn ) };
         const xcb_get_pointer_mapping_reply_t* reply {
@@ -605,7 +604,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_get_pointer_mapping_reply_t* >( reply ) );
     }   break;
-    case opcodes::SETMODIFIERMAPPING:       {  // 118
+    case req_opcodes::SETMODIFIERMAPPING:       {  // 118
         const xcb_get_modifier_mapping_cookie_t gmm_cookie {
             xcb_get_modifier_mapping( conn ) };
         const xcb_get_modifier_mapping_reply_t* gmm_reply {
@@ -625,7 +624,7 @@ int main( const int argc, const char* const* argv ) {
         assert( reply != nullptr );
         ::free( const_cast< xcb_set_modifier_mapping_reply_t* >( reply ) );
     }   break;
-    case opcodes::GETMODIFIERMAPPING:       {  // 119
+    case req_opcodes::GETMODIFIERMAPPING:       {  // 119
         const xcb_get_modifier_mapping_cookie_t cookie {
             xcb_get_modifier_mapping( conn ) };
         const xcb_get_modifier_mapping_reply_t* reply {

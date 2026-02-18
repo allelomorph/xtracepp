@@ -21,7 +21,7 @@ int main( const int argc, const char* const* argv ) {
         return EXIT_FAILURE;
     }
     const int code { std::stoi( argv[ 1 ] ) };
-    namespace  evt_codes = protocol::events::codes;
+    namespace evt_codes = protocol::events::codes;
     if ( !( code >= evt_codes::KEYPRESS &&          //  2
             code <= evt_codes::MAPPINGNOTIFY ) ) {  // 34
         fmt::println( stderr, "{}: invalid core event code: {} (expected 2-34)",

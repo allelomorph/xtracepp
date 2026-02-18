@@ -341,7 +341,6 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
                         "authentication negotiation" ) };
             case Connection::OPEN: {
                 using protocol::requests::Request;
-                namespace ext = protocol::extensions;
                 if ( buffer.size() <
                      sizeof( Request::Prefix ) + sizeof( Request::Length ) ) {
                     goto length_checks;
@@ -350,7 +349,7 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
                     reinterpret_cast< const Request::BigLength* >(
                         data + sizeof( Request::Prefix ) ) };
                 if ( big_length->extended_length_flag ==
-                     ext::big_requests::EXTENDED_LENGTH_FLAG ) {
+                     protocol::extensions::big_requests::EXTENDED_LENGTH_FLAG ) {
                     if ( buffer.size() <
                          sizeof( Request::Prefix ) + sizeof( Request::BigLength ) ) {
                         goto length_checks;

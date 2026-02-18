@@ -21,10 +21,10 @@ int main( const int argc, const char* const* argv ) {
         return EXIT_FAILURE;
     }
     const int opcode { std::stoi( argv[ 1 ] ) };
-    namespace opcodes = protocol::requests::opcodes;
-    if ( !( ( opcode >= opcodes::CREATEWINDOW &&          //   1
-              opcode <= opcodes::GETMODIFIERMAPPING ) ||  // 119
-            opcode == opcodes::NOOPERATION ) ) {          // 127
+    namespace req_opcodes = protocol::requests::opcodes;
+    if ( !( ( opcode >= req_opcodes::CREATEWINDOW &&          //   1
+              opcode <= req_opcodes::GETMODIFIERMAPPING ) ||  // 119
+            opcode == req_opcodes::NOOPERATION ) ) {          // 127
         fmt::println( ::stderr, "{}: invalid core opcode: {} (expected 1-119,127)",
                       process_name, opcode );
         return EXIT_FAILURE;
@@ -44,7 +44,7 @@ int main( const int argc, const char* const* argv ) {
     // - https://man.archlinux.org/ (search xcb function name) (often better than official)
     // - https://www.x.org/releases/X11R7.7/doc/man/man3/ (official but many incomplete)
     switch ( opcode ) {
-    case opcodes::CREATEWINDOW:             {  //   1
+    case req_opcodes::CREATEWINDOW:             {  //   1
         const uint8_t        depth        { XCB_COPY_FROM_PARENT };  // (same as root)
         const xcb_window_t   wid          {};
         const xcb_window_t   parent       { screen->root };
@@ -66,7 +66,7 @@ int main( const int argc, const char* const* argv ) {
             conn, depth, wid, parent, x, y, width, height, border_width,
             _class, visual, value_mask, value_list );
     }   break;
-    case opcodes::CHANGEWINDOWATTRIBUTES:   {  //   2
+    case req_opcodes::CHANGEWINDOWATTRIBUTES:   {  //   2
         const xcb_window_t window     {};
         const uint32_t     value_mask {
             XCB_CW_BACK_PIXMAP | XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXMAP |
@@ -79,28 +79,28 @@ int main( const int argc, const char* const* argv ) {
         xcb_change_window_attributes(
             conn, window, value_mask, value_list );
     }   break;
-    case opcodes::GETWINDOWATTRIBUTES:      {  //   3
+    case req_opcodes::GETWINDOWATTRIBUTES:      {  //   3
         const xcb_window_t window {};
         xcb_get_window_attributes(
             conn, window );
     }   break;
-    case opcodes::DESTROYWINDOW:            {  //   4
+    case req_opcodes::DESTROYWINDOW:            {  //   4
         const xcb_window_t window {};
         xcb_destroy_window(
             conn, window );
     }   break;
-    case opcodes::DESTROYSUBWINDOWS:        {  //   5
+    case req_opcodes::DESTROYSUBWINDOWS:        {  //   5
         const xcb_window_t window {};
         xcb_destroy_subwindows(
             conn, window );
     }   break;
-    case opcodes::CHANGESAVESET:            {  //   6
+    case req_opcodes::CHANGESAVESET:            {  //   6
         const uint8_t      mode {};
         const xcb_window_t window {};
         xcb_change_save_set(
             conn, mode, window );
     }   break;
-    case opcodes::REPARENTWINDOW:           {  //   7
+    case req_opcodes::REPARENTWINDOW:           {  //   7
         const xcb_window_t window {};
         const xcb_window_t parent {};
         const int16_t      x {};
@@ -108,27 +108,27 @@ int main( const int argc, const char* const* argv ) {
         xcb_reparent_window(
             conn, window, parent, x, y );
     }   break;
-    case opcodes::MAPWINDOW:                {  //   8
+    case req_opcodes::MAPWINDOW:                {  //   8
         const xcb_window_t window {};
         xcb_map_window(
             conn, window );
     }   break;
-    case opcodes::MAPSUBWINDOWS:            {  //   9
+    case req_opcodes::MAPSUBWINDOWS:            {  //   9
         const xcb_window_t window {};
         xcb_map_subwindows(
             conn, window );
     }   break;
-    case opcodes::UNMAPWINDOW:              {  //  10
+    case req_opcodes::UNMAPWINDOW:              {  //  10
         const xcb_window_t window {};
         xcb_unmap_window(
             conn, window );
     }   break;
-    case opcodes::UNMAPSUBWINDOWS:          {  //  11
+    case req_opcodes::UNMAPSUBWINDOWS:          {  //  11
         const xcb_window_t window {};
         xcb_unmap_subwindows(
             conn, window );
     }   break;
-    case opcodes::CONFIGUREWINDOW:          {  //  12
+    case req_opcodes::CONFIGUREWINDOW:          {  //  12
         const xcb_window_t window {};
         const uint16_t     value_mask {
             XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
@@ -140,35 +140,35 @@ int main( const int argc, const char* const* argv ) {
         xcb_configure_window(
             conn, window, value_mask, value_list );
     }   break;
-    case opcodes::CIRCULATEWINDOW:          {  //  13
+    case req_opcodes::CIRCULATEWINDOW:          {  //  13
         const uint8_t      direction {};
         const xcb_window_t window {};
         xcb_circulate_window(
             conn, direction, window );
     }   break;
-    case opcodes::GETGEOMETRY:              {  //  14
+    case req_opcodes::GETGEOMETRY:              {  //  14
         const xcb_drawable_t drawable {};
         xcb_get_geometry(
             conn, drawable );
     }   break;
-    case opcodes::QUERYTREE:                {  //  15
+    case req_opcodes::QUERYTREE:                {  //  15
         const xcb_window_t window {};
         xcb_query_tree(
             conn, window );
     }   break;
-    case opcodes::INTERNATOM:               {  //  16
+    case req_opcodes::INTERNATOM:               {  //  16
         const uint8_t  only_if_exists { true };
         const uint16_t name_len       { sizeof( "TEST_ATOM\x01\x02äß水" ) - 1 };
         const char*    name           { "TEST_ATOM\x01\x02äß水" };
         xcb_intern_atom(
             conn, only_if_exists, name_len, name );
     }   break;
-    case opcodes::GETATOMNAME:              {  //  17
+    case req_opcodes::GETATOMNAME:              {  //  17
         const xcb_atom_t atom { 1 };
         xcb_get_atom_name(
             conn, atom );
     }   break;
-    case opcodes::CHANGEPROPERTY:           {  //  18
+    case req_opcodes::CHANGEPROPERTY:           {  //  18
         const uint8_t      mode     {};
         const xcb_window_t window   {};
         const xcb_atom_t   property { 1 };
@@ -180,13 +180,13 @@ int main( const int argc, const char* const* argv ) {
             conn, mode, window, property,
             type, format, data_len, data );
     }   break;
-    case opcodes::DELETEPROPERTY:           {  //  19
+    case req_opcodes::DELETEPROPERTY:           {  //  19
         const xcb_window_t window   {};
         const xcb_atom_t   property { 1 };
         xcb_delete_property(
             conn, window, property );
     }   break;
-    case opcodes::GETPROPERTY:              {  //  20
+    case req_opcodes::GETPROPERTY:              {  //  20
         const uint8_t      _delete     {};
         const xcb_window_t window      {};
         const xcb_atom_t   property    { 1 };
@@ -197,24 +197,24 @@ int main( const int argc, const char* const* argv ) {
             conn, _delete, window, property,
             type, long_offset, long_length );
     }   break;
-    case opcodes::LISTPROPERTIES:           {  //  21
+    case req_opcodes::LISTPROPERTIES:           {  //  21
         const xcb_window_t window {};
         xcb_list_properties(
             conn, window );
     }   break;
-    case opcodes::SETSELECTIONOWNER:        {  //  22
+    case req_opcodes::SETSELECTIONOWNER:        {  //  22
         const xcb_window_t    owner     {};
         const xcb_atom_t      selection { 1 };
         const xcb_timestamp_t time      { 61 };
         xcb_set_selection_owner(
             conn, owner, selection, time );
     }   break;
-    case opcodes::GETSELECTIONOWNER:        {  //  23
+    case req_opcodes::GETSELECTIONOWNER:        {  //  23
         const xcb_atom_t selection {};
         xcb_get_selection_owner(
             conn, selection );
     }   break;
-    case opcodes::CONVERTSELECTION:         {  //  24
+    case req_opcodes::CONVERTSELECTION:         {  //  24
         const xcb_window_t    requestor {};
         const xcb_atom_t      selection {};
         const xcb_atom_t      target    {};
@@ -223,7 +223,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_convert_selection(
             conn, requestor, selection, target, property, time );
     }   break;
-    case opcodes::SENDEVENT:                {  //  25
+    case req_opcodes::SENDEVENT:                {  //  25
         // (minimum parameter population for xcb to send request)
         const uint8_t                propagate   {};
         const xcb_window_t           destination {};
@@ -233,7 +233,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_send_event(
             conn, propagate, destination, event_mask, (const char*)&event );
     }   break;
-    case opcodes::GRABPOINTER:              {  //  26
+    case req_opcodes::GRABPOINTER:              {  //  26
         const uint8_t         owner_events  {};
         const xcb_window_t    grab_window   {};
         const uint16_t        event_mask    {};
@@ -246,12 +246,12 @@ int main( const int argc, const char* const* argv ) {
             conn, owner_events, grab_window, event_mask,
             pointer_mode, keyboard_mode, confine_to, cursor, time );
     }   break;
-    case opcodes::UNGRABPOINTER:            {  //  27
+    case req_opcodes::UNGRABPOINTER:            {  //  27
         const xcb_timestamp_t time {};
         xcb_ungrab_pointer(
             conn, time);
     }   break;
-    case opcodes::GRABBUTTON:               {  //  28
+    case req_opcodes::GRABBUTTON:               {  //  28
         const uint8_t      owner_events  {};
         const xcb_window_t grab_window   {};
         const uint16_t     event_mask    {};
@@ -265,21 +265,21 @@ int main( const int argc, const char* const* argv ) {
             conn, owner_events, grab_window, event_mask,
             pointer_mode, keyboard_mode, confine_to, cursor, button, modifiers );
     }   break;
-    case opcodes::UNGRABBUTTON:             {  //  29
+    case req_opcodes::UNGRABBUTTON:             {  //  29
         const uint8_t      button      {};
         const xcb_window_t grab_window {};
         const uint16_t     modifiers     { XCB_MOD_MASK_ANY };  // AnyModifier
         xcb_ungrab_button(
             conn, button, grab_window, modifiers );
     }   break;
-    case opcodes::CHANGEACTIVEPOINTERGRAB:  {  //  30
+    case req_opcodes::CHANGEACTIVEPOINTERGRAB:  {  //  30
         const xcb_cursor_t    cursor     {};
         const xcb_timestamp_t time       {};
         const uint16_t        event_mask { 0x0c };
         xcb_change_active_pointer_grab(
             conn, cursor, time, event_mask );
     }   break;
-    case opcodes::GRABKEYBOARD:             {  //  31
+    case req_opcodes::GRABKEYBOARD:             {  //  31
         const uint8_t         owner_events  {};
         const xcb_window_t    grab_window   {};
         const xcb_timestamp_t time          {};
@@ -289,12 +289,12 @@ int main( const int argc, const char* const* argv ) {
             conn, owner_events, grab_window, time,
             pointer_mode, keyboard_mode );
     }   break;
-    case opcodes::UNGRABKEYBOARD:           {  //  32
+    case req_opcodes::UNGRABKEYBOARD:           {  //  32
         const xcb_timestamp_t time {};
         xcb_ungrab_keyboard(
             conn, time);
     }   break;
-    case opcodes::GRABKEY:                  {  //  33
+    case req_opcodes::GRABKEY:                  {  //  33
         const uint8_t       owner_events  {};
         const xcb_window_t  grab_window   {};
         const uint16_t      modifiers     {};
@@ -305,40 +305,40 @@ int main( const int argc, const char* const* argv ) {
             conn, owner_events, grab_window,
             modifiers, key, pointer_mode, keyboard_mode );
     }   break;
-    case opcodes::UNGRABKEY:                {  //  34
+    case req_opcodes::UNGRABKEY:                {  //  34
         const xcb_keycode_t key         {};
         const xcb_window_t  grab_window {};
         const uint16_t      modifiers   { 0x03 };
         xcb_ungrab_key(
             conn, key, grab_window, modifiers );
     }   break;
-    case opcodes::ALLOWEVENTS:              {  //  35
+    case req_opcodes::ALLOWEVENTS:              {  //  35
         const uint8_t         mode {};
         const xcb_timestamp_t time {};
         xcb_allow_events(
             conn, mode, time );
     }   break;
-    case opcodes::GRABSERVER:               {  //  36
+    case req_opcodes::GRABSERVER:               {  //  36
         xcb_grab_server(
             conn );
     }   break;
-    case opcodes::UNGRABSERVER:             {  //  37
+    case req_opcodes::UNGRABSERVER:             {  //  37
         xcb_grab_server(
             conn );
     }   break;
-    case opcodes::QUERYPOINTER:             {  //  38
+    case req_opcodes::QUERYPOINTER:             {  //  38
         const xcb_window_t window {};
         xcb_query_pointer(
             conn, window );
     }   break;
-    case opcodes::GETMOTIONEVENTS:          {  //  39
+    case req_opcodes::GETMOTIONEVENTS:          {  //  39
         const xcb_window_t    window {};
         const xcb_timestamp_t start  {};
         const xcb_timestamp_t stop   {};
         xcb_get_motion_events(
             conn, window, start, stop );
     }   break;
-    case opcodes::TRANSLATECOORDINATES:     {  //  40
+    case req_opcodes::TRANSLATECOORDINATES:     {  //  40
         const xcb_window_t src_window {};
         const xcb_window_t dst_window {};
         const int16_t      src_x      { 1 };
@@ -346,7 +346,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_translate_coordinates(
             conn, src_window, dst_window, src_x, src_y );
     }   break;
-    case opcodes::WARPPOINTER:              {  //  41
+    case req_opcodes::WARPPOINTER:              {  //  41
         const xcb_window_t src_window {};
         const xcb_window_t dst_window {};
         const int16_t      src_x      {};
@@ -359,39 +359,39 @@ int main( const int argc, const char* const* argv ) {
             conn, src_window, dst_window,
             src_x, src_y, src_width, src_height, dst_x, dst_y );
     }   break;
-    case opcodes::SETINPUTFOCUS:            {  //  42
+    case req_opcodes::SETINPUTFOCUS:            {  //  42
         const uint8_t         revert_to {};
         const xcb_window_t    focus     {};
         const xcb_timestamp_t time      {};
         xcb_set_input_focus(
             conn, revert_to, focus, time );
     }   break;
-    case opcodes::GETINPUTFOCUS:            {  //  43
+    case req_opcodes::GETINPUTFOCUS:            {  //  43
         xcb_get_input_focus(
             conn );
     }   break;
-    case opcodes::QUERYKEYMAP:              {  //  44
+    case req_opcodes::QUERYKEYMAP:              {  //  44
         xcb_query_keymap (
             conn );
     }   break;
-    case opcodes::OPENFONT:                 {  //  45
+    case req_opcodes::OPENFONT:                 {  //  45
         const xcb_font_t fid      {};
         const uint16_t   name_len { 11 };
         const char*      name     { "ExampleFont" };
         xcb_open_font(
             conn, fid, name_len, name );
     }   break;
-    case opcodes::CLOSEFONT:                {  //  46
+    case req_opcodes::CLOSEFONT:                {  //  46
         const xcb_font_t font {};
         xcb_close_font(
             conn, font );
     }   break;
-    case opcodes::QUERYFONT:                {  //  47
+    case req_opcodes::QUERYFONT:                {  //  47
         const xcb_fontable_t font {};
         xcb_query_font(
             conn, font );
     }   break;
-    case opcodes::QUERYTEXTEXTENTS:         {  //  48
+    case req_opcodes::QUERYTEXTEXTENTS:         {  //  48
         const xcb_fontable_t font       {};
         const uint32_t       string_len { 3 };
         const xcb_char2b_t*  string {
@@ -399,21 +399,21 @@ int main( const int argc, const char* const* argv ) {
         xcb_query_text_extents(
             conn, font, string_len, string );
     }   break;
-    case opcodes::LISTFONTS:                {  //  49
+    case req_opcodes::LISTFONTS:                {  //  49
         const uint16_t max_names   {};
         const uint16_t pattern_len { 7 };
         const char*    pattern     { "example" };
         xcb_list_fonts(
             conn, max_names, pattern_len, pattern );
     }   break;
-    case opcodes::LISTFONTSWITHINFO:        {  //  50
+    case req_opcodes::LISTFONTSWITHINFO:        {  //  50
         const uint16_t max_names   {};
         const uint16_t pattern_len { 7 };
         const char*    pattern     { "example" };
         xcb_list_fonts_with_info(
             conn, max_names, pattern_len, pattern );
     }   break;
-    case opcodes::SETFONTPATH:              {  //  51
+    case req_opcodes::SETFONTPATH:              {  //  51
         constexpr uint16_t font_qty { 3 };
         const char* data {
             "\x05" "first"
@@ -423,11 +423,11 @@ int main( const int argc, const char* const* argv ) {
         xcb_set_font_path(
             conn, font_qty, (const xcb_str_t*)data );
     }   break;
-    case opcodes::GETFONTPATH:              {  //  52
+    case req_opcodes::GETFONTPATH:              {  //  52
         xcb_get_font_path(
             conn );
     }   break;
-    case opcodes::CREATEPIXMAP:             {  //  53
+    case req_opcodes::CREATEPIXMAP:             {  //  53
         const uint8_t        depth    {};
         const xcb_pixmap_t   pid      {};
         const xcb_drawable_t drawable {};
@@ -436,12 +436,12 @@ int main( const int argc, const char* const* argv ) {
         xcb_create_pixmap(
             conn, depth, pid, drawable, window, height );
     }   break;
-    case opcodes::FREEPIXMAP:               {  //  54
+    case req_opcodes::FREEPIXMAP:               {  //  54
         const xcb_pixmap_t pixmap {};
         xcb_free_pixmap(
             conn, pixmap );
     }   break;
-    case opcodes::CREATEGC:                 {  //  55
+    case req_opcodes::CREATEGC:                 {  //  55
         const xcb_gcontext_t cid {};
         const xcb_drawable_t drawable {};
         const uint32_t       value_mask {
@@ -457,7 +457,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_create_gc(
             conn, cid, drawable, value_mask, (const void*)value_list );
     }   break;
-    case opcodes::CHANGEGC:                 {  //  56
+    case req_opcodes::CHANGEGC:                 {  //  56
         const xcb_gcontext_t gc {};
         const uint32_t       value_mask {
             XCB_GC_FUNCTION | XCB_GC_PLANE_MASK | XCB_GC_FOREGROUND | XCB_GC_BACKGROUND |
@@ -472,7 +472,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_change_gc(
             conn, gc, value_mask, (const void*)value_list );
     }   break;
-    case opcodes::COPYGC:                   {  //  57
+    case req_opcodes::COPYGC:                   {  //  57
         const xcb_gcontext_t src_gc {};
         const xcb_gcontext_t dst_gc {};
         const uint32_t       value_mask {
@@ -487,7 +487,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_copy_gc(
             conn, src_gc, dst_gc, value_mask );
     }   break;
-    case opcodes::SETDASHES:                {  //  58
+    case req_opcodes::SETDASHES:                {  //  58
         xcb_gcontext_t gc          {};
         const uint16_t dash_offset {};
         const uint16_t dashes_len  { 4 };
@@ -495,7 +495,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_set_dashes(
             conn, gc, dash_offset, dashes_len, dashes );
     }   break;
-    case opcodes::SETCLIPRECTANGLES:        {  //  59
+    case req_opcodes::SETCLIPRECTANGLES:        {  //  59
         const uint8_t         ordering       {};
         const xcb_gcontext_t  gc             {};
         const int16_t         clip_x_origin  {};
@@ -509,12 +509,12 @@ int main( const int argc, const char* const* argv ) {
             conn, ordering, gc, clip_x_origin, clip_y_origin,
             rectangles_len, rectangles );
     }   break;
-    case opcodes::FREEGC:                   {  //  60
+    case req_opcodes::FREEGC:                   {  //  60
         const xcb_gcontext_t gc {};
         xcb_free_gc(
             conn, gc );
     }   break;
-    case opcodes::CLEARAREA:                {  //  61
+    case req_opcodes::CLEARAREA:                {  //  61
         const uint8_t      exposures {};
         const xcb_window_t window    {};
         const int16_t      x         {};
@@ -524,7 +524,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_clear_area(
             conn, exposures, window, x, y, width, height );
     }   break;
-    case opcodes::COPYAREA:                 {  //  62
+    case req_opcodes::COPYAREA:                 {  //  62
         const xcb_drawable_t src_drawable {};
         const xcb_drawable_t dst_drawable {};
         const xcb_gcontext_t gc           {};
@@ -538,7 +538,7 @@ int main( const int argc, const char* const* argv ) {
             conn, src_drawable, dst_drawable, gc,
             src_x, src_y, dst_x, dst_y, width, height );
     }   break;
-    case opcodes::COPYPLANE:                {  //  63
+    case req_opcodes::COPYPLANE:                {  //  63
         const xcb_drawable_t src_drawable {};
         const xcb_drawable_t dst_drawable {};
         const xcb_gcontext_t gc           {};
@@ -554,7 +554,7 @@ int main( const int argc, const char* const* argv ) {
             src_x, src_y, dst_x, dst_y, width, height, bit_plane );
     }
         break;
-    case opcodes::POLYPOINT:                {  //  64
+    case req_opcodes::POLYPOINT:                {  //  64
         const uint8_t        coordinate_mode {};
         const xcb_drawable_t drawable        {};
         const xcb_gcontext_t gc              {};
@@ -566,7 +566,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_point(
             conn, coordinate_mode, drawable, gc, points_len, points );
     }   break;
-    case opcodes::POLYLINE:                 {  //  65
+    case req_opcodes::POLYLINE:                 {  //  65
         const uint8_t        coordinate_mode {};
         const xcb_drawable_t drawable        {};
         const xcb_gcontext_t gc              {};
@@ -578,7 +578,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_line(
             conn, coordinate_mode, drawable, gc, points_len, points);
     }   break;
-    case opcodes::POLYSEGMENT:              {  //  66
+    case req_opcodes::POLYSEGMENT:              {  //  66
         const xcb_drawable_t drawable     {};
         const xcb_gcontext_t gc           {};
         const uint32_t       segments_len { 2 };
@@ -589,7 +589,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_segment(
             conn, drawable, gc, segments_len, segments );
     }   break;
-    case opcodes::POLYRECTANGLE:            {  //  67
+    case req_opcodes::POLYRECTANGLE:            {  //  67
         const xcb_drawable_t  drawable       {};
         const xcb_gcontext_t  gc             {};
         const uint32_t        rectangles_len { 2 };
@@ -600,7 +600,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_rectangle(
             conn, drawable, gc, rectangles_len, rectangles );
     }   break;
-    case opcodes::POLYARC:                  {  //  68
+    case req_opcodes::POLYARC:                  {  //  68
         const xcb_drawable_t drawable {};
         const xcb_gcontext_t gc       {};
         const uint32_t       arcs_len { 2 };
@@ -611,7 +611,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_arc(
             conn, drawable, gc, arcs_len, arcs );
     }   break;
-    case opcodes::FILLPOLY:                 {  //  69
+    case req_opcodes::FILLPOLY:                 {  //  69
         const xcb_drawable_t drawable        {};
         const xcb_gcontext_t gc              {};
         const uint8_t        shape           {};
@@ -624,7 +624,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_fill_poly(
             conn, drawable, gc, shape, coordinate_mode, points_len, points );
     }   break;
-    case opcodes::POLYFILLRECTANGLE:        {  //  70
+    case req_opcodes::POLYFILLRECTANGLE:        {  //  70
         const xcb_drawable_t  drawable       {};
         const xcb_gcontext_t  gc             {};
         const uint32_t        rectangles_len { 2 };
@@ -635,7 +635,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_fill_rectangle(
             conn, drawable, gc, rectangles_len, rectangles );
     }   break;
-    case opcodes::POLYFILLARC:              {  //  71
+    case req_opcodes::POLYFILLARC:              {  //  71
         const xcb_drawable_t drawable {};
         const xcb_gcontext_t gc       {};
         const uint32_t       arcs_len { 2 };
@@ -646,7 +646,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_fill_arc(
             conn, drawable, gc, arcs_len, arcs );
     }   break;
-    case opcodes::PUTIMAGE:                 {  //  72
+    case req_opcodes::PUTIMAGE:                 {  //  72
         const uint8_t        format   {};
         const xcb_drawable_t drawable {};
         const xcb_gcontext_t gc       {};
@@ -664,7 +664,7 @@ int main( const int argc, const char* const* argv ) {
             conn, format, drawable, gc, window, height,
             dst_x, dst_y, left_pad, depth, data_len, data );
     }   break;
-    case opcodes::GETIMAGE:                 {  //  73
+    case req_opcodes::GETIMAGE:                 {  //  73
         const uint8_t        format     {};
         const xcb_drawable_t drawable   {};
         const int16_t        x          {};
@@ -675,7 +675,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_get_image(
             conn, format, drawable, x, y, window, height, plane_mask );
     }   break;
-    case opcodes::POLYTEXT8:                {  //  74
+    case req_opcodes::POLYTEXT8:                {  //  74
         const xcb_drawable_t drawable  {};
         const xcb_gcontext_t gc        {};
         const int16_t        x         {};
@@ -694,7 +694,7 @@ int main( const int argc, const char* const* argv ) {
             conn, drawable, gc, x, y, items_len, items );
     }
         break;
-    case opcodes::POLYTEXT16:               {  //  75
+    case req_opcodes::POLYTEXT16:               {  //  75
         const xcb_drawable_t drawable  {};
         const xcb_gcontext_t gc        {};
         const int16_t        x         {};
@@ -715,7 +715,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_poly_text_16(
             conn, drawable, gc, x, y, items_len, items );
     }   break;
-    case opcodes::IMAGETEXT8:               {  //  76
+    case req_opcodes::IMAGETEXT8:               {  //  76
         const uint8_t        string_len { 4 };
         const xcb_drawable_t drawable   {};
         const xcb_gcontext_t gc         {};
@@ -725,7 +725,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_image_text_8(
             conn, string_len, drawable, gc, x, y, string );
     }   break;
-    case opcodes::IMAGETEXT16:              {  //  77
+    case req_opcodes::IMAGETEXT16:              {  //  77
         const uint8_t        string_len { 3 };
         const xcb_drawable_t drawable   {};
         const xcb_gcontext_t gc         {};
@@ -736,7 +736,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_image_text_16(
             conn, string_len, drawable, gc, x, y, string );
     }   break;
-    case opcodes::CREATECOLORMAP:           {  //  78
+    case req_opcodes::CREATECOLORMAP:           {  //  78
         const uint8_t        alloc  {};
         const xcb_colormap_t mid    {};
         const xcb_window_t   window {};
@@ -744,33 +744,33 @@ int main( const int argc, const char* const* argv ) {
         xcb_create_colormap(
             conn, alloc, mid, window, visual );
     }   break;
-    case opcodes::FREECOLORMAP:             {  //  79
+    case req_opcodes::FREECOLORMAP:             {  //  79
         const xcb_colormap_t cmap {};
         xcb_free_colormap(
             conn, cmap );
     }   break;
-    case opcodes::COPYCOLORMAPANDFREE:      {  //  80
+    case req_opcodes::COPYCOLORMAPANDFREE:      {  //  80
         const xcb_colormap_t mid      {};
         const xcb_colormap_t src_cmap {};
         xcb_copy_colormap_and_free(
             conn, mid, src_cmap );
     }   break;
-    case opcodes::INSTALLCOLORMAP:          {  //  81
+    case req_opcodes::INSTALLCOLORMAP:          {  //  81
         const xcb_colormap_t cmap {};
         xcb_install_colormap (
             conn, cmap );
     }   break;
-    case opcodes::UNINSTALLCOLORMAP:        {  //  82
+    case req_opcodes::UNINSTALLCOLORMAP:        {  //  82
         const xcb_colormap_t cmap {};
         xcb_uninstall_colormap(
             conn, cmap );
     }   break;
-    case opcodes::LISTINSTALLEDCOLORMAPS:   {  //  83
+    case req_opcodes::LISTINSTALLEDCOLORMAPS:   {  //  83
         const xcb_window_t window {};
         xcb_list_installed_colormaps(
             conn, window );
     }   break;
-    case opcodes::ALLOCCOLOR:               {  //  84
+    case req_opcodes::ALLOCCOLOR:               {  //  84
         const xcb_colormap_t cmap {};
         const uint16_t       red {};
         const uint16_t       green {};
@@ -778,14 +778,14 @@ int main( const int argc, const char* const* argv ) {
         xcb_alloc_color(
             conn, cmap, red, green, blue );
     }   break;
-    case opcodes::ALLOCNAMEDCOLOR:          {  //  85
+    case req_opcodes::ALLOCNAMEDCOLOR:          {  //  85
         const xcb_colormap_t cmap     {};
         const uint16_t       name_len { 4 };
         const char*          name     { "test" };
         xcb_alloc_named_color(
             conn, cmap, name_len, name );
     }   break;
-    case opcodes::ALLOCCOLORCELLS:          {  //  86
+    case req_opcodes::ALLOCCOLORCELLS:          {  //  86
         const uint8_t        contiguous {};
         const xcb_colormap_t cmap       {};
         const uint16_t       colors     {};
@@ -793,7 +793,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_alloc_color_cells(
             conn, contiguous, cmap, colors, planes );
     }   break;
-    case opcodes::ALLOCCOLORPLANES:         {  //  87
+    case req_opcodes::ALLOCCOLORPLANES:         {  //  87
         const uint8_t        contiguous {};
         const xcb_colormap_t cmap       {};
         const uint16_t       colors     {};
@@ -804,7 +804,7 @@ int main( const int argc, const char* const* argv ) {
             conn, contiguous, cmap, colors, reds, greens, blues );
     }
         break;
-    case opcodes::FREECOLORS:               {  //  88
+    case req_opcodes::FREECOLORS:               {  //  88
         const xcb_colormap_t cmap       {};
         const uint32_t       plane_mask {};
         const uint32_t       pixels_len { 3 };
@@ -814,7 +814,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_free_colors(
             conn, cmap, plane_mask, pixels_len, pixels );
     }   break;
-    case opcodes::STORECOLORS:              {  //  89
+    case req_opcodes::STORECOLORS:              {  //  89
         const xcb_colormap_t  cmap      {};
         const uint32_t        items_len { 2 };
         // TBD use C++20 for member dot initialization
@@ -826,7 +826,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_store_colors(
             conn, cmap, items_len, items );
     }   break;
-    case opcodes::STORENAMEDCOLOR:          {  //  90
+    case req_opcodes::STORENAMEDCOLOR:          {  //  90
         const uint8_t        flags    {};
         const xcb_colormap_t cmap     {};
         const uint32_t       pixel    {};
@@ -835,7 +835,7 @@ int main( const int argc, const char* const* argv ) {
         xcb_store_named_color(
             conn, flags, cmap, pixel, name_len, name );
     }   break;
-    case opcodes::QUERYCOLORS:              {  //  91
+    case req_opcodes::QUERYCOLORS:              {  //  91
         const xcb_colormap_t cmap       {};
         const uint32_t       pixels_len { 3 };
         const uint32_t       pixels[3]  {
@@ -844,14 +844,14 @@ int main( const int argc, const char* const* argv ) {
         xcb_query_colors(
             conn, cmap, pixels_len, pixels );
     }   break;
-    case opcodes::LOOKUPCOLOR:              {  //  92
+    case req_opcodes::LOOKUPCOLOR:              {  //  92
         const xcb_colormap_t cmap     {};
         const uint16_t       name_len { 4 };
         const char*          name     { "test" };
         xcb_lookup_color(
             conn, cmap, name_len, name );
     }   break;
-    case opcodes::CREATECURSOR:             {  //  93
+    case req_opcodes::CREATECURSOR:             {  //  93
         const xcb_cursor_t cid         {};
         const xcb_pixmap_t source      {};
         const xcb_pixmap_t mask        {};
@@ -868,7 +868,7 @@ int main( const int argc, const char* const* argv ) {
             fore_red, fore_green, fore_blue,
             back_red, back_green, back_blue, x, y );
     }   break;
-    case opcodes::CREATEGLYPHCURSOR:        {  //  94
+    case req_opcodes::CREATEGLYPHCURSOR:        {  //  94
         const xcb_cursor_t cid         {};
         const xcb_font_t   source_font {};
         const xcb_font_t   mask_font   {};
@@ -884,12 +884,12 @@ int main( const int argc, const char* const* argv ) {
             conn, cid, source_font, mask_font, source_char, mask_char,
             fore_red, fore_green, fore_blue, back_red, back_green, back_blue );
     }   break;
-    case opcodes::FREECURSOR:               {  //  95
+    case req_opcodes::FREECURSOR:               {  //  95
         const xcb_cursor_t cursor {};
         xcb_free_cursor(
             conn, cursor );
     }   break;
-    case opcodes::RECOLORCURSOR:            {  //  96
+    case req_opcodes::RECOLORCURSOR:            {  //  96
         const xcb_cursor_t cursor     {};
         const uint16_t     fore_red   {};
         const uint16_t     fore_green {};
@@ -901,7 +901,7 @@ int main( const int argc, const char* const* argv ) {
             conn, cursor, fore_red, fore_green, fore_blue,
             back_red, back_green, back_blue );
     }   break;
-    case opcodes::QUERYBESTSIZE:            {  //  97
+    case req_opcodes::QUERYBESTSIZE:            {  //  97
         const uint8_t        _class   {};
         const xcb_drawable_t drawable {};
         const uint16_t       window   {};
@@ -909,17 +909,17 @@ int main( const int argc, const char* const* argv ) {
         xcb_query_best_size(
             conn, _class, drawable, window, height );
     }   break;
-    case opcodes::QUERYEXTENSION:           {  //  98
+    case req_opcodes::QUERYEXTENSION:           {  //  98
         const uint16_t name_len { 4 };
         const char*    name     { "test" };
         xcb_query_extension(
             conn, name_len, name );
     }   break;
-    case opcodes::LISTEXTENSIONS:           {  //  99
+    case req_opcodes::LISTEXTENSIONS:           {  //  99
         xcb_list_extensions(
             conn );
     }   break;
-    case opcodes::CHANGEKEYBOARDMAPPING:    {  // 100
+    case req_opcodes::CHANGEKEYBOARDMAPPING:    {  // 100
         const uint8_t       keycode_count       { 2 };
         const xcb_keycode_t first_keycode       { setup->min_keycode };
         const uint8_t       keysyms_per_keycode { 3 };
@@ -936,13 +936,13 @@ int main( const int argc, const char* const* argv ) {
             keysyms_per_keycode, keysyms );
 
     }   break;
-    case opcodes::GETKEYBOARDMAPPING:       {  // 101
+    case req_opcodes::GETKEYBOARDMAPPING:       {  // 101
         const xcb_keycode_t first_keycode {};
         const uint8_t       count         {};
         xcb_get_keyboard_mapping (
             conn, first_keycode, count);
     }   break;
-    case opcodes::CHANGEKEYBOARDCONTROL:    {  // 102
+    case req_opcodes::CHANGEKEYBOARDCONTROL:    {  // 102
         const uint32_t value_mask {
             XCB_KB_KEY_CLICK_PERCENT | XCB_KB_BELL_PERCENT | XCB_KB_BELL_PITCH |
             XCB_KB_BELL_DURATION | XCB_KB_LED | XCB_KB_LED_MODE | XCB_KB_KEY |
@@ -952,16 +952,16 @@ int main( const int argc, const char* const* argv ) {
         xcb_change_keyboard_control(
             conn, value_mask, (const void*)value_list );
     }   break;
-    case opcodes::GETKEYBOARDCONTROL:       {  // 103
+    case req_opcodes::GETKEYBOARDCONTROL:       {  // 103
         xcb_get_keyboard_control(
             conn );
     }   break;
-    case opcodes::BELL:                     {  // 104
+    case req_opcodes::BELL:                     {  // 104
         const int8_t percent {};
         xcb_bell(
             conn, percent );
     }   break;
-    case opcodes::CHANGEPOINTERCONTROL:     {  // 105
+    case req_opcodes::CHANGEPOINTERCONTROL:     {  // 105
         const int16_t acceleration_numerator   {};
         const int16_t acceleration_denominator {};
         const int16_t threshold                {};
@@ -971,10 +971,10 @@ int main( const int argc, const char* const* argv ) {
             conn, acceleration_numerator, acceleration_denominator,
             threshold, do_acceleration, do_threshold );
     }   break;
-    case opcodes::GETPOINTERCONTROL:        {  // 106
+    case req_opcodes::GETPOINTERCONTROL:        {  // 106
         xcb_get_pointer_control(conn);
     }   break;
-    case opcodes::SETSCREENSAVER:           {  // 107
+    case req_opcodes::SETSCREENSAVER:           {  // 107
         const int16_t           timeout {};
         const int16_t           interval {};
         const uint8_t           prefer_blanking {};
@@ -982,11 +982,11 @@ int main( const int argc, const char* const* argv ) {
         xcb_set_screen_saver(
             conn, timeout, interval, prefer_blanking, allow_exposures);
     }   break;
-    case opcodes::GETSCREENSAVER:           {  // 108
+    case req_opcodes::GETSCREENSAVER:           {  // 108
         xcb_get_screen_saver(
             conn );
     }   break;
-    case opcodes::CHANGEHOSTS:              {  // 109
+    case req_opcodes::CHANGEHOSTS:              {  // 109
         const uint8_t  mode        {};
         const uint8_t  family      {};
         const uint16_t address_len { 4 };
@@ -996,26 +996,26 @@ int main( const int argc, const char* const* argv ) {
         xcb_change_hosts(
             conn, mode, family, address_len, address );
     }   break;
-    case opcodes::LISTHOSTS:                {  // 110
+    case req_opcodes::LISTHOSTS:                {  // 110
         xcb_list_hosts(
             conn );
     }   break;
-    case opcodes::SETACCESSCONTROL:         {  // 111
+    case req_opcodes::SETACCESSCONTROL:         {  // 111
         const uint8_t mode {};
         xcb_set_access_control(
             conn, mode );
     }   break;
-    case opcodes::SETCLOSEDOWNMODE:         {  // 112
+    case req_opcodes::SETCLOSEDOWNMODE:         {  // 112
         const uint8_t mode {};
         xcb_set_close_down_mode(
             conn, mode );
     }   break;
-    case opcodes::KILLCLIENT:               {  // 113
+    case req_opcodes::KILLCLIENT:               {  // 113
         const uint32_t resource {};
         xcb_kill_client (
             conn, resource );
     }   break;
-    case opcodes::ROTATEPROPERTIES:         {  // 114
+    case req_opcodes::ROTATEPROPERTIES:         {  // 114
         const xcb_window_t window    {};
         const uint16_t     atoms_len { 3 };
         const int16_t      delta     {};
@@ -1025,13 +1025,13 @@ int main( const int argc, const char* const* argv ) {
         xcb_rotate_properties(
             conn, window, atoms_len, delta, atoms );
     }   break;
-    case opcodes::FORCESCREENSAVER:         {  // 115
+    case req_opcodes::FORCESCREENSAVER:         {  // 115
         const uint8_t mode {};
         xcb_force_screen_saver(
             conn, mode );
 
     }   break;
-    case opcodes::SETPOINTERMAPPING:        {  // 116
+    case req_opcodes::SETPOINTERMAPPING:        {  // 116
         const uint8_t map_len { 4 };
         const uint8_t map[4]  {
             0x01, 0x02, 0x03, 0x04
@@ -1039,11 +1039,11 @@ int main( const int argc, const char* const* argv ) {
         xcb_set_pointer_mapping(
             conn, map_len, map );
     }   break;
-    case opcodes::GETPOINTERMAPPING:        {  // 117
+    case req_opcodes::GETPOINTERMAPPING:        {  // 117
         xcb_get_pointer_mapping(
             conn );
      }   break;
-    case opcodes::SETMODIFIERMAPPING:       {  // 118
+    case req_opcodes::SETMODIFIERMAPPING:       {  // 118
         const uint8_t       keycodes_per_modifier { 2 };
         const xcb_keycode_t keycodes[16]          {
             0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
@@ -1054,11 +1054,11 @@ int main( const int argc, const char* const* argv ) {
         xcb_set_modifier_mapping(
             conn, keycodes_per_modifier, keycodes );
     }   break;
-    case opcodes::GETMODIFIERMAPPING:       {  // 119
+    case req_opcodes::GETMODIFIERMAPPING:       {  // 119
         xcb_get_modifier_mapping(
             conn );
     }   break;
-    case opcodes::NOOPERATION:              {  // 127
+    case req_opcodes::NOOPERATION:              {  // 127
         xcb_no_operation(
             conn );
     }   break;
