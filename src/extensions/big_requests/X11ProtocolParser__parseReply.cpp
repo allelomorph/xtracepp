@@ -35,9 +35,9 @@ X11ProtocolParser::_parseReply<
                 reply.bytes_parsed - ext::requests::Reply::DEFAULT_ENCODING_SZ ) );
     // BIG-REQUESTS is a special case in that it is not considered activated
     //   until the server replies to request BigReqEnable
-    assert( !conn->extensions.active(
+    assert( !conn->extensionEnabled(
                 protocol::extensions::big_requests::name ) );
-    conn->extensions.activate(
+    conn->enableExtension(
         protocol::extensions::big_requests::name );
 
     const uint32_t memb_name_w (

@@ -1571,7 +1571,8 @@ private:
                 XPP::_ordered( big_length->extended_length_flag, byteswap ) ==
                 protocol::extensions::big_requests::EXTENDED_LENGTH_FLAG;
             if ( big_request ) {
-                assert( conn->extensions.big_requests );
+                assert( conn->extensionEnabled(
+                            protocol::extensions::big_requests::name ) );
                 bytes_parsed += sizeof( BigLength );
             } else {
                 bytes_parsed += sizeof( Length );

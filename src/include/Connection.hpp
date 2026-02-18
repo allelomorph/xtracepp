@@ -10,8 +10,9 @@
 
 #include <cstdint>
 
-#include "Extensions.hpp"
 #include "SocketBuffer.hpp"
+
+#include "protocol/extensions/big_requests.hpp"
 
 
 /**
@@ -52,6 +53,12 @@ private:
      */
     std::unordered_map< uint16_t, RequestOpcodes >
     _request_opcodes_by_seq_num;
+    /**
+     * @brief Protocol extension toggles, indexed by name.
+     */
+    std::unordered_map< std::string_view, bool > _extensions {
+        { protocol::extensions::big_requests::name, false }
+    };
 
 public:
     /**
@@ -124,10 +131,6 @@ public:
      * @brief Current connection state.
      */
     Status status { UNESTABLISHED };
-    /**
-     * @brief Tracks activation of protocol extensions for connection.
-     */
-    Extensions extensions;
     /**
      * @brief Default ctor; assigns [id](#id) and [start_time](#start_time).
      */
@@ -206,6 +209,41 @@ public:
     unregisterRequest( const uint16_t seq_num ) {
         // .erase is idempotent, no need for bounds check assert
         _request_opcodes_by_seq_num.erase( seq_num );
+    }
+    /**
+     * @brief Enable an extension by name.
+     * @param name extension name
+     */
+    inline void
+    enableExtension( const std::string_view& name ) {
+        if ( auto it { _extensions.find( name ) };
+             it != _extensions.end() ) {
+            it->second = true;
+        }
+    }
+    /**
+     * @brief Check by name if extension is enabled.
+     * @param name extension name
+     * @return whether extension is active
+     */
+    inline bool
+    extensionEnabled( const std::string_view& name ) {
+        if ( auto it { _extensions.find( name ) };
+             it != _extensions.end() ) {
+            return it->second;
+        }
+        return false;
+    }
+    /**
+     * @brief Disable an extension by name.
+     * @param name extension name
+     */
+    inline void
+    disableExtension( const std::string_view& name ) {
+        if ( auto it { _extensions.find( name ) };
+             it != _extensions.end() ) {
+            it->second = false;
+        }
     }
 };
 

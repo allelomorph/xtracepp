@@ -2076,8 +2076,8 @@ X11ProtocolParser::_parseReply<
         // BIG-REQUESTS is a special case in that it is not considered activated
         //   until the server replies to request BigReqEnable
         if ( ext_name != protocol::extensions::big_requests::name ) {
-            assert( !conn->extensions.active( ext_name ) );
-            conn->extensions.activate( ext_name );
+            assert( !conn->extensionEnabled( ext_name ) );
+            conn->enableExtension( ext_name );
         }
     }
 
