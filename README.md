@@ -1,5 +1,5 @@
 # xtracepp
-Proxy between X11 display server (or [Wayland] compositor via [Xwayland]) and client applications, logging their communication and selectively altering message data based on user options. Is to [X11 protocol] traffic what [strace] is to Linux syscalls. Complete rebuild of the original [xtrace] in [C++17], with expanded [features](#added-features).
+Proxy between X11 display server (or [Wayland] compositor via [Xwayland]) and client applications, logging their communication and selectively altering message data based on user options. Is to [X11 protocol] traffic what [strace] is to Linux syscalls. Complete rebuild of the original Debian [xtrace] in [C++17], with expanded [features](#added-features).
 
 ### Developer Objectives
 - improve personal understanding of [X11 protocol]
@@ -24,8 +24,8 @@ Proxy between X11 display server (or [Wayland] compositor via [Xwayland]) and cl
 | `git` | | 2.43.0 |
 | `cmake` | 3.14+ | 3.28.3 |
 | `g++`/`clang++` | 7+/4+ | 13.3.0/18.1.3 |
-| `libstdc++`/`libc++` | 9+/7+ | 13.3.0/NA |
-| `libxcb` (`XTRACEPP_BUILD_TESTS=ON`) | | 1.15 |
+| `libstdc++`/`libc++` | 9+/7+ | 13.3.0/18.1.3 |
+| `libxcb`(with `libxcb-dev`) (`XTRACEPP_BUILD_TESTS=ON`) | | 1.15 |
 | `doxygen` (`XTRACEPP_BUILD_DOCS=ON`) | | 1.9.8 |
 | `dot` (`graphviz`) (`XTRACEPP_BUILD_DOCS=ON`) | | 2.43.0 |
 
@@ -67,7 +67,7 @@ Normally `xtracepp` closes when it has no open connections. But an easy way to u
 ```bash
 $ xtracepp [options...] --keeprunning &
 ```
-then launch as many X client apps as you like with a proxy `DISPLAY` name:
+then launch as many X client apps as you like with `DISPLAY` set to the `xtracepp` proxy display (default `:9` in this example):
 ```bash
 $ DISPLAY=:9 xclock
 ```
@@ -95,12 +95,12 @@ This can be combined with the `--keeprunning` option above to stay listening for
 
 A typical log entry from `xtracepp` is one line for one protocol message, following a general format:
 - prefix (uses `:` as delimiter)
-  - `C` + connection number (three digits, zero padded)
+  - `C` + connection number (0-indexed, three digits, zero padded)
   - message size in bytes (four digits, zero padded) + `B`
   - direction glyph
     - `s<c` client to server
     - `s>c` server to client
-  - `S` + sequence number (five digits, zero padded)
+  - `S` + sequence number (1-indexed, five digits, zero padded)
   - description
     - category of message ([requests](#requests), [replies](#replies), [events](#events), [errors](#errors))
     - message name
@@ -120,6 +120,13 @@ A typical log entry from `xtracepp` is one line for one protocol message, follow
   - formatting can be modified with options
     - [`--multiline`](#multiline-log-entries)
     - [`--verbose`](#variable-verbosity)
+
+For example, here is a message which is:
+- 8 bytes long
+- sent from client to server
+- the first request (sequence 1) on connection 0
+- encoded as GetWindowAttributes (core opcode 3)
+- containing the data field `window` with a value of 0
 ```
 C000:0008B:s<c:S00001: Request GetWindowAttributes(3):  { window=0 }
 ```
@@ -150,7 +157,7 @@ C000:0004B:s<c:S00002: Request BIG-REQUESTS(133)-BigReqEnable(0): { }
 ```
 
 #### [Replies]
-Direct server responses to requests (only some requests expect replies.)
+Direct server responses to requests (only some requests expect replies.) A reply is logged with the sequence number of the relevant request.
 
 `xtracepp` identifies the relevant request by connection and sequence number, and includes its name and opcode(s) in the message prefix:
 ```
@@ -161,7 +168,7 @@ C000:0032B:s<c:S00002: Reply to BIG-REQUESTS(133)-BigReqEnable(0): { maximum-req
 ```
 
 #### [Events]
-Server reports of state changes, often triggered by requests, but not directly tied to them.
+Server reports of state changes, often triggered by requests, but not directly tied to them. An event is logged with the sequence number of the relevant request.
 
 Log line prefix will identify events by their event code:
 ```
@@ -169,14 +176,13 @@ C000:0032B:s>c:S00082: Event Expose(12): { window=14680075 x=0 y=0 width=164 hei
 ```
 <!-- TBD extension events -->
 
-> [!NOTE]
-> Request [SendEvent] field `event` will format an event in the same way, but without a prefix:
-> ```
-> C000:0044B:s<c:S00001: Request SendEvent(25): { propagate=False destination=PointerWindow event-mask=StructureNotify event=KeyRelease(3) { detail=0 time=0x00000000 root=0 event=0 child=None root-x=0 root-y=0 event-x=0 event-y=0 state=0x0000 same-screen=False } }
-> ```
+Request [SendEvent] field `event` will be formatted as a normal event, but without a log prefix:
+```
+C000:0044B:s<c:S00001: Request SendEvent(25): { propagate=False destination=PointerWindow event-mask=StructureNotify event=KeyRelease(3) { detail=0 time=0x00000000 root=0 event=0 child=None root-x=0 root-y=0 event-x=0 event-y=0 state=0x0000 same-screen=False } }
+```
 
 #### [Errors]
-Server responses to failed requests.
+Server responses to failed requests. An error is logged with the sequence number of the relevant request.
 
 Log line prefix will identify errors by their error code:
 ```
