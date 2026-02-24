@@ -96,21 +96,37 @@ void Settings::_parseFromArgv( const int argc, const char* argv[] ) {
     };
     const std::string_view optstring { "+d:D:ke:E:wo:umvsp" };
     const std::string_view help_msg {
-        R"({}: intercept, log, and modify (based on user options) message data going between X server and clients
-  (usage: {} [options...] [-- subcommand args...]
-  options:
-    --display,            -d <display name>   : provide libX11 formatted display name of real X server
-    --proxydisplay,       -D <display name>   : provide libX11 formatted display name of this proxy server
-    --keeprunning,        -k                  : continue monitoring traffic after subcommand client exits
-    --denyextensions,     -e <extension name> : deny X extensions named ("all" disables all)
-    --allowextensions,    -E <extension name> : deny X extensions not named (default all enabled if option not used)
-    --readwritedebug,     -w                  : print amounts of data read/sent
-    --outfile,            -o <file path>      : output to file instead of stdout
-    --unbuffered,         -u                  : deactivate stream buffering for output
-    --multiline,          -m                  : break log lines along nested groupings of data
-    --verbose,            -v                  : print all data fields of every message + alternate data formatting
-    --systemtimeformat,   -s                  : X protocol TIMESTAMPs interpreted against system time in formatting
-    --prefetchatoms,      -p                  : first fetch already interned strings to reduce unrecognized ATOMs
+        R"(xtracepp - intercept, log, and modify (based on user options) message data going
+  between X server and clients
+
+Syntax:
+    xtracepp [options...] [-- subcommand args...]
+
+Options:
+    --display           / -d <display name>
+        provide libX11 formatted display name of real X server
+    --proxydisplay      / -D <display name>
+        provide libX11 formatted display name of this proxy server
+    --keeprunning       / -k
+        continue monitoring traffic after subcommand client exits
+    --denyextensions    / -e <extension name>
+        deny X extensions named ("all" disables all)
+    --allowextensions   / -E <extension name>
+        deny X extensions not named (default all enabled if option not used)
+     --readwritedebug   / -w
+        add log lines for each buffer read/write
+     --outfile          / -o <file path>
+        output to file instead of stdout
+     --unbuffered       / -u
+        deactivate stream buffering for output
+     --multiline        / -m
+        break log lines along nested groupings of data
+     --verbose          / -v
+        print all data fields of every message + alternate data formatting
+     --systemtimeformat / -s
+        X protocol TIMESTAMPs interpreted against system time in formatting
+     --prefetchatoms    / -p
+        first fetch already interned strings to reduce unrecognized ATOMs
 )" };
     std::unordered_set< std::string_view > enabled_extensions;
     std::unordered_set< std::string_view > disabled_extensions;
@@ -204,7 +220,7 @@ void Settings::_parseFromArgv( const int argc, const char* argv[] ) {
         case '\0':
             switch( long_only_option ) {
             case LO_HELP:
-                fmt::print( ::stderr, help_msg, process_name, process_name );
+                fmt::print( ::stderr, help_msg );
                 ::exit( EXIT_SUCCESS );
             }
             break;
