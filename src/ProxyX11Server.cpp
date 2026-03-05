@@ -48,7 +48,7 @@ static void handleSIGCHLD( [[maybe_unused]] int sig, ::siginfo_t* info,
                            void*/* ucontext*/ ) {
     assert( sig == SIGCHLD );
     assert( info != nullptr );
-    assert( sig == info->si_status );
+    assert( sig == info->si_signo );
     assert( child_running.load() == true );
     child_running.store( false );
     switch ( info->si_code ) {
