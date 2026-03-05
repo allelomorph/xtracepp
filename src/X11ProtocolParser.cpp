@@ -58,7 +58,8 @@ X11ProtocolParser::X11ProtocolParser( const Settings& settings_ ) :
     instantiated = true;
 
     assert( settings.log_fs != nullptr );
-    assert( !::feof( settings.log_fs ) && !::ferror( settings_.log_fs ) );
+    assert( ::feof( settings.log_fs ) == 0 &&
+            ::ferror( settings_.log_fs ) == 0 );
 
     for ( uint32_t i { 1 }; i <= protocol::atoms::predefined::MAX; ++i ) {
         _interned_atoms.emplace( i, protocol::atoms::predefined::strings.at( i ) );

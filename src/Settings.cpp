@@ -197,7 +197,7 @@ Options:
             assert( optarg != nullptr );
             log_path = optarg;
             assert( log_path != nullptr && log_path[0] != '\0' );
-            log_fs = ::fopen( log_path, "w" );
+            log_fs = ::fopen( log_path, "we" );
             if ( log_fs == nullptr ) {
                 fmt::println( ::stderr, "{}: could not open log file {:?}, {}",
                               process_name, log_path,
@@ -273,10 +273,16 @@ Settings::Settings( const int argc, const char* argv[] ) {
 }
 
 Settings::~Settings() {
-    ::fflush( log_fs );
+    if ( ::fflush( log_fs ) != EXIT_SUCCESS ) {
+        fmt::println( ::stderr, "{}: {}",
+                      process_name, errors::system::message( "fflush" ) );
+        ::exit( EXIT_FAILURE );
+    }
     if ( log_fs == ::stdout || log_fs == ::stderr ) {
         _restoreFileStreamBufferDefaults();
-    } else {
-        ::fclose( log_fs );
+    } else if ( ::fclose( log_fs ) != EXIT_SUCCESS ) {
+        fmt::println( ::stderr, "{}: {}",
+                      process_name, errors::system::message( "fclose" ) );
+        ::exit( EXIT_FAILURE );
     }
 }

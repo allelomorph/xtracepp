@@ -4,13 +4,13 @@
 #include <vector>
 
 #include <cassert>
+#include <csignal>                        // sigaction, SIGABRT, SIGINT, SIGS...
 #include <cstdint>
 #include <cstdio>                         // stderr
 #include <cstdlib>                        // exit, EXIT_FAILURE
+#include <ctime>                          // time
 
 #include <poll.h>                         // pollfd, POLLIN, POLLOUT, poll
-#include <signal.h>                       // sigaction, SIGABRT, SIGINT, SIGS...
-#include <time.h>                         // time
 #include <unistd.h>                       // close, _exit, write, STDERR_FILE...
 
 #include <fmt/format.h>
