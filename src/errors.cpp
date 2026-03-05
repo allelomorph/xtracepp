@@ -166,6 +166,8 @@ static constexpr std::array<
 
 std::string
 message( const std::string& msg/* = {}*/ ) {
+    assert( errno > -1 );
+    assert( errno <= detail::MAX_ERRNO );
     return fmt::format( "{}{}errno {}: {}",
                         msg, msg.empty() ? "" : ": ",
                         detail::errno_names.at( errno ),
