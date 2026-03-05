@@ -36,11 +36,11 @@ X11ProtocolParser::_parseRequest< X11ProtocolParser::_UnknownRequest >(
     const auto tl_aligned_units {
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
-    const size_t data_len { alignment.size( tl_aligned_units ) -
+    const size_t data_len { Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? _UnknownRequest::BASE_BIG_ENCODING_SZ :
                            _UnknownRequest::BASE_ENCODING_SZ ) };
-    request.bytes_parsed += alignment.pad( data_len );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( data_len );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -95,7 +95,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -145,7 +145,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -201,11 +201,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view pattern {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         pattern_len };
-    request.bytes_parsed += alignment.pad( pattern_len );
+    request.bytes_parsed += Alignment::pad( pattern_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -270,7 +270,7 @@ X11ProtocolParser::_parseRequest<
         _ordered( fe.big_length->tl_aligned_units, byteswap ) :
         _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t points_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? PolyPointRequest::BASE_BIG_ENCODING_SZ :
                            PolyPointRequest::BASE_ENCODING_SZ ) };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
@@ -278,8 +278,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::POINT >(
             data + request.bytes_parsed, points_sz, points_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( points.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( points.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -342,7 +342,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -431,7 +431,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -550,7 +550,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -659,7 +659,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -720,7 +720,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -865,7 +865,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -926,7 +926,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -987,7 +987,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1061,11 +1061,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
-    request.bytes_parsed += alignment.pad( name_len );
+    request.bytes_parsed += Alignment::pad( name_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     // Stash copy of atom until reply comes in - at that time we will include it
     //   in our own internment if it isn't already
@@ -1133,7 +1133,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1205,11 +1205,11 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, data_len, data_len,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) );
     }
-    request.bytes_parsed += alignment.pad( data_.bytes_parsed );
+    request.bytes_parsed += Alignment::pad( data_.bytes_parsed );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1283,7 +1283,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1341,7 +1341,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1427,7 +1427,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1489,7 +1489,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1545,7 +1545,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1620,7 +1620,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1687,7 +1687,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1765,7 +1765,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1822,7 +1822,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1902,7 +1902,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -1965,7 +1965,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2027,7 +2027,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2096,7 +2096,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2153,7 +2153,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2222,7 +2222,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2285,7 +2285,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2395,7 +2395,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2457,7 +2457,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2519,7 +2519,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2592,7 +2592,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2693,11 +2693,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
-    request.bytes_parsed += alignment.pad( name_len );
+    request.bytes_parsed += Alignment::pad( name_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2761,7 +2761,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2817,7 +2817,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2876,7 +2876,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t string_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? QueryTextExtents::BASE_BIG_ENCODING_SZ :
                            QueryTextExtents::BASE_ENCODING_SZ ) };
     const size_t string_len {
@@ -2888,7 +2888,7 @@ X11ProtocolParser::_parseRequest<
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
     // - bypass expected use of string.bytes_parsed due to odd-length
     request.bytes_parsed += string_sz;
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -2986,11 +2986,11 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, sz - request.bytes_parsed,
             _ordered( fe.encoding->path_ct, byteswap ),
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( path.bytes_parsed );
+    request.bytes_parsed += Alignment::pad( path.bytes_parsed );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3066,7 +3066,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3132,7 +3132,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3232,7 +3232,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3344,7 +3344,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3410,7 +3410,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3475,11 +3475,11 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, sz - request.bytes_parsed,
             _ordered( fe.encoding->dashes_len, byteswap ),
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( dashes.bytes_parsed );
+    request.bytes_parsed += Alignment::pad( dashes.bytes_parsed );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3547,7 +3547,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? SetClipRectangles::BASE_BIG_ENCODING_SZ :
                            SetClipRectangles::BASE_ENCODING_SZ ) };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
@@ -3555,11 +3555,11 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz, rectangles_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( rectangles.bytes_parsed );
+    request.bytes_parsed += Alignment::pad( rectangles.bytes_parsed );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3626,7 +3626,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3682,7 +3682,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3751,7 +3751,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3825,7 +3825,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -3936,7 +3936,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t segments_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? PolySegment::BASE_BIG_ENCODING_SZ :
                            PolySegment::BASE_ENCODING_SZ ) };
     const size_t segments_ct { segments_sz / sizeof( PolySegment::SEGMENT ) };
@@ -3944,8 +3944,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< PolySegment::SEGMENT >(
             data + request.bytes_parsed, segments_sz, segments_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( segments.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( segments.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4007,7 +4007,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? PolyRectangle::BASE_BIG_ENCODING_SZ :
                            PolyRectangle::BASE_ENCODING_SZ ) };
     const size_t rectangles_ct { rectangles_sz / sizeof( protocol::RECTANGLE ) };
@@ -4015,8 +4015,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz, rectangles_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( rectangles.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( rectangles.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4085,8 +4085,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::ARC >(
             data + request.bytes_parsed, arcs_sz, arcs_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( arcs.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( arcs.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4148,7 +4148,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t points_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? FillPoly::BASE_BIG_ENCODING_SZ :
                            FillPoly::BASE_ENCODING_SZ ) };
     const size_t points_ct { points_sz / sizeof( protocol::POINT ) };
@@ -4156,8 +4156,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::POINT >(
             data + request.bytes_parsed, points_sz, points_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( points.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( points.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4226,14 +4226,14 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t rectangles_sz {
-        alignment.size( tl_aligned_units ) - sizeof( PolyFillRectangle::Encoding ) };
+        Alignment::size( tl_aligned_units ) - sizeof( PolyFillRectangle::Encoding ) };
     const uint16_t rectangles_ct ( rectangles_sz / sizeof( protocol::RECTANGLE ) );
     const _ParsingOutputs rectangles {
         _parseLISTof< protocol::RECTANGLE >(
             data + request.bytes_parsed, rectangles_sz, rectangles_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( rectangles.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( rectangles.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4295,14 +4295,14 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t arcs_sz {
-        alignment.size( tl_aligned_units ) - sizeof( PolyFillArc::Encoding ) };
+        Alignment::size( tl_aligned_units ) - sizeof( PolyFillArc::Encoding ) };
     const uint16_t arcs_ct ( arcs_sz  / sizeof( protocol::ARC ) );
     const _ParsingOutputs arcs {
         _parseLISTof< protocol::ARC >(
             data + request.bytes_parsed, arcs_sz, arcs_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( arcs.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( arcs.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4364,12 +4364,12 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t data_len {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? PutImage::BASE_BIG_ENCODING_SZ :
                            PutImage::BASE_ENCODING_SZ ) };
     // - as in xtrace, we will only print the size in bytes of the image data
-    request.bytes_parsed += alignment.pad( data_len );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( data_len );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4448,7 +4448,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4524,7 +4524,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t items_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? PolyText8::BASE_BIG_ENCODING_SZ :
                            PolyText8::BASE_ENCODING_SZ ) };
     // TEXTITEM8 count undetermined due to their variable length
@@ -4532,8 +4532,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< PolyText8::TEXTITEM8 >(
             data + request.bytes_parsed, items_sz,
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( items.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( items.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4600,7 +4600,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t items_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? PolyText16::BASE_BIG_ENCODING_SZ :
                            PolyText16::BASE_ENCODING_SZ ) };
     // TEXTITEM8 count undetermined due to their variable length
@@ -4608,8 +4608,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< PolyText16::TEXTITEM16 >(
             data + request.bytes_parsed, items_sz,
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( items.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( items.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4676,11 +4676,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view string {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         string_len };
-    request.bytes_parsed += alignment.pad( string_len );
+    request.bytes_parsed += Alignment::pad( string_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4754,11 +4754,11 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::CHAR2B >(
             data + request.bytes_parsed, string_sz, string_2B_len,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    request.bytes_parsed += alignment.pad( string.bytes_parsed );
+    request.bytes_parsed += Alignment::pad( string.bytes_parsed );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4827,7 +4827,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -4908,7 +4908,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5014,7 +5014,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5079,11 +5079,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
-    request.bytes_parsed += alignment.pad( name_len );
+    request.bytes_parsed += Alignment::pad( name_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5147,7 +5147,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5211,7 +5211,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5282,7 +5282,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t pixels_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? FreeColors::BASE_BIG_ENCODING_SZ :
                            FreeColors::BASE_ENCODING_SZ ) };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
@@ -5290,8 +5290,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::CARD32 >(
             data + request.bytes_parsed, pixels_sz, pixels_ct,
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( pixels.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( pixels.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5355,7 +5355,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t items_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? StoreColors::BASE_BIG_ENCODING_SZ :
                            StoreColors::BASE_ENCODING_SZ ) };
     const size_t items_ct { items_sz / sizeof( StoreColors::COLORITEM ) };
@@ -5363,8 +5363,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< StoreColors::COLORITEM >(
             data + request.bytes_parsed, items_sz, items_ct,
             byteswap, ws.nested(), _Whitespace::FORCE_SINGLELINE ) };
-    request.bytes_parsed += alignment.pad( items.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( items.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5425,11 +5425,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
-    request.bytes_parsed += alignment.pad( name_len );
+    request.bytes_parsed += Alignment::pad( name_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5503,7 +5503,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t pixels_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? QueryColors::BASE_BIG_ENCODING_SZ :
                            QueryColors::BASE_ENCODING_SZ ) };
     const size_t pixels_ct { pixels_sz / sizeof( protocol::CARD32 ) };
@@ -5511,8 +5511,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::CARD32 >(
             data + request.bytes_parsed, pixels_sz, pixels_ct,
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( pixels.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( pixels.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5573,11 +5573,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
-    request.bytes_parsed += alignment.pad( name_len );
+    request.bytes_parsed += Alignment::pad( name_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5641,7 +5641,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5721,7 +5721,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5800,7 +5800,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5856,7 +5856,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5925,7 +5925,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -5992,11 +5992,11 @@ X11ProtocolParser::_parseRequest<
     const std::string_view name {
         reinterpret_cast< const char* >( data + request.bytes_parsed ),
         name_len };
-    request.bytes_parsed += alignment.pad( name_len );
+    request.bytes_parsed += Alignment::pad( name_len );
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     // Stash copy of extension name until reply comes in - at that time we will
     //   use it in the activation of the extension
@@ -6078,7 +6078,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t keysyms_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? ChangeKeyboardMapping::BASE_BIG_ENCODING_SZ :
                            ChangeKeyboardMapping::BASE_ENCODING_SZ ) };
     [[maybe_unused]] const uint16_t expected_keysyms_ct (
@@ -6091,8 +6091,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::KEYSYM >(
             data + request.bytes_parsed, keysyms_sz, keysyms_ct,
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( keysyms.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( keysyms.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6156,7 +6156,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6237,7 +6237,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6314,7 +6314,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6371,7 +6371,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : sizeof( "acceleration-denominator" ) - 1 );
@@ -6449,7 +6449,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6532,7 +6532,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t address_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? ChangeHosts::BASE_BIG_ENCODING_SZ :
                            ChangeHosts::BASE_ENCODING_SZ ) };
     const _ParsingOutputs address {
@@ -6540,8 +6540,8 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, address_sz,
             _ordered( fe.encoding->address_len, byteswap ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    request.bytes_parsed += alignment.pad( address.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( address.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6628,7 +6628,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6686,7 +6686,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6744,7 +6744,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6803,7 +6803,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t properties_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? RotateProperties::BASE_BIG_ENCODING_SZ :
                            RotateProperties::BASE_ENCODING_SZ ) };
     const _ParsingOutputs properties {
@@ -6811,8 +6811,8 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, properties_sz,
             _ordered( fe.encoding->properties_ct, byteswap ),
             byteswap, ws.nested() ) };
-    request.bytes_parsed += alignment.pad( properties.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( properties.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6878,7 +6878,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -6938,7 +6938,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t map_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? SetPointerMapping::BASE_BIG_ENCODING_SZ :
                            SetPointerMapping::BASE_ENCODING_SZ ) };
     const _ParsingOutputs map {
@@ -6946,8 +6946,8 @@ X11ProtocolParser::_parseRequest<
             data + request.bytes_parsed, map_sz,
             _ordered( fe.prefix->map_len, byteswap ),
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    request.bytes_parsed += alignment.pad( map.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( map.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :
@@ -7025,7 +7025,7 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t keycodes_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? SetModifierMapping::BASE_BIG_ENCODING_SZ :
                            SetModifierMapping::BASE_ENCODING_SZ ) };
     [[maybe_unused]] const uint16_t expected_keycodes_ct (
@@ -7038,8 +7038,8 @@ X11ProtocolParser::_parseRequest<
         _parseLISTof< protocol::KEYCODE >(
             data + request.bytes_parsed, keycodes_sz, keycodes_ct,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    request.bytes_parsed += alignment.pad( keycodes.bytes_parsed );
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    request.bytes_parsed += Alignment::pad( keycodes.bytes_parsed );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline  ? 0 :
@@ -7116,11 +7116,11 @@ X11ProtocolParser::_parseRequest<
         fe.big_request ? _ordered( fe.big_length->tl_aligned_units, byteswap ) :
                          _ordered( fe.length->tl_aligned_units, byteswap ) };
     const size_t dummy_sz {
-        alignment.size( tl_aligned_units ) -
+        Alignment::size( tl_aligned_units ) -
         ( fe.big_request ? NoOperation::BASE_BIG_ENCODING_SZ :
                            NoOperation::BASE_ENCODING_SZ ) };
     request.bytes_parsed += dummy_sz;
-    assert( tl_aligned_units == alignment.units( request.bytes_parsed ) );
+    assert( tl_aligned_units == Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         ( !ws.multiline || !settings.verbose ) ? 0 :

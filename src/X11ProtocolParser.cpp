@@ -330,8 +330,8 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
                     ( little_endian != ( header->byte_order == Initiation::LSBFIRST ) );
                 buffer.setMessageSize(
                     sizeof( protocol::connection_setup::Initiation::Header ) +
-                    alignment.pad( _ordered( header->name_len, conn->byteswap ) ) +
-                    alignment.pad( _ordered( header->data_len, conn->byteswap ) ) );
+                    Alignment::pad( _ordered( header->name_len, conn->byteswap ) ) +
+                    Alignment::pad( _ordered( header->data_len, conn->byteswap ) ) );
             }
                 break;
             case Connection::AUTHENTICATION:
@@ -356,7 +356,7 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
                         goto length_checks;
                     }
                     buffer.setMessageSize(
-                        alignment.size(
+                        Alignment::size(
                             _ordered( big_length->tl_aligned_units,
                                       conn->byteswap ) ) );
                 } else {
@@ -364,7 +364,7 @@ X11ProtocolParser::logClientMessages( Connection* conn ) {
                         reinterpret_cast< const Request::Length* >(
                             data + sizeof( Request::Prefix ) ) };
                     buffer.setMessageSize(
-                        alignment.size(
+                        Alignment::size(
                             _ordered( length->tl_aligned_units,
                                       conn->byteswap ) ) );
                 }
@@ -441,7 +441,7 @@ X11ProtocolParser::logServerMessages( Connection* conn ) {
                     reinterpret_cast< const InitResponse::Header* >( data ) };
                 buffer.setMessageSize(
                     sizeof( InitResponse::Header ) +
-                    alignment.size(
+                    Alignment::size(
                         _ordered( header->following_aligned_units,
                                   conn->byteswap ) ) );
             }
@@ -470,7 +470,7 @@ X11ProtocolParser::logServerMessages( Connection* conn ) {
                         reinterpret_cast< const Reply::Header* >( data ) };
                     buffer.setMessageSize(
                         Reply::DEFAULT_ENCODING_SZ +
-                        alignment.size(
+                        Alignment::size(
                             _ordered( reply_header->extra_aligned_units,
                                       conn->byteswap ) ) );
                 }
