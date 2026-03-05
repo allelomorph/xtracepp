@@ -30,7 +30,7 @@ X11ProtocolParser::_parseRequest<
     assert( fe.big_request ?
             _ordered( fe.big_length->tl_aligned_units, byteswap ) :
             _ordered( fe.length->tl_aligned_units, byteswap ) ==
-            alignment.units( request.bytes_parsed ) );
+            Alignment::units( request.bytes_parsed ) );
 
     const uint32_t memb_name_w (
         !ws.multiline     ? 0 :

@@ -39,14 +39,14 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const std::string_view auth_protocol_name {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         name_len };
-    bytes_parsed += alignment.pad( name_len );
+    bytes_parsed += Alignment::pad( name_len );
     // followed by STRING8 authorization-protocol-data
     const uint16_t data_len { _ordered( header->data_len, byteswap ) };
     const _ParsingOutputs authorization_protocol_data {
         _parseLISTof< protocol::CARD8 >(
             data + bytes_parsed, data_len, data_len,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    bytes_parsed += alignment.pad( data_len );
+    bytes_parsed += Alignment::pad( data_len );
     assert( bytes_parsed == sz );  // (should not be batched with other messages)
 
     const uint32_t memb_name_w (
@@ -113,9 +113,9 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         reason_len };
-    bytes_parsed += alignment.pad( reason_len );
+    bytes_parsed += Alignment::pad( reason_len );
     assert( _ordered( header->following_aligned_units, byteswap ) ==
-            alignment.units( bytes_parsed - sizeof( Refusal::Header ) ) );
+            Alignment::units( bytes_parsed - sizeof( Refusal::Header ) ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?
@@ -181,13 +181,13 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const auto following_aligned_units {
         _ordered( header->following_aligned_units, byteswap ) };
     const size_t reason_padded_len {
-        alignment.size( following_aligned_units ) };
+        Alignment::size( following_aligned_units ) };
     const std::string_view reason {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         reason_padded_len };
     bytes_parsed += reason_padded_len;
     assert( following_aligned_units ==
-            alignment.units( bytes_parsed -
+            Alignment::units( bytes_parsed -
                              sizeof( RequireFurtherAuthentication::Header ) ) );
 
     const uint32_t memb_name_w (
@@ -260,7 +260,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
     const std::string_view vendor {
         reinterpret_cast< const char* >( data + bytes_parsed ),
         vendor_len };
-    bytes_parsed += alignment.pad( vendor_len );
+    bytes_parsed += Alignment::pad( vendor_len );
     // followed by LISTofFORMAT pixmap-formats
     const _ParsingOutputs pixmap_formats {
         _parseLISTof< Acceptance::FORMAT >(
@@ -276,7 +276,7 @@ size_t X11ProtocolParser::_logConnectionSetup<
             byteswap, ws.nested() ) };
     bytes_parsed += roots.bytes_parsed;
     assert( _ordered( header->following_aligned_units, byteswap ) ==
-            alignment.units( bytes_parsed - sizeof( Acceptance::Header ) ) );
+            Alignment::units( bytes_parsed - sizeof( Acceptance::Header ) ) );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?

@@ -16,6 +16,7 @@
 #include <fmt/format.h>
 
 #include "ProxyX11Server.hpp"
+#include "X11ProtocolParser.hpp"
 #include "errors.hpp"
 
 #include "protocol/version.hpp"
@@ -115,6 +116,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     const int server_fd, protocol::WINDOW* screen0_root/* = nullptr*/ ) {
     SocketBuffer buffer;
 
+    using Align = X11ProtocolParser::Alignment;
     ////// send Initiation
     using protocol::connection_setup::Initiation;
     Initiation::Header init_header {};
@@ -126,11 +128,11 @@ bool ProxyX11Server::_authenticateServerConnection(
     init_header.data_len = _AUTH_DATA_SZ;
     buffer.load( &init_header, sizeof(init_header) );
     // note: padded sz will copy up to 3 junk bytes
-    buffer.load( _AUTH_NAME.data(), _parser.alignment.pad( _AUTH_NAME.size() ) );
-    buffer.load( _auth_data, _parser.alignment.pad( _AUTH_DATA_SZ ) );
+    buffer.load( _AUTH_NAME.data(), Align::pad( _AUTH_NAME.size() ) );
+    buffer.load( _auth_data, Align::pad( _AUTH_DATA_SZ ) );
     const size_t bytes_loaded {
-        sizeof(init_header) + _parser.alignment.pad( _AUTH_NAME.size() ) +
-        _parser.alignment.pad( _AUTH_DATA_SZ ) };
+        sizeof(init_header) + Align::pad( _AUTH_NAME.size() ) +
+        Align::pad( _AUTH_DATA_SZ ) };
     assert( buffer.size() == bytes_loaded );
     buffer.setMessageSize( bytes_loaded );
     buffer.markMessageParsed();
@@ -163,7 +165,7 @@ bool ProxyX11Server::_authenticateServerConnection(
         return false;
     const size_t acceptance_sz {
         sizeof( Acceptance::Header ) +
-        _parser.alignment.size( accept_header->following_aligned_units ) };
+        Align::size( accept_header->following_aligned_units ) };
     buffer.setMessageSize( acceptance_sz );
     const auto [ remaining_bytes_read, remaining_read_error ] {
         polledReadMessage( buffer, server_fd, acceptance_sz ) };
@@ -179,7 +181,7 @@ bool ProxyX11Server::_authenticateServerConnection(
     Acceptance::Encoding accept_encoding {};
     buffer.unload( &accept_encoding, sizeof( Acceptance::Encoding ) );
     // skip suffix `vendor`
-    buffer.unload( _parser.alignment.pad( accept_encoding.vendor_len ) );
+    buffer.unload( Align::pad( accept_encoding.vendor_len ) );
     // skip suffix `pixmap-formats`
     buffer.unload( accept_encoding.pixmap_formats_ct *
                    sizeof( Acceptance::FORMAT ) );
@@ -193,6 +195,8 @@ bool ProxyX11Server::_authenticateServerConnection(
 }
 
 void ProxyX11Server::_fetchCurrentServerTime() {
+    using Align = X11ProtocolParser::Alignment;
+
     const int server_fd { _connectToServer() };
     if( server_fd < 0 ) {
         fmt::println(
@@ -216,7 +220,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         prefix.opcode = protocol::requests::opcodes::CHANGEWINDOWATTRIBUTES;
         buffer.load( &prefix, sizeof( prefix ) );
         ChangeWindowAttributes::Length length {};
-        length.tl_aligned_units = _parser.alignment.units(
+        length.tl_aligned_units = Align::units(
             ChangeWindowAttributes::BASE_ENCODING_SZ + sizeof( protocol::VALUE ) );
         buffer.load( &length, sizeof( length ) );
         ChangeWindowAttributes::Encoding encoding {};
@@ -249,7 +253,7 @@ void ProxyX11Server::_fetchCurrentServerTime() {
         buffer.load( &prefix, sizeof( prefix ) );
         ChangeProperty::Length length {};
         length.tl_aligned_units =
-            _parser.alignment.units( ChangeProperty::BASE_ENCODING_SZ );
+            Align::units( ChangeProperty::BASE_ENCODING_SZ );
         buffer.load( &length, sizeof( length ) );
         ChangeProperty::Encoding encoding {};
         encoding.window = screen0_root;
@@ -314,6 +318,8 @@ static void handleTerminatingSignal( int sig ) {
 
 std::vector< std::string >
 ProxyX11Server::_fetchInternedAtoms() {
+    using Align = X11ProtocolParser::Alignment;
+
     const int server_fd { _connectToServer() };
     if( server_fd < 0 ) {
         fmt::println(
@@ -356,7 +362,7 @@ ProxyX11Server::_fetchInternedAtoms() {
         req_prefix.opcode = protocol::requests::opcodes::GETATOMNAME;
         GetAtomName::Length req_length {};
         req_length.tl_aligned_units =
-            _parser.alignment.units( GetAtomName::BASE_ENCODING_SZ );
+            Align::units( GetAtomName::BASE_ENCODING_SZ );
         GetAtomName::Encoding req_encoding {};
         GetAtomName::Reply::Encoding rep_encoding {};
         static constexpr size_t STRINGBUF_SZ { 1000 };
@@ -404,7 +410,7 @@ ProxyX11Server::_fetchInternedAtoms() {
                     reinterpret_cast< const GetAtomName::Reply::Header* >(
                         buffer.data() ) };
                 response_sz = GetAtomName::Reply::DEFAULT_ENCODING_SZ +
-                    _parser.alignment.size( rep_header->extra_aligned_units );
+                    Align::size( rep_header->extra_aligned_units );
             }
             buffer.setMessageSize( response_sz );
             const auto [ remaining_bytes_read, remaining_read_error ] {
@@ -433,9 +439,9 @@ ProxyX11Server::_fetchInternedAtoms() {
             assert( rep_encoding.header.reply == protocol::requests::Reply::REPLY );
             assert( rep_encoding.header.sequence_num == atom_i );
             assert( rep_encoding.header.extra_aligned_units ==
-                    _parser.alignment.units( _parser.alignment.pad( rep_encoding.name_len ) ) );
+                    Align::units( Align::pad( rep_encoding.name_len ) ) );
             assert( buffer.size() < STRINGBUF_SZ );
-            assert( buffer.size() == _parser.alignment.pad( rep_encoding.name_len ) );
+            assert( buffer.size() == Align::pad( rep_encoding.name_len ) );
             buffer.unload( stringbuf, buffer.size() );
             stringbuf[ rep_encoding.name_len ] = '\0';
             fetched_atoms.emplace_back( stringbuf );

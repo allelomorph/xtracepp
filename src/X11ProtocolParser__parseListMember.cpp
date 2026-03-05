@@ -84,7 +84,7 @@ X11ProtocolParser::_parseListMember<
         _parseLISTof< protocol::BYTE >(
             data + outputs.bytes_parsed, sz - outputs.bytes_parsed, address_len,
             byteswap, ws.nested( _Whitespace::FORCE_SINGLELINE ) ) };
-    outputs.bytes_parsed += alignment.pad( address_len );
+    outputs.bytes_parsed += Alignment::pad( address_len );
 
     const uint32_t memb_name_w (
         !ws.multiline ? 0 : ( settings.verbose ?

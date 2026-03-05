@@ -31,7 +31,7 @@ X11ProtocolParser::_parseReply<
     assert( _ordered( encoding->header.reply, byteswap ) ==
             BigReqEnable::Reply::REPLY );
     assert( _ordered( encoding->header.extra_aligned_units, byteswap ) ==
-            alignment.units(
+            Alignment::units(
                 reply.bytes_parsed - ext::requests::Reply::DEFAULT_ENCODING_SZ ) );
     // BIG-REQUESTS is a special case in that it is not considered activated
     //   until the server replies to request BigReqEnable

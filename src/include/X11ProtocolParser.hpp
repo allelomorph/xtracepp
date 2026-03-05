@@ -73,14 +73,12 @@ public:
             reinterpret_cast< const uint8_t* >( &i ) };
         return ( arr[0] == 1 );
     }() };
-
-private:
     /**
      * @brief Calculator for converting raw byte counts to and from [padded]
      *   lengths commonly used in encoding.
      * [padded]: https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Syntactic_Conventions_b
      */
-    class _Alignment {
+    class Alignment {
     private:
         /**
          * @brief Alignment size in bytes.
@@ -116,6 +114,8 @@ private:
             return units * _ALIGN;
         }
     };
+
+private:
     /**
      * @brief Bundles [connection](#Connection) ID and request sequence number
      *   to create unique server-wide ID for any request made.
@@ -816,7 +816,7 @@ private:
         _ParsingOutputs outputs;
         outputs.str += fmt::format( "[{}",
                                     sz == 0 ? "" : ws.separator );
-        while ( alignment.pad( outputs.bytes_parsed ) < sz ) {
+        while ( Alignment::pad( outputs.bytes_parsed ) < sz ) {
             const _ParsingOutputs member {
                 _PARSELISTMEMBER( ProtocolT )(
                     data + outputs.bytes_parsed, sz - outputs.bytes_parsed,
@@ -1653,10 +1653,6 @@ public:
      */
     std::pair< size_t, std::optional< std::string > >
     logServerMessages( Connection* conn );
-    /**
-     * @brief Encoding memory alignment calculator.
-     */
-    static const _Alignment alignment;
     /**
      * @brief User settings imported from [ProxyX11Server](#ProxyX11Server).
      */
