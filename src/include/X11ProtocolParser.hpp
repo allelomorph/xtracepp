@@ -1666,6 +1666,7 @@ public:
     void importFetchedAtoms( const std::vector< std::string >& fetched_atoms );
 };
 
+#ifdef __clang__
 // dtor names are explcitly qualified here to satisfy clang's questionable
 //   interpretation of the standard in `-Wdtor-name`, see:
 //   - https://stackoverflow.com/questions/68751682
@@ -1675,6 +1676,16 @@ X11ProtocolParser::_RequestFixedEncodingBase<
 template< typename T >
 X11ProtocolParser::_RequestFixedEncodingBase<
     T, true >::~_RequestFixedEncodingBase< T, true >() = default;
+#else
+// whereas dtor names are not qualified here to avoid g++
+//   `-Werror=template-id-cdtor` in c++20+ (throws error with earlier versions)
+template< typename T, bool B >
+X11ProtocolParser::_RequestFixedEncodingBase<
+    T, B >::~_RequestFixedEncodingBase() = default;
+template< typename T >
+X11ProtocolParser::_RequestFixedEncodingBase<
+    T, true >::~_RequestFixedEncodingBase() = default;
+#endif
 
 #undef _LESSTHAN
 #undef _PARSELISTMEMBER
