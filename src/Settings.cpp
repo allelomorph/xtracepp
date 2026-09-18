@@ -132,7 +132,7 @@ Options:
     std::unordered_set< std::string_view > disabled_extensions;
     for ( char c ( ::getopt_long( argc, const_cast< char* const* >( argv ),
                                   optstring.data(), longopts.data(), nullptr ) );
-          c != -1;
+          c != char(-1);
           c = ::getopt_long( argc, const_cast< char* const* >( argv ),
                              optstring.data(), longopts.data(), nullptr ) ) {
 
